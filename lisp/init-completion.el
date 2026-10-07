@@ -10,7 +10,7 @@
 ;;   marginalia  annotations next to candidates (file size, docstring, key binding)
 ;;   consult     search and jump commands with live preview (buffers, lines, grep, imenu)
 ;;   embark      actions on the candidate at point (`C-.'); loads embark-consult itself
-;;   corfu       completion popup in buffers, fed by completion-at-point (eglot later)
+;;   corfu       completion popup in buffers on TAB or C-M-i, fed by completion-at-point
 ;;   cape        extra completion sources; here file names
 ;;
 ;; Settings follow the packages' READMEs at the pinned versions.  This module loads
@@ -97,9 +97,10 @@
 
 (use-package corfu
   :init
-  ;; Pop up while typing, like CLion; prefix and delay are corfu's defaults.  Set
-  ;; before the mode, which reads it when it turns on in a buffer.
-  (setq corfu-auto t)
+  ;; No popup while typing (owner, 2026-10-08): completion is asked for with TAB
+  ;; (`tab-always-indent' below) or C-M-i.  Set before the mode, which reads it
+  ;; when it turns on in a buffer.
+  (setq corfu-auto nil)
   (global-corfu-mode)
   (corfu-popupinfo-mode)                ; documentation next to the candidate
   (corfu-history-mode))                 ; recently chosen candidates first

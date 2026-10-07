@@ -72,7 +72,7 @@ The temporary home is deleted when Emacs exits."
                   corfu-popupinfo-mode corfu-history-mode))
     (should (symbol-value mode)))
   (should (equal completion-styles '(orderless basic)))
-  (should corfu-auto)
+  (should-not corfu-auto)                ; on request only (TAB, C-M-i)
   (should (memq 'cape-file (default-value 'completion-at-point-functions)))
   (should (eq xref-show-xrefs-function #'consult-xref))
   (should (eq xref-show-definitions-function #'consult-xref))
