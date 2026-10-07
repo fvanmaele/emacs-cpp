@@ -9,7 +9,18 @@ minutes to hours of CPU and several GB while editing. The unmerged LLVM PR 17520
 23.1.1 load them without re-indexing, are the results the same, and how long does the
 offline run take on RMO? It does not address the per-file parse (DESIGN 11).
 
-## Step 1: build the package (owner)
+## Variant A first: released static index (no build)
+Owner input 2026-10-08 (Reddit, "Making clangd fast for big projects"): clangd's own
+GitHub releases ship `clangd-indexer`. Release 23.1.0 (2026-09-02) has
+`clangd_indexing_tools-linux-23.1.0.zip` (160 MB). It writes one static index file
+(`clangd-indexer --executor=all-TUs build/debug > rmo.dex`), which clangd loads with
+`--index-file=rmo.dex` (or `.clangd` `Index: File:`), usually with the background index
+off (`Index: Background: Skip`). Not live-updated: rerun after changes; clangd's
+dynamic index still covers open files. Merged, prebuilt, no PKGBUILD needed. Format
+compatibility of a 23.1.0 `.dex` with the system clangd 23.1.1 is part of the test.
+The measurement script covers variant A first and variant B (the PR) only if wanted.
+
+## Variant B: build the PR package (owner, optional)
 ```
 cd ~/source/repos/emacs-cpp/spikes/s7-clangd-indexer
 makepkg -si

@@ -283,6 +283,13 @@ Mechanisms, each PROPOSED until measured:
   Arch's clang does not ship `clangd-indexer`. It addresses index build time (first
   start, and every preset switch, since each build directory has its own index), not
   the per-file parse. The patch applies cleanly to 23.1.1; spike S7 builds it.
+  Owner input (Reddit, 2026-10-08): clangd's GitHub releases ship `clangd-indexer`
+  prebuilt (`clangd_indexing_tools-linux-23.1.0.zip`, 2026-09-02); it writes a single
+  static `.dex` for `--index-file` with the background index off, which removed
+  editor stalls on a 745 MB Unreal database by moving indexing out of the session.
+  Same limit: no effect on the per-file parse. Relevant at deal.II scale (D-010), not
+  for RMO (12 sources, index built once and persisted). S7 variant A tests it first.
+  The config never used `clangd-indexer`; clangd's background index runs inside clangd.
 - S6 dry run (synthetic deal.II project, 2026-10-08): ccls first `M-.` 15.9 - 17.0 s
   with an empty cache (refused "not indexed" until the file is indexed), indexing done
   22 s, cache 293 MB; with the cache on disk, a fresh ccls answers empty for the first

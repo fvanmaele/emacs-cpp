@@ -42,10 +42,18 @@
             (lambda (format-string &rest args)
               (when (and (stringp format-string)
                          (string-prefix-p "Error running timer" format-string))
-                (say "TIMER ERROR: %s in timer function %S"
-                     (apply #'format format-string args)
-                     (and (boundp 'timer-event-last) timer-event-last
-                          (timer--function timer-event-last))))))
+                ;; Name the function, but keep the log plain text (closures print
+                ;; as byte code).
+                (let ((function (and (boundp 'timer-event-last) timer-event-last
+                                     (timer--function timer-event-last))))
+                  (say "TIMER ERROR: %s in %s"
+                       (apply #'format format-string args)
+                       (cond ((symbolp function) function)
+                             ((and (byte-code-function-p function)
+                                   (string-match-p "jsonrpc-connection-receive"
+                                                   (prin1-to-string function)))
+                              "a closure calling jsonrpc-connection-receive")
+                             (t "an anonymous function")))))))
 
 (defun visit (file)
   (let ((buffer (find-file-noselect file)))
@@ -58,8 +66,10 @@
 (defun at-library-name (buffer)
   (with-current-buffer buffer
     (goto-char (point-min))
-    (unless (re-search-forward "\\_<dealii::\\([A-Za-z_]+\\)" nil t)
-      (error "no dealii:: name in %s" (buffer-name)))
+    ;; Same pattern as S5 (RMO's main.cc has `using namespace dealii', so its first
+    ;; qualified library name is std::visit), keeping the numbers comparable.
+    (unless (re-search-forward "\\_<\\(?:dealii\\|std\\)::\\([A-Za-z_]+\\)" nil t)
+      (error "no dealii:: or std:: name in %s" (buffer-name)))
     (goto-char (match-beginning 1))
     (match-string 1)))
 (defun timed-definition (buffer &optional limit retry-empty)
@@ -115,7 +125,8 @@ With RETRY-EMPTY, an empty answer is retried the same way."
       (settle 1))
     (cons (ms t0) peak)))
 
-(let* ((emacs-cpp-presets-state-file (expand-file-name "s6-state.eld" (file-name-directory out)))
+(defun run-spike ()
+ (let* ((emacs-cpp-presets-state-file (expand-file-name "s6-state.eld" (file-name-directory out)))
        (main (expand-file-name "src/main.cc" root))
        (header (car (directory-files-recursively (expand-file-name "include" root) "\\.h\\'"))))
   (setq build-dir (emacs-cpp-presets-binary-dir root (emacs-cpp-presets-active root)))
@@ -153,4 +164,10 @@ With RETRY-EMPTY, an empty answer is retried the same way."
     (say "ccls r3 header opened first: %d errors" (error-count hbuffer))
     (let ((def (timed-definition (visit main))))
       (say "ccls r3 first M-. in main.cc after the header: %d ms -> %s" (car def) (cdr def))))
-  (shutdown-all))
+  (shutdown-all)))
+
+;; Any error ends up in the log too, not only on the terminal.
+(condition-case err
+    (run-spike)
+  (error (say "ERROR: %S" err)
+         (signal (car err) (cdr err))))
