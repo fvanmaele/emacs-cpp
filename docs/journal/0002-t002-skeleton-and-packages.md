@@ -64,7 +64,8 @@ quickly, and tests prove the result loads and matches the old setup.
 - **Assumed:** the treemacs, hydra, posframe and projectile files excluded from the
   build are never needed. **Would break if:** the owner uses evil, mu4e, perspective,
   persp-mode or all-the-icons with treemacs. **DESIGN bet:** DESIGN 12.
-- **Risk:** the build script (183 code lines) is past the borg threshold; O-6.
+- **Risk:** the build script (183 code lines) is past the borg threshold; O-6,
+  resolved by the owner the same day: keep it (D-015).
 - **Risk:** Info manuals (magit, projectile) are not built yet; T-010.
 
 ## How to verify
@@ -85,4 +86,4 @@ Then check: no `*Warnings*` buffer about init, same theme, `C-c p p` lists proje
 longer used; delete it only after T-002 is confirmed.
 
 ## Open questions
-O-6 (keep own glue or spike borg) is in the DESIGN ledger.
+None left from this entry; O-6 resolved as D-015.

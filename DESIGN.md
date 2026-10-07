@@ -241,7 +241,9 @@ Mechanisms, each PROPOSED until measured:
 - REJECTED: borg (the tool this layout imitates). It assumes the package repository is
   the Emacs directory itself, which contradicts D-003; reconsider if own glue grows past
   about 100 lines. Measured after T-002: `scripts/build-packages.el` has 183 lines of
-  code (excluding comments and blank lines), past that mark; O-6 asks the owner.
+  code (excluding comments and blank lines), past that mark. Superseded 2026-10-07 by
+  D-015: the own glue stays regardless of size; borg is not revisited unless the glue
+  fails a task.
   REJECTED: straight.el, elpaca, package-vc (owner ruling 2026-10-07).
 - DECIDED D-007 (superseded by D-014): network access happens only when the owner runs
   `git submodule update` or adds a submodule; Emacs makes no network calls at startup.
@@ -287,8 +289,6 @@ presets, GoogleTest runner.
 ## Open questions ledger (LIVING)
 - O-1: compile DB discovery under presets -> S1 run 2 (B, C, D tied in run 1).
 - O-5: cold-header flags (DESIGN 7) -> S1 run 2 live check 6.
-- O-6: own package glue is 183 code lines, past the "about 100" borg threshold of
-  DESIGN 12 -> owner: keep own glue, or spike borg with the repo outside `~/.emacs.d`.
 Resolved:
 - 2026-10-07, owner: LSP + debugger stack = eglot + dape (D-001, D-002); config home =
   this repo symlinked as `~/.emacs.d/init.el` (D-003); keys = Emacs-native + prefix
@@ -300,6 +300,8 @@ Resolved:
 - 2026-10-07, owner after S1 run 1: O-4 CMake files use the system `cmake-mode` (D-013);
   missing `-std` fixed by `CMAKE_CXX_EXTENSIONS OFF` in the project (D-011); Q-4 the
   reference project commits the spike `CMakePresets.json` (D-012).
+- 2026-10-07, owner: O-6 keep the own package build glue (183 code lines, tested)
+  instead of spiking borg (D-015).
 
 ## Decisions ledger (LIVING, append only)
 | id | date | decision (one line) | section | from |
@@ -321,6 +323,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-012 | 2026-10-07 | reference project commits the spike CMakePresets.json | 3 | Q-4 |
 | D-013 | 2026-10-07 | CMake files use the system `cmake-mode` | 8 | O-4 |
 | D-014 | 2026-10-07 | network only on submodule add / update, owner consents | 12 | owner |
+| D-015 | 2026-10-07 | keep own package build glue; borg not revisited by size | 12 | O-6 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
