@@ -396,6 +396,19 @@ presets, GoogleTest runner.
   and correctness on RMO). Not candidates: GNU Global / ctags (not installed; not
   semantic, no template or overload resolution); C++20 modules (the system deal.II
   9.8 is not built with module support).
+- O-9 (owner question 2026-10-08): static index (`clangd-indexer` .dex) for system
+  libraries under `/usr/include`, background index for projects. Possible: clangd
+  config `Index: External: File: <dex>, MountPoint: /usr/include` (absolute mount
+  points only in the user config, which Qt Creator owns and overwrites; a separate
+  config via `XDG_CONFIG_HOME` for our clangd would be needed); `--index-file` is
+  experimental and slated for removal. Does not change the per-file parse or project
+  indexing (each project TU still parses its library headers; their shards are
+  already shared in `~/.cache/clangd/index`, 3783 header shards, 38 MB). Adds library
+  symbols the project does not include yet: workspace-symbol search over all of
+  deal.II / Boost and completion with automatic `#include`. Costs: a synthetic TU per
+  header to index, rerun after library updates, the static index held in clangd's
+  memory from the start (D-021 concern). Not pursued unless the owner wants that
+  feature (would be spike S8).
 - O-7: owner 2026-10-08: after `eglot-rename` answered N, "file not found" errors
   return. Not reproduced (synthetic project: N opens no file, main.cc stays at 0
   diagnostics). Needs the buffer name and its clangd command from the owner.
