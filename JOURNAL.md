@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0004 | 2026-10-07 | T-003: completion stack | T-003 | D-006 |
 | 0003 | 2026-10-07 | S1 run 2: PASS, cold headers open | S1 | D-016 |
 | 0002 | 2026-10-07 | T-002: config skeleton and pinned packages | T-002 | D-006, D-014 |
 | 0001 | 2026-10-07 | S1 run 1: database found, standard missing | S1 | D-011..13 |

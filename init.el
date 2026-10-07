@@ -34,6 +34,7 @@
 
 ;; Module order is the contract (DESIGN 5): a module may only use modules above it.
 (require 'init-ui)
+(require 'init-completion)
 (require 'init-project)
 (require 'init-git)
 (require 'init-writing)

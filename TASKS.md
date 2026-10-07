@@ -13,8 +13,8 @@ with `done when: ...`).
 |----|--------|------|-------|--------|------|
 | T-001 | done 0003 | S | spike S1 | O-1 | PASS (run 2); D-016 |
 | T-009 | done 0003 | S | RMO build fixes | D-011, D-012 | RMO commit 9dc35b7 |
-| T-002 | next | L | skeleton + packages | D-003, D-006 | owner step left; see below |
-| T-003 | open | M | completion stack | Q-3 | see below |
+| T-002 | done 0002 | L | skeleton + packages | D-003, D-006 | owner confirmed 2026-10-07 |
+| T-003 | next | M | completion stack | Q-3 | built; owner check left, see below |
 | T-004 | open | M | eglot + clangd | D-001, S1 | see below |
 | T-008 | open | S | performance baseline | D-010 | see below |
 
@@ -31,11 +31,15 @@ with `done when: ...`).
 - T-003: completion group of DESIGN 12 added as submodules and configured; drop the
   `projectile-consult.el` build-exclude once consult is vendored; done when:
   `C-x b`, `C-c p f`, `consult-ripgrep` show vertico candidates with annotations in the
-  reference project, and corfu pops up eglot completions.
+  reference project, and corfu pops up completions while typing in an Emacs Lisp
+  buffer. (Changed 2026-10-07 from "eglot completions": eglot arrives in T-004, whose
+  done-when now carries that check; consult-eglot moved to T-004.)
 - T-004: eglot on `c++-ts-mode`, clangd given the active preset's build directory
   (D-016), error if the database lacks `-std` (D-011); done when: in the
   reference project `M-.` crosses files, `M-?` lists usages, `eglot-rename` renames
-  across files, and a clang-tidy warning shows in flymake.
+  across files, a clang-tidy warning shows in flymake, and corfu pops up clangd
+  completions while typing; consult-eglot vendored and `consult-eglot-symbols` lists
+  project symbols.
 - T-008: measure DESIGN 11 budgets (`emacs-init-time`, clangd numbers from S1) after
   T-004; done when: numbers are in DESIGN 11 and each tuning setting cites one.
 

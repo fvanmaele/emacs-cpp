@@ -74,7 +74,9 @@ Observed on the owner machine, 2026-10-07:
 - clangd 22.1.8 at the survey, 23.1.1 by the S1 run the same day (rolling release; the
   design must not depend on one clangd version), clang-tidy, clang-format, gcc, clang,
   gdb 17.2, lldb-dap, cmake 4.4.3 (ships `/usr/share/emacs/site-lisp/cmake-mode.el`),
-  ninja, ripgrep, fd, valgrind, rsync, python3. Not installed: bear, cppcheck, GNU time.
+  ninja, fd, valgrind, rsync, python3. Not installed: ripgrep (corrected 2026-10-07:
+  the survey's `which rg` found a shell function, not a binary), bear, cppcheck, GNU
+  time.
 - Tree-sitter: `tree-sitter-cpp` 0.23.4 built and installed by the owner as a pacman
   package; `c++-ts-mode` parses with it (ABI 15, checked 2026-10-07). No C or CMake
   grammar installed.
@@ -123,20 +125,20 @@ Observed on the owner machine, 2026-10-07:
 ## 6. Architecture
 | block | location | tag | notes |
 |---|---|---|---|
-| early init | `early-init.el` | PROTOTYPE | T-002 |
-| init | `init.el` | PROTOTYPE | T-002, replaces `~/.emacs` (D-003) |
-| packages | `lib/<repo>/` submodules | PROTOTYPE | T-002: 17 of 28 (section 12) |
-| package build | `scripts/build-packages.el` | PROTOTYPE | T-002, `make packages` |
-| theme | `lisp/init-ui.el` | PROTOTYPE | T-002 |
-| writing | `lisp/init-writing.el` | PROTOTYPE | T-002: markdown, org-journal |
-| completion UI | `lisp/init-completion.el` | UNVALIDATED | NEW: vertico .. corfu |
-| project, tree | `lisp/init-project.el` | PROTOTYPE | T-002: projectile, treemacs |
+| early init | `early-init.el` | KEEP | T-002, owner-confirmed |
+| init | `init.el` | KEEP | T-002, replaces `~/.emacs` (D-003) |
+| packages | `lib/<repo>/` submodules | KEEP | 24 of 28 after T-003 (section 12) |
+| package build | `scripts/build-packages.el` | KEEP | T-002, `make packages` |
+| theme | `lisp/init-ui.el` | KEEP | T-002 |
+| writing | `lisp/init-writing.el` | KEEP | T-002: markdown, org-journal |
+| completion UI | `lisp/init-completion.el` | PROTOTYPE | T-003: vertico .. cape |
+| project, tree | `lisp/init-project.el` | KEEP | T-002: projectile, treemacs |
 | C++, LSP | `lisp/init-cpp.el` | UNVALIDATED | NEW: eglot, flymake, format |
 | CMake | `lisp/init-cmake.el` | UNVALIDATED | NEW: presets, compile |
 | debugger | `lisp/init-debug.el` | UNVALIDATED | NEW: dape |
-| git | `lisp/init-git.el` | PROTOTYPE | T-002: magit; diff-hl later |
+| git | `lisp/init-git.el` | KEEP | T-002: magit; diff-hl later |
 | keys | `lisp/init-keys.el` | UNVALIDATED | NEW: `C-c l` map (D-004) |
-| tests | `test/*.el`, `make test` | PROTOTYPE | T-002: 11 ERT tests |
+| tests | `test/*.el`, `make test` | KEEP | 13 ERT tests after T-003 |
 Known defects: none yet (nothing built).
 
 ## 7. C++ language server (eglot + clangd)
@@ -199,9 +201,14 @@ Known defects: none yet (nothing built).
 
 ## 11. Performance (Q-2, D-010)
 Budgets, measured on the owner machine (T-008 measures, numbers land here):
-- Startup: `(emacs-init-time)` <= 0.5 s with all packages built (`make packages`).
-  Measured 2026-10-07 after T-002 (17 packages, terminal frame, throwaway HOME with
-  only the two symlinks, 5 runs): 0.21 - 0.30 s.
+- Startup: time from `before-init-time` to the end of `after-init-hook` <= 0.5 s with
+  all packages built. (Supersedes "`(emacs-init-time)` <= 0.5 s", 2026-10-07:
+  `emacs-init-time` stops before `after-init-hook`, where projectile, vertico and corfu
+  turn on, so it understated startup; the 0.21 - 0.30 s reported for T-002 was that
+  understated figure.) Measured at an `--eval` in a terminal frame with a throwaway
+  HOME holding only the two symlinks, 2026-10-07, while an owner simulation ran at
+  about 390 % CPU (load average 8 - 10): T-002 config 0.60 - 0.95 s, T-003 config
+  0.77 - 1.21 s. Not a valid verdict on the budget; T-008 measures on an idle machine.
 - Typing: no perceptible lag in a reference-project `.cc` buffer while clangd builds
   its preamble or background index.
 - clangd: a deal.II translation unit's first parse and RSS are recorded by S1; the
@@ -228,11 +235,14 @@ Mechanisms, each PROPOSED until measured:
   `git revert`. Initial pin: the exact commit of the package.el version installed on
   2026-10-07 (each `*-pkg.el` records it), so behaviour is unchanged by the move.
   (Supersedes "newest release tag", 2026-10-07; for packages new in later tasks:
-  newest release tag, else newest commit.)
+  newest release tag, else newest commit.) T-003 pins: vertico 2.15, orderless 1.8,
+  marginalia 2.13, consult 3.10, embark 1.2, corfu 2.16, cape 2.10; all need
+  `compat` 30 / 31, satisfied by the stub Emacs 31 ships.
 - Per-package build data lives in `.gitmodules` as extra keys read with `git config -f
   .gitmodules`: `load-path` (repeatable, default `.`; e.g. `lisp` for magit,
   `src/elisp` + `src/extra` for treemacs) and `build-exclude` (repeatable; a file that
-  needs a package not vendored, e.g. treemacs-evil, projectile-consult until T-003).
+  needs a package not vendored, e.g. treemacs-evil; projectile-consult was excluded
+  until T-003 vendored consult).
   Unknown keys, missing directories and excludes naming absent files are build errors.
   Every submodule has `ignore = untracked`, so the built `.elc` files do not show as
   changes.
@@ -258,8 +268,8 @@ Mechanisms, each PROPOSED until measured:
 - Package set (Q-3 accepted 2026-10-07; dependencies from the 2026-09-14 archive
   snapshot). Built into Emacs 31 and not vendored: eglot, jsonrpc, project, flymake,
   transient, compat, seq, cl-lib, org, which-key. Vendored, 28 repositories:
-  - completion: vertico, orderless, marginalia, consult, consult-eglot, embark (holds
-    embark-consult), corfu, cape.
+  - completion: vertico, orderless, marginalia, consult, embark (holds embark-consult),
+    corfu, cape (vendored by T-003); consult-eglot (T-004, needs eglot configured).
   - IDE: dape, diff-hl, breadcrumb.
   - project + tree: projectile, treemacs (holds treemacs-projectile), and its
     dependencies dash, s, ace-window, avy, pfuture, hydra (holds lv), ht, cfrs,
