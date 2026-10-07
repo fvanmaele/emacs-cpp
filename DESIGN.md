@@ -407,6 +407,19 @@ presets, GoogleTest runner.
   with assertions off (upstream release builds define NDEBUG; the miscount then goes
   unnoticed), automatic restart with a visible warning, upstream report, or back to
   clangd. T-013 waits on branch `t013-ccls-hybrid`; main keeps clangd.
+  Owner pointer: ccls issue #197 (2019, same assertion at query.cc:244), fixed then by
+  the maintainer (a by-reference loop over `symbol2refcnt`); a further report in
+  Dec 2019; ours is in the 2025 release, so likely a remaining cause. Measured
+  2026-10-08 (ccls tests of T-013, 15 runs each): default indexer threads 6 failed
+  runs and 12 aborts; `index.threads` 1: 0 failed runs, 0 aborts. A race between
+  indexer threads; one thread is a workaround, cost: slower first indexing (not yet
+  measured on RMO; 110 s with all cores in S6).
+- O-11 (OPEN, owner question 2026-10-08): clangd answering navigation from its index
+  while the file is not parsed yet. Findings in `RESEARCH_clangd_index_navigation.md`:
+  the per-file shards already hold every reference with its position and a content
+  digest; missing are a by-position lookup, a validity check against the digest and a
+  fast path in `ClangdServer::locateSymbolAt` / `findReferences` (precedent:
+  `--completion-parse`). An upstream change, a few hundred lines plus tests.
 - O-8 (RESOLVED 2026-10-08, D-023): ccls instead of clangd, clangd, or a hybrid. S6 on RMO:
   ccls answers `M-.` 1.2 s after start from its on-disk index (clangd: 10.5 s per
   file), headers opened first are clean (O-5), memory 0.7 - 0.9 GB; first indexing per
