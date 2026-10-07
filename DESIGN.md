@@ -263,6 +263,14 @@ Mechanisms, each PROPOSED until measured:
   index, load 10 - 24): first `M-.` 10885 ms without, 1109 ms after a 39.7 s warm-up of
   all 10 sources; clangd 4.8 GB vs 9.6 GB (about 0.5 GB per extra source). FAIL against
   the 0.5 s criterion; run 2 measures with a persisted index and a 3-source variant.
+- Memory levers (owner question 2026-10-08): clangd's `-j` sets how many files are
+  parsed at once, by the background indexer as well, so it bounds indexing memory
+  ("batches"); default is the machine's core count (exact default to be read from the
+  clangd 23 source, not shown by `--help`). A parsed file's preamble is freed when the
+  file is closed in clangd (buffer killed), so batching a warm-up frees its own
+  benefit. After indexing, clangd keeps only the compact in-memory index and returns
+  freed memory to the system (`--malloc-trim`, on by default on Linux); S5 run 2
+  round 2 shows the size with a persisted index.
 - Not a lever (owner question 2026-10-08): the background index (clangd design
   "indexing") is already on and persisted; it answers where a symbol is defined or
   used, but which symbol is under point needs the file's own parse. Static or remote
@@ -359,6 +367,17 @@ presets, GoogleTest runner.
 ## Open questions ledger (LIVING)
 - O-5: cold-header flags (DESIGN 7) -> S4; S5 observes whether warm-up fixes them.
 - Q-5 (OPEN): how much RAM may clangd use while simulations run (S5, T-012)?
+- Q-6 (OPEN): run Emacs as a long-lived server (`/usr/lib/systemd/user/emacs.service`,
+  shipped with Arch's emacs, currently disabled), so clangd and its parsed files
+  survive closing and reopening frames? Preambles cannot be saved to disk by clangd,
+  but they live as long as the clangd process.
+- O-8: alternatives to clangd if S5 cannot meet the budget. Candidate: ccls
+  (extra/ccls 0.20250815, built on the system clang), which keeps a per-file index with
+  token positions on disk (`.ccls-cache`) and can answer `M-.` from it without parsing
+  the open file again. Not adopted without a spike (S6: first `M-.`, memory, cache size
+  and correctness on RMO). Not candidates: GNU Global / ctags (not installed; not
+  semantic, no template or overload resolution); C++20 modules (the system deal.II
+  9.8 is not built with module support).
 - O-7: owner 2026-10-08: after `eglot-rename` answered N, "file not found" errors
   return. Not reproduced (synthetic project: N opens no file, main.cc stays at 0
   diagnostics). Needs the buffer name and its clangd command from the owner.
