@@ -20,6 +20,11 @@ code is written for it. Each spike is a self-contained directory with its own bu
   Decides DESIGN 7 (O-1).
 
 ## Later spikes (each gates its feature)
+- **S4 cold-header flags** - which mechanism gives a header opened first (no including
+  file open) the flags of a translation unit that includes it: (a) header entries added
+  to a generated database from `ninja -t deps` after a build, (b) Emacs opens an
+  including source file in the background, (c) accept and document. Gates T-011
+  (DESIGN 7, O-5).
 - **S2 dape gdb launch** - can dape start `gdb -i dap` on a preset-built debug binary,
   stop at a source breakpoint, step, and show locals / stack? Gates v0.3 (DESIGN 9).
 - **S3 treesit grammars** - DROPPED 2026-10-07: the owner installed `tree-sitter-cpp`
@@ -28,5 +33,6 @@ code is written for it. Each spike is a self-contained directory with its own bu
 ## Status
 | Spike | Status | RESULTS |
 |---|---|---|
-| S1 | run 1 FAIL, run 2 pending owner | s1-compile-db/RESULTS.md |
+| S1 | PASS (run 2) | s1-compile-db/RESULTS.md |
+| S4 | not started | |
 | S2 | not started | |

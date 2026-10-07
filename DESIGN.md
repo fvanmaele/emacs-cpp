@@ -146,7 +146,11 @@ Known defects: none yet (nothing built).
   --malloc-trim -j=8 --query-driver=/usr/bin/c++,/usr/bin/g++,/usr/bin/clang++`
   (query-driver so gcc's system headers resolve; deal.II is built with `/usr/bin/c++`).
   Each flag is kept only if S1 or a section 11 measurement backs it.
-- UNDECIDED (S1, O-1): how clangd finds `compile_commands.json` when presets build into
+- DECIDED D-016 (S1 PASS, owner 2026-10-07): eglot starts clangd with
+  `--compile-commands-dir=<binaryDir of the active preset>`; switching the preset
+  restarts the server with the new directory. Nothing is written into project trees.
+  How Emacs knows the active preset and its binaryDir is part of T-004 / T-005.
+- Background (S1, O-1): how clangd finds `compile_commands.json` when presets build into
   `build/<preset>/`; clangd only searches parent directories and their `build/` subdir.
   Candidates: (B) project `.clangd` with `CompileFlags: CompilationDatabase:`, (C)
   symlink in the project root, (D) `--compile-commands-dir` passed by Emacs from the
@@ -159,10 +163,11 @@ Known defects: none yet (nothing built).
   `-std=c++NN`. PROPOSED for T-004: when eglot starts for a project, Emacs signals an
   error if the database has entries without `-std=` (fail loudly instead of false
   diagnostics).
-- UNDECIDED (S1 run 2, live check 6): headers are not in the database; a header opened
-  with no including file open gets flags interpolated from a "nearest" entry (in RMO
-  `fmt/src/format.cc`, wrong include paths). Size of the problem in a running clangd is
-  measured by run 2; mitigation, if needed, becomes its own task.
+- UNDECIDED (S4, O-5): headers are not in the database; a header opened with no
+  including file open gets flags interpolated from a "nearest" entry (in RMO
+  `fmt/src/format.cc`, wrong include paths). S1 live check: once an including `.cc` is
+  open, clangd reuses its flags and the header is clean; opened first, it shows errors.
+  Mitigation candidates and their spike: S4, gating T-011.
 - DECIDED D-008: C++ major mode is `c++-ts-mode` on the system grammar; `.h` files open
   in `c++-ts-mode` (the owner's projects are C++, and no C grammar is installed). A
   missing grammar is a startup error, not a fallback to `c++-mode`.
@@ -279,6 +284,7 @@ presets, GoogleTest runner.
 |---|---|---|---|
 | clangd misses compile DB under preset `binaryDir` | S1 | owner | v0.1 |
 | dape + `gdb -i dap` fails on a preset-built binary | S2 | owner | v0.3 |
+| header opened first gets wrong flags (false errors) | S4 | owner | T-011 |
 | own package build glue mis-orders compilation | none (tests) | - | v0.1 |
 | clangd too slow / too large on deal.II scale | S1 numbers | owner | v0.1 |
 
@@ -287,8 +293,7 @@ presets, GoogleTest runner.
   clangd 22 (fills the (R) rows of section 1). After v0.1.
 
 ## Open questions ledger (LIVING)
-- O-1: compile DB discovery under presets -> S1 run 2 (B, C, D tied in run 1).
-- O-5: cold-header flags (DESIGN 7) -> S1 run 2 live check 6.
+- O-5: cold-header flags (DESIGN 7) -> S4.
 Resolved:
 - 2026-10-07, owner: LSP + debugger stack = eglot + dape (D-001, D-002); config home =
   this repo symlinked as `~/.emacs.d/init.el` (D-003); keys = Emacs-native + prefix
@@ -300,6 +305,7 @@ Resolved:
 - 2026-10-07, owner after S1 run 1: O-4 CMake files use the system `cmake-mode` (D-013);
   missing `-std` fixed by `CMAKE_CXX_EXTENSIONS OFF` in the project (D-011); Q-4 the
   reference project commits the spike `CMakePresets.json` (D-012).
+- 2026-10-07, owner after S1 PASS: O-1 Emacs passes `--compile-commands-dir` (D-016).
 - 2026-10-07, owner: O-6 keep the own package build glue (183 code lines, tested)
   instead of spiking borg (D-015).
 
@@ -324,6 +330,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-013 | 2026-10-07 | CMake files use the system `cmake-mode` | 8 | O-4 |
 | D-014 | 2026-10-07 | network only on submodule add / update, owner consents | 12 | owner |
 | D-015 | 2026-10-07 | keep own package build glue; borg not revisited by size | 12 | O-6 |
+| D-016 | 2026-10-07 | eglot passes clangd the active preset's build dir | 7 | S1, O-1 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.

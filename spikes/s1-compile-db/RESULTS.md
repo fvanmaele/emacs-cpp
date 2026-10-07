@@ -1,9 +1,9 @@
 # S1 - compile-db discovery: results
 
-Verdict: FAIL (run 1, 2026-10-07). Pass criteria not met: every variant that found the
-database still reported errors (main.cc 12, header 39). Both causes are found and fixed
-outside this repo (below); run 2 decides the final verdict. Run 2 (below): script part
-meets the criteria; verdict waits for the owner's live-check answers.
+Verdict: PASS (run 2, 2026-10-07). B, C and D load the database and give 0 real
+diagnostics for `src/main.cc`; the owner's live check answered yes to items 1-5. Item 6
+(cold header) shows errors: recorded, not judged, and carried forward as spike S4.
+Run 1 (FAIL) is kept below for its findings.
 
 ## Environment
 Owner machine, 2026-10-07. clangd 23.1.1 (upgraded from 22.1.8 since the DESIGN 3
@@ -47,6 +47,8 @@ Header `include/rmo/fe/assemble.h`: all variants 1 not found, 39 errors, about 7
 - Owner ruling 2026-10-07: RMO sets `CMAKE_CXX_EXTENSIONS OFF` in CMakeLists.txt
   (D-011) and commits the spike `CMakePresets.json` (Q-4, D-012).
 - O-1 stays open until run 2; if B, C, D stay equivalent, the RUN.md rule picks D.
+- After run 2 (owner, 2026-10-07): D, Emacs passes `--compile-commands-dir` with the
+  active preset's binary directory (D-016).
 
 ## Run 2 (2026-10-07, after RMO commit 9dc35b7)
 Raw output: `results-run2.log`. The project's own `CMakePresets.json` was used and all
@@ -63,6 +65,12 @@ Raw output: `results-run2.log`. The project's own `CMakePresets.json` was used a
   fallback skipped. This is the real number for D-010.
 - The cold header still takes flags from `fmt/src/format.cc` (O-5); live checks 5 and 6
   decide whether a running clangd does better.
+- Owner live check (run 2 copy, `C-symlink` setup, built-in eglot with default clangd
+  arguments): 1 `M-.` to a project header yes; 2 `M-?` across files yes; 3 `M-.` into
+  `/usr/include/deal.II/` yes; 4 no "file not found" in main.cc yes; 5 warm header (via
+  `M-.` from main.cc) clean yes; 6 cold header (opened first in a fresh Emacs) shows
+  flymake errors. So a running clangd fixes headers only once an including file is
+  open; a header opened first is wrong.
 
 ## Gotchas
 - clangd counts failed refactoring self-tests (`tweak: ... FAIL`) in its error total;
@@ -71,4 +79,5 @@ Raw output: `results-run2.log`. The project's own `CMakePresets.json` was used a
 
 ## Follow-ups folded elsewhere
 DESIGN 3 (clangd 23.1.1), DESIGN 7 (explicit standard requirement, header risk),
-D-011, D-012, TASKS T-001 (run 2), T-009 (owner changes in RMO).
+D-011, D-012, D-016, TASKS T-001 and T-009 (done 0003), T-011 + spike S4 (cold
+headers), JOURNAL 0003.

@@ -10,9 +10,9 @@ An Emacs 31 configuration giving the owner a CLion-like C++ environment (navigat
 refactoring, diagnostics, CMake presets, debugger, git, jump-to-anything) on one Arch
 Linux workstation. It will never be an Emacs distribution, a multi-OS config or a CLion
 keymap emulation (DESIGN 2).
-**Status (2026-10-07):** design ruled through D-014. T-002 built (17 pinned submodules,
-`make packages`, `make test` 11/11) and waits for the owner's switch-over. S1 run 2 is
-clean for `.cc` files; its verdict waits for the owner's live check (O-1, O-5).
+**Status (2026-10-07):** design ruled through D-016. S1 PASS (Emacs passes clangd the
+preset build dir). T-002 built, waits for the owner's switch-over. Next: T-003
+completion, then T-004 eglot; cold headers (O-5) need spike S4 before T-011.
 
 ## Hard rules (each with its reason)
 - Change-size ladder: tier 1 trivial = commit with Reasoning only; tier 2 feature = `done
