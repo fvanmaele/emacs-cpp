@@ -11,9 +11,9 @@ refactoring, diagnostics, CMake presets, debugger, git, jump-to-anything) on one
 Linux workstation. It will never be an Emacs distribution, a multi-OS config or a CLion
 keymap emulation (DESIGN 2).
 **Status (2026-10-08):** design ruled through D-020. T-002, T-003 done; T-004 built and
-fixed, owner checks left. First `M-.` / rename per file waits 7 - 13 s (clangd
-preamble; no clangd option helps); spike S5 (warm-up) ready for the owner. O-7
-(rename + N brings errors back) not reproduced. Cold headers (O-5): S4.
+fixed, owner checks left. Spike S5 (preamble warm-up) run 1 FAIL but tenfold faster
+(10.9 s -> 1.1 s first `M-.`, 4.8 -> 9.6 GB); run 2 and an owner RAM budget (Q-5) decide
+T-012. O-7 (rename + N) not reproduced. Cold headers (O-5): S4.
 
 ## Hard rules (each with its reason)
 - Change-size ladder: tier 1 trivial = commit with Reasoning only; tier 2 feature = `done

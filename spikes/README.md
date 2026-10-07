@@ -38,5 +38,5 @@ code is written for it. Each spike is a self-contained directory with its own bu
 |---|---|---|
 | S1 | PASS (run 2) | s1-compile-db/RESULTS.md |
 | S4 | not started | |
-| S5 | ready, owner to run | |
+| S5 | run 1 FAIL, run 2 pending owner | s5-preamble-warmup/RESULTS.md |
 | S2 | not started | |

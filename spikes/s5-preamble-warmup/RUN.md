@@ -23,6 +23,12 @@ sh spikes/s5-preamble-warmup/run.sh ~/source/repos/RMO-gross-pitaevskii
 ```
 Takes a few minutes.
 
+## Run 2 (after run 1, see RESULTS.md)
+Same command. Each scenario now runs twice: round 1 on the fresh copy (index empty),
+round 2 with the index clangd persisted in round 1 (daily use). Scenario C warms only
+`src/main.cc` and two more sources. If you can, run it while no simulation uses the
+CPU, and name the RAM clangd may use alongside your simulations.
+
 ## What it measures
 - A (today): only `src/main.cc` opened; time of the first `M-.` on a `dealii::` name,
   clangd memory; then a header under `include/` opened, its "not found" errors counted.

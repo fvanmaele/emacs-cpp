@@ -1,0 +1,12 @@
+# S5 run 2026-10-08T00:22:31+02:00 on copy of /home/alad/source/repos/RMO-gross-pitaevskii
+clangd: clangd version 23.1.1
+load: 10.76 12.02 10.80  free: 17 GB available
+sources: 10 (fmt excluded); main: src/main.cc; header: include/rmo/fe/assemble.h
+A cold   first M-. in main.cc: 10885 ms, clangd 4810 MB
+A        header opened after main.cc: 0 'not found'
+B warm-up of 10 sources: 39682 ms, clangd 9612 MB
+B warm   first M-. in main.cc: 1109 ms
+B        header opened after warm-up: 0 'not found'
+load after: 23.94 15.73 12.17
+# Restored 2026-10-08 from the owner's pasted copy: the original file was overwritten
+# by a dry run of the run 2 script before it was renamed (see RESULTS.md).

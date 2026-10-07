@@ -259,7 +259,16 @@ Mechanisms, each PROPOSED until measured:
   deal.II and 2938 Boost headers among them). What remains is the per-file parse;
   spike S5 measures opening project sources ahead of time (CLion's approach), gating
   T-012. Synthetic dry run of S5: first `M-.` 7596 ms without, 1 ms after a 7.3 s
-  warm-up of both files; clangd 1.2 GB vs 1.7 GB.
+  warm-up of both files; clangd 1.2 GB vs 1.7 GB. S5 run 1 on RMO (2026-10-08, empty
+  index, load 10 - 24): first `M-.` 10885 ms without, 1109 ms after a 39.7 s warm-up of
+  all 10 sources; clangd 4.8 GB vs 9.6 GB (about 0.5 GB per extra source). FAIL against
+  the 0.5 s criterion; run 2 measures with a persisted index and a 3-source variant.
+- Not a lever (owner question 2026-10-08): the background index (clangd design
+  "indexing") is already on and persisted; it answers where a symbol is defined or
+  used, but which symbol is under point needs the file's own parse. Static or remote
+  indexes (`--index-file`, remote) serve the same cross-file queries. Source files are
+  already in `compile_commands.json`; adding headers (S4 option a) addresses O-5, not
+  this latency.
 - `M-.` latency (2026-10-08, synthetic deal.II + Boost file, batch, idle clangd): the
   first request after opening the file waits for clangd's preamble, 6978 ms; later
   requests 1 - 2 ms; opening the target header in Emacs 150 - 190 ms (5000 lines).
@@ -349,6 +358,7 @@ presets, GoogleTest runner.
 
 ## Open questions ledger (LIVING)
 - O-5: cold-header flags (DESIGN 7) -> S4; S5 observes whether warm-up fixes them.
+- Q-5 (OPEN): how much RAM may clangd use while simulations run (S5, T-012)?
 - O-7: owner 2026-10-08: after `eglot-rename` answered N, "file not found" errors
   return. Not reproduced (synthetic project: N opens no file, main.cc stays at 0
   diagnostics). Needs the buffer name and its clangd command from the owner.

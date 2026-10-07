@@ -8,7 +8,8 @@ SRC=${1:-$HOME/source/repos/RMO-gross-pitaevskii}
 WORK=${S5_WORK:-/tmp/s5/work/rmo}
 HERE=$(cd "$(dirname "$0")" && pwd)
 REPO=$(cd "$HERE/../.." && pwd)
-LOG=$HERE/results.log
+LOG=${S5_LOG:-$HERE/results.log}
+[ -e "$LOG" ] && { echo "s5: $LOG exists; move it away first" >&2; exit 1; }
 [ -d "$SRC" ] || { echo "s5: no project at $SRC" >&2; exit 1; }
 [ -e "$WORK" ] && { echo "s5: $WORK exists; remove it first" >&2; exit 1; }
 mkdir -p "$(dirname "$WORK")"
