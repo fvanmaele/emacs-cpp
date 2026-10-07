@@ -247,6 +247,19 @@ Mechanisms, each PROPOSED until measured:
 - Everything deferred (`use-package-always-defer` t) except the completion UI and theme.
 - `gc-cons-threshold` raised in `early-init.el`, restored to a moderate value after
   startup; `read-process-output-max` 4 MB (large LSP replies).
+- clangd options vs latency (2026-10-08, synthetic two-file deal.II + Boost project,
+  batch, load average 14 - 16 from an owner simulation; cold / warm index). First
+  `M-.`: defaults 7.2 / 8.2 s, `--pch-storage=memory` 13.3 / 10.0 s, `-j=4` with
+  idle-priority index 7.1 / 6.9 s. Later `M-.` 1 - 3 ms, after an edit 150 - 330 ms,
+  rename 2 - 69 ms, first `M-.` in a second file 7.0 - 12.3 s, clangd RSS 1.8 - 2.7 GB,
+  in every variant. No option shortens the per-file preamble wait, so none is adopted
+  (principle 7). `/tmp` is tmpfs, so `--pch-storage=disk` already keeps preambles in
+  RAM; `--async-preamble` is obsolete in clangd 23. The background index already covers
+  library headers and persists (RMO: 3947 shards in `build/debug/.cache/clangd/index`,
+  deal.II and 2938 Boost headers among them). What remains is the per-file parse;
+  spike S5 measures opening project sources ahead of time (CLion's approach), gating
+  T-012. Synthetic dry run of S5: first `M-.` 7596 ms without, 1 ms after a 7.3 s
+  warm-up of both files; clangd 1.2 GB vs 1.7 GB.
 - `M-.` latency (2026-10-08, synthetic deal.II + Boost file, batch, idle clangd): the
   first request after opening the file waits for clangd's preamble, 6978 ms; later
   requests 1 - 2 ms; opening the target header in Emacs 150 - 190 ms (5000 lines).
@@ -326,6 +339,7 @@ presets, GoogleTest runner.
 | clangd misses compile DB under preset `binaryDir` | S1 | owner | v0.1 |
 | dape + `gdb -i dap` fails on a preset-built binary | S2 | owner | v0.3 |
 | header opened first gets wrong flags (false errors) | S4 | owner | T-011 |
+| first `M-.` / rename per file waits 7 - 13 s | S5 | owner | T-012 |
 | own package build glue mis-orders compilation | none (tests) | - | v0.1 |
 | clangd too slow / too large on deal.II scale | S1 numbers | owner | v0.1 |
 
@@ -334,7 +348,10 @@ presets, GoogleTest runner.
   clangd 22 (fills the (R) rows of section 1). After v0.1.
 
 ## Open questions ledger (LIVING)
-- O-5: cold-header flags (DESIGN 7) -> S4.
+- O-5: cold-header flags (DESIGN 7) -> S4; S5 observes whether warm-up fixes them.
+- O-7: owner 2026-10-08: after `eglot-rename` answered N, "file not found" errors
+  return. Not reproduced (synthetic project: N opens no file, main.cc stays at 0
+  diagnostics). Needs the buffer name and its clangd command from the owner.
 Resolved:
 - 2026-10-07, owner: LSP + debugger stack = eglot + dape (D-001, D-002); config home =
   this repo symlinked as `~/.emacs.d/init.el` (D-003); keys = Emacs-native + prefix

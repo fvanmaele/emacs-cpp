@@ -55,6 +55,10 @@ with `done when: ...`).
 |       |      |   | (`C-c l P` exists since T-004) | | |
 | T-010 | open | S | Info manuals | DESIGN 12 | done when: `C-h i` lists magit, projectile |
 | T-011 | open | M | cold-header flags | O-5, S4 | done when: S4 applied, see below |
+| T-012 | open | M | preamble warm-up | S5 | done when: S5 PASS applied, see below |
 
+- T-012: if S5 passes, open the project's sources in the background when eglot starts
+  for a project (memory budget from S5); done when: in a fresh Emacs on RMO, the first
+  `M-.` in a source opened after the warm-up answers in under 0.5 s.
 - T-011: after spike S4, apply its mechanism; done when: in a fresh Emacs, opening
   `include/rmo/fe/assemble.h` first shows no flymake errors (S1 live check 6 passes).

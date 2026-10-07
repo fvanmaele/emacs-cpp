@@ -20,6 +20,9 @@ code is written for it. Each spike is a self-contained directory with its own bu
   Decides DESIGN 7 (O-1).
 
 ## Later spikes (each gates its feature)
+- **S5 preamble warm-up** - does opening every project source in the background when
+  eglot starts make the first `M-.` instant, and at what memory and time cost on RMO?
+  Also observes cold headers (O-5). Gates T-012 (DESIGN 11).
 - **S4 cold-header flags** - which mechanism gives a header opened first (no including
   file open) the flags of a translation unit that includes it: (a) header entries added
   to a generated database from `ninja -t deps` after a build, (b) Emacs opens an
@@ -35,4 +38,5 @@ code is written for it. Each spike is a self-contained directory with its own bu
 |---|---|---|
 | S1 | PASS (run 2) | s1-compile-db/RESULTS.md |
 | S4 | not started | |
+| S5 | ready, owner to run | |
 | S2 | not started | |

@@ -10,10 +10,10 @@ An Emacs 31 configuration giving the owner a CLion-like C++ environment (navigat
 refactoring, diagnostics, CMake presets, debugger, git, jump-to-anything) on one Arch
 Linux workstation. It will never be an Emacs distribution, a multi-OS config or a CLion
 keymap emulation (DESIGN 2).
-**Status (2026-10-08):** design ruled through D-020. T-002, T-003 done. T-004 built and
-fixed after the owner's check (library headers via xref, eglot only for preset
-projects, completion on request); `make test` 22/22. Left: RMO `.clang-tidy`, rename
-check. Cold headers (O-5) need spike S4 before T-011.
+**Status (2026-10-08):** design ruled through D-020. T-002, T-003 done; T-004 built and
+fixed, owner checks left. First `M-.` / rename per file waits 7 - 13 s (clangd
+preamble; no clangd option helps); spike S5 (warm-up) ready for the owner. O-7
+(rename + N brings errors back) not reproduced. Cold headers (O-5): S4.
 
 ## Hard rules (each with its reason)
 - Change-size ladder: tier 1 trivial = commit with Reasoning only; tier 2 feature = `done
