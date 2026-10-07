@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0006 | 2026-10-08 | T-004 fixes: library headers, completion | T-004 | D-019, D-020 |
 | 0005 | 2026-10-07 | T-004: eglot + clangd from the active preset | T-004 | D-016..18 |
 | 0004 | 2026-10-07 | T-003: completion stack | T-003 | D-006 |
 | 0003 | 2026-10-07 | S1 run 2: PASS, cold headers open | S1 | D-016 |

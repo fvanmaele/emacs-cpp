@@ -215,12 +215,27 @@ refusal visible (D-018)."
          (database (expand-file-name "compile_commands.json" dir)))
     (unless (file-exists-p database)
       (emacs-cpp-presets--refuse
-       "emacs-cpp: no %s for preset %S; run `cmake --preset %s' in %s"
+       "emacs-cpp: no %s for preset %S; run `cmake --preset %s' in %s, then M-x eglot"
        database name name root))
     (condition-case err
         (emacs-cpp-presets-check-database database)
       (user-error (emacs-cpp-presets--refuse "%s" (error-message-string err))))
     (list "clangd" (concat "--compile-commands-dir=" dir))))
+
+;;;; Starting eglot
+
+(defun emacs-cpp-presets-eglot-ensure ()
+  "Start eglot for the current C++ buffer if its project has CMake presets.
+For `c++-ts-mode-hook'.  A file in a project without CMakePresets.json gets
+an echo-area note instead (D-005).  A file in no project, such as a library
+header opened directly, gets no language server and no note; library headers
+reached with `M-.' join the project's server through `eglot-extend-to-xref'."
+  (when-let* ((project (project-current)))
+    (let ((root (expand-file-name (project-root project))))
+      (if (file-exists-p (expand-file-name "CMakePresets.json" root))
+          (eglot-ensure)
+        (message "emacs-cpp: no CMakePresets.json in %s; eglot not started (D-005)"
+                 root)))))
 
 ;;;; Switching
 

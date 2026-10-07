@@ -19,8 +19,10 @@
 ;; .h is C++ in the owner's projects, and no C grammar is installed (D-008).
 (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-ts-mode))
 
+;; Only files of preset projects start eglot (D-005, D-019).
+(add-hook 'c++-ts-mode-hook #'emacs-cpp-presets-eglot-ensure)
+
 (use-package eglot
-  :hook (c++-ts-mode . eglot-ensure)
   :config
   ;; Ahead of eglot's own clangd entry, which starts clangd without a database.
   (add-to-list 'eglot-server-programs
@@ -28,7 +30,10 @@
   ;; No JSON event log (the eglot manual's first performance advice); shut clangd
   ;; down when its last buffer closes.
   (setq eglot-events-buffer-config '(:size 0 :format full)
-        eglot-autoshutdown t))
+        eglot-autoshutdown t
+        ;; Library headers reached with M-. (deal.II, Boost) join the project's
+        ;; clangd, so M-. keeps working inside them (D-019).
+        eglot-extend-to-xref t))
 
 (use-package consult-eglot
   :after (consult eglot))

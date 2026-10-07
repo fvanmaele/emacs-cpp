@@ -15,7 +15,7 @@ with `done when: ...`).
 | T-009 | done 0003 | S | RMO build fixes | D-011, D-012 | RMO commit 9dc35b7 |
 | T-002 | done 0002 | L | skeleton + packages | D-003, D-006 | owner confirmed 2026-10-07 |
 | T-003 | done 0004 | M | completion stack | Q-3 | owner confirmed 2026-10-07 |
-| T-004 | next | M | eglot + clangd | D-001, S1 | built; owner check left, see below |
+| T-004 | next | M | eglot + clangd | D-001, S1 | 2026-10-08 fixes; owner check left |
 | T-008 | open | S | performance baseline | D-010 | see below |
 
 - T-009 (owner, in RMO): `CMAKE_CXX_EXTENSIONS OFF`, commit `CMakePresets.json`, ignore
@@ -37,9 +37,12 @@ with `done when: ...`).
 - T-004: eglot on `c++-ts-mode`, clangd given the active preset's build directory
   (D-016), error if the database lacks `-std` (D-011); done when: in the
   reference project `M-.` crosses files, `M-?` lists usages, `eglot-rename` renames
-  across files, a clang-tidy warning shows in flymake, and corfu pops up clangd
-  completions while typing; consult-eglot vendored and `consult-eglot-symbols` lists
-  project symbols.
+  across files, a clang-tidy warning shows in flymake, and corfu shows clangd
+  completions (on TAB / C-M-i since D-020); consult-eglot vendored and
+  `consult-eglot-symbols` lists project symbols. Owner check 2026-10-08: usages,
+  completion, consult-eglot-symbols, M-. into libraries OK; M-. inside library headers
+  and auto-start fixed by D-019; clang-tidy waits for an RMO `.clang-tidy`; rename
+  not yet reported.
 - T-008: measure DESIGN 11 budgets (`emacs-init-time`, clangd numbers from S1) after
   T-004; done when: numbers are in DESIGN 11 and each tuning setting cites one.
 

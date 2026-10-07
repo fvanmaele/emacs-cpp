@@ -35,7 +35,8 @@ Format: CLion feature -> Emacs component. Gap vs CLion. Status.
 - Static analysis, quick fixes -> flymake + clangd diagnostics + clang-tidy
   (`--clang-tidy`, project `.clang-tidy`); fixes via `eglot-code-actions`. Gap: no CLion
   data-flow analysis; clang-tidy `clang-analyzer-*` covers part (R). PROPOSED.
-- Code completion -> corfu + eglot completion-at-point. Gap: none. PROPOSED.
+- Code completion -> corfu + eglot completion-at-point, on request with TAB or `C-M-i`
+  (D-020). Gap: none. DECIDED.
 - Inlay / parameter hints -> `eglot-inlay-hints-mode`. Gap: none. PROPOSED.
 - Reformat -> `eglot-format-buffer` (clangd reads `.clang-format`). Gap: none. PROPOSED.
 - Switch header / source -> `projectile-find-other-file`. Gap: name-based, not
@@ -160,6 +161,13 @@ Known defects: none yet (nothing built).
   Implemented in `lisp/emacs-cpp-presets.el` (T-004): `inherits` resolved as CMake does
   (earlier parent wins, `hidden` not inherited), the documented path macros expanded,
   `include` and `$vendor{}` rejected as unsupported.
+- DECIDED D-019 (2026-10-08): eglot starts only for C++ files of a project with
+  CMakePresets.json (`emacs-cpp-presets-eglot-ensure` on `c++-ts-mode-hook`); a project
+  without presets gets an echo-area note, a file in no project gets nothing. Library
+  headers reached with `M-.` (deal.II, Boost, the standard library) join the project's
+  clangd through `eglot-extend-to-xref`, so `M-.` keeps working inside them. Before:
+  such a header tried to start its own server, was refused by D-018, and had no xref
+  backend (owner report 2026-10-08).
 - DECIDED D-018: eglot is refused, with an error-level warning naming the fix, when the
   active preset's `compile_commands.json` is missing (`cmake --preset <name>`) or an
   entry lacks `-std=` (D-011). Before T-004, eglot started a bare clangd: 21 false
@@ -239,6 +247,11 @@ Mechanisms, each PROPOSED until measured:
 - Everything deferred (`use-package-always-defer` t) except the completion UI and theme.
 - `gc-cons-threshold` raised in `early-init.el`, restored to a moderate value after
   startup; `read-process-output-max` 4 MB (large LSP replies).
+- `M-.` latency (2026-10-08, synthetic deal.II + Boost file, batch, idle clangd): the
+  first request after opening the file waits for clangd's preamble, 6978 ms; later
+  requests 1 - 2 ms; opening the target header in Emacs 150 - 190 ms (5000 lines).
+  Risk for T-008: jsonrpc's request timeout is 10 s, and RMO's main.cc preamble took
+  13.4 s in S1, so a first `M-.` right after opening may time out.
 - eglot: `eglot-events-buffer-config` size 0 (no JSON logging; the eglot manual's
   first performance advice) and `eglot-autoshutdown` t, adopted in T-004.
   `eglot-sync-connect` and `read-process-output-max` (64 KB default in Emacs 31) stay
@@ -361,6 +374,8 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-016 | 2026-10-07 | eglot passes clangd the active preset's build dir | 7 | S1, O-1 |
 | D-017 | 2026-10-07 | active preset: first visible; `C-c l P` switches it | 8 | owner |
 | D-018 | 2026-10-07 | eglot refused loudly without database or `-std` | 7 | T-004 |
+| D-019 | 2026-10-08 | eglot only in preset projects; library headers via xref | 7 | T-004 |
+| D-020 | 2026-10-08 | completion popup on request (TAB, C-M-i) | 1 | owner |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
