@@ -1,9 +1,9 @@
 # S5 - preamble warm-up: results
 
-Verdict: FAIL (run 1, 2026-10-08). After warming all 10 sources the first `M-.` took
-1109 ms, above the 0.5 s criterion, and no memory budget was set. The warm-up still
-cut the wait about tenfold (10885 -> 1109 ms). Run 1 was skewed (below); run 2 measures
-with a persisted index and a 3-file variant.
+Verdict: FAIL (closed 2026-10-08). Run 2 met the latency criterion only by warming
+3 sources (6 ms, 3.0 GB vs 1.1 GB today); the owner then ruled out warm-up through
+additional open files because it raises memory from the start (Q-5, D-021). Run 1
+(skewed, below) is kept for its findings.
 
 ## Environment
 Owner machine, 2026-10-08 00:22. clangd 23.1.1. Copy of RMO at `/tmp/s5/work/rmo`,
@@ -31,6 +31,18 @@ A header (`include/rmo/fe/assemble.h`) opened after main.cc or after the warm-up
 ## Decision
 None yet. Run 2 (index persisted after round 1, plus "C: warm 3 sources") and an owner
 memory budget decide whether T-012 warms all sources, a bounded set, or nothing.
+
+## Run 2 (2026-10-08 00:30, idle machine: load 0.07 at start)
+Raw output: `results-run2.log`.
+| scenario | round 1 (empty index) | round 2 (persisted index) |
+|---|---|---|
+| A: main.cc only, first `M-.` | 10507 ms, 4901 MB | 9444 ms, 1116 MB |
+| B: 10 sources warmed | 637 ms, 9879 MB, 23.3 s | 640 ms, 6686 MB, 22.1 s |
+| C: 3 sources warmed | 5 ms, 3106 MB, 17.2 s | 6 ms, 3012 MB, 17.2 s |
+- Memory is freed after indexing: 4.9 GB while indexing, 1.1 GB with a persisted index.
+- Warming all 10 is slower to answer than warming 3, likely because clangd keeps only
+  a few parsed files hot and rebuilds main.cc's.
+- Headers opened after an including source: 0 "not found" in both rounds.
 
 ## Gotchas
 - The run 2 script's dry run (on a synthetic project) overwrote `results.log` before it

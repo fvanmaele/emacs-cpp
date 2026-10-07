@@ -23,6 +23,13 @@ code is written for it. Each spike is a self-contained directory with its own bu
 - **S5 preamble warm-up** - does opening every project source in the background when
   eglot starts make the first `M-.` instant, and at what memory and time cost on RMO?
   Also observes cold headers (O-5). Gates T-012 (DESIGN 11).
+- **S6 ccls** - can ccls replace clangd (O-8)? Measures first `M-.` with an empty and a
+  persisted cache, indexing time, memory, cache size, references, and a header opened
+  first (O-5), against clangd on the same copy.
+- **S7 sharded pre-index** - does `clangd-indexer --index-type=sharded` from the
+  unmerged LLVM PR 175209 (built by `spikes/s7-clangd-indexer/PKGBUILD`) produce shards
+  the system clangd 23.1.1 loads without re-indexing, and how long does it take on RMO?
+  Addresses index build time (first start, preset switch), not the per-file parse.
 - **S4 cold-header flags** - which mechanism gives a header opened first (no including
   file open) the flags of a translation unit that includes it: (a) header entries added
   to a generated database from `ninja -t deps` after a build, (b) Emacs opens an
@@ -38,5 +45,7 @@ code is written for it. Each spike is a self-contained directory with its own bu
 |---|---|---|
 | S1 | PASS (run 2) | s1-compile-db/RESULTS.md |
 | S4 | not started | |
-| S5 | run 1 FAIL, run 2 pending owner | s5-preamble-warmup/RESULTS.md |
+| S5 | FAIL, closed by owner ruling (D-021) | s5-preamble-warmup/RESULTS.md |
+| S6 | ready, owner to run | |
+| S7 | PKGBUILD ready, owner to build | |
 | S2 | not started | |

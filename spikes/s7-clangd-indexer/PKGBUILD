@@ -1,0 +1,52 @@
+# Spike S7 of emacs-cpp (spikes/s7-clangd-indexer/RUN.md); local test package, not for
+# the AUR.  Builds only clangd-indexer 23.1.1 with llvm/llvm-project PR 175209 applied
+# (sharded background-index output), against the system LLVM 23.1.1, into /opt so it
+# cannot collide with the clang package.  The system clangd 23.1.1 reads the shards.
+
+pkgname=clangd-indexer-pr175209
+_pr=175209
+_prbase=0e1b0935ff6f326ba1b9c2d23ba9fa7b41e6941d
+_prhead=9d6c7f78ee7eb439eec78d66eff1765909701846   # PR head on 2026-10-08 (open)
+pkgver=23.1.1
+pkgrel=1
+pkgdesc="clangd-indexer $pkgver with LLVM PR $_pr (--index-type=sharded), in /opt for testing"
+arch=(x86_64)
+url="https://github.com/llvm/llvm-project/pull/$_pr"
+license=('Apache-2.0 WITH LLVM-exception')
+# Exact versions: the binary links the system libLLVM, and the shards must match the
+# system clangd's format.  clang supplies the builtin headers (resource directory).
+depends=("llvm-libs=$pkgver" "clang=$pkgver" gcc-libs glibc)
+makedepends=("llvm=$pkgver" cmake ninja python)
+options=(!lto !debug)
+source=("https://github.com/llvm/llvm-project/releases/download/llvmorg-$pkgver/llvm-project-$pkgver.src.tar.xz"
+        "pr$_pr-${_prhead:0:12}.diff::https://github.com/llvm/llvm-project/compare/$_prbase...$_prhead.diff")
+# Taken 2026-10-08 from the downloads above; a changed PR diff fails here, loudly.
+sha256sums=('ebe9be46fe8756d58c5b198ffad0fa2a766257add81a4dc52179bfacc7888ee6'
+            '8a9aaa8d941a840c3b162938d005c5311c36f592c14df4053f47fd675c1d3dce')
+
+prepare() {
+  cd llvm-project-$pkgver.src
+  patch -Np1 -i "$srcdir/pr$_pr-${_prhead:0:12}.diff"
+  # Standalone clang build, as Arch's clang package does: tools/extra is picked up.
+  ln -sfn ../../clang-tools-extra clang/tools/extra
+}
+
+build() {
+  cmake -S llvm-project-$pkgver.src/clang -B build -G Ninja \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=/opt/$pkgname \
+    -DLLVM_LINK_LLVM_DYLIB=ON \
+    -DCLANG_INCLUDE_TESTS=OFF \
+    -DCLANG_INCLUDE_DOCS=OFF \
+    -DLLVM_INCLUDE_TESTS=OFF \
+    -DCLANGD_TIDY_CHECKS=OFF \
+    -DCLANGD_ENABLE_REMOTE=OFF
+  cmake --build build --target clangd-indexer
+}
+
+package() {
+  install -Dm755 build/bin/clangd-indexer "$pkgdir/opt/$pkgname/bin/clangd-indexer"
+  # Builtin headers (stddef.h, ...) are found relative to the binary.
+  install -d "$pkgdir/opt/$pkgname/lib"
+  ln -s /usr/lib/clang "$pkgdir/opt/$pkgname/lib/clang"
+}

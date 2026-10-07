@@ -277,6 +277,18 @@ Mechanisms, each PROPOSED until measured:
   indexes (`--index-file`, remote) serve the same cross-file queries. Source files are
   already in `compile_commands.json`; adding headers (S4 option a) addresses O-5, not
   this latency.
+- LLVM PR 175209 (owner question 2026-10-08, checked via the GitHub API): open, not
+  merged, last updated 2026-09-23; adds `--index-type=sharded` and `--project-root` to
+  `clangd-indexer` to write background-index shards offline. Not in clangd 23.1.1;
+  Arch's clang does not ship `clangd-indexer`. It addresses index build time (first
+  start, and every preset switch, since each build directory has its own index), not
+  the per-file parse. The patch applies cleanly to 23.1.1; spike S7 builds it.
+- S6 dry run (synthetic deal.II project, 2026-10-08): ccls first `M-.` 15.9 - 17.0 s
+  with an empty cache (refused "not indexed" until the file is indexed), indexing done
+  22 s, cache 293 MB; with the cache on disk, a fresh ccls answers empty for the first
+  ~1 s, then correctly 1.1 s after start, RSS 0.6 - 0.9 GB; a header opened first had
+  0 errors. Each ccls session logs one jsonrpc timer error
+  (`wrong-number-of-arguments` in jsonrpc's receive closure): a message is dropped.
 - `M-.` latency (2026-10-08, synthetic deal.II + Boost file, batch, idle clangd): the
   first request after opening the file waits for clangd's preamble, 6978 ms; later
   requests 1 - 2 ms; opening the target header in Emacs 150 - 190 ms (5000 lines).
@@ -356,7 +368,8 @@ presets, GoogleTest runner.
 | clangd misses compile DB under preset `binaryDir` | S1 | owner | v0.1 |
 | dape + `gdb -i dap` fails on a preset-built binary | S2 | owner | v0.3 |
 | header opened first gets wrong flags (false errors) | S4 | owner | T-011 |
-| first `M-.` / rename per file waits 7 - 13 s | S5 | owner | T-012 |
+| first `M-.` / rename per file waits 7 - 13 s | S5 (closed), S6 | owner | O-8 |
+| index rebuilt from scratch per preset / build dir | S7 | owner | - |
 | own package build glue mis-orders compilation | none (tests) | - | v0.1 |
 | clangd too slow / too large on deal.II scale | S1 numbers | owner | v0.1 |
 
@@ -365,13 +378,11 @@ presets, GoogleTest runner.
   clangd 22 (fills the (R) rows of section 1). After v0.1.
 
 ## Open questions ledger (LIVING)
-- O-5: cold-header flags (DESIGN 7) -> S4; S5 observes whether warm-up fixes them.
-- Q-5 (OPEN): how much RAM may clangd use while simulations run (S5, T-012)?
-- Q-6 (OPEN): run Emacs as a long-lived server (`/usr/lib/systemd/user/emacs.service`,
-  shipped with Arch's emacs, currently disabled), so clangd and its parsed files
-  survive closing and reopening frames? Preambles cannot be saved to disk by clangd,
-  but they live as long as the clangd process.
-- O-8: alternatives to clangd if S5 cannot meet the budget. Candidate: ccls
+- O-5: cold-header flags (DESIGN 7) -> S4, and S6 (ccls) round 3. Owner 2026-10-08:
+  also after `M-.` into a project header no open source includes ("rmo/lac.h not
+  found"), not only for headers opened first. O-7 is probably the same case.
+- O-8 (S6 running): alternatives to clangd, since warm-up is ruled out (D-021).
+  Candidate: ccls
   (extra/ccls 0.20250815, built on the system clang), which keeps a per-file index with
   token positions on disk (`.ccls-cache`) and can answer `M-.` from it without parsing
   the open file again. Not adopted without a spike (S6: first `M-.`, memory, cache size
@@ -392,6 +403,9 @@ Resolved:
 - 2026-10-07, owner after S1 run 1: O-4 CMake files use the system `cmake-mode` (D-013);
   missing `-std` fixed by `CMAKE_CXX_EXTENSIONS OFF` in the project (D-011); Q-4 the
   reference project commits the spike `CMakePresets.json` (D-012).
+- 2026-10-08, owner: Q-5 no warm-up through additional open files, it raises memory
+  from the start (D-021, S5 and T-012 closed); Q-6 Emacs is not run as a server
+  (D-022); spike ccls (S6) and test PR 175209 with a PKGBUILD (S7).
 - 2026-10-07, owner after S1 PASS: O-1 Emacs passes `--compile-commands-dir` (D-016).
 - 2026-10-07, owner: O-6 keep the own package build glue (183 code lines, tested)
   instead of spiking borg (D-015).
@@ -422,6 +436,8 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-018 | 2026-10-07 | eglot refused loudly without database or `-std` | 7 | T-004 |
 | D-019 | 2026-10-08 | eglot only in preset projects; library headers via xref | 7 | T-004 |
 | D-020 | 2026-10-08 | completion popup on request (TAB, C-M-i) | 1 | owner |
+| D-021 | 2026-10-08 | no warm-up through extra open files (memory) | 11 | Q-5 |
+| D-022 | 2026-10-08 | Emacs is not run as a long-lived server | 11 | Q-6 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.

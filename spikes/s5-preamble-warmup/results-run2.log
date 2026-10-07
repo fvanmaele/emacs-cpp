@@ -1,0 +1,17 @@
+# S5 run 2026-10-08T00:30:40+02:00 on copy of /home/alad/source/repos/RMO-gross-pitaevskii
+clangd: clangd version 23.1.1
+load: 0.07 4.29 8.03  free: 17 GB available
+sources: 10 (fmt excluded); main: src/main.cc; header: include/rmo/fe/assemble.h
+r1 A cold         first M-. in main.cc: 10507 ms, clangd 4901 MB
+r1 A              header opened after main.cc: 0 'not found'
+r1 B warm all   warm-up of 10 sources: 23305 ms, clangd 9879 MB
+r1 B warm all   first M-. in main.cc: 637 ms
+r1 C warm 3     warm-up of 3 sources: 17168 ms, clangd 3106 MB
+r1 C warm 3     first M-. in main.cc: 5 ms
+r2 A cold         first M-. in main.cc: 9444 ms, clangd 1116 MB
+r2 A              header opened after main.cc: 0 'not found'
+r2 B warm all   warm-up of 10 sources: 22115 ms, clangd 6686 MB
+r2 B warm all   first M-. in main.cc: 640 ms
+r2 C warm 3     warm-up of 3 sources: 17180 ms, clangd 3012 MB
+r2 C warm 3     first M-. in main.cc: 6 ms
+load after: 4.37 4.79 7.76

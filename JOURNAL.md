@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0008 | 2026-10-08 | S5 closed; ccls and PR 175209 spikes set up | S5-S7 | D-021, D-022 |
 | 0007 | 2026-10-08 | S5 run 1: warm-up tenfold faster, FAIL | S5 | none |
 | 0006 | 2026-10-08 | T-004 fixes: library headers, completion | T-004 | D-019, D-020 |
 | 0005 | 2026-10-07 | T-004: eglot + clangd from the active preset | T-004 | D-016..18 |
