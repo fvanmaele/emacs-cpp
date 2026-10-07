@@ -388,7 +388,13 @@ presets, GoogleTest runner.
 - O-5: cold-header flags (DESIGN 7) -> S4, and S6 (ccls) round 3. Owner 2026-10-08:
   also after `M-.` into a project header no open source includes ("rmo/lac.h not
   found"), not only for headers opened first. O-7 is probably the same case.
-- O-8 (S6 running): alternatives to clangd, since warm-up is ruled out (D-021).
+- O-8 (S6 PASS, owner to rule): ccls instead of clangd, clangd, or a hybrid. S6 on RMO:
+  ccls answers `M-.` 1.2 s after start from its on-disk index (clangd: 10.5 s per
+  file), headers opened first are clean (O-5), memory 0.7 - 0.9 GB; first indexing per
+  build dir 110 s, 437 MB cache. ccls lacks clang-tidy, clangd's refactoring code
+  actions, type hierarchy and inlay hints. Hybrid: ccls through eglot plus clang-tidy
+  as a separate flymake backend (one eglot server per buffer). Details:
+  `spikes/s6-ccls/RESULTS.md`. Earlier text kept below for the reasoning.
   Candidate: ccls
   (extra/ccls 0.20250815, built on the system clang), which keeps a per-file index with
   token positions on disk (`.ccls-cache`) and can answer `M-.` from it without parsing

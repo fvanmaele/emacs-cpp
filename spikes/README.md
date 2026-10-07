@@ -46,6 +46,6 @@ code is written for it. Each spike is a self-contained directory with its own bu
 | S1 | PASS (run 2) | s1-compile-db/RESULTS.md |
 | S4 | not started | |
 | S5 | FAIL, closed by owner ruling (D-021) | s5-preamble-warmup/RESULTS.md |
-| S6 | ready, owner to run | |
+| S6 | PASS | s6-ccls/RESULTS.md |
 | S7 | PKGBUILD ready, owner to build | |
 | S2 | not started | |

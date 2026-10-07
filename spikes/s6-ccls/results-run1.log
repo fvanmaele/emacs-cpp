@@ -1,0 +1,19 @@
+# S6 run 2026-10-08T00:52:44+02:00 on copy of /home/alad/source/repos/RMO-gross-pitaevskii
+clangd: clangd version 23.1.1
+ccls: ccls version 0.20250815.1
+load: 0.61 1.13 2.97  free: 17 GB available
+main: src/main.cc; header: include/rmo/fe/assemble.h; build dir: /tmp/s6/work/rmo/build/debug
+clangd  first M-. 10498 ms -> variant; references 0; errors 0; RSS 7676 MB
+  (refused: not indexed; retrying)
+TIMER ERROR: Error running timer: (wrong-number-of-arguments (2 . 2) 4) in a closure calling jsonrpc-connection-receive
+ccls r1 first M-. 96484 ms -> variant after 9 refusals (empty cache)
+ccls r1 indexing done 109400 ms after start; peak RSS 3914 MB
+ccls r1 M-. after indexing 5 ms -> variant; references 13; errors 0; RSS 860 MB; cache 437 MB
+TIMER ERROR: Error running timer: (wrong-number-of-arguments (2 . 2) 4) in a closure calling jsonrpc-connection-receive
+ccls r2 first M-. 52 ms -> no answer (persisted cache, right after start); RSS 77 MB
+ccls r2 first non-empty M-. 1168 ms after start -> variant after 1 refusals
+ccls r2 idle 6324 ms after start; peak RSS 709 MB; references 13
+TIMER ERROR: Error running timer: (wrong-number-of-arguments (2 . 2) 4) in a closure calling jsonrpc-connection-receive
+ccls r3 header opened first: 0 errors
+ccls r3 first M-. in main.cc after the header: 3 ms -> variant
+load after: 3.54 2.92 3.42
