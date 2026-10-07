@@ -52,6 +52,11 @@ hierarchy, inlay hints. ccls only: code lens. Measured on the toy project with
 ## Decision
 Owner: ccls instead of clangd, stay with clangd, or a hybrid (O-8, DESIGN 11).
 
+## Found after the verdict (2026-10-08, T-013)
+ccls aborts intermittently on an internal check (`query.cc:275`, `Assertion 'v >= 0'`)
+during indexing; coredumpctl shows one abort at 00:54:21, inside this run's window,
+although the run's own server finished its rounds. Recorded as O-10; it blocks T-013.
+
 ## Gotchas
 - First attempt stopped on RMO: the script looked only for `dealii::` names and RMO's
   main.cc has `using namespace dealii`; fixed to `dealii::` or `std::` (as S5).

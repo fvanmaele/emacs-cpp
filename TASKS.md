@@ -56,6 +56,13 @@ with `done when: ...`).
 | T-010 | open | S | Info manuals | DESIGN 12 | done when: `C-h i` lists magit, projectile |
 | T-011 | open | M | cold-header flags | O-5, S4 | done when: S4 applied, see below |
 | T-012 | rejected (D-021) | M | preamble warm-up | S5 | owner ruled out extra open files |
+| T-013 | blocked (O-10) | L | ccls + clang-tidy | D-023, D-024 | see below |
 
+- T-013: hybrid per D-023 / D-024, built on branch `t013-ccls-hybrid`; done when (agreed
+  2026-10-08): in a fresh Emacs on RMO with a .clang-tidy, after ccls's first indexing:
+  `M-.` on a deal.II / std name answers within 2 s of opening any source; a header
+  opened first shows no "not found" errors; a clang-tidy finding appears in flymake for
+  a source; `make test` covers ccls navigation, header-first and the clang-tidy
+  backend; D-018 refusals still work. Blocked by the ccls abort (O-10).
 - T-011: after spike S4, apply its mechanism; done when: in a fresh Emacs, opening
   `include/rmo/fe/assemble.h` first shows no flymake errors (S1 live check 6 passes).

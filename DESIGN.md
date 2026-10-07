@@ -161,6 +161,17 @@ Known defects: none yet (nothing built).
   Implemented in `lisp/emacs-cpp-presets.el` (T-004): `inherits` resolved as CMake does
   (earlier parent wins, `hidden` not inherited), the documented path macros expanded,
   `include` and `$vendor{}` rejected as unsupported.
+- DECIDED D-023 (owner 2026-10-08, after S6): eglot runs ccls, told the active preset's
+  build directory (`compilationDatabaseDirectory`) and keeping its index cache in
+  `<build>/.ccls-cache`; clang-tidy, which ccls lacks, runs as a separate flymake
+  backend over a copy of the database without GCC's module-scanning flags (clang-tidy
+  rejects `-fmodules-ts`, `-fmodule-mapper=`, `-fdeps-*=`), for source files only.
+  Loses clangd's refactoring code actions, type hierarchy and inlay hints. Supersedes
+  D-016 once T-013 merges; blocked by O-10.
+- DECIDED D-024 (owner 2026-10-08): the clang-tidy backend runs on open and on save by
+  default, `emacs-cpp-clang-tidy-trigger` set to `demand` restricts it to
+  `emacs-cpp-clang-tidy-check`. clang-tidy reads the saved file; unsaved edits keep
+  the last findings.
 - DECIDED D-019 (2026-10-08): eglot starts only for C++ files of a project with
   CMakePresets.json (`emacs-cpp-presets-eglot-ensure` on `c++-ts-mode-hook`); a project
   without presets gets an echo-area note, a file in no project gets nothing. Library
@@ -388,7 +399,15 @@ presets, GoogleTest runner.
 - O-5: cold-header flags (DESIGN 7) -> S4, and S6 (ccls) round 3. Owner 2026-10-08:
   also after `M-.` into a project header no open source includes ("rmo/lac.h not
   found"), not only for headers opened first. O-7 is probably the same case.
-- O-8 (S6 PASS, owner to rule): ccls instead of clangd, clangd, or a hybrid. S6 on RMO:
+- O-10 (OPEN, blocks T-013): ccls 0.20250815.1 (Arch build, assertions compiled in)
+  aborts intermittently: `query.cc:275 ... DB::applyIndexUpdate ... Assertion 'v >= 0'
+  failed` (captured from ccls's stderr, 2026-10-08), about one full `make test` run in
+  five, during indexing; coredumpctl lists nine ccls SIGABRTs since 00:54, one inside
+  the owner's S6 run window. Not found in ccls's issue tracker. Options: ccls built
+  with assertions off (upstream release builds define NDEBUG; the miscount then goes
+  unnoticed), automatic restart with a visible warning, upstream report, or back to
+  clangd. T-013 waits on branch `t013-ccls-hybrid`; main keeps clangd.
+- O-8 (RESOLVED 2026-10-08, D-023): ccls instead of clangd, clangd, or a hybrid. S6 on RMO:
   ccls answers `M-.` 1.2 s after start from its on-disk index (clangd: 10.5 s per
   file), headers opened first are clean (O-5), memory 0.7 - 0.9 GB; first indexing per
   build dir 110 s, 437 MB cache. ccls lacks clang-tidy, clangd's refactoring code
@@ -457,13 +476,15 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-013 | 2026-10-07 | CMake files use the system `cmake-mode` | 8 | O-4 |
 | D-014 | 2026-10-07 | network only on submodule add / update, owner consents | 12 | owner |
 | D-015 | 2026-10-07 | keep own package build glue; borg not revisited by size | 12 | O-6 |
-| D-016 | 2026-10-07 | eglot passes clangd the active preset's build dir | 7 | S1, O-1 |
+| D-016 | 2026-10-07 | clangd gets the preset build dir (to be superseded, D-023) | 7 | S1 |
 | D-017 | 2026-10-07 | active preset: first visible; `C-c l P` switches it | 8 | owner |
 | D-018 | 2026-10-07 | eglot refused loudly without database or `-std` | 7 | T-004 |
 | D-019 | 2026-10-08 | eglot only in preset projects; library headers via xref | 7 | T-004 |
 | D-020 | 2026-10-08 | completion popup on request (TAB, C-M-i) | 1 | owner |
 | D-021 | 2026-10-08 | no warm-up through extra open files (memory) | 11 | Q-5 |
 | D-022 | 2026-10-08 | Emacs is not run as a long-lived server | 11 | Q-6 |
+| D-023 | 2026-10-08 | hybrid: eglot runs ccls; clang-tidy as flymake backend | 7 | O-8 |
+| D-024 | 2026-10-08 | clang-tidy on open and save; switchable to on demand | 7 | owner |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
