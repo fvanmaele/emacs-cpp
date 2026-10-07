@@ -2,7 +2,6 @@
 	path = lib/projectile
 	url = https://github.com/bbatsov/projectile
 	ignore = untracked
-	build-exclude = projectile-consult.el
 [submodule "treemacs"]
 	path = lib/treemacs
 	url = https://github.com/Alexander-Miller/treemacs
@@ -77,4 +76,36 @@
 [submodule "org-journal"]
 	path = lib/org-journal
 	url = https://github.com/bastibe/org-journal
+	ignore = untracked
+[submodule "vertico"]
+	path = lib/vertico
+	url = https://github.com/minad/vertico
+	ignore = untracked
+	load-path = .
+	load-path = extensions
+[submodule "orderless"]
+	path = lib/orderless
+	url = https://github.com/oantolin/orderless
+	ignore = untracked
+[submodule "marginalia"]
+	path = lib/marginalia
+	url = https://github.com/minad/marginalia
+	ignore = untracked
+[submodule "consult"]
+	path = lib/consult
+	url = https://github.com/minad/consult
+	ignore = untracked
+[submodule "embark"]
+	path = lib/embark
+	url = https://github.com/oantolin/embark
+	ignore = untracked
+[submodule "corfu"]
+	path = lib/corfu
+	url = https://github.com/minad/corfu
+	ignore = untracked
+	load-path = .
+	load-path = extensions
+[submodule "cape"]
+	path = lib/cape
+	url = https://github.com/minad/cape
 	ignore = untracked
