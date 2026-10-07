@@ -17,7 +17,12 @@ QD=--query-driver=/usr/bin/c++,/usr/bin/g++
 
 mkdir -p "$(dirname "$WORK")"
 rsync -a --exclude build-release --exclude build "$SRC"/ "$WORK"/
-cp "$HERE/CMakePresets.json" "$WORK/"
+if [ -f "$WORK/CMakePresets.json" ]; then
+    PRESETS="project's own CMakePresets.json"
+else
+    cp "$HERE/CMakePresets.json" "$WORK/"
+    PRESETS="spike CMakePresets.json (project has none)"
+fi
 cd "$WORK"
 HEADER=$(find include -name '*.h' | sort | head -n 1)
 : > "$LOG"
@@ -25,9 +30,11 @@ say() { printf '%s\n' "$*" | tee -a "$LOG"; }
 
 say "# S1 run $(date -Iseconds) on copy of $SRC"
 say "clangd: $(clangd --version | head -n 1)"
+say "presets: $PRESETS"
 cmake --preset debug > configure.log 2>&1 \
     || { say "configure FAILED, see $WORK/configure.log"; exit 1; }
 say "configure debug: ok; entries: $(grep -c '"file"' build/debug/compile_commands.json)"
+say "-std in database: $(grep -c -- '-std=' build/debug/compile_commands.json) entries"
 
 # check VARIANT FILE ARGS...: one clangd --check, summarised; full output kept in WORK.
 check() {
@@ -45,6 +52,11 @@ print("elapsed %.1f s, max RSS %d MB" % (time.monotonic() - t, r.ru_maxrss // 10
     say "  $(cat "$out.time")"
     say "  db: $(grep -Eo 'Loaded compilation database from .*|Failed to find compilation database' "$out" | head -n 1)"
     say "  not found: $(grep -c 'file not found' "$out" || true)"
+    # clangd counts failed refactoring self-tests ("tweak: ... FAIL") as errors; they are
+    # not diagnostics, so they are reported separately.
+    say "  real diagnostics: $(grep '^E\[' "$out" | grep -cvE 'tweak:|IncludeCleaner' || true)"
+    say "  tweak self-test failures: $(grep -c '^E\[.*tweak:' "$out" || true)"
+    say "  flags from: $(grep -Eo 'Compile command (from CDB|inferred from [^ ]+)' "$out" | head -n 1)"
     say "  $(grep -Eo 'All checks completed, [0-9]+ errors' "$out" || echo 'no completion line')"
 }
 

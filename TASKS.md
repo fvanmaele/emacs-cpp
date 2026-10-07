@@ -11,12 +11,16 @@ with `done when: ...`).
 ## v0.1 navigation
 | id | status | size | title | source | what |
 |----|--------|------|-------|--------|------|
-| T-001 | next | S | spike S1 | O-1 | owner runs RUN.md; done when: RESULTS.md verdict |
+| T-001 | next | S | spike S1 | O-1 | run 2 per RUN.md; done when: RESULTS.md PASS/FAIL |
+| T-009 | next | S | RMO build fixes | D-011, D-012 | see below |
 | T-002 | open | L | skeleton + packages | D-003, D-006 | see below |
 | T-003 | open | M | completion stack | Q-3 | see below |
 | T-004 | open | M | eglot + clangd | D-001, S1 | see below |
 | T-008 | open | S | performance baseline | D-010 | see below |
 
+- T-009 (owner, in RMO): `CMAKE_CXX_EXTENSIONS OFF`, commit `CMakePresets.json`, ignore
+  `build/`; exact commands in `spikes/s1-compile-db/RUN.md`; done when: committed in RMO
+  and `cmake --preset debug` writes `-std=c++20` into `build/debug/compile_commands.json`.
 - T-002: `early-init.el`, `init.el`, `lisp/init-project.el` (projectile, treemacs, theme
   moved from `~/.emacs`), `.gitmodules` + `lib/` submodules for the project, tree, git
   and owner's-existing groups of DESIGN 12, `scripts/build-packages.el`, `make

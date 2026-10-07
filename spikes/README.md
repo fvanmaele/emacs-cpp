@@ -28,5 +28,5 @@ code is written for it. Each spike is a self-contained directory with its own bu
 ## Status
 | Spike | Status | RESULTS |
 |---|---|---|
-| S1 | ready, owner to run | |
+| S1 | run 1 FAIL, run 2 pending owner | s1-compile-db/RESULTS.md |
 | S2 | not started | |

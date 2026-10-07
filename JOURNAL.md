@@ -21,4 +21,5 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0001 | 2026-10-07 | S1 run 1: database found, standard missing | S1 | D-011..13 |
 | 0000 | YYYY-MM-DD | Spike phase recap / prototype review | | |

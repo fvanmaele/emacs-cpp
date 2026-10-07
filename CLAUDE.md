@@ -10,10 +10,9 @@ An Emacs 31 configuration giving the owner a CLion-like C++ environment (navigat
 refactoring, diagnostics, CMake presets, debugger, git, jump-to-anything) on one Arch
 Linux workstation. It will never be an Emacs distribution, a multi-OS config or a CLion
 keymap emulation (DESIGN 2).
-**Status (2026-10-07):** design ruled through D-010 (packages as pinned git submodules,
-`c++-ts-mode`, deal.II-scale performance). No config code yet. Next: owner runs spike S1
-(`spikes/s1-compile-db/RUN.md`); T-002 skeleton + package build needs its done-when
-agreed.
+**Status (2026-10-07):** design ruled through D-013. Spike S1 run 1 FAIL (missing
+`-std` in RMO's database, cold headers); owner applies T-009 in RMO, then runs S1 run 2.
+No config code yet; T-002 skeleton + package build needs its done-when agreed.
 
 ## Hard rules (each with its reason)
 - Change-size ladder: tier 1 trivial = commit with Reasoning only; tier 2 feature = `done

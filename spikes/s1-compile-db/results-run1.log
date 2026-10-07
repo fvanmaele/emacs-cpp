@@ -1,0 +1,54 @@
+# S1 run 2026-10-07T23:01:23+02:00 on copy of /home/alad/source/repos/RMO-gross-pitaevskii
+clangd: clangd version 23.1.1
+configure debug: ok; entries: 12
+## A-none src/main.cc (--query-driver=/usr/bin/c++,/usr/bin/g++)
+  elapsed 0.9 s, max RSS 115 MB
+  db: Failed to find compilation database
+  not found: 1
+  All checks completed, 22 errors
+## B-dotclangd src/main.cc (--query-driver=/usr/bin/c++,/usr/bin/g++)
+  elapsed 7.6 s, max RSS 457 MB
+  db: Loaded compilation database from /tmp/s1/work/rmo/build/debug/compile_commands.json
+  not found: 0
+  All checks completed, 12 errors
+## C-symlink src/main.cc (--query-driver=/usr/bin/c++,/usr/bin/g++)
+  elapsed 7.6 s, max RSS 457 MB
+  db: Loaded compilation database from /tmp/s1/work/rmo/compile_commands.json
+  not found: 0
+  All checks completed, 12 errors
+## D-argument src/main.cc (--query-driver=/usr/bin/c++,/usr/bin/g++ --compile-commands-dir=build/debug)
+  elapsed 7.7 s, max RSS 457 MB
+  db: Loaded compilation database from /tmp/s1/work/rmo/build/debug/compile_commands.json
+  not found: 0
+  All checks completed, 12 errors
+## E-argument-no-query-driver src/main.cc (--compile-commands-dir=build/debug)
+  elapsed 8.0 s, max RSS 457 MB
+  db: Loaded compilation database from /tmp/s1/work/rmo/build/debug/compile_commands.json
+  not found: 0
+  All checks completed, 12 errors
+## A-none include/rmo/fe/assemble.h (--query-driver=/usr/bin/c++,/usr/bin/g++)
+  elapsed 6.9 s, max RSS 351 MB
+  db: Failed to find compilation database
+  not found: 1
+  All checks completed, 39 errors
+## B-dotclangd include/rmo/fe/assemble.h (--query-driver=/usr/bin/c++,/usr/bin/g++)
+  elapsed 6.7 s, max RSS 349 MB
+  db: Loaded compilation database from /tmp/s1/work/rmo/build/debug/compile_commands.json
+  not found: 1
+  All checks completed, 39 errors
+## C-symlink include/rmo/fe/assemble.h (--query-driver=/usr/bin/c++,/usr/bin/g++)
+  elapsed 7.0 s, max RSS 351 MB
+  db: Loaded compilation database from /tmp/s1/work/rmo/compile_commands.json
+  not found: 1
+  All checks completed, 39 errors
+## D-argument include/rmo/fe/assemble.h (--query-driver=/usr/bin/c++,/usr/bin/g++ --compile-commands-dir=build/debug)
+  elapsed 6.5 s, max RSS 351 MB
+  db: Loaded compilation database from /tmp/s1/work/rmo/build/debug/compile_commands.json
+  not found: 1
+  All checks completed, 39 errors
+## E-argument-no-query-driver include/rmo/fe/assemble.h (--compile-commands-dir=build/debug)
+  elapsed 7.0 s, max RSS 351 MB
+  db: Loaded compilation database from /tmp/s1/work/rmo/build/debug/compile_commands.json
+  not found: 1
+  All checks completed, 39 errors
+done; full clangd logs in /tmp/s1/work/rmo/check-*.log

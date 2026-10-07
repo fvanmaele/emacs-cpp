@@ -46,7 +46,7 @@ Format: CLion feature -> Emacs component. Gap vs CLion. Status.
 - Project tree -> treemacs + treemacs-projectile (installed). Gap: none. DECIDED
   (existing setup).
 - CMake editing -> `cmake-mode` shipped by the system `cmake` package. Gap: no target
-  completion. PROPOSED (O-4).
+  completion. DECIDED D-013.
 - CMake profiles / toolchains -> `CMakePresets.json` via projectile
   (`projectile-enable-cmake-presets`). Gap: no target picker UI. DECIDED D-005.
 - Build / run / test -> projectile configure / compile / test / run -> `compile`
@@ -71,9 +71,10 @@ and own Lisp only for glue the owner touches daily.
 ## 3. Owner constraints (filled 2026-10-07)
 Observed on the owner machine, 2026-10-07:
 - Arch Linux, Emacs 31.1 (native-comp, treesit available), 16 cores, 31 GB RAM.
-- clangd 22.1.8, clang-tidy, clang-format, gcc, clang, gdb 17.2, lldb-dap, cmake 4.4.3
-  (ships `/usr/share/emacs/site-lisp/cmake-mode.el`), ninja, ripgrep, fd, valgrind,
-  rsync, python3. Not installed: bear, cppcheck, GNU time.
+- clangd 22.1.8 at the survey, 23.1.1 by the S1 run the same day (rolling release; the
+  design must not depend on one clangd version), clang-tidy, clang-format, gcc, clang,
+  gdb 17.2, lldb-dap, cmake 4.4.3 (ships `/usr/share/emacs/site-lisp/cmake-mode.el`),
+  ninja, ripgrep, fd, valgrind, rsync, python3. Not installed: bear, cppcheck, GNU time.
 - Tree-sitter: `tree-sitter-cpp` 0.23.4 built and installed by the owner as a pacman
   package; `c++-ts-mode` parses with it (ABI 15, checked 2026-10-07). No C or CMake
   grammar installed.
@@ -85,6 +86,10 @@ Observed on the owner machine, 2026-10-07:
   and release libraries, built with PETSc + Trilinos), Boost, and `fmt` (git
   submodule). Built today with Unix Makefiles in `build-release/`; no
   `CMakePresets.json`, no `compile_commands.json`, no `.clang-format` / `.clang-tidy`.
+  After S1 run 1 the owner adds `set(CMAKE_CXX_EXTENSIONS OFF)` and commits the spike
+  `CMakePresets.json` (D-011, D-012). Its `find_package(deal.II HINTS ../ ../../)` makes
+  configure depend on checkout depth (S1 RUN.md Gotchas); not fixed, owner's call.
+- GCC 16 is the system compiler and defaults to C++20.
 - Scale target (Q-2, D-010): stay responsive on a deal.II-sized source tree (thousands
   of heavily templated translation units). Every translation unit of the reference
   project already pulls in deal.II headers, so per-file preamble cost matters even there.
@@ -143,8 +148,19 @@ Known defects: none yet (nothing built).
   `build/<preset>/`; clangd only searches parent directories and their `build/` subdir.
   Candidates: (B) project `.clangd` with `CompileFlags: CompilationDatabase:`, (C)
   symlink in the project root, (D) `--compile-commands-dir` passed by Emacs from the
-  active preset. All three work on a toy project (checked 2026-10-07); S1 runs them on
-  the reference project. Presets must set `CMAKE_EXPORT_COMPILE_COMMANDS=ON`.
+  active preset. S1 run 1: all three find the database with identical results and cost
+  (about 7.6 s, 457 MB for a deal.II translation unit); final choice after run 2.
+  Presets must set `CMAKE_EXPORT_COMPILE_COMMANDS=ON`.
+- DECIDED D-011: a project's compile database must state the C++ standard explicitly.
+  GCC 16 defaults to C++20, so CMake omits `-std` and clangd then assumes C++17 (false
+  errors, S1 run 1). Projects set `CMAKE_CXX_EXTENSIONS OFF`, which makes CMake emit
+  `-std=c++NN`. PROPOSED for T-004: when eglot starts for a project, Emacs signals an
+  error if the database has entries without `-std=` (fail loudly instead of false
+  diagnostics).
+- UNDECIDED (S1 run 2, live check 6): headers are not in the database; a header opened
+  with no including file open gets flags interpolated from a "nearest" entry (in RMO
+  `fmt/src/format.cc`, wrong include paths). Size of the problem in a running clangd is
+  measured by run 2; mitigation, if needed, becomes its own task.
 - DECIDED D-008: C++ major mode is `c++-ts-mode` on the system grammar; `.h` files open
   in `c++-ts-mode` (the owner's projects are C++, and no C grammar is installed). A
   missing grammar is a startup error, not a fallback to `c++-mode`.
@@ -152,7 +168,7 @@ Known defects: none yet (nothing built).
 ## 8. Build (CMake presets)
 - DECIDED D-005: `CMakePresets.json` is the toolchain / profile mechanism; Emacs never
   stores its own per-project build settings while a preset exists.
-- PROPOSED (O-4): CMake files use `cmake-mode` from the system `cmake` package
+- DECIDED D-013: CMake files use `cmake-mode` from the system `cmake` package
   (`/usr/share/emacs/site-lisp`), version-matched to the installed CMake; no grammar, no
   submodule. Rejected alternative: `cmake-ts-mode`, needs a self-built
   `tree-sitter-cmake` for highlighting only.
@@ -246,10 +262,8 @@ presets, GoogleTest runner.
   clangd 22 (fills the (R) rows of section 1). After v0.1.
 
 ## Open questions ledger (LIVING)
-- Q-4 (OPEN): may the reference project get a committed `CMakePresets.json` (the one in
-  `spikes/s1-compile-db/`) once S1 passes? Its CLion setup can use the same presets.
-- O-1: compile DB discovery under presets -> S1.
-- O-4: CMake editing with system `cmake-mode` (PROPOSED, section 8) -> owner ruling.
+- O-1: compile DB discovery under presets -> S1 run 2 (B, C, D tied in run 1).
+- O-5: cold-header flags (DESIGN 7) -> S1 run 2 live check 6.
 Resolved:
 - 2026-10-07, owner: LSP + debugger stack = eglot + dape (D-001, D-002); config home =
   this repo symlinked as `~/.emacs.d/init.el` (D-003); keys = Emacs-native + prefix
@@ -258,6 +272,9 @@ Resolved:
   deal.II size, focus on performance (D-010, section 11); Q-3 package set accepted;
   O-3 versions pinned as git submodules (D-006); O-2 owner installed
   `tree-sitter-cpp`, so `c++-ts-mode` (D-008) and spike S3 is dropped.
+- 2026-10-07, owner after S1 run 1: O-4 CMake files use the system `cmake-mode` (D-013);
+  missing `-std` fixed by `CMAKE_CXX_EXTENSIONS OFF` in the project (D-011); Q-4 the
+  reference project commits the spike `CMakePresets.json` (D-012).
 
 ## Decisions ledger (LIVING, append only)
 | id | date | decision (one line) | section | from |
@@ -275,6 +292,9 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-008 | 2026-10-07 | `c++-ts-mode` on system grammar, `.h` is C++ | 7 | O-2 |
 | D-009 | 2026-10-07 | reference project is RMO-gross-pitaevskii | 3 | Q-1 |
 | D-010 | 2026-10-07 | performance target is deal.II scale (budgets in 11) | 11 | Q-2 |
+| D-011 | 2026-10-07 | compile DB must carry `-std`; projects set EXTENSIONS OFF | 7 | S1 |
+| D-012 | 2026-10-07 | reference project commits the spike CMakePresets.json | 3 | Q-4 |
+| D-013 | 2026-10-07 | CMake files use the system `cmake-mode` | 8 | O-4 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
