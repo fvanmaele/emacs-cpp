@@ -1,0 +1,80 @@
+[submodule "projectile"]
+	path = lib/projectile
+	url = https://github.com/bbatsov/projectile
+	ignore = untracked
+	build-exclude = projectile-consult.el
+[submodule "treemacs"]
+	path = lib/treemacs
+	url = https://github.com/Alexander-Miller/treemacs
+	ignore = untracked
+	load-path = src/elisp
+	load-path = src/extra
+	build-exclude = src/extra/treemacs-all-the-icons.el
+	build-exclude = src/extra/treemacs-evil.el
+	build-exclude = src/extra/treemacs-mu4e.el
+	build-exclude = src/extra/treemacs-perspective.el
+	build-exclude = src/extra/treemacs-persp.el
+[submodule "dash"]
+	path = lib/dash
+	url = https://github.com/magnars/dash.el
+	ignore = untracked
+[submodule "s"]
+	path = lib/s
+	url = https://github.com/magnars/s.el
+	ignore = untracked
+[submodule "ace-window"]
+	path = lib/ace-window
+	url = https://github.com/abo-abo/ace-window
+	ignore = untracked
+[submodule "avy"]
+	path = lib/avy
+	url = https://github.com/abo-abo/avy
+	ignore = untracked
+[submodule "pfuture"]
+	path = lib/pfuture
+	url = https://github.com/Alexander-Miller/pfuture
+	ignore = untracked
+[submodule "hydra"]
+	path = lib/hydra
+	url = https://github.com/abo-abo/hydra
+	ignore = untracked
+	build-exclude = hydra-examples.el
+[submodule "ht"]
+	path = lib/ht
+	url = https://github.com/Wilfred/ht.el
+	ignore = untracked
+[submodule "cfrs"]
+	path = lib/cfrs
+	url = https://github.com/Alexander-Miller/cfrs
+	ignore = untracked
+[submodule "posframe"]
+	path = lib/posframe
+	url = https://github.com/tumashu/posframe
+	ignore = untracked
+	build-exclude = posframe-benchmark.el
+[submodule "magit"]
+	path = lib/magit
+	url = https://github.com/magit/magit
+	ignore = untracked
+	load-path = lisp
+[submodule "with-editor"]
+	path = lib/with-editor
+	url = https://github.com/magit/with-editor
+	ignore = untracked
+	load-path = lisp
+[submodule "cond-let"]
+	path = lib/cond-let
+	url = https://github.com/tarsius/cond-let
+	ignore = untracked
+[submodule "llama"]
+	path = lib/llama
+	url = https://github.com/tarsius/llama
+	ignore = untracked
+[submodule "markdown-mode"]
+	path = lib/markdown-mode
+	url = https://github.com/jrblevin/markdown-mode
+	ignore = untracked
+[submodule "org-journal"]
+	path = lib/org-journal
+	url = https://github.com/bastibe/org-journal
+	ignore = untracked

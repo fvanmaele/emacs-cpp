@@ -1,0 +1,86 @@
+# S1 run 2026-10-07T23:15:51+02:00 on copy of /home/alad/source/repos/RMO-gross-pitaevskii
+clangd: clangd version 23.1.1
+presets: project's own CMakePresets.json
+configure debug: ok; entries: 12
+-std in database: 12 entries
+## A-none src/main.cc (--query-driver=/usr/bin/c++,/usr/bin/g++)
+  elapsed 0.7 s, max RSS 114 MB
+  db: Failed to find compilation database
+  not found: 1
+  real diagnostics: 21
+  tweak self-test failures: 1
+  flags from: 
+  All checks completed, 22 errors
+## B-dotclangd src/main.cc (--query-driver=/usr/bin/c++,/usr/bin/g++)
+  elapsed 13.3 s, max RSS 779 MB
+  db: Loaded compilation database from /tmp/s1/work/rmo/build/debug/compile_commands.json
+  not found: 0
+  real diagnostics: 0
+  tweak self-test failures: 5
+  flags from: Compile command from CDB
+  All checks completed, 5 errors
+## C-symlink src/main.cc (--query-driver=/usr/bin/c++,/usr/bin/g++)
+  elapsed 13.3 s, max RSS 776 MB
+  db: Loaded compilation database from /tmp/s1/work/rmo/compile_commands.json
+  not found: 0
+  real diagnostics: 0
+  tweak self-test failures: 5
+  flags from: Compile command from CDB
+  All checks completed, 5 errors
+## D-argument src/main.cc (--query-driver=/usr/bin/c++,/usr/bin/g++ --compile-commands-dir=build/debug)
+  elapsed 13.4 s, max RSS 777 MB
+  db: Loaded compilation database from /tmp/s1/work/rmo/build/debug/compile_commands.json
+  not found: 0
+  real diagnostics: 0
+  tweak self-test failures: 5
+  flags from: Compile command from CDB
+  All checks completed, 5 errors
+## E-argument-no-query-driver src/main.cc (--compile-commands-dir=build/debug)
+  elapsed 13.7 s, max RSS 778 MB
+  db: Loaded compilation database from /tmp/s1/work/rmo/build/debug/compile_commands.json
+  not found: 0
+  real diagnostics: 0
+  tweak self-test failures: 5
+  flags from: Compile command from CDB
+  All checks completed, 5 errors
+## A-none include/rmo/fe/assemble.h (--query-driver=/usr/bin/c++,/usr/bin/g++)
+  elapsed 6.8 s, max RSS 351 MB
+  db: Failed to find compilation database
+  not found: 1
+  real diagnostics: 19
+  tweak self-test failures: 20
+  flags from: 
+  All checks completed, 39 errors
+## B-dotclangd include/rmo/fe/assemble.h (--query-driver=/usr/bin/c++,/usr/bin/g++)
+  elapsed 7.7 s, max RSS 380 MB
+  db: Loaded compilation database from /tmp/s1/work/rmo/build/debug/compile_commands.json
+  not found: 1
+  real diagnostics: 17
+  tweak self-test failures: 20
+  flags from: Compile command inferred from /tmp/s1/work/rmo/fmt/src/format.cc
+  All checks completed, 37 errors
+## C-symlink include/rmo/fe/assemble.h (--query-driver=/usr/bin/c++,/usr/bin/g++)
+  elapsed 8.0 s, max RSS 381 MB
+  db: Loaded compilation database from /tmp/s1/work/rmo/compile_commands.json
+  not found: 1
+  real diagnostics: 17
+  tweak self-test failures: 20
+  flags from: Compile command inferred from /tmp/s1/work/rmo/fmt/src/format.cc
+  All checks completed, 37 errors
+## D-argument include/rmo/fe/assemble.h (--query-driver=/usr/bin/c++,/usr/bin/g++ --compile-commands-dir=build/debug)
+  elapsed 7.8 s, max RSS 380 MB
+  db: Loaded compilation database from /tmp/s1/work/rmo/build/debug/compile_commands.json
+  not found: 1
+  real diagnostics: 17
+  tweak self-test failures: 20
+  flags from: Compile command inferred from /tmp/s1/work/rmo/fmt/src/format.cc
+  All checks completed, 37 errors
+## E-argument-no-query-driver include/rmo/fe/assemble.h (--compile-commands-dir=build/debug)
+  elapsed 6.6 s, max RSS 381 MB
+  db: Loaded compilation database from /tmp/s1/work/rmo/build/debug/compile_commands.json
+  not found: 1
+  real diagnostics: 17
+  tweak self-test failures: 20
+  flags from: Compile command inferred from /tmp/s1/work/rmo/fmt/src/format.cc
+  All checks completed, 37 errors
+done; full clangd logs in /tmp/s1/work/rmo/check-*.log

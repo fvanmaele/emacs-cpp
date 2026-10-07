@@ -2,7 +2,8 @@
 
 Verdict: FAIL (run 1, 2026-10-07). Pass criteria not met: every variant that found the
 database still reported errors (main.cc 12, header 39). Both causes are found and fixed
-outside this repo (below); run 2 decides the final verdict.
+outside this repo (below); run 2 decides the final verdict. Run 2 (below): script part
+meets the criteria; verdict waits for the owner's live-check answers.
 
 ## Environment
 Owner machine, 2026-10-07. clangd 23.1.1 (upgraded from 22.1.8 since the DESIGN 3
@@ -46,6 +47,22 @@ Header `include/rmo/fe/assemble.h`: all variants 1 not found, 39 errors, about 7
 - Owner ruling 2026-10-07: RMO sets `CMAKE_CXX_EXTENSIONS OFF` in CMakeLists.txt
   (D-011) and commits the spike `CMakePresets.json` (Q-4, D-012).
 - O-1 stays open until run 2; if B, C, D stay equivalent, the RUN.md rule picks D.
+
+## Run 2 (2026-10-07, after RMO commit 9dc35b7)
+Raw output: `results-run2.log`. The project's own `CMakePresets.json` was used and all
+12 database entries carry `-std`.
+| variant | file | real diagnostics | elapsed | max RSS |
+|---|---|---|---|---|
+| A-none | main.cc | 21 | 0.7 s | 114 MB |
+| B / C / D | main.cc | 0 | 13.3 - 13.4 s | 776 - 779 MB |
+| E (no query-driver) | main.cc | 0 | 13.7 s | 778 MB |
+| B / C / D / E | assemble.h | 17 (1 not found) | 6.6 - 8.0 s | 380 MB |
+- main.cc is clean in every variant that finds the database; B, C, D remain tied.
+- First-parse cost of a deal.II translation unit rose from 7.6 s / 457 MB to about
+  13.4 s / 778 MB: with C++20 active, clangd now parses the deal.II code that the C++17
+  fallback skipped. This is the real number for D-010.
+- The cold header still takes flags from `fmt/src/format.cc` (O-5); live checks 5 and 6
+  decide whether a running clangd does better.
 
 ## Gotchas
 - clangd counts failed refactoring self-tests (`tweak: ... FAIL`) in its error total;
