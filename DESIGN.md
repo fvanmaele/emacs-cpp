@@ -112,9 +112,9 @@ Observed on the owner machine, 2026-10-07:
 ## 5. Load model (the core contract)
 - `early-init.el`: frame / UI settings, startup garbage-collection threshold,
   `package-enable-at-startup` nil. Nothing else.
-- `init.el`: adds the generated load path and autoloads (below), sets `use-package`
-  defaults, then `require`s `lisp/init-*.el` in a fixed, listed order. Module order is
-  the contract; a module may depend only on modules loaded before it.
+- `init.el`: adds the generated load path and autoloads (below), loads `use-package`
+  and sets its defaults, then `require`s `lisp/init-*.el` in a fixed, listed order.
+  Module order is the contract; a module may depend only on modules loaded before it.
 - Each module ends with `(provide 'init-<name>)`; a missing module is a load error.
 - `use-package-expand-minimally` t: use-package then does not wrap forms in its own
   error catching, so a broken package form stops startup (principle 1).
@@ -123,18 +123,20 @@ Observed on the owner machine, 2026-10-07:
 ## 6. Architecture
 | block | location | tag | notes |
 |---|---|---|---|
-| early init | `early-init.el` | UNVALIDATED | NEW |
-| init | `init.el` | UNVALIDATED | NEW, replaces `~/.emacs` (D-003) |
-| packages | `lib/<repo>/` submodules | UNVALIDATED | NEW (D-006, section 12) |
-| package build | `scripts/build-packages.el` | UNVALIDATED | NEW, run by `make` |
+| early init | `early-init.el` | PROTOTYPE | T-002 |
+| init | `init.el` | PROTOTYPE | T-002, replaces `~/.emacs` (D-003) |
+| packages | `lib/<repo>/` submodules | PROTOTYPE | T-002: 17 of 28 (section 12) |
+| package build | `scripts/build-packages.el` | PROTOTYPE | T-002, `make packages` |
+| theme | `lisp/init-ui.el` | PROTOTYPE | T-002 |
+| writing | `lisp/init-writing.el` | PROTOTYPE | T-002: markdown, org-journal |
 | completion UI | `lisp/init-completion.el` | UNVALIDATED | NEW: vertico .. corfu |
-| project, tree | `lisp/init-project.el` | UNVALIDATED | NEW: projectile, treemacs |
+| project, tree | `lisp/init-project.el` | PROTOTYPE | T-002: projectile, treemacs |
 | C++, LSP | `lisp/init-cpp.el` | UNVALIDATED | NEW: eglot, flymake, format |
 | CMake | `lisp/init-cmake.el` | UNVALIDATED | NEW: presets, compile |
 | debugger | `lisp/init-debug.el` | UNVALIDATED | NEW: dape |
-| git | `lisp/init-git.el` | UNVALIDATED | NEW: magit, diff-hl |
+| git | `lisp/init-git.el` | PROTOTYPE | T-002: magit; diff-hl later |
 | keys | `lisp/init-keys.el` | UNVALIDATED | NEW: `C-c l` map (D-004) |
-| tests | `test/*.el`, `make test` | UNVALIDATED | NEW: batch load + ERT |
+| tests | `test/*.el`, `make test` | PROTOTYPE | T-002: 11 ERT tests |
 Known defects: none yet (nothing built).
 
 ## 7. C++ language server (eglot + clangd)
@@ -193,13 +195,19 @@ Known defects: none yet (nothing built).
 ## 11. Performance (Q-2, D-010)
 Budgets, measured on the owner machine (T-008 measures, numbers land here):
 - Startup: `(emacs-init-time)` <= 0.5 s with all packages built (`make packages`).
+  Measured 2026-10-07 after T-002 (17 packages, terminal frame, throwaway HOME with
+  only the two symlinks, 5 runs): 0.21 - 0.30 s.
 - Typing: no perceptible lag in a reference-project `.cc` buffer while clangd builds
   its preamble or background index.
 - clangd: a deal.II translation unit's first parse and RSS are recorded by S1; the
   background index of a deal.II-sized tree must not starve the build (low priority).
 Mechanisms, each PROPOSED until measured:
-- Packages ahead-of-time byte- and native-compiled by `make packages`; one combined
-  autoloads file; no `package.el` activation at startup.
+- Packages byte-compiled by `make packages`; one combined autoloads file; no
+  `package.el` activation at startup. Native compilation is left to Emacs's default
+  just-in-time compiler (first load, in the background, cached in
+  `~/.emacs.d/eln-cache`); ahead-of-time native compilation is not adopted while
+  startup is within budget. (Supersedes "ahead-of-time byte- and native-compiled",
+  2026-10-07.)
 - Everything deferred (`use-package-always-defer` t) except the completion UI and theme.
 - `gc-cons-threshold` raised in `early-init.el`, restored to a moderate value after
   startup; `read-process-output-max` 4 MB (large LSP replies).
@@ -212,19 +220,34 @@ Mechanisms, each PROPOSED until measured:
 ## 12. Packages (D-006, D-007)
 - DECIDED D-006: every non-built-in package is a git submodule under `lib/<repo>/`,
   pinned to an exact commit; upgrading is a commit in this repo, rollback is
-  `git revert`. Initial pin: newest release tag, else the commit of the MELPA snapshot
-  installed on 2026-09-14.
-- Per-package build data lives in `.gitmodules` as extra keys (`load-path`, e.g. `lisp`
-  for magit, `extensions` for vertico / corfu), read with `git config -f .gitmodules`.
-- `scripts/build-packages.el` (run by `make packages`) byte-compiles and native-compiles
-  every submodule and writes two generated, git-ignored files: `lib/load-path.el` and
-  `lib/autoloads.el`. `init.el` loads both and stops with "run make packages" if absent.
+  `git revert`. Initial pin: the exact commit of the package.el version installed on
+  2026-10-07 (each `*-pkg.el` records it), so behaviour is unchanged by the move.
+  (Supersedes "newest release tag", 2026-10-07; for packages new in later tasks:
+  newest release tag, else newest commit.)
+- Per-package build data lives in `.gitmodules` as extra keys read with `git config -f
+  .gitmodules`: `load-path` (repeatable, default `.`; e.g. `lisp` for magit,
+  `src/elisp` + `src/extra` for treemacs) and `build-exclude` (repeatable; a file that
+  needs a package not vendored, e.g. treemacs-evil, projectile-consult until T-003).
+  Unknown keys, missing directories and excludes naming absent files are build errors.
+  Every submodule has `ignore = untracked`, so the built `.elc` files do not show as
+  changes.
+- `scripts/build-packages.el` (run by `make packages`) byte-compiles every built file
+  (old `.elc` deleted first; a compile error fails the build) and writes two generated,
+  git-ignored files: `lib/load-path.el` (paths relative to itself) and `lib/autoloads.el`
+  (generated per package directory so files are named by bare library name, as
+  package.el does). `init.el` loads both and stops with "run make packages" if absent;
+  `make test` fails if any `.elc` is missing or older than its `.el`.
+- Known gap: package Info manuals (magit, projectile) are not built; T-010.
 - REJECTED: borg (the tool this layout imitates). It assumes the package repository is
   the Emacs directory itself, which contradicts D-003; reconsider if own glue grows past
-  about 100 lines. REJECTED: straight.el, elpaca, package-vc (owner ruling 2026-10-07).
-- DECIDED D-007: network access happens only when the owner runs `git submodule update`
-  or adds a submodule (GitHub and the upstream hosts below); Emacs makes no network
-  calls at startup.
+  about 100 lines. Measured after T-002: `scripts/build-packages.el` has 183 lines of
+  code (excluding comments and blank lines), past that mark; O-6 asks the owner.
+  REJECTED: straight.el, elpaca, package-vc (owner ruling 2026-10-07).
+- DECIDED D-007 (superseded by D-014): network access happens only when the owner runs
+  `git submodule update` or adds a submodule; Emacs makes no network calls at startup.
+- DECIDED D-014: network access happens only when adding or updating submodules (by the
+  owner, or by a session with the owner's consent for that change); Emacs makes no
+  network calls at startup.
 - Package set (Q-3 accepted 2026-10-07; dependencies from the 2026-09-14 archive
   snapshot). Built into Emacs 31 and not vendored: eglot, jsonrpc, project, flymake,
   transient, compat, seq, cl-lib, org, which-key. Vendored, 28 repositories:
@@ -264,6 +287,8 @@ presets, GoogleTest runner.
 ## Open questions ledger (LIVING)
 - O-1: compile DB discovery under presets -> S1 run 2 (B, C, D tied in run 1).
 - O-5: cold-header flags (DESIGN 7) -> S1 run 2 live check 6.
+- O-6: own package glue is 183 code lines, past the "about 100" borg threshold of
+  DESIGN 12 -> owner: keep own glue, or spike borg with the repo outside `~/.emacs.d`.
 Resolved:
 - 2026-10-07, owner: LSP + debugger stack = eglot + dape (D-001, D-002); config home =
   this repo symlinked as `~/.emacs.d/init.el` (D-003); keys = Emacs-native + prefix
@@ -295,6 +320,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-011 | 2026-10-07 | compile DB must carry `-std`; projects set EXTENSIONS OFF | 7 | S1 |
 | D-012 | 2026-10-07 | reference project commits the spike CMakePresets.json | 3 | Q-4 |
 | D-013 | 2026-10-07 | CMake files use the system `cmake-mode` | 8 | O-4 |
+| D-014 | 2026-10-07 | network only on submodule add / update, owner consents | 12 | owner |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.

@@ -12,8 +12,8 @@ with `done when: ...`).
 | id | status | size | title | source | what |
 |----|--------|------|-------|--------|------|
 | T-001 | next | S | spike S1 | O-1 | run 2 per RUN.md; done when: RESULTS.md PASS/FAIL |
-| T-009 | next | S | RMO build fixes | D-011, D-012 | see below |
-| T-002 | open | L | skeleton + packages | D-003, D-006 | see below |
+| T-009 | done, RMO 9dc35b7 | S | RMO build fixes | D-011, D-012 | journal: S1 run 2 |
+| T-002 | next | L | skeleton + packages | D-003, D-006 | owner step left; see below |
 | T-003 | open | M | completion stack | Q-3 | see below |
 | T-004 | open | M | eglot + clangd | D-001, S1 | see below |
 | T-008 | open | S | performance baseline | D-010 | see below |
@@ -28,7 +28,8 @@ with `done when: ...`).
   when: `make packages && make test` pass, the owner symlinks per the handed-over
   commands and retires `~/.emacs`, and Emacs starts with no errors and the same theme,
   projectile, treemacs and magit behaviour as before.
-- T-003: completion group of DESIGN 12 added as submodules and configured; done when:
+- T-003: completion group of DESIGN 12 added as submodules and configured; drop the
+  `projectile-consult.el` build-exclude once consult is vendored; done when:
   `C-x b`, `C-c p f`, `consult-ripgrep` show vertico candidates with annotations in the
   reference project, and corfu pops up eglot completions.
 - T-004: eglot on `c++-ts-mode` with the S1 compile-db choice; done when: in the
@@ -43,3 +44,4 @@ with `done when: ...`).
 | T-005 | open | M | presets build | D-005 | done when: preset build errors jump to source |
 | T-006 | open | M | dape debugging | D-002, S2 | done when: v0.3 ladder item holds |
 | T-007 | open | S | `C-c l` map | D-004 | done when: which-key lists every DESIGN 10 key |
+| T-010 | open | S | Info manuals | DESIGN 12 | done when: `C-h i` lists magit, projectile |
