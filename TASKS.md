@@ -11,20 +11,27 @@ with `done when: ...`).
 ## v0.1 navigation
 | id | status | size | title | source | what |
 |----|--------|------|-------|--------|------|
-| T-001 | next | S | spike S1 | O-1 | RUN.md for S1; done when: RESULTS.md has a verdict |
-| T-002 | open | M | config skeleton | D-003 | see below |
+| T-001 | next | S | spike S1 | O-1 | owner runs RUN.md; done when: RESULTS.md verdict |
+| T-002 | open | L | skeleton + packages | D-003, D-006 | see below |
 | T-003 | open | M | completion stack | Q-3 | see below |
 | T-004 | open | M | eglot + clangd | D-001, S1 | see below |
+| T-008 | open | S | performance baseline | D-010 | see below |
 
-- T-002: `early-init.el`, `init.el`, `lisp/init-project.el` (projectile + treemacs moved
-  from `~/.emacs`), `make test` batch-loads init; done when: owner symlinks per the
-  handed-over commands, retires `~/.emacs`, and Emacs starts with no errors and the
-  same theme / projectile behaviour as before.
-- T-003: vertico, orderless, marginalia, consult, embark, corfu; done when: `C-x b`,
-  `C-c p f`, `consult-ripgrep` show vertico candidates with annotations in a real project.
-- T-004: eglot on C++ buffers with the S1 compile-db choice; done when: in the Q-1
-  project `M-.` crosses files, `M-?` lists usages, `eglot-rename` renames across files,
-  and a clang-tidy warning shows in flymake.
+- T-002: `early-init.el`, `init.el`, `lisp/init-project.el` (projectile, treemacs, theme
+  moved from `~/.emacs`), `.gitmodules` + `lib/` submodules for the project, tree, git
+  and owner's-existing groups of DESIGN 12, `scripts/build-packages.el`, `make
+  packages`, `make test` (ERT for the build script + batch load of `init.el`); done
+  when: `make packages && make test` pass, the owner symlinks per the handed-over
+  commands and retires `~/.emacs`, and Emacs starts with no errors and the same theme,
+  projectile, treemacs and magit behaviour as before.
+- T-003: completion group of DESIGN 12 added as submodules and configured; done when:
+  `C-x b`, `C-c p f`, `consult-ripgrep` show vertico candidates with annotations in the
+  reference project, and corfu pops up eglot completions.
+- T-004: eglot on `c++-ts-mode` with the S1 compile-db choice; done when: in the
+  reference project `M-.` crosses files, `M-?` lists usages, `eglot-rename` renames
+  across files, and a clang-tidy warning shows in flymake.
+- T-008: measure DESIGN 11 budgets (`emacs-init-time`, clangd numbers from S1) after
+  T-004; done when: numbers are in DESIGN 11 and each tuning setting cites one.
 
 ## Later
 | id | status | size | title | source | what |

@@ -22,13 +22,11 @@ code is written for it. Each spike is a self-contained directory with its own bu
 ## Later spikes (each gates its feature)
 - **S2 dape gdb launch** - can dape start `gdb -i dap` on a preset-built debug binary,
   stop at a source breakpoint, step, and show locals / stack? Gates v0.3 (DESIGN 9).
-- **S3 treesit grammars** - do C++ and CMake grammars built by
-  `treesit-install-language-grammar` load in Emacs 31.1 and highlight correctly, versus
-  `c++-mode` + `eglot-semantic-tokens-mode`? Gates v0.2 (DESIGN 7, O-2).
+- **S3 treesit grammars** - DROPPED 2026-10-07: the owner installed `tree-sitter-cpp`
+  (D-008) and CMake editing uses the system `cmake-mode` (O-4), so no grammar is built.
 
 ## Status
 | Spike | Status | RESULTS |
 |---|---|---|
-| S1 | not started | |
+| S1 | ready, owner to run | |
 | S2 | not started | |
-| S3 | not started | |
