@@ -1,10 +1,13 @@
 #!/bin/sh
 # S1 compile-db discovery. Owner runs: sh spikes/s1-compile-db/run.sh [project-dir]
-# Works on a copy under $S1_WORK (default /tmp/s1-rmo); never writes to the project.
+# Works on a copy under $S1_WORK (default /tmp/s1/work/rmo); never writes to the project.
+# The copy must sit at least three levels deep: the project's find_package(deal.II HINTS
+# ../ ../../) would otherwise reach / and pick /lib/cmake/deal.II via Arch's /lib symlink,
+# making deal.II compute its root as / (configure fails, macros not found).
 # Writes results.log next to this script. Spike code: never promoted into the config.
 set -eu
 SRC=${1:-$HOME/source/repos/RMO-gross-pitaevskii}
-WORK=${S1_WORK:-/tmp/s1-rmo}
+WORK=${S1_WORK:-/tmp/s1/work/rmo}
 HERE=$(cd "$(dirname "$0")" && pwd)
 LOG=$HERE/results.log
 QD=--query-driver=/usr/bin/c++,/usr/bin/g++
@@ -12,6 +15,7 @@ QD=--query-driver=/usr/bin/c++,/usr/bin/g++
 [ -d "$SRC" ] || { echo "s1: no project at $SRC" >&2; exit 1; }
 [ -e "$WORK" ] && { echo "s1: $WORK exists; remove it first" >&2; exit 1; }
 
+mkdir -p "$(dirname "$WORK")"
 rsync -a --exclude build-release --exclude build "$SRC"/ "$WORK"/
 cp "$HERE/CMakePresets.json" "$WORK/"
 cd "$WORK"

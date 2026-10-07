@@ -20,8 +20,9 @@ Each variant is checked on `src/main.cc` and on the first header under `include/
 
 ## Prerequisites
 clangd, cmake, ninja, rsync, python3 (all present on 2026-10-07). The project is copied to
-`/tmp/s1-rmo` (override with `S1_WORK=...`); the real project is never written to. The
-copy gets `spikes/s1-compile-db/CMakePresets.json` (debug + release, Ninja,
+`/tmp/s1/work/rmo` (override with `S1_WORK=...`, at least three levels deep, see
+Gotchas); the real project is never written to. The copy gets
+`spikes/s1-compile-db/CMakePresets.json` (debug + release, Ninja,
 `CMAKE_EXPORT_COMPILE_COMMANDS=ON`), the same file proposed for the real project later.
 
 ## Commands (owner runs)
@@ -31,7 +32,7 @@ sh spikes/s1-compile-db/run.sh ~/source/repos/RMO-gross-pitaevskii
 ```
 Then the live check in your current Emacs (eglot is built in, no config needed):
 ```
-cd /tmp/s1-rmo && ln -s build/debug/compile_commands.json .
+cd /tmp/s1/work/rmo && ln -s build/debug/compile_commands.json .
 emacs src/main.cc        # then: M-x eglot, wait for the mode line to show eglot
 ```
 In that buffer note yes / no for each:
@@ -49,4 +50,13 @@ argument from the active preset and nothing is added to the project tree.
 
 ## Hand back
 `spikes/s1-compile-db/results.log` plus your four live-check answers. The next session
-writes `RESULTS.md` (verdict, numbers, decision) from them; delete `/tmp/s1-rmo` afterwards.
+writes `RESULTS.md` (verdict, numbers, decision) from them; delete `/tmp/s1` afterwards.
+
+## Gotchas
+- 2026-10-07, first run: configure failed with `Unknown CMake command
+  "deal_ii_initialize_cached_variables"`. Cause: the copy at `/tmp/s1-rmo` made the
+  project's `find_package(deal.II HINTS ../ ../../)` reach `/`, where Arch's `/lib ->
+  usr/lib` symlink exposes `/lib/cmake/deal.II`; deal.II then derived its root as `/`
+  and found no macros. Fixed in the spike by copying three levels deep. Finding for the
+  project (not fixed here): the relative HINTS make configure depend on where the
+  checkout lives.
