@@ -14,8 +14,8 @@ with `done when: ...`).
 | T-001 | done 0003 | S | spike S1 | O-1 | PASS (run 2); D-016 |
 | T-009 | done 0003 | S | RMO build fixes | D-011, D-012 | RMO commit 9dc35b7 |
 | T-002 | done 0002 | L | skeleton + packages | D-003, D-006 | owner confirmed 2026-10-07 |
-| T-003 | next | M | completion stack | Q-3 | built; owner check left, see below |
-| T-004 | open | M | eglot + clangd | D-001, S1 | see below |
+| T-003 | done 0004 | M | completion stack | Q-3 | owner confirmed 2026-10-07 |
+| T-004 | next | M | eglot + clangd | D-001, S1 | built; owner check left, see below |
 | T-008 | open | S | performance baseline | D-010 | see below |
 
 - T-009 (owner, in RMO): `CMAKE_CXX_EXTENSIONS OFF`, commit `CMakePresets.json`, ignore
@@ -49,6 +49,7 @@ with `done when: ...`).
 | T-005 | open | M | presets build | D-005 | done when: preset build errors jump to source |
 | T-006 | open | M | dape debugging | D-002, S2 | done when: v0.3 ladder item holds |
 | T-007 | open | S | `C-c l` map | D-004 | done when: which-key lists every DESIGN 10 key |
+|       |      |   | (`C-c l P` exists since T-004) | | |
 | T-010 | open | S | Info manuals | DESIGN 12 | done when: `C-h i` lists magit, projectile |
 | T-011 | open | M | cold-header flags | O-5, S4 | done when: S4 applied, see below |
 

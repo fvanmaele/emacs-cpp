@@ -109,3 +109,7 @@
 	path = lib/cape
 	url = https://github.com/minad/cape
 	ignore = untracked
+[submodule "consult-eglot"]
+	path = lib/consult-eglot
+	url = https://github.com/mohkale/consult-eglot
+	ignore = untracked

@@ -36,6 +36,7 @@
 (require 'init-ui)
 (require 'init-completion)
 (require 'init-project)
+(require 'init-cpp)
 (require 'init-git)
 (require 'init-writing)
 

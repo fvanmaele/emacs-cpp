@@ -14,5 +14,7 @@ packages: ## byte-compile lib/ submodules; write lib/load-path.el, lib/autoloads
 	$(EMACS) -Q --batch -l scripts/build-packages.el -f build-packages-batch
 
 test: ## ERT: build script, then init.el loaded in batch (run `make packages` first)
-	$(EMACS) -Q --batch -L scripts -L test -l test/build-packages-test.el \
-		-l test/init-test.el -f ert-run-tests-batch-and-exit
+	$(EMACS) -Q --batch -L scripts -L lisp -L test \
+		$(foreach f,$(sort $(wildcard test/*-test.el)),\
+			--eval "(require '$(basename $(notdir $(f))))") \
+		-f ert-run-tests-batch-and-exit
