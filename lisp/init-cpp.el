@@ -5,7 +5,8 @@
 ;; C++ buffers use `c++-ts-mode' on the system tree-sitter grammar (D-008), and eglot
 ;; starts clangd for them with the active CMake preset's build directory (D-016,
 ;; D-017, lisp/emacs-cpp-presets.el).  Navigation (M-. M-? M-,), rename, code actions
-;; and diagnostics are eglot's; keys beyond these come with the `C-c l' map (T-007).
+;; and diagnostics are eglot's; the rest of the code commands are on `C-c l' (D-004,
+;; T-007), which which-key lists after a pause.
 
 ;;; Code:
 
@@ -23,6 +24,10 @@
 (add-hook 'c++-ts-mode-hook #'emacs-cpp-presets-eglot-ensure)
 
 (use-package eglot
+  ;; Not autoloaded by eglot; `C-c l' (below) can come before eglot has loaded.
+  :commands (eglot-rename eglot-code-actions eglot-format eglot-find-implementation
+             eglot-find-declaration eglot-show-call-hierarchy eglot-show-type-hierarchy
+             eglot-inlay-hints-mode)
   :config
   ;; Ahead of eglot's own clangd entry, which starts clangd without a database.
   (add-to-list 'eglot-server-programs
@@ -35,10 +40,29 @@
         ;; clangd, so M-. keeps working inside them (D-019).
         eglot-extend-to-xref t))
 
+(use-package flymake
+  :commands flymake-show-project-diagnostics)
+
 (use-package consult-eglot
   :after (consult eglot))
 
-(keymap-global-set "C-c l P" #'emacs-cpp-presets-select)
+(defvar-keymap emacs-cpp-code-map
+  :doc "Code commands on `C-c l' (D-004).  Eglot's need a managed buffer."
+  "r" #'eglot-rename
+  "a" #'eglot-code-actions
+  "f" #'eglot-format
+  "i" #'eglot-find-implementation
+  "d" #'eglot-find-declaration
+  "h" #'eglot-show-call-hierarchy
+  "t" #'eglot-show-type-hierarchy
+  ;; By name across the project: RMO keeps headers in include/rmo/, sources in src/.
+  "o" #'projectile-find-other-file
+  "s" #'consult-eglot-symbols
+  "e" #'flymake-show-project-diagnostics
+  ;; Eglot turns inlay hints on in every managed buffer; this hides / shows them.
+  "I" #'eglot-inlay-hints-mode
+  "P" #'emacs-cpp-presets-select)
+(keymap-global-set "C-c l" emacs-cpp-code-map)
 
 (provide 'init-cpp)
 ;;; init-cpp.el ends here

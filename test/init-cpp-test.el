@@ -123,6 +123,24 @@ any eglot server shut down."
             (accept-process-output nil 0.2)))
         (should (init-cpp-test--tidy-diagnostic))))))
 
+(ert-deftest init-cpp-code-map-on-c-c-l ()
+  "T-007, D-004: every proposed letter under `C-c l' runs its command, and
+which-key lists all of them."
+  (init-test--load)
+  (let ((expected '(("r" . eglot-rename) ("a" . eglot-code-actions)
+                    ("f" . eglot-format) ("i" . eglot-find-implementation)
+                    ("d" . eglot-find-declaration) ("h" . eglot-show-call-hierarchy)
+                    ("t" . eglot-show-type-hierarchy) ("o" . projectile-find-other-file)
+                    ("s" . consult-eglot-symbols) ("e" . flymake-show-project-diagnostics)
+                    ("I" . eglot-inlay-hints-mode) ("P" . emacs-cpp-presets-select))))
+    (pcase-dolist (`(,key . ,command) expected)
+      (should (eq (keymap-lookup global-map (concat "C-c l " key)) command))
+      (should (commandp command)))
+    (require 'which-key)
+    (let ((listed (mapcar #'car (which-key--get-bindings (kbd "C-c l")))))
+      (should (equal (sort (copy-sequence listed) #'string<)
+                     (sort (mapcar #'car expected) #'string<))))))
+
 (defun init-cpp-test--patched-clangd ()
   "The patched clangd to test (D-026), or nil when it is not installed."
   (let ((program (or (getenv "EMACS_CPP_PATCHED_CLANGD")

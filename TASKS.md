@@ -54,8 +54,7 @@ with `done when: ...`).
 |----|--------|------|-------|--------|------|
 | T-005 | done 0021 | M | presets build | D-005, D-035 | owner: RMO checked, v0.2.0 |
 | T-006 | done 0019 | M | dape debugging | D-031, D-033 | owner: RMO checked, v0.2.0 |
-| T-007 | next | S | `C-c l` map | D-004 | done when: which-key lists every DESIGN 10 key |
-|       |      |   | (`C-c l P` exists since T-004) | | |
+| T-007 | done 0025 | S | `C-c l` map | D-004 | 12 keys, which-key lists them; test |
 | T-010 | done 0024 | S | Info manuals | D-039 | `C-h i` lists magit (projectile: none) |
 | T-011 | done 0015 | M | cold-header flags | O-5, D-028 | owner: RMO headers clean |
 | T-012 | rejected (D-021) | M | preamble warm-up | S5 | owner ruled out extra open files |

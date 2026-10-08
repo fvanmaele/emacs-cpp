@@ -316,6 +316,9 @@ Known defects: none yet (nothing built).
   `r` rename, `a` code action, `f` format, `i` implementation, `d` declaration, `h` call
   hierarchy, `t` type hierarchy, `o` other file, `s` workspace symbol, `e` project
   diagnostics, `I` inlay hints toggle. Debugger keys stay on dape's own prefix + repeat map.
+  Built in T-007 (2026-10-08): all eleven plus `P` preset; `o` is
+  `projectile-find-other-file` (by name across the project; RMO splits include/ and
+  src/); inlay hints are on by default (eglot 31), `I` hides them.
 - DECIDED D-034 (owner 2026-10-08, O-16): built-in `which-key-mode` is on: after any
   prefix (`C-c p`, `C-x C-a`, `C-c l`) its keys appear once you pause 1 s
   (`which-key-idle-delay` default); `C-h` after a prefix still searches them (embark);
