@@ -136,7 +136,8 @@ Observed on the owner machine, 2026-10-07:
 | project, tree | `lisp/init-project.el` | KEEP | T-002: projectile, treemacs |
 | C++, LSP | `lisp/init-cpp.el` | PROTOTYPE | T-004: c++-ts-mode, eglot |
 | presets | `lisp/emacs-cpp-presets.el` | PROTOTYPE | T-004: D-016 - D-018 |
-| CMake | `lisp/init-cmake.el` | UNVALIDATED | NEW: presets, compile |
+| CMake build | `lisp/emacs-cpp-presets.el`, projectile form | PROTOTYPE | T-005 (D-035) |
+| CMake mode | `lisp/init-cmake.el` | UNVALIDATED | NEW: cmake-mode (D-013) |
 | debugger | `lisp/init-debug.el` | PROTOTYPE | T-006: `gdb-preset` (D-031, D-033) |
 | git | `lisp/init-git.el` | KEEP | T-002: magit; diff-hl later |
 | keys | `lisp/init-keys.el` | UNVALIDATED | NEW: `C-c l` map (D-004) |
@@ -237,10 +238,19 @@ Known defects: none yet (nothing built).
   (`/usr/share/emacs/site-lisp`), version-matched to the installed CMake; no grammar, no
   submodule. Rejected alternative: `cmake-ts-mode`, needs a self-built
   `tree-sitter-cmake` for highlighting only.
-- PROPOSED: `projectile-enable-cmake-presets` t; projectile configure / compile / test
-  commands prompt for a preset; one compilation buffer per project
-  (`projectile-per-project-compilation-buffer`). Build-target choice is by editing the
-  prompted command (`--target X`); a target picker is deferred.
+- SUPERSEDED by D-035 (2026-10-08): "PROPOSED: `projectile-enable-cmake-presets` t;
+  projectile configure / compile / test commands prompt for a preset; one compilation
+  buffer per project." That prompt ignores the active preset (D-017).
+- DECIDED D-035 (owner 2026-10-08, O-17, T-005): projectile's `cmake` project type gets
+  the commands from `emacs-cpp-presets.el`: `C-c p c o` = `cmake --preset <active>`,
+  `C-c p c c` = `cmake --build <binaryDir>`, `C-c p c t` = `ctest --test-dir
+  <binaryDir> --output-on-failure` (directory relative to the root, where they run).
+  Any buffer of the project builds the same directory, like CLion's Build; switching
+  the preset (`C-c l P`) changes the next command, since projectile re-reads a
+  function command on every run (an edit at the prompt is kept instead).
+  `projectile-enable-cmake-presets` stays nil. Target choice: edit the prompt
+  (`--target X`); a picker is deferred. Errors jump to source: Ninja passes absolute
+  source paths.
 
 ## 9. Debugger (dape)
 - DECIDED D-002: dape is the debugger front-end; gdb 17 via its native DAP interpreter
@@ -541,7 +551,7 @@ presets, GoogleTest runner.
 - O-16 (RESOLVED 2026-10-08 with D-034): visual hints for key sequences (`C-c p p`;
   compare org's dispatchers). Proposed: built-in `which-key-mode`, `C-h` after a prefix
   kept, projectile's transient on `C-c p m` documented (RESEARCH_keys_build_debug_ui 1).
-- O-17 (OPEN, owner question 2026-10-08): `C-c p c c` runs `cmake --build build` in the
+- O-17 (RESOLVED 2026-10-08 with D-035): `C-c p c c` runs `cmake --build build` in the
   root, which RMO's preset layout cannot build; CLion builds from any buffer. Proposed
   for T-005: projectile's cmake commands use the active preset's build directory
   (RESEARCH_keys_build_debug_ui 2). Not `C-x C-a b`, which toggles a breakpoint.
@@ -660,6 +670,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-032 | 2026-10-08 | gdb scripts (deal.II printers) by option, default none | 9 | O-14 |
 | D-033 | 2026-10-08 | `gdb-preset` targets from build.ninja, not a scan | 9 | owner |
 | D-034 | 2026-10-08 | built-in which-key-mode on for key hints | 10 | O-16 |
+| D-035 | 2026-10-08 | projectile cmake commands use the active preset's dir | 8 | O-17 |
 | D-036 | 2026-10-08 | gutter clicks set breakpoints; red marks, stop line lit | 9 | O-18 |
 
 ## Parity verdicts (from RESEARCH_*.md)

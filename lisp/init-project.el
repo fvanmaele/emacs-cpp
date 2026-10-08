@@ -8,10 +8,20 @@
 
 ;;; Code:
 
+(require 'emacs-cpp-presets)
+
 (use-package projectile
   :hook (after-init . projectile-mode)
   :config
-  (keymap-set projectile-mode-map "C-c p" #'projectile-command-map))
+  (keymap-set projectile-mode-map "C-c p" #'projectile-command-map)
+  ;; C-c p c o / c c / c t configure, build and test the active CMake preset from any
+  ;; buffer of the project (D-035); projectile asks again on every run, so a preset
+  ;; switch (C-c l P) takes effect at once.
+  (projectile-update-project-type
+   'cmake
+   :configure #'emacs-cpp-presets-configure-command
+   :compile #'emacs-cpp-presets-compile-command
+   :test #'emacs-cpp-presets-test-command))
 
 (defun emacs-cpp-treemacs-toggle ()
   "Close the tree if it is visible, else show the current project in it (D-029).

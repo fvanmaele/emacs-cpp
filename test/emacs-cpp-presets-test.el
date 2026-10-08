@@ -151,5 +151,23 @@
       (let ((emacs-cpp-clangd-program (expand-file-name "missing" root)))
         (should-error (emacs-cpp-presets-clangd-contact nil project) :type 'user-error)))))
 
+(ert-deftest emacs-cpp-presets-build-commands-follow-the-active-preset ()
+  "D-035: configure, build and test the active preset's build directory."
+  (emacs-cpp-presets-test--with-project
+      `(("CMakePresets.json" . ,emacs-cpp-presets-test--presets))
+    (let ((project-find-functions (list (lambda (_dir) (cons 'transient root))))
+          (default-directory (expand-file-name "src/" root)))
+      (should (equal (emacs-cpp-presets-configure-command) "cmake --preset debug"))
+      (should (equal (emacs-cpp-presets-compile-command) "cmake --build build/debug"))
+      (should (equal (emacs-cpp-presets-test-command)
+                     "ctest --test-dir build/debug --output-on-failure"))
+      ;; A switch of the active preset changes the next command.
+      (emacs-cpp-presets--store root "release")
+      (should (equal (emacs-cpp-presets-compile-command) "cmake --build out/base-Ninja"))
+      (should (equal (emacs-cpp-presets-configure-command) "cmake --preset release"))))
+  ;; Outside any project: an error, not a guess.
+  (let ((project-find-functions nil))
+    (should-error (emacs-cpp-presets-compile-command) :type 'user-error)))
+
 (provide 'emacs-cpp-presets-test)
 ;;; emacs-cpp-presets-test.el ends here
