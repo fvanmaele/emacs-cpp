@@ -62,3 +62,17 @@ Raw output: `results-run2.log`. Same copy, index session 3950 shards after 49.2 
 - The includers are recorded right after the shards are read, before the symbols
   are merged and the index is built, so the wait could end there (at least 0.6 s
   earlier for every header that waits).
+
+## Run 3 (2026-10-08 21:46, pkgrel 5 with patches 0006 and 0007, load 3.3 / 2.3 / 3.8)
+Raw output: `results-run3.log`. Same copy, index session 3950 shards after 45.0 s.
+
+| opened first | runs | command from | errors | open -> decision | load end -> decision |
+|---|---|---|---|---|---|
+| header | 10 | index (`lumping.cc`) | 0 | 907 - 1016 ms | -9 .. -5 ms |
+| source | 10 | index (`lumping.cc`) | 0 | 394 - 441 ms (header) | -6 .. -5 ms |
+
+- The decision now comes with the end of the shard load (a few ms before its log
+  line), no longer 0.6 s after it: header first 0.91 - 1.02 s after opening (run 2:
+  1.48 - 1.56 s), and a header opened after the source 0.39 - 0.44 s (run 2: about
+  1 s).
+- T-019's done-when holds: 10 / 10 from the index, 0 errors, all under 1.5 s.

@@ -543,7 +543,7 @@ presets, GoogleTest runner.
 | first `M-.` / rename per file waits 7 - 13 s | S5 (closed), S6 | owner | O-8 |
 | index rebuilt from scratch per preset / build dir | S7 | owner | - |
 | patched clangd's index navigation slower / wrong on RMO | S8 | owner | O-11 |
-| header opened first after a restart gets guessed flags | S9 | owner | O-21 |
+| header opened first after a restart gets guessed flags | S9 (PASS) | owner | - |
 | own package build glue mis-orders compilation | none (tests) | - | v0.1 |
 | clangd too slow / too large on deal.II scale | S1 numbers | owner | v0.1 |
 
@@ -638,24 +638,25 @@ presets, GoogleTest runner.
   circle (GUI) or "B" (terminal) in the keyword colour; gutter clicks need
   `dape-breakpoint-global-mode` (off); the stopped line is not highlighted. Proposed:
   that mode on, red breakpoints, highlighted stop line (RESEARCH_keys_build_debug_ui 3).
-- O-21 (OPEN, owner report 2026-10-08): a header opened first right after a restart
-  (`iteration.h` from `C-x C-r`) gets the guessed flags and "too many errors"; opening
-  another file first, then the header, is fine. `staging/test/lumping.cc` includes it and
-  is in the database, so the index knows an includer. Cause found by reading clangd
-  (D-028, patch 0005): the header's command is asked for before the project is handed to
-  the background index. The compile database announces a newly found project on its own
-  broadcast thread (`BroadcastThread`), which calls `BackgroundIndex::enqueue`, where the
-  load counter rises; `includerOf` waits only while that counter is above 0, so it sees
-  0, does not wait and finds no includer. Proposed patch 0006: in `IncluderFromIndexCDB`,
-  first `blockUntilIdle` on the database (the broadcast has run, the load is counted),
-  then wait for the load, both within the same 5 s. Owner ruled spike first (S9, tier 3).
-  S9 dry run (toy shaped like RMO): 1 of 5 header-first sessions got the guess (5
-  errors), its decision in the same millisecond as "Enqueueing"; source first always from
-  the index. S9 run 1 on RMO PASS, hypothesis confirmed (0027): header first 10 / 10
-  guessed (`fmt/src/os.cc`, 21 errors), decision at or 1 ms before "Enqueueing"; source
-  first 10 / 10 from `staging/test/lumping.cc`, 0 errors; loading the 3950 stored shards
-  takes 0.4 s, so the 5 s cap is not involved. Patch 0006 (D-046, T-019) built and
-  tested locally; left: pkgrel 4 installed and S9 rerun on RMO (owner).
+- O-21 (RESOLVED 2026-10-08 with D-046, D-047; S9 run 3, T-019): a header opened first
+  right after a restart (`iteration.h` from `C-x C-r`) gets the guessed flags and "too
+  many errors"; opening another file first, then the header, is fine.
+  `staging/test/lumping.cc` includes it and is in the database, so the index knows an
+  includer. Cause found by reading clangd (D-028, patch 0005): the header's command is
+  asked for before the project is handed to the background index. The compile database
+  announces a newly found project on its own broadcast thread (`BroadcastThread`), which
+  calls `BackgroundIndex::enqueue`, where the load counter rises; `includerOf` waits only
+  while that counter is above 0, so it sees 0, does not wait and finds no includer.
+  Proposed patch 0006: in `IncluderFromIndexCDB`, first `blockUntilIdle` on the database
+  (the broadcast has run, the load is counted), then wait for the load, both within the
+  same 5 s. Owner ruled spike first (S9, tier 3). S9 dry run (toy shaped like RMO): 1 of
+  5 header-first sessions got the guess (5 errors), its decision in the same millisecond
+  as "Enqueueing"; source first always from the index. S9 run 1 on RMO PASS, hypothesis
+  confirmed (0027): header first 10 / 10 guessed (`fmt/src/os.cc`, 21 errors), decision
+  at or 1 ms before "Enqueueing"; source first 10 / 10 from `staging/test/lumping.cc`, 0
+  errors; loading the 3950 stored shards takes 0.4 s, so the 5 s cap is not involved.
+  Patch 0006 (D-046, T-019) built and tested locally; left: pkgrel 4 installed and S9
+  rerun on RMO (owner).
 - O-19 (RESOLVED 2026-10-08 with D-045): which of Python, R and Perl ride along, and
   how far: mode only, plus a language server, plus a debugger
   (`RESEARCH_other_languages.md` 3). Python needs only Arch packages; Perl's server is

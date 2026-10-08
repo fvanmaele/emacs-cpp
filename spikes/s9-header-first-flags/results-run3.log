@@ -1,0 +1,107 @@
+# S9 run 2026-10-08T21:46:43+02:00 on copy of /home/alad/source/repos/RMO-gross-pitaevskii; header include/rmo/gpe/iteration.h, source src/main.cc
+clangd: /opt/clangd-index-nav/bin/clangd (clangd version 23.1.1)
+includers of the header in the database's sources:
+  staging/test/lumping.cc
+load: 3.30 2.33 3.78
+index: 3950 shards after 44961 ms
+header-first run 1: header opened first; header command after 912 ms; 0 errors
+  patch: V[21:47:30.730] Compile command for include/rmo/gpe/iteration.h from staging/test/lumping.cc, which includes it (index)
+  clangd: I[21:47:30.730] ASTWorker building file include/rmo/gpe/iteration.h version 0 with command inferred from staging/test/lumping.cc
+  load start: I[21:47:30.326] Enqueueing 13 commands for indexing
+  load end: V[21:47:30.735] BackgroundIndex: building version 1 after loading index from disk
+source-first run 1: source parse started after 533 ms; header command after 400 ms; 0 errors
+  patch: V[21:48:02.493] Compile command for include/rmo/gpe/iteration.h from staging/test/lumping.cc, which includes it (index)
+  clangd: I[21:48:02.494] ASTWorker building file include/rmo/gpe/iteration.h version 0 with command inferred from staging/test/lumping.cc
+  load start: I[21:48:02.094] Enqueueing 13 commands for indexing
+  load end: V[21:48:02.498] BackgroundIndex: building version 1 after loading index from disk
+header-first run 2: header opened first; header command after 957 ms; 0 errors
+  patch: V[21:48:34.243] Compile command for include/rmo/gpe/iteration.h from staging/test/lumping.cc, which includes it (index)
+  clangd: I[21:48:34.243] ASTWorker building file include/rmo/gpe/iteration.h version 0 with command inferred from staging/test/lumping.cc
+  load start: I[21:48:33.825] Enqueueing 13 commands for indexing
+  load end: V[21:48:34.249] BackgroundIndex: building version 1 after loading index from disk
+source-first run 2: source parse started after 516 ms; header command after 419 ms; 0 errors
+  patch: V[21:49:06.320] Compile command for include/rmo/gpe/iteration.h from staging/test/lumping.cc, which includes it (index)
+  clangd: I[21:49:06.320] ASTWorker building file include/rmo/gpe/iteration.h version 0 with command inferred from staging/test/lumping.cc
+  load start: I[21:49:05.903] Enqueueing 13 commands for indexing
+  load end: V[21:49:06.325] BackgroundIndex: building version 1 after loading index from disk
+header-first run 3: header opened first; header command after 1002 ms; 0 errors
+  patch: V[21:49:38.191] Compile command for include/rmo/gpe/iteration.h from staging/test/lumping.cc, which includes it (index)
+  clangd: I[21:49:38.191] ASTWorker building file include/rmo/gpe/iteration.h version 0 with command inferred from staging/test/lumping.cc
+  load start: I[21:49:37.722] Enqueueing 13 commands for indexing
+  load end: V[21:49:38.196] BackgroundIndex: building version 1 after loading index from disk
+source-first run 3: source parse started after 515 ms; header command after 418 ms; 0 errors
+  patch: V[21:50:09.902] Compile command for include/rmo/gpe/iteration.h from staging/test/lumping.cc, which includes it (index)
+  clangd: I[21:50:09.902] ASTWorker building file include/rmo/gpe/iteration.h version 0 with command inferred from staging/test/lumping.cc
+  load start: I[21:50:09.483] Enqueueing 13 commands for indexing
+  load end: V[21:50:09.908] BackgroundIndex: building version 1 after loading index from disk
+header-first run 4: header opened first; header command after 931 ms; 0 errors
+  patch: V[21:50:41.672] Compile command for include/rmo/gpe/iteration.h from staging/test/lumping.cc, which includes it (index)
+  clangd: I[21:50:41.672] ASTWorker building file include/rmo/gpe/iteration.h version 0 with command inferred from staging/test/lumping.cc
+  load start: I[21:50:41.272] Enqueueing 13 commands for indexing
+  load end: V[21:50:41.677] BackgroundIndex: building version 1 after loading index from disk
+source-first run 4: source parse started after 539 ms; header command after 426 ms; 0 errors
+  patch: V[21:51:13.420] Compile command for include/rmo/gpe/iteration.h from staging/test/lumping.cc, which includes it (index)
+  clangd: I[21:51:13.421] ASTWorker building file include/rmo/gpe/iteration.h version 0 with command inferred from staging/test/lumping.cc
+  load start: I[21:51:12.994] Enqueueing 13 commands for indexing
+  load end: V[21:51:13.426] BackgroundIndex: building version 1 after loading index from disk
+header-first run 5: header opened first; header command after 917 ms; 0 errors
+  patch: V[21:51:45.159] Compile command for include/rmo/gpe/iteration.h from staging/test/lumping.cc, which includes it (index)
+  clangd: I[21:51:45.159] ASTWorker building file include/rmo/gpe/iteration.h version 0 with command inferred from staging/test/lumping.cc
+  load start: I[21:51:44.743] Enqueueing 13 commands for indexing
+  load end: V[21:51:45.165] BackgroundIndex: building version 1 after loading index from disk
+source-first run 5: source parse started after 522 ms; header command after 397 ms; 0 errors
+  patch: V[21:52:16.845] Compile command for include/rmo/gpe/iteration.h from staging/test/lumping.cc, which includes it (index)
+  clangd: I[21:52:16.845] ASTWorker building file include/rmo/gpe/iteration.h version 0 with command inferred from staging/test/lumping.cc
+  load start: I[21:52:16.448] Enqueueing 13 commands for indexing
+  load end: V[21:52:16.850] BackgroundIndex: building version 1 after loading index from disk
+header-first run 6: header opened first; header command after 1016 ms; 0 errors
+  patch: V[21:52:48.927] Compile command for include/rmo/gpe/iteration.h from staging/test/lumping.cc, which includes it (index)
+  clangd: I[21:52:48.927] ASTWorker building file include/rmo/gpe/iteration.h version 0 with command inferred from staging/test/lumping.cc
+  load start: I[21:52:48.473] Enqueueing 13 commands for indexing
+  load end: V[21:52:48.936] BackgroundIndex: building version 1 after loading index from disk
+source-first run 6: source parse started after 480 ms; header command after 407 ms; 0 errors
+  patch: V[21:53:20.958] Compile command for include/rmo/gpe/iteration.h from staging/test/lumping.cc, which includes it (index)
+  clangd: I[21:53:20.959] ASTWorker building file include/rmo/gpe/iteration.h version 0 with command inferred from staging/test/lumping.cc
+  load start: I[21:53:20.552] Enqueueing 13 commands for indexing
+  load end: V[21:53:20.963] BackgroundIndex: building version 1 after loading index from disk
+header-first run 7: header opened first; header command after 917 ms; 0 errors
+  patch: V[21:53:52.793] Compile command for include/rmo/gpe/iteration.h from staging/test/lumping.cc, which includes it (index)
+  clangd: I[21:53:52.794] ASTWorker building file include/rmo/gpe/iteration.h version 0 with command inferred from staging/test/lumping.cc
+  load start: I[21:53:52.400] Enqueueing 13 commands for indexing
+  load end: V[21:53:52.798] BackgroundIndex: building version 1 after loading index from disk
+source-first run 7: source parse started after 542 ms; header command after 403 ms; 0 errors
+  patch: V[21:54:24.581] Compile command for include/rmo/gpe/iteration.h from staging/test/lumping.cc, which includes it (index)
+  clangd: I[21:54:24.581] ASTWorker building file include/rmo/gpe/iteration.h version 0 with command inferred from staging/test/lumping.cc
+  load start: I[21:54:24.178] Enqueueing 13 commands for indexing
+  load end: V[21:54:24.586] BackgroundIndex: building version 1 after loading index from disk
+header-first run 8: header opened first; header command after 946 ms; 0 errors
+  patch: V[21:54:56.286] Compile command for include/rmo/gpe/iteration.h from staging/test/lumping.cc, which includes it (index)
+  clangd: I[21:54:56.286] ASTWorker building file include/rmo/gpe/iteration.h version 0 with command inferred from staging/test/lumping.cc
+  load start: I[21:54:55.887] Enqueueing 13 commands for indexing
+  load end: V[21:54:56.292] BackgroundIndex: building version 1 after loading index from disk
+source-first run 8: source parse started after 527 ms; header command after 394 ms; 0 errors
+  patch: V[21:55:28.009] Compile command for include/rmo/gpe/iteration.h from staging/test/lumping.cc, which includes it (index)
+  clangd: I[21:55:28.009] ASTWorker building file include/rmo/gpe/iteration.h version 0 with command inferred from staging/test/lumping.cc
+  load start: I[21:55:27.615] Enqueueing 13 commands for indexing
+  load end: V[21:55:28.014] BackgroundIndex: building version 1 after loading index from disk
+header-first run 9: header opened first; header command after 907 ms; 0 errors
+  patch: V[21:55:59.774] Compile command for include/rmo/gpe/iteration.h from staging/test/lumping.cc, which includes it (index)
+  clangd: I[21:55:59.775] ASTWorker building file include/rmo/gpe/iteration.h version 0 with command inferred from staging/test/lumping.cc
+  load start: I[21:55:59.361] Enqueueing 13 commands for indexing
+  load end: V[21:55:59.780] BackgroundIndex: building version 1 after loading index from disk
+source-first run 9: source parse started after 513 ms; header command after 441 ms; 0 errors
+  patch: V[21:56:31.410] Compile command for include/rmo/gpe/iteration.h from staging/test/lumping.cc, which includes it (index)
+  clangd: I[21:56:31.411] ASTWorker building file include/rmo/gpe/iteration.h version 0 with command inferred from staging/test/lumping.cc
+  load start: I[21:56:30.968] Enqueueing 13 commands for indexing
+  load end: V[21:56:31.416] BackgroundIndex: building version 1 after loading index from disk
+header-first run 10: header opened first; header command after 935 ms; 0 errors
+  patch: V[21:57:03.242] Compile command for include/rmo/gpe/iteration.h from staging/test/lumping.cc, which includes it (index)
+  clangd: I[21:57:03.242] ASTWorker building file include/rmo/gpe/iteration.h version 0 with command inferred from staging/test/lumping.cc
+  load start: I[21:57:02.854] Enqueueing 13 commands for indexing
+  load end: V[21:57:03.248] BackgroundIndex: building version 1 after loading index from disk
+source-first run 10: source parse started after 511 ms; header command after 416 ms; 0 errors
+  patch: V[21:57:34.831] Compile command for include/rmo/gpe/iteration.h from staging/test/lumping.cc, which includes it (index)
+  clangd: I[21:57:34.832] ASTWorker building file include/rmo/gpe/iteration.h version 0 with command inferred from staging/test/lumping.cc
+  load start: I[21:57:34.416] Enqueueing 13 commands for indexing
+  load end: V[21:57:34.837] BackgroundIndex: building version 1 after loading index from disk
+load after: 1.70 1.93 2.87
