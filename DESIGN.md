@@ -414,6 +414,12 @@ presets, GoogleTest runner.
   runs and 12 aborts; `index.threads` 1: 0 failed runs, 0 aborts. A race between
   indexer threads; one thread is a workaround, cost: slower first indexing (not yet
   measured on RMO; 110 s with all cores in S6).
+  Root cause (2026-10-08): ccls re-indexes all files on
+  `workspace/didChangeConfiguration`, which eglot sends at connect; standalone repro
+  `docs/upstream/ccls_race_repro.py`: 11/25 aborts with it, 0/25 without, 0/25 with one
+  thread. Fix on branch `t013-ccls-hybrid`: ccls gets its own eglot server class and
+  is not sent that notification. Issue draft:
+  `docs/upstream/ccls-didChangeConfiguration-race.md`.
 - O-11 (OPEN, owner question 2026-10-08): clangd answering navigation from its index
   while the file is not parsed yet. Findings in `RESEARCH_clangd_index_navigation.md`:
   the per-file shards already hold every reference with its position and a content
