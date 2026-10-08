@@ -99,7 +99,7 @@ for the project; `M-x projectile-discard-command-cache` returns to the preset's.
 |---|---|
 | `C-x C-a b` / click the fringe | toggle a breakpoint on the line (red mark) |
 | `C-x C-a d` `gdb-preset RET` | pick a target of the active preset, build it, debug it |
-| `C-x C-a n` / `s` / `o` / `c` | step over / into / out / continue |
+| `C-x C-a n` / `s` / `o` / `c` | step over / into / out / continue; then plain `n` `s` `o` `c` repeat |
 | `C-x C-a w` | watch an expression |
 | `C-x C-a i` | info buffers: stack, locals, breakpoints, threads |
 | `C-x C-a q` | end the session |

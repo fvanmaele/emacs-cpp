@@ -174,7 +174,15 @@ emacs-cpp-debug--prepare against it (D-031)"))
   ;; The theme styles neither face; inheriting keeps them in the theme's colours.
   (require 'hl-line)
   (face-spec-set 'dape-breakpoint-face '((t :inherit error)))
-  (face-spec-set 'dape-source-line-face '((t :inherit hl-line :extend t))))
+  (face-spec-set 'dape-source-line-face '((t :inherit hl-line :extend t)))
+  ;; dape puts every command on its repeat map; only stepping should repeat (D-037),
+  ;; so that after `C-x C-a b' or `w' the next letter is text again.
+  (dolist (command '(dape dape-breakpoint-log dape-breakpoint-expression
+                     dape-breakpoint-hits dape-breakpoint-function
+                     dape-breakpoint-toggle dape-breakpoint-remove-all
+                     dape-select-stack dape-select-thread dape-select-session
+                     dape-watch-dwim dape-evaluate-expression dape-info))
+    (put command 'repeat-map nil)))
 
 (provide 'init-debug)
 ;;; init-debug.el ends here
