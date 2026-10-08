@@ -290,6 +290,34 @@ reached with `M-.' join the project's server through `eglot-extend-to-xref'."
         (message "emacs-cpp: no CMakePresets.json in %s; eglot not started (D-005)"
                  root)))))
 
+;;;; Build commands
+
+(defun emacs-cpp-presets--current ()
+  "Return (ROOT NAME DIR) for the current project's active preset.
+DIR is the build directory relative to ROOT, as the commands below run there."
+  (let* ((project (or (project-current)
+                      (user-error "emacs-cpp: %s is in no project" default-directory)))
+         (root (expand-file-name (project-root project)))
+         (name (emacs-cpp-presets-active root)))
+    (list root name (file-relative-name (emacs-cpp-presets-binary-dir root name) root))))
+
+(defun emacs-cpp-presets-configure-command ()
+  "Return the command configuring the active preset, for projectile (D-035)."
+  (pcase-let ((`(,_root ,name ,_dir) (emacs-cpp-presets--current)))
+    (concat "cmake --preset " (shell-quote-argument name))))
+
+(defun emacs-cpp-presets-compile-command ()
+  "Return the command building the active preset, for projectile (D-035).
+Any buffer of the project builds the same directory; add `--target X' at the
+prompt to build one target."
+  (pcase-let ((`(,_root ,_name ,dir) (emacs-cpp-presets--current)))
+    (concat "cmake --build " (shell-quote-argument dir))))
+
+(defun emacs-cpp-presets-test-command ()
+  "Return the command running the active preset's tests, for projectile (D-035)."
+  (pcase-let ((`(,_root ,_name ,dir) (emacs-cpp-presets--current)))
+    (concat "ctest --test-dir " (shell-quote-argument dir) " --output-on-failure")))
+
 ;;;; Switching
 
 (defun emacs-cpp-presets-select (name)

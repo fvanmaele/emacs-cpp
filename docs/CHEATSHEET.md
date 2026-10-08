@@ -82,15 +82,17 @@ that can follow (D-034). `C-h` in that popup pages through them.
 | `C-c p p` | switch project |
 | `C-c p m` | menu of all projectile commands, grouped |
 | `C-c l P` | choose the active CMake preset (clangd restarts with its build dir) |
-| `C-c p c c` | compile the project (asks for the command) |
-| `C-c p c o` / `c t` / `c r` | configure / test / run (also ask) |
+| `C-c p c c` | build the active preset (`cmake --build build/debug`), from any buffer |
+| `C-c p c o` / `c t` | configure / test the active preset (`cmake --preset`, `ctest`) |
+| `C-c p c r` | run (asks for the command) |
 | `C-c p t` | toggle between implementation and test |
 | `C-c p !` | shell command in the project root |
 | `C-c p r` | replace text in the whole project |
 | `C-c p k` | kill all buffers of the project |
 
-For a preset build, answer the compile prompt with e.g.
-`cmake --build --preset debug` (the prompt remembers it).
+The commands show at the prompt: add `--target main` to build one target. `M-g n` /
+`M-g p` jump to the next / previous compiler error. An edited command is remembered
+for the project; `M-x projectile-discard-command-cache` returns to the preset's.
 
 ## Debugging (dape + gdb)
 | Key | Does |
@@ -101,6 +103,13 @@ For a preset build, answer the compile prompt with e.g.
 | `C-x C-a w` | watch an expression |
 | `C-x C-a i` | info buffers: stack, locals, breakpoints, threads |
 | `C-x C-a q` | end the session |
+
+Program arguments: type them after the configuration name, as a vector of strings:
+`gdb-preset :args ["--levels" "5"]`. The prompt starts with your last input (kept
+across restarts), so RET repeats it. Not `gdb-preset - --levels 5`: dape takes the
+first word after `-` as the program. For fixed arguments per project, a
+`.dir-locals.el` in the project:
+`((c++-ts-mode . ((dape-command . (gdb-preset :args ["--levels" "5"])))))`.
 
 The line the program stopped at is highlighted. Options: `emacs-cpp-debug-lazy-symbols`
 (faster first stop, D-030), `emacs-cpp-debug-gdb-scripts` (deal.II printers, D-032).
