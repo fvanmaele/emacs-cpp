@@ -127,6 +127,12 @@ as its prefix (D-044), so it does not take dape's `C-x C-a`.
 The line the program stopped at is highlighted. Options: `emacs-cpp-debug-lazy-symbols`
 (faster first stop, D-030), `emacs-cpp-debug-gdb-scripts` (deal.II printers, D-032).
 
+## Python (rides along, D-045)
+`.py` files open in `python-ts-mode`; in a project (git, `pyproject.toml` or
+`setup.py`) pyright starts, and `M-.`, `M-?`, `C-c l r` and the other `C-c l` keys work
+as for C++. `C-x C-a d debugpy RET` debugs the current file (`debugpy-module`: the
+current directory as a module).
+
 ## Git (magit)
 | Key | Does |
 |---|---|

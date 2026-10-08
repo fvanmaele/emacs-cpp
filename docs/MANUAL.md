@@ -212,6 +212,9 @@ After the first step key (`C-x C-a n`), plain `n` `s` `o` `c` keep going. Progra
 arguments: `gdb-preset :args ["--levels" "5"]` at the `C-x C-a d` prompt; the prompt
 starts with your last input.
 
+Python files work the same way with pyright (navigation, rename, `C-c l` keys);
+`C-x C-a d debugpy RET` debugs the current file.
+
 ## 11. Git
 | Key | Does |
 |---|---|

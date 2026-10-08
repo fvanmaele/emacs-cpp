@@ -126,7 +126,12 @@ Observed on the owner machine, 2026-10-07:
   server and debugger (T-018): `python-ts-mode` (system grammar `tree-sitter-python`),
   pyright through eglot in project files, debugpy through dape's own config; all from
   the Arch repositories, no submodule. R and Perl: not configured (built-in modes
-  only, as before).
+  only, as before). Built in T-018: pyright is named in `eglot-server-programs` (eglot
+  would otherwise take pylsp or basedpyright first if installed later); for Python
+  buffers only, `pyproject.toml` and `setup.py` also mark a project root
+  (`project-vc-extra-root-markers`, buffer-local), so C++ project roots are unchanged;
+  dape's `debugpy` listens on 127.0.0.1 instead of upstream's 0.0.0.0 (every network
+  interface).
 - DECIDED D-040 (2026-10-08, owner report "custom themes are not saved on restart"):
   `custom.el` loads last, so a setting saved with Customize wins over the config's
   default. The default theme (`modus-vivendi-tritanopia`) is loaded from
@@ -153,6 +158,7 @@ Observed on the owner machine, 2026-10-07:
 | presets | `lisp/emacs-cpp-presets.el` | PROTOTYPE | T-004: D-016 - D-018 |
 | CMake build | `lisp/emacs-cpp-presets.el`, projectile form | PROTOTYPE | T-005 (D-035) |
 | CMake mode | `lisp/init-cmake.el` | PROTOTYPE | system cmake-mode (D-013) |
+| Python | `lisp/init-python.el` | PROTOTYPE | T-018: ts-mode, pyright, debugpy (D-045) |
 | debugger | `lisp/init-debug.el` | PROTOTYPE | T-006: `gdb-preset` (D-031, D-033) |
 | git | `lisp/init-git.el` | KEEP | magit, treemacs-magit, diff-hl (T-015, T-016) |
 | keys | `lisp/init-keys.el` | UNVALIDATED | NEW: `C-c l` map (D-004) |

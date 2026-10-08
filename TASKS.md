@@ -63,7 +63,7 @@ with `done when: ...`).
 | T-015 | done (tier 1) | S | treemacs-magit | v0.4 | loaded with treemacs + magit; test |
 | T-016 | done 0026 | M | diff-hl | D-042, v0.4 | right fringe, follows magit; test |
 | T-017 | done 0026 | M | breadcrumb | D-043, v0.4 | path + function in header; test |
-| T-018 | open | M | Python rides along | D-045, O-19 | blocked: owner installs packages |
+| T-018 | done 0030 | M | Python rides along | D-045, O-19 | mode, pyright, debugpy; tests |
 | T-019 | done 0029 | S | header first: 0006, 0007 | D-046, D-047 | S9 run 3: 0.9 s |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
