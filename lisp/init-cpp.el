@@ -40,6 +40,10 @@
         ;; clangd, so M-. keeps working inside them (D-019).
         eglot-extend-to-xref t))
 
+;; Header line: project-relative path, then the class and function at point (D-043).
+(use-package breadcrumb
+  :hook (c-ts-base-mode . breadcrumb-local-mode))
+
 (use-package flymake
   :commands flymake-show-project-diagnostics)
 

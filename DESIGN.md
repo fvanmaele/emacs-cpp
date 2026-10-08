@@ -138,7 +138,7 @@ Observed on the owner machine, 2026-10-07:
 |---|---|---|---|
 | early init | `early-init.el` | KEEP | T-002, owner-confirmed |
 | init | `init.el` | KEEP | T-002, replaces `~/.emacs` (D-003) |
-| packages | `lib/<repo>/` submodules | KEEP | 25 of 28 after T-004 (section 12) |
+| packages | `lib/<repo>/` submodules | KEEP | 28 repositories after T-017 (section 12) |
 | package build | `scripts/build-packages.el` | KEEP | T-002, `make packages` |
 | theme | `lisp/init-ui.el` | KEEP | T-002 |
 | writing | `lisp/init-writing.el` | KEEP | T-002: markdown, org-journal |
@@ -149,7 +149,7 @@ Observed on the owner machine, 2026-10-07:
 | CMake build | `lisp/emacs-cpp-presets.el`, projectile form | PROTOTYPE | T-005 (D-035) |
 | CMake mode | `lisp/init-cmake.el` | PROTOTYPE | system cmake-mode (D-013) |
 | debugger | `lisp/init-debug.el` | PROTOTYPE | T-006: `gdb-preset` (D-031, D-033) |
-| git | `lisp/init-git.el` | KEEP | T-002: magit; diff-hl later |
+| git | `lisp/init-git.el` | KEEP | magit, treemacs-magit, diff-hl (T-015, T-016) |
 | keys | `lisp/init-keys.el` | UNVALIDATED | NEW: `C-c l` map (D-004) |
 | tests | `test/*.el`, `make test` | KEEP | 21 ERT tests after T-004 |
 Known defects: none yet (nothing built).
@@ -477,16 +477,22 @@ Mechanisms, each PROPOSED until measured:
   network calls at startup.
 - Package set (Q-3 accepted 2026-10-07; dependencies from the 2026-09-14 archive
   snapshot). Built into Emacs 31 and not vendored: eglot, jsonrpc, project, flymake,
-  transient, compat, seq, cl-lib, org, which-key. Vendored, 28 repositories:
+  transient, compat, seq, cl-lib, org, which-key. Vendored, 28 repositories (26 to T-016):
   - completion: vertico, orderless, marginalia, consult, embark (holds embark-consult),
     corfu, cape (vendored by T-003); consult-eglot v0.5.0 (T-004).
   - IDE: dape (vendored 0.27.1 for S2, owner consent 2026-10-08; its `use-package`
     form is in `lisp/init-debug.el`, T-006), diff-hl, breadcrumb.
 - DECIDED D-042 (owner consent 2026-10-08, T-016): diff-hl vendored at tag 1.10.0
   (github.com/dgutov/diff-hl). Its marks go to the right fringe, since the left one
-  holds dape's breakpoints and the debugger's arrow (D-036).
+  holds dape's breakpoints and the debugger's arrow (D-036); the right margin in a
+  terminal. Turned on per visited file from `find-file-hook` at depth 90 (after
+  `vc-refresh-state`; in front of it the first update never ran), not by
+  `global-diff-hl-mode` at startup (39 ms). Marks follow saves and magit refreshes;
+  unsaved edits are not marked (`diff-hl-flydiff-mode` not adopted).
 - DECIDED D-043 (owner consent 2026-10-08, T-017): breadcrumb vendored at commit
-  bcf7f1d (github.com/joaotavora/breadcrumb; no tags upstream).
+  bcf7f1d (github.com/joaotavora/breadcrumb; no tags upstream; version 1.0.1), on in
+  C and C++ buffers (`c-ts-base-mode-hook`): the header line shows the path from the
+  project root and the class / function at point (from imenu).
   - project + tree: projectile, treemacs (holds treemacs-projectile), and its
     dependencies dash, s, ace-window, avy, pfuture, hydra (holds lv), ht, cfrs,
     posframe.

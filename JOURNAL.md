@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0026 | 2026-10-08 | T-016, T-017: diff-hl and breadcrumb | T-016, T-017 | D-042, D-043 |
 | 0025 | 2026-10-08 | T-007: code commands on `C-c l` | T-007 | D-004 |
 | 0024 | 2026-10-08 | T-010: package manuals in `C-h i` | T-010 | D-039 |
 | 0023 | 2026-10-08 | T-008: performance baseline, startup GC | T-008 | D-038 |

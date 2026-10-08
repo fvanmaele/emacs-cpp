@@ -141,6 +141,22 @@ which-key lists all of them."
       (should (equal (sort (copy-sequence listed) #'string<)
                      (sort (mapcar #'car expected) #'string<))))))
 
+(ert-deftest init-cpp-breadcrumb-shows-path-and-function ()
+  "T-017, D-043: the header line of a C++ buffer names the project-relative path
+and the function at point."
+  (init-test--load)
+  (init-cpp-test--with-project init-cpp-test--files
+    (with-current-buffer (find-file-noselect (expand-file-name "src/answer.cc" root))
+      (should breadcrumb-local-mode)
+      (should (member '(:eval (breadcrumb--header-line)) header-line-format))
+      (goto-char (point-min))
+      (search-forward "return 42")
+      ;; breadcrumb rescans on an idle timer; batch has none, so scan here.
+      (imenu--make-index-alist t)
+      (let ((header (substring-no-properties (breadcrumb--header-line))))
+        (should (string-match-p "src/answer\\.cc" header))
+        (should (string-match-p "answer\\'" header))))))
+
 (defun init-cpp-test--patched-clangd ()
   "The patched clangd to test (D-026), or nil when it is not installed."
   (let ((program (or (getenv "EMACS_CPP_PATCHED_CLANGD")
