@@ -156,7 +156,7 @@ After `C-x u` (undo), plain `u` undoes again.
 | `C-c p f` | find a file of the project |
 | `C-x C-r` | open a recently visited file; `C-c p e`: of this project |
 | `C-c l o` | switch between header and source (`.h` <-> `.cc`) |
-| `C-c t` | show / hide the project tree (opens by itself with the first project file) |
+| `C-c t` | show / hide the project tree |
 | `C-x d` | browse a directory (dired) |
 | `C-x r m` / `C-x r b` | set / jump to a bookmark |
 | `C-c p m` | menu of all project commands |
@@ -211,6 +211,9 @@ names and deduced types.
 After the first step key (`C-x C-a n`), plain `n` `s` `o` `c` keep going. Program
 arguments: `gdb-preset :args ["--levels" "5"]` at the `C-x C-a d` prompt; the prompt
 starts with your last input.
+
+Python files work the same way with pyright (navigation, rename, `C-c l` keys);
+`C-x C-a d debugpy RET` debugs the current file.
 
 ## 11. Git
 | Key | Does |

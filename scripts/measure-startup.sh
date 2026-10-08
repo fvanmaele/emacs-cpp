@@ -9,11 +9,17 @@
 # unmeasured start waits until native compilation of all loaded files has finished, as
 # in a used ~/.emacs.d. Never touches ~/.emacs.d. Run on an idle machine.
 set -eu
+# Decimal points, not the locale's commas, for sort -n and awk below.
+LC_ALL=C
+export LC_ALL
 RUNS=${1:-10}
 EXTRA=${2:-}
 REPO=$(cd "$(dirname "$0")/.." && pwd)
 WORK=$(mktemp -d)
-trap 'tmux kill-session -t "measure-$$" 2>/dev/null || true; rm -rf "$WORK"' EXIT
+# A private tmux server (-L): a running one would hand the session its own
+# environment, so HOME would be the real one and ~/.emacs.d would be used.
+TMUX_SOCKET=measure-$$
+trap 'tmux -L "$TMUX_SOCKET" kill-server 2>/dev/null || true; rm -rf "$WORK"' EXIT
 mkdir -p "$WORK/.emacs.d"
 ln -s "$REPO/init.el" "$WORK/.emacs.d/init.el"
 if [ -n "$EXTRA" ]; then
@@ -25,9 +31,9 @@ fi
 OUT=$WORK/times
 start() {  # elisp to evaluate after after-init-hook
     printf '%s\n' "$1" > "$WORK/eval.el"
-    HOME=$WORK tmux new-session -d -s "measure-$$" -x 120 -y 40 \
-        "emacs -nw -l $WORK/eval.el"
-    while tmux has-session -t "measure-$$" 2>/dev/null; do sleep 0.2; done
+    tmux -L "$TMUX_SOCKET" new-session -d -s measure -x 120 -y 40 \
+        "env HOME=$WORK emacs -nw -l $WORK/eval.el"
+    while tmux -L "$TMUX_SOCKET" has-session -t measure 2>/dev/null; do sleep 0.2; done
 }
 # Warm-up: stay until the native compiler's queue is empty.
 start '(progn (require (quote comp-run))
@@ -40,7 +46,12 @@ while [ "$i" -lt "$RUNS" ]; do
       nil \"$OUT\" t) (kill-emacs))"
     i=$((i + 1))
 done
-echo "load: $(cut -d' ' -f1-3 /proc/loadavg)"
+# Linux: /proc/loadavg; macOS (D-050): sysctl, as "{ 1.2 1.0 0.9 }".
+if [ -r /proc/loadavg ]; then
+    echo "load: $(cut -d' ' -f1-3 /proc/loadavg)"
+else
+    echo "load: $(sysctl -n vm.loadavg | tr -d '{}' | awk '{ print $1, $2, $3 }')"
+fi
 echo "seconds gcs gc-seconds"
 cat "$OUT"
 sort -n "$OUT" | awk '{ t[NR] = $1 } END { printf "median %.3f s, min %.3f, max %.3f\n",

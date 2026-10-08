@@ -32,13 +32,24 @@
   ;; Ahead of eglot's own clangd entry, which starts clangd without a database.
   (add-to-list 'eglot-server-programs
                '(c++-ts-mode . emacs-cpp-presets-clangd-contact))
+  ;; Python rides along with pyright (D-045), named so that another server eglot
+  ;; knows (pylsp, basedpyright) does not take over when installed later.
+  (add-to-list 'eglot-server-programs
+               '((python-ts-mode python-mode) . ("pyright-langserver" "--stdio")))
   ;; No JSON event log (the eglot manual's first performance advice); shut clangd
   ;; down when its last buffer closes.
   (setq eglot-events-buffer-config '(:size 0 :format full)
         eglot-autoshutdown t
         ;; Library headers reached with M-. (deal.II, Boost) join the project's
         ;; clangd, so M-. keeps working inside them (D-019).
-        eglot-extend-to-xref t))
+        eglot-extend-to-xref t)
+  ;; macOS watches files with kqueue, one file descriptor per directory, and Emacs
+  ;; ran out at 975: pyright asks to watch Python's library and site-packages,
+  ;; about 2000 directories, then exits.  Watch only the project, and stop with
+  ;; eglot's warning well before the limit (D-054).
+  (when (eq system-type 'darwin)
+    (setq eglot-watch-files-outside-project-root nil
+          eglot-max-file-watches 500)))
 
 ;; Header line: project-relative path, then the class and function at point (D-043).
 (use-package breadcrumb

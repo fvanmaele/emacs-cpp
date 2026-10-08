@@ -31,6 +31,16 @@ The temporary home is deleted when Emacs exits."
       (load (expand-file-name "init.el" build-packages-root) nil t)
       (run-hooks 'after-init-hook))))
 
+(defun init-test--wait-managed (&optional seconds)
+  "Wait up to SECONDS (default 10) until eglot manages the current buffer.
+Return `eglot-managed-p'.  eglot's connect stops waiting at the first output of
+any process, a server's log line on stderr too, so the handshake can still be
+under way when the visit returns; the buffer is managed once it ends."
+  (let ((deadline (+ (float-time) (or seconds 10))))
+    (while (and (not (eglot-managed-p)) (< (float-time) deadline))
+      (accept-process-output nil 0.1))
+    (eglot-managed-p)))
+
 (defun init-test--stale-elc-files ()
   "Return built package files whose .elc is missing or older than the .el."
   (let (stale)
@@ -69,7 +79,8 @@ The temporary home is deleted when Emacs exits."
       (unwind-protect
           (should (eq major-mode 'cmake-mode))
         (kill-buffer)))
-    (should (string-prefix-p "/usr/share/emacs/site-lisp/" (locate-library "cmake-mode"))))
+    (should (string-prefix-p (file-name-as-directory emacs-cpp-cmake-mode-directory)
+                             (locate-library "cmake-mode"))))
   (should (eq (assoc-default "x/FindFoo.cmake" auto-mode-alist #'string-match) 'cmake-mode))
   (dolist (command '(treemacs treemacs-projectile org-journal-new-entry))
     (should (commandp command)))
@@ -114,8 +125,12 @@ without one, the default theme is."
   (should (= recentf-max-saved-items 200))
   (should (eq (keymap-lookup global-map "C-x C-r") 'consult-recent-file))
   (should (recentf-include-p (expand-file-name "src/main.cc" temporary-file-directory)))
-  (should-not (recentf-include-p (expand-file-name ".cache/treemacs-persist"
-                                                   user-emacs-directory))))
+  ;; The test's own home: the predicate needs .cache/ to exist, as it does once
+  ;; treemacs has written its state there; the owner's ~/.emacs.d may have none.
+  (let ((user-emacs-directory init-test--home))
+    (make-directory (expand-file-name ".cache" user-emacs-directory) t)
+    (should-not (recentf-include-p (expand-file-name ".cache/treemacs-persist"
+                                                     user-emacs-directory)))))
 
 (ert-deftest init-treemacs-magit-loads-with-both ()
   "T-015: treemacs-magit loads once treemacs and magit are loaded."
@@ -157,7 +172,8 @@ without one, the default theme is."
   (should (bound-and-true-p treemacs-project-follow-mode))
   ;; In a project: the first C-c t shows exactly that project (no prompt for a
   ;; root, as `treemacs' gives with an empty workspace), the second closes it.
-  (let* ((root (file-name-as-directory (make-temp-file "emacs-cpp-tree" t)))
+  (let* ((root (file-name-as-directory
+                (file-truename (make-temp-file "emacs-cpp-tree" t))))
          (file (expand-file-name "a.cc" root)))
     (unwind-protect
         (progn
@@ -175,45 +191,11 @@ without one, the default theme is."
       (when-let* ((buffer (get-file-buffer file))) (kill-buffer buffer))
       (delete-directory root t))))
 
-(ert-deftest init-treemacs-opens-with-the-first-project-file ()
-  "D-048: the tree opens once, with the first project file shown, focus stays on
-the file; closed with C-c t it stays closed; never with the option off."
+(ert-deftest init-treemacs-opens-only-on-c-c-t ()
+  "D-049: visiting a project file does not open the tree; only C-c t does."
   (init-test--load)
-  (defvar treemacs-persist-file)
-  (defvar treemacs-last-error-persist-file)
-  (setq treemacs-persist-file (expand-file-name "treemacs-persist" init-test--home)
-        treemacs-last-error-persist-file
-        (expand-file-name "treemacs-persist-at-last-error" init-test--home))
-  (let* ((root (file-name-as-directory (make-temp-file "emacs-cpp-tree" t)))
-         (files (mapcar (lambda (name) (expand-file-name name root)) '("a.cc" "b.cc")))
-         (emacs-cpp--tree-opened nil))
-    (unwind-protect
-        (progn
-          (make-directory (expand-file-name ".git" root))
-          (dolist (file files) (write-region "int a;\n" nil file))
-          (delete-other-windows)
-          ;; Option off: no tree.
-          (let ((emacs-cpp-tree-open-automatically nil))
-            (find-file (car files))
-            (sit-for 0.1)
-            (should-not (treemacs-get-local-window)))
-          (kill-buffer (get-file-buffer (car files)))
-          ;; Option on: the first project file shown opens it, focus on the file.
-          (let ((emacs-cpp-tree-open-automatically t))
-            (find-file (car files))
-            (sit-for 0.1)
-            (should (treemacs-get-local-window))
-            (should (equal (buffer-file-name (window-buffer (selected-window)))
-                           (car files)))
-            ;; Closed by hand, it stays closed for later files.
-            (emacs-cpp-treemacs-toggle)
-            (should-not (treemacs-get-local-window))
-            (find-file (cadr files))
-            (sit-for 0.1)
-            (should-not (treemacs-get-local-window))))
-      (dolist (file files)
-        (when-let* ((buffer (get-file-buffer file))) (kill-buffer buffer)))
-      (delete-directory root t))))
+  (should-not (memq 'emacs-cpp-treemacs-open-once find-file-hook))
+  (should-not (boundp 'emacs-cpp-tree-open-automatically)))
 
 (ert-deftest init-completion-stack-is-active ()
   "T-003: vertico, orderless, marginalia, consult, embark, corfu, cape are wired."

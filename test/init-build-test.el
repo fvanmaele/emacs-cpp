@@ -45,7 +45,8 @@ int main() {
 
 (ert-deftest init-build-presets-build-from-any-buffer-and-jump-to-errors ()
   (init-test--load)
-  (let* ((root (file-name-as-directory (make-temp-file "emacs-cpp-build" t)))
+  (let* ((root (file-name-as-directory
+                (file-truename (make-temp-file "emacs-cpp-build" t))))
          (default-directory root)
          (emacs-cpp-presets-state-file (expand-file-name "state.eld" root))
          (buffers-before (buffer-list)))

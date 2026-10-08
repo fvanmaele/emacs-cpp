@@ -46,7 +46,8 @@ int main() {
   "Write FILES into a temporary git project bound to `root', run BODY, clean up.
 Buffers visited during BODY and dape sessions it started are killed afterwards."
   (declare (indent 1))
-  `(let* ((root (file-name-as-directory (make-temp-file "emacs-cpp-debug" t)))
+  `(let* ((root (file-name-as-directory
+                (file-truename (make-temp-file "emacs-cpp-debug" t))))
           (default-directory root)
           (emacs-cpp-presets-state-file (expand-file-name "state.eld" root))
           (buffers-before (buffer-list)))
@@ -74,6 +75,11 @@ Buffers visited during BODY and dape sessions it started are killed afterwards."
       (accept-process-output nil 0.1))
     value))
 
+(defun init-debug-test--skip-without-gdb ()
+  "Skip the test when gdb is not installed: there is none for Apple silicon."
+  (unless (executable-find "gdb")
+    (ert-skip "gdb not installed (none for Apple silicon; lldb-preset, D-051)")))
+
 (defconst init-debug-test--ninja
   "# Link the executable main
 
@@ -90,9 +96,23 @@ build sub/be$ tool | sub/be.map: CXX_EXECUTABLE_LINKER__b_x_Debug sub/CMakeFiles
 build bin/plain: C_EXECUTABLE_LINKER__plain_ CMakeFiles/plain.dir/p.c.o
   DEP_FILE = CMakeFiles/plain.dir/link.d
 "
-  "Link blocks as CMake's Ninja generator writes them: a subdirectory target whose
+  "Link blocks as CMake 4's Ninja generator writes them: a subdirectory target whose
 OUTPUT_NAME has a space (Ninja's `$ '), a shared library, a block without CONFIG
 \(no build type).")
+
+(defconst init-debug-test--ninja-3-31
+  "# Set configuration variable for custom commands.
+
+CONFIGURATION = Debug
+
+# Link the executable toy
+
+build toy: CXX_EXECUTABLE_LINKER__my_tool_Debug CMakeFiles/my_tool.dir/src/main.cc.o
+  FLAGS = -g
+  TARGET_FILE = toy
+"
+  "A link block as CMake 3.31 (MacPorts) writes it: no CONFIG in the block, the build
+type only as the file's CONFIGURATION.")
 
 (ert-deftest init-debug-programs-are-the-executable-targets-of-build-ninja ()
   (init-test--load)
@@ -104,6 +124,12 @@ OUTPUT_NAME has a space (Ninja's `$ '), a shared library, a block without CONFIG
                      `(("main" . ,(expand-file-name "main" dir))
                        ("b_x" . ,(expand-file-name "sub/be tool" dir))
                        ("plain" . ,(expand-file-name "bin/plain" dir)))))
+      (let ((dir-3-31 (expand-file-name "build/old" root)))
+        (make-directory dir-3-31 t)
+        (write-region init-debug-test--ninja-3-31 nil
+                      (expand-file-name "build.ninja" dir-3-31))
+        (should (equal (emacs-cpp-debug-programs dir-3-31)
+                       `(("my_tool" . ,(expand-file-name "toy" dir-3-31))))))
       ;; Offered by target name, the last pick as default; the program path returned.
       (let (offered default)
         (cl-letf (((symbol-function 'completing-read)
@@ -165,14 +191,17 @@ OUTPUT_NAME has a space (Ninja's `$ '), a shared library, a block without CONFIG
                            "-iex" "set script-extension soft"
                            "-iex" "set auto-solib-add off")))
           ;; gdb reads a .py script listed here as gdb commands.
-          (write-region "echo emacs-cpp-script-read\\n\n" nil script)
-          (with-temp-buffer
-            (apply #'call-process "gdb" nil t nil "-batch" "-nx"
-                   (emacs-cpp-debug-gdb-arguments))
-            (should (string-match-p "emacs-cpp-script-read" (buffer-string)))))
+          (when (executable-find "gdb")
+            (write-region "echo emacs-cpp-script-read\\n\n" nil script)
+            (with-temp-buffer
+              (apply #'call-process "gdb" nil t nil "-batch" "-nx"
+                     (emacs-cpp-debug-gdb-arguments))
+              (should (string-match-p "emacs-cpp-script-read" (buffer-string))))))
       (delete-file script)))
   (let ((emacs-cpp-debug-gdb-scripts '("/nonexistent/printers.py")))
-    (should-error (emacs-cpp-debug-gdb-arguments) :type 'user-error)))
+    (should-error (emacs-cpp-debug-gdb-arguments) :type 'user-error))
+  ;; The arguments are checked above; only gdb reading the script was left out.
+  (init-debug-test--skip-without-gdb))
 
 (ert-deftest init-debug-dape-gets-gdb-preset-on-c-x-c-a ()
   (init-test--load)
@@ -231,6 +260,7 @@ OUTPUT_NAME has a space (Ninja's `$ '), a shared library, a block without CONFIG
 
 (ert-deftest init-debug-gdb-preset-builds-stops-and-steps ()
   (init-test--load)
+  (init-debug-test--skip-without-gdb)
   (require 'dape)
   (init-debug-test--with-project init-debug-test--files
     (should (eql 0 (call-process "cmake" nil nil nil "--preset" "debug")))

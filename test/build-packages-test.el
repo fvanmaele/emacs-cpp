@@ -10,9 +10,12 @@
 (require 'build-packages)
 
 (defmacro build-packages-test--with-tree (files &rest body)
-  "Create FILES (relative paths) under a temporary root bound to `root', run BODY."
+  "Create FILES (relative paths) under a temporary root bound to `root', run BODY.
+`root' is a true name: lib/load-path.el resolves symbolic links, and on macOS the
+temporary directory /var/... is one for /private/var/...."
   (declare (indent 1))
-  `(let ((root (file-name-as-directory (make-temp-file "build-packages-test" t))))
+  `(let ((root (file-name-as-directory
+                (file-truename (make-temp-file "build-packages-test" t)))))
      (unwind-protect
          (progn
            (dolist (file ,files)
@@ -146,7 +149,13 @@ Hello.
       (should-error (build-packages-write-info root (list spec) dir))
       (write-region build-packages-test--texi nil (expand-file-name "lib/p/docs/toy.texi" root))
       (let ((exec-path nil))
-        (should-error (build-packages-write-info root (list spec) dir))))))
+        (should-error (build-packages-write-info root (list spec) dir)))
+      ;; Two manuals with one base name would overwrite each other.
+      (make-directory (expand-file-name "lib/q/doc" root) t)
+      (write-region build-packages-test--texi nil (expand-file-name "lib/q/doc/toy.texi" root))
+      (should-error (build-packages-write-info
+                     root (list spec (list :name "q" :path "lib/q" :info '("doc/toy.texi")))
+                     dir)))))
 
 (provide 'build-packages-test)
 ;;; build-packages-test.el ends here

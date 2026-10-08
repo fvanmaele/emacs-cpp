@@ -66,7 +66,13 @@ PROGRAM is the absolute path CMake links the target to.  File order."
 \(gdb-preset reads its targets, D-033)" ninja))
     (with-temp-buffer
       (insert-file-contents ninja)
-      (let (programs)
+      ;; The build type: CMake 4 repeats it as CONFIG in each link block, CMake 3.31
+      ;; (MacPorts, D-053) only states it once, as the file's CONFIGURATION.
+      (let ((file-config (if (re-search-forward "^CONFIGURATION = \\(.*\\)$" nil t)
+                             (match-string 1)
+                           ""))
+            programs)
+        (goto-char (point-min))
         ;; build <output>[ | <implicit outputs>]: <LANG>_EXECUTABLE_LINKER__<target>_<config>
         (while (re-search-forward
                 (concat "^build \\(\\(?:[^ :$\n]\\|\\$.\\)+\\)"
@@ -75,7 +81,8 @@ PROGRAM is the absolute path CMake links the target to.  File order."
                 nil t)
           (let* ((output (match-string 1))
                  (rule (match-string 2))
-                 ;; The block's CONFIG; none without a build type (rule ends in "_").
+                 ;; The block's CONFIG, else the file's; none without a build type
+                 ;; (rule ends in "_").
                  (config (save-excursion
                            (if (re-search-forward "^  CONFIG = \\(.*\\)$"
                                                   (save-excursion
@@ -83,7 +90,7 @@ PROGRAM is the absolute path CMake links the target to.  File order."
                                                     (point))
                                                   t)
                                (match-string 1)
-                             "")))
+                             file-config)))
                  (suffix (concat "_" config)))
             (unless (string-suffix-p suffix rule)
               (error "emacs-cpp: link rule %s in %s does not end in %s" rule ninja suffix))
@@ -181,6 +188,20 @@ emacs-cpp-debug--prepare against it (D-031)"))
   (require 'hl-line)
   (face-spec-set 'dape-breakpoint-face '((t :inherit error)))
   (face-spec-set 'dape-source-line-face '((t :inherit hl-line :extend t)))
+  ;; dape's debugpy (Python, D-045) listens on 0.0.0.0, every network interface;
+  ;; keep the debugger to this machine.  dape connects to `host' (default
+  ;; "localhost", which may resolve to IPv6 ::1 first), so name the address too.
+  ;; Remote files (TRAMP) are not covered: the adapter then listens on the remote
+  ;; machine's loopback, which dape cannot reach (DESIGN 2, one workstation).
+  (dolist (name '(debugpy debugpy-module))
+    (let* ((config (alist-get name dape-configs))
+           (args (plist-get config 'command-args)))
+      (unless (and config (or (member "0.0.0.0" args) (member "127.0.0.1" args)))
+        (error "emacs-cpp: dape's `%s' configuration changed (command-args %S); \
+review its listening address in lisp/init-debug.el (D-045)" name args))
+      (plist-put config 'command-args
+                 (cl-substitute "127.0.0.1" "0.0.0.0" args :test #'equal))
+      (plist-put config 'host "127.0.0.1")))
   ;; dape puts every command on its repeat map; only stepping should repeat (D-037),
   ;; so that after `C-x C-a b' or `w' the next letter is text again.
   (dolist (command '(dape dape-breakpoint-log dape-breakpoint-expression
