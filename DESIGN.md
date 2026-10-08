@@ -161,14 +161,27 @@ Known defects: none yet (nothing built).
   Implemented in `lisp/emacs-cpp-presets.el` (T-004): `inherits` resolved as CMake does
   (earlier parent wins, `hidden` not inherited), the documented path macros expanded,
   `include` and `$vendor{}` rejected as unsupported.
-- DECIDED D-023 (owner 2026-10-08, after S6): eglot runs ccls, told the active preset's
+- DECIDED D-026 (owner 2026-10-08, after S8 PASS): the config keeps clangd and can run
+  the patched clangd that answers navigation from its index (O-11):
+  `emacs-cpp-clangd-program` nil = system clangd; a path = that program with
+  `--navigation-from-index`. A configured program that is missing or lacks the flag
+  refuses eglot (no silent fall back to the system clangd). Supersedes D-023 / D-024
+  (ccls hybrid, never merged; branch `t013-ccls-hybrid` kept for reference).
+- DECIDED D-027 (owner 2026-10-08): the patched clangd is installed from
+  `packaging/clangd-index-nav` (PKGBUILD: 23.1.1 tarball plus the three clangd
+  commits as patches, standalone build against the system LLVM) to
+  `/opt/clangd-index-nav`, depending on `llvm-libs` and `clang` = 23.1.1 exactly, so
+  an LLVM upgrade is visible to pacman and needs a rebuild of the package.
+- DECIDED D-023 (superseded by D-026) (owner 2026-10-08, after S6): eglot runs ccls,
+  told the active preset's
   build directory (`compilationDatabaseDirectory`) and keeping its index cache in
   `<build>/.ccls-cache`; clang-tidy, which ccls lacks, runs as a separate flymake
   backend over a copy of the database without GCC's module-scanning flags (clang-tidy
   rejects `-fmodules-ts`, `-fmodule-mapper=`, `-fdeps-*=`), for source files only.
   Loses clangd's refactoring code actions, type hierarchy and inlay hints. Supersedes
   D-016 once T-013 merges; blocked by O-10.
-- DECIDED D-024 (owner 2026-10-08): the clang-tidy backend runs on open and on save by
+- DECIDED D-024 (superseded by D-026) (owner 2026-10-08): the clang-tidy backend runs
+  on open and on save by
   default, `emacs-cpp-clang-tidy-trigger` set to `demand` restricts it to
   `emacs-cpp-clang-tidy-check`. clang-tidy reads the saved file; unsaved edits keep
   the last findings.
@@ -400,7 +413,8 @@ presets, GoogleTest runner.
 - O-5: cold-header flags (DESIGN 7) -> S4, and S6 (ccls) round 3. Owner 2026-10-08:
   also after `M-.` into a project header no open source includes ("rmo/lac.h not
   found"), not only for headers opened first. O-7 is probably the same case.
-- O-10 (OPEN, blocks T-013): ccls 0.20250815.1 (Arch build, assertions compiled in)
+- O-10 (CLOSED 2026-10-08 with D-026; ccls not adopted, report draft kept): ccls
+  0.20250815.1 (Arch build, assertions compiled in)
   aborts intermittently: `query.cc:275 ... DB::applyIndexUpdate ... Assertion 'v >= 0'
   failed` (captured from ccls's stderr, 2026-10-08), about one full `make test` run in
   five, during indexing; coredumpctl lists nine ccls SIGABRTs since 00:54, one inside
@@ -439,8 +453,8 @@ presets, GoogleTest runner.
   1356 ms, same target; references bug (two symbols recorded at one range, one kept)
   fixed in bd81165ed; afterwards the index answer contains all 15 distinct locations
   of the AST answer plus the call under the cursor. S8 run 2 PASS: first `M-.`
-  9282 -> 1358 ms, same target, references contain the system answer. Integration
-  into the config is the owner's call (T-014 to be agreed).
+  9282 -> 1358 ms, same target, references contain the system answer. RESOLVED:
+  D-026, D-027, T-014.
 - O-12 (OPEN, owner question 2026-10-08): Bear (4.2.2, installed) to make compile
   databases for dependent libraries instead of patching clangd. Bear records the
   compiler calls of a build that is run; it helps build systems that cannot export a
@@ -531,9 +545,11 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-020 | 2026-10-08 | completion popup on request (TAB, C-M-i) | 1 | owner |
 | D-021 | 2026-10-08 | no warm-up through extra open files (memory) | 11 | Q-5 |
 | D-022 | 2026-10-08 | Emacs is not run as a long-lived server | 11 | Q-6 |
-| D-023 | 2026-10-08 | hybrid: eglot runs ccls; clang-tidy as flymake backend | 7 | O-8 |
-| D-024 | 2026-10-08 | clang-tidy on open and save; switchable to on demand | 7 | owner |
+| D-023 | 2026-10-08 | ccls + clang-tidy hybrid (superseded by D-026) | 7 | O-8 |
+| D-024 | 2026-10-08 | clang-tidy trigger for D-023 (superseded by D-026) | 7 | owner |
 | D-025 | 2026-10-08 | local clangd tree ~/source/repos/llvm-clangd (O-11) | 11 | owner |
+| D-026 | 2026-10-08 | patched clangd via emacs-cpp-clangd-program, loud | 7 | O-11 |
+| D-027 | 2026-10-08 | patched clangd packaged to /opt, pinned to LLVM 23.1.1 | 7 | owner |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.

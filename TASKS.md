@@ -56,9 +56,17 @@ with `done when: ...`).
 | T-010 | open | S | Info manuals | DESIGN 12 | done when: `C-h i` lists magit, projectile |
 | T-011 | open | M | cold-header flags | O-5, S4 | done when: S4 applied, see below |
 | T-012 | rejected (D-021) | M | preamble warm-up | S5 | owner ruled out extra open files |
-| T-013 | blocked (O-10) | L | ccls + clang-tidy | D-023, D-024 | see below |
+| T-013 | closed (D-026) | L | ccls + clang-tidy | D-023, D-024 | branch kept, not merged |
+| T-014 | next | M | patched clangd | D-026, D-027 | built; owner install left, see below |
 
-- T-013: hybrid per D-023 / D-024, built on branch `t013-ccls-hybrid`; done when (agreed
+- T-014: the config runs the patched clangd (D-026) installed from
+  packaging/clangd-index-nav (D-027); done when (agreed 2026-10-08): the config starts
+  the patched clangd with --navigation-from-index when its path is set (customize
+  variable, default: the system clangd), fails loudly if the configured binary is
+  missing or lacks the flag; make test covers both the system and the patched server;
+  on RMO, after a restart, M-. on a deal.II / std name answers within 2 s.
+- T-013 (closed, superseded by D-026): hybrid per D-023 / D-024, built on branch
+  `t013-ccls-hybrid`; done when (agreed
   2026-10-08): in a fresh Emacs on RMO with a .clang-tidy, after ccls's first indexing:
   `M-.` on a deal.II / std name answers within 2 s of opening any source; a header
   opened first shows no "not found" errors; a clang-tidy finding appears in flymake for
