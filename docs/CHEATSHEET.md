@@ -104,6 +104,13 @@ for the project; `M-x projectile-discard-command-cache` returns to the preset's.
 | `C-x C-a i` | info buffers: stack, locals, breakpoints, threads |
 | `C-x C-a q` | end the session |
 
+Program arguments: type them after the configuration name, as a vector of strings:
+`gdb-preset :args ["--levels" "5"]`. The prompt starts with your last input (kept
+across restarts), so RET repeats it. Not `gdb-preset - --levels 5`: dape takes the
+first word after `-` as the program. For fixed arguments per project, a
+`.dir-locals.el` in the project:
+`((c++-ts-mode . ((dape-command . (gdb-preset :args ["--levels" "5"])))))`.
+
 The line the program stopped at is highlighted. Options: `emacs-cpp-debug-lazy-symbols`
 (faster first stop, D-030), `emacs-cpp-debug-gdb-scripts` (deal.II printers, D-032).
 
