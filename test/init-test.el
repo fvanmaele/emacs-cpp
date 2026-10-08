@@ -65,6 +65,38 @@ The temporary home is deleted when Emacs exits."
   (should (string-prefix-p (expand-file-name "lib/" build-packages-root)
                            (locate-library "treemacs"))))
 
+(ert-deftest init-treemacs-follows-the-project ()
+  "D-029: `C-c t' toggles the tree, which follows the current buffer's project."
+  (init-test--load)
+  (should (eq (keymap-lookup global-map "C-c t") 'emacs-cpp-treemacs-toggle))
+  ;; Keep treemacs's workspace files in the temporary home, not ~/.emacs.d.
+  (defvar treemacs-persist-file)
+  (defvar treemacs-last-error-persist-file)
+  (setq treemacs-persist-file (expand-file-name "treemacs-persist" init-test--home)
+        treemacs-last-error-persist-file
+        (expand-file-name "treemacs-persist-at-last-error" init-test--home))
+  (require 'treemacs)
+  (should (bound-and-true-p treemacs-project-follow-mode))
+  ;; In a project: the first C-c t shows exactly that project (no prompt for a
+  ;; root, as `treemacs' gives with an empty workspace), the second closes it.
+  (let* ((root (file-name-as-directory (make-temp-file "emacs-cpp-tree" t)))
+         (file (expand-file-name "a.cc" root)))
+    (unwind-protect
+        (progn
+          (make-directory (expand-file-name ".git" root))
+          (write-region "int a;\n" nil file)
+          (switch-to-buffer (find-file-noselect file))
+          (emacs-cpp-treemacs-toggle)
+          (should (treemacs-get-local-window))
+          (should (equal (mapcar #'treemacs-project->path
+                                 (treemacs-workspace->projects
+                                  (treemacs-current-workspace)))
+                         (list (directory-file-name root))))
+          (emacs-cpp-treemacs-toggle)
+          (should-not (treemacs-get-local-window)))
+      (when-let* ((buffer (get-file-buffer file))) (kill-buffer buffer))
+      (delete-directory root t))))
+
 (ert-deftest init-completion-stack-is-active ()
   "T-003: vertico, orderless, marginalia, consult, embark, corfu, cape are wired."
   (init-test--load)

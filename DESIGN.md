@@ -254,6 +254,11 @@ Known defects: none yet (nothing built).
   `r` rename, `a` code action, `f` format, `i` implementation, `d` declaration, `h` call
   hierarchy, `t` type hierarchy, `o` other file, `s` workspace symbol, `e` project
   diagnostics, `I` inlay hints toggle. Debugger keys stay on dape's own prefix + repeat map.
+- DECIDED D-029 (owner 2026-10-08): `C-c t` toggles the project tree; treemacs runs
+  `treemacs-project-follow-mode`, so the tree shows only the project of the selected
+  buffer (projectile's, via treemacs-projectile) and follows it. Not opened at
+  startup. `C-c t` opens with the current project directly (`treemacs` alone asks for
+  a root while the workspace is empty). `C-x t t` stays Emacs's tab-bar key.
 
 ## 11. Performance (Q-2, D-010)
 Budgets, measured on the owner machine (T-008 measures, numbers land here):
@@ -576,6 +581,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-026 | 2026-10-08 | patched clangd via emacs-cpp-clangd-program, loud | 7 | O-11 |
 | D-027 | 2026-10-08 | patched clangd packaged to /opt, pinned to LLVM 23.1.1 | 7 | owner |
 | D-028 | 2026-10-08 | header compile command from an includer in the index | 7 | O-5 |
+| D-029 | 2026-10-08 | `C-c t` toggles treemacs; it follows the current project | 10 | owner |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.

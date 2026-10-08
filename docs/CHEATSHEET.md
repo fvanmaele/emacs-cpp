@@ -97,7 +97,8 @@ For a preset build, answer the compile prompt with e.g.
 | `?` in magit | help for the current buffer |
 
 ## Project tree (treemacs)
-No key yet: `M-x treemacs` opens / closes it. Inside the tree:
+`C-c t` opens / closes the tree. It shows only the project of the buffer you are in and
+switches when you move to a file of another project (D-029). Inside the tree:
 
 | Key | Does |
 |---|---|
