@@ -1,0 +1,82 @@
+;;; s10.el --- S10: navigation into deal.II's own sources  -*- lexical-binding: t; -*-
+;; Spike code, never promoted.  Run by run.sh: emacs -Q --batch with the shipped config.
+;; Environment: S10_ROOT (configured project copy), S10_SOURCE (file relative to it),
+;; S10_OUT (log), S10_CLANGD (program; "clangd" = the system one), S10_XDG (directory
+;; with clangd/config.yaml naming the deal.II index, or empty for none), S10_MODE
+;; (index | measure), S10_LABEL (variant name for the log), S10_NAMES (names to jump
+;; from, separated by spaces), S10_INDEX_MAX (seconds, index mode).
+(require 'init-test)
+(init-test--load)
+(require 'eglot)
+(defvar root (file-name-as-directory (getenv "S10_ROOT")))
+(defvar out (getenv "S10_OUT"))
+(defvar label (getenv "S10_LABEL"))
+(let ((clangd (getenv "S10_CLANGD")))
+  (setq emacs-cpp-clangd-program (unless (equal clangd "clangd") clangd)))
+(setq emacs-cpp-presets-state-file (expand-file-name "s10-state.eld" (file-name-directory out)))
+(setenv "CLANGD_FLAGS" "--log=verbose")
+(let ((xdg (getenv "S10_XDG")))
+  (when (and xdg (not (string-empty-p xdg)))
+    (setenv "XDG_CONFIG_HOME" xdg)))
+(defun say (fmt &rest args)
+  (let ((line (apply #'format fmt args)))
+    (princ (concat line "\n"))
+    (write-region (concat line "\n") nil out t)))
+(defun ms (t0) (round (* 1000 (float-time (time-subtract (current-time) t0)))))
+(defun settle (s) (let ((e (+ (float-time) s))) (while (< (float-time) e) (accept-process-output nil 0.5))))
+(defun server () (eglot-current-server))
+(defun rss-mb ()
+  (let ((pid (process-id (jsonrpc--process (server)))))
+    (with-temp-buffer
+      (insert-file-contents (format "/proc/%d/status" pid))
+      (and (re-search-forward "^VmRSS:\\s-+\\([0-9]+\\)" nil t)
+           (/ (string-to-number (match-string 1)) 1024)))))
+(defun stderr-lines (regexp)
+  (with-current-buffer (jsonrpc-stderr-buffer (server))
+    (seq-filter (lambda (l) (string-match-p regexp l)) (split-string (buffer-string) "\n" t))))
+(defun at (name)
+  (goto-char (point-min))
+  (unless (re-search-forward (concat "\\_<" (regexp-quote name) "\\_>") nil t)
+    (error "no %s in the file" name))
+  (goto-char (match-beginning 0)))
+(defun target (defs)
+  (if defs
+      (let ((loc (xref-item-location (car defs))))
+        (format "%s:%s" (file-name-nondirectory (xref-location-group loc))
+                (xref-location-line loc)))
+    "none"))
+(defun shards ()
+  (let ((dir (expand-file-name ".cache/clangd/index"
+                               (emacs-cpp-presets-binary-dir root (emacs-cpp-presets-active root)))))
+    (if (file-directory-p dir) (length (directory-files dir nil "\\.idx\\'")) 0)))
+
+(let ((buffer (find-file-noselect (expand-file-name (getenv "S10_SOURCE") root))))
+  (with-current-buffer buffer
+    (run-hooks 'post-command-hook)
+    (pcase (getenv "S10_MODE")
+      ("index"
+       (let ((t0 (current-time)) (last -1) (stable 0) (end (+ (float-time)
+                                                            (string-to-number (or (getenv "S10_INDEX_MAX") "900")))))
+         (while (and (< (float-time) end) (not (and (> last 0) (>= stable 15))))
+           (let ((n (shards)))
+             (if (= n last) (setq stable (1+ stable)) (setq stable 0 last n)))
+           (accept-process-output nil 1))
+         (say "%s index: %d shards after %d ms" label (shards) (ms t0))))
+      ("measure"
+       (let ((t0 (current-time)))
+         (dolist (name (split-string (getenv "S10_NAMES") " " t))
+           (at name)
+           (let* ((t1 (current-time))
+                  (first (target (xref-backend-definitions 'eglot (xref-backend-identifier-at-point 'eglot))))
+                  (d1 (ms t1)))
+             (settle 10)
+             (at name)
+             (let* ((second (target (xref-backend-definitions 'eglot (xref-backend-identifier-at-point 'eglot))))
+                    (refs (length (xref-backend-references 'eglot (xref-backend-identifier-at-point 'eglot)))))
+               (say "%s %s: first M-. %s (%d ms, %d ms after open); after 10 s %s; M-? %d"
+                    label name first d1 (ms t0) second refs))))
+         (say "%s clangd RSS %s MB" label (rss-mb))
+         (dolist (line (seq-take (stderr-lines "monolithic\\|External index\\|Associating\\|index file\\|dex") 4))
+           (say "  log: %s" (string-trim line))))))
+    (eglot-shutdown (server))))
+(kill-emacs 0)
