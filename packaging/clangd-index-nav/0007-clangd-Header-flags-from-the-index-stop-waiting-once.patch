@@ -1,0 +1,81 @@
+From cb118e30f39968e8995deac075482707e17d8296 Mon Sep 17 00:00:00 2001
+From: Ferdinand Vanmaele <info@fvanmaele.de>
+Date: Thu, 8 Oct 2026 21:42:04 +0200
+Subject: [PATCH] [clangd] Header flags from the index: stop waiting once
+ includers are known
+
+includerOf waited until loadProject returned. loadProject records the
+includers right after reading the stored shards, then merges the symbols,
+rebuilds the in-memory index and works out which files to re-index; on RMO
+(3950 shards) the shards are read in 0.4 s and the rest takes another
+0.6 s, which every header without a reliable command waited for. The load
+counter now goes down right after the includers are recorded.
+
+RMO with the previous change, header opened first: decision 1.48 - 1.56 s
+after opening, 0.97 - 1.04 s after "Enqueueing", of which 0.57 - 0.63 s
+after "building version 1 after loading index from disk".
+ClangdTests 1414/1414.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ clang-tools-extra/clangd/index/Background.cpp | 13 ++++++++-----
+ clang-tools-extra/clangd/index/Background.h   |  5 +++--
+ 2 files changed, 11 insertions(+), 7 deletions(-)
+
+diff --git a/clang-tools-extra/clangd/index/Background.cpp b/clang-tools-extra/clangd/index/Background.cpp
+index 0a07ecfb2..356ab55bd 100644
+--- a/clang-tools-extra/clangd/index/Background.cpp
++++ b/clang-tools-extra/clangd/index/Background.cpp
+@@ -135,11 +135,6 @@ BackgroundQueue::Task BackgroundIndex::changedFilesTask(
+     SPAN_ATTACH(Tracer, "files", int64_t(ChangedFiles.size()));
+ 
+     auto NeedsReIndexing = loadProject(std::move(ChangedFiles));
+-    {
+-      std::lock_guard<std::mutex> Lock(IncludersMu);
+-      --ProjectsLoading;
+-    }
+-    IncludersChanged.notify_all();
+     // Run indexing for files that need to be updated.
+     std::shuffle(NeedsReIndexing.begin(), NeedsReIndexing.end(),
+                  std::mt19937(std::random_device{}()));
+@@ -409,6 +404,14 @@ BackgroundIndex::loadProject(std::vector<std::string> MainFiles) {
+       if (LS.Shard)
+         HeaderAndTU.emplace_back(LS.AbsolutePath, LS.DependentTU);
+     recordIncluders(HeaderAndTU);
++    // The includers are known now: release includerOf() here, not after the
++    // symbols are merged and the index is rebuilt below (about 0.6 s on a
++    // deal.II-sized project). Counted up in enqueue().
++    {
++      std::lock_guard<std::mutex> Lock(IncludersMu);
++      --ProjectsLoading;
++    }
++    IncludersChanged.notify_all();
+   }
+   size_t LoadedShards = 0;
+   {
+diff --git a/clang-tools-extra/clangd/index/Background.h b/clang-tools-extra/clangd/index/Background.h
+index 15195c704..1aec58dec 100644
+--- a/clang-tools-extra/clangd/index/Background.h
++++ b/clang-tools-extra/clangd/index/Background.h
+@@ -173,7 +173,7 @@ public:
+   /// shard (recorded when the shards are loaded at startup), or one indexed in
+   /// this session. Waits up to \p Wait in total: first for the compile
+   /// database to hand over the projects it has found (blockUntilIdle), then
+-  /// for their stored shards to load. std::nullopt if no source file is known
++  /// for their stored shards to be read (not for the index built from them). std::nullopt if no source file is known
+   /// to include \p Header.
+   std::optional<std::string>
+   includerOf(PathRef Header, std::chrono::steady_clock::duration Wait);
+@@ -232,7 +232,8 @@ private:
+ 
+   // Header -> a translation unit that includes it (see includerOf).
+   llvm::StringMap<std::string> Includers;
+-  // Number of enqueued shard loads (changedFilesTask) not finished yet.
++  // Number of enqueued shard loads (changedFilesTask) whose includers are not
++  // recorded yet; loadProject() counts down once they are.
+   unsigned ProjectsLoading = 0;
+   std::mutex IncludersMu;
+   std::condition_variable IncludersChanged;
+-- 
+2.56.0
+
