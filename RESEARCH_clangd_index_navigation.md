@@ -68,7 +68,22 @@ github.com/clangd/clangd, the release-packaging repository (scripts, workflows,
 Size estimate: a few hundred lines plus tests. Not checked: whether upstream would
 accept it, or whether an equivalent proposal exists in clangd's tracker.
 
-## 4. Without changing clangd
+## 4. Local implementation (2026-10-08)
+Tree `~/source/repos/llvm-clangd` (23.1.1 sources under git, standalone build against
+the system LLVM, D-025). Commit 8b73a0490: `BackgroundIndex::loadShard`,
+`symbolAtFromShard` / `locateSymbolFromShard` / `findReferencesFromShard` in XRefs,
+`ClangdServer::Options::NavigationFromIndex`, hidden flag `--navigation-from-index`,
+tests comparing shard and AST answers. Commit 2c0b7bf32: the first version fell back
+to the AST at startup because the background index loads its stored shards
+asynchronously (verbose log: references answered from the shard, definitions not);
+now a task polls the index (50 ms steps, up to 5 s) while the AST path runs, and
+whichever answers first delivers the result once (`FirstAnswer` in ClangdServer.cpp);
+`locateIndexedSymbol` / `findReferencesToIndexedSymbol` say "not yet" while the index
+lacks the symbol. Findings while testing: function-local symbols are not indexed, so
+their uses have no shard reference and take the AST path. Result: ClangdTests
+1409 / 1409; synthetic deal.II project, second session, first `M-.` 6623 -> 606 ms.
+
+## 5. Without changing clangd
 - Name-based quick jump: while the definition request is pending, query
   `workspace/symbol` (index only, instant) for the identifier at point and offer the
   matches. Imprecise for overloads and equal names in different scopes; it is what

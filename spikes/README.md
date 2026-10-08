@@ -30,6 +30,9 @@ code is written for it. Each spike is a self-contained directory with its own bu
   unmerged LLVM PR 175209 (built by `spikes/s7-clangd-indexer/PKGBUILD`) produce shards
   the system clangd 23.1.1 loads without re-indexing, and how long does it take on RMO?
   Addresses index build time (first start, preset switch), not the per-file parse.
+- **S8 clangd navigation from the index** - does a clangd patched to answer `M-.` /
+  `M-?` from the file's stored index shard (D-025, O-11) make the first `M-.` after a
+  restart fast on RMO, with the same answers?
 - **S4 cold-header flags** - which mechanism gives a header opened first (no including
   file open) the flags of a translation unit that includes it: (a) header entries added
   to a generated database from `ninja -t deps` after a build, (b) Emacs opens an
@@ -48,4 +51,5 @@ code is written for it. Each spike is a self-contained directory with its own bu
 | S5 | FAIL, closed by owner ruling (D-021) | s5-preamble-warmup/RESULTS.md |
 | S6 | PASS | s6-ccls/RESULTS.md |
 | S7 | PKGBUILD ready, owner to build | |
+| S8 | ready, owner to run | |
 | S2 | not started | |

@@ -388,6 +388,7 @@ presets, GoogleTest runner.
 | header opened first gets wrong flags (false errors) | S4 | owner | T-011 |
 | first `M-.` / rename per file waits 7 - 13 s | S5 (closed), S6 | owner | O-8 |
 | index rebuilt from scratch per preset / build dir | S7 | owner | - |
+| patched clangd's index navigation slower / wrong on RMO | S8 | owner | O-11 |
 | own package build glue mis-orders compilation | none (tests) | - | v0.1 |
 | clangd too slow / too large on deal.II scale | S1 numbers | owner | v0.1 |
 
@@ -428,6 +429,13 @@ presets, GoogleTest runner.
   digest; missing are a by-position lookup, a validity check against the digest and a
   fast path in `ClangdServer::locateSymbolAt` / `findReferences` (precedent:
   `--completion-parse`). An upstream change, a few hundred lines plus tests.
+  Implemented locally 2026-10-08 (D-025): `~/source/repos/llvm-clangd`, commits
+  8b73a0490 and 2c0b7bf32 on clangd 23.1.1, hidden flag `--navigation-from-index`;
+  a task polls the index while the AST path runs, whichever answers first wins.
+  ClangdTests 1409 / 1409 (4 new). Synthetic deal.II project through eglot, second
+  session: first `M-.` 6623 ms -> 606 ms, same target. Not covered (AST as before):
+  function-local symbols, `auto`, `#include` lines, edited files, the first session
+  of a build directory. Spike S8 measures RMO.
 - O-8 (RESOLVED 2026-10-08, D-023): ccls instead of clangd, clangd, or a hybrid. S6 on RMO:
   ccls answers `M-.` 1.2 s after start from its on-disk index (clangd: 10.5 s per
   file), headers opened first are clean (O-5), memory 0.7 - 0.9 GB; first indexing per
@@ -506,6 +514,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-022 | 2026-10-08 | Emacs is not run as a long-lived server | 11 | Q-6 |
 | D-023 | 2026-10-08 | hybrid: eglot runs ccls; clang-tidy as flymake backend | 7 | O-8 |
 | D-024 | 2026-10-08 | clang-tidy on open and save; switchable to on demand | 7 | owner |
+| D-025 | 2026-10-08 | local clangd tree ~/source/repos/llvm-clangd (O-11) | 11 | owner |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
