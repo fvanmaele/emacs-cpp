@@ -7,8 +7,9 @@
 ;;
 ;;   C-x C-a d gdb-preset RET
 ;;
-;; asks for an executable in the preset's build directory, builds its target with
-;; `cmake --build', and on success starts gdb in the project root.  A failed build
+;; asks for one of the preset's executable targets (read from build.ninja, so also
+;; one never built, D-033), builds it with `cmake --build', and on success starts gdb
+;; in the project root.  A failed build
 ;; starts no session.  gdb never downloads symbols (D-014); it reads every shared
 ;; library's symbols at start unless `emacs-cpp-debug-lazy-symbols' is set (D-030),
 ;; and sources `emacs-cpp-debug-gdb-scripts', such as deal.II's printers (D-032).
@@ -34,7 +35,7 @@ directly.  A listed file that does not exist refuses the session."
   :group 'tools)
 
 (defvar emacs-cpp-debug--program-history nil
-  "Executables picked for `gdb-preset', relative to the build directory.")
+  "Targets picked for `gdb-preset'.")
 
 (defun emacs-cpp-debug--root ()
   "Return the current project's root, or signal that there is none."
@@ -47,47 +48,62 @@ a project's CMake preset (D-031)" default-directory))))
   "Return the build directory of the active preset of the project at ROOT."
   (emacs-cpp-presets-binary-dir root (emacs-cpp-presets-active root)))
 
-(defun emacs-cpp-debug--executable-p (file)
-  "Non-nil if FILE is an ELF program: executable, not a shared library."
-  (and (file-regular-p file)
-       (file-executable-p file)
-       (not (string-match-p "\\.so\\(?:\\.[0-9]+\\)*\\'" file))
-       (with-temp-buffer
-         (set-buffer-multibyte nil)
-         (insert-file-contents-literally file nil 0 4)
-         (equal (buffer-string) "\177ELF"))))
+(defun emacs-cpp-debug--ninja-unescape (path)
+  "Return PATH from build.ninja with Ninja's `$' escapes removed."
+  (replace-regexp-in-string "\\$\\(.\\)" "\\1" path t))
 
-(defun emacs-cpp-debug-executables (dir)
-  "Return the programs under build directory DIR, absolute and sorted.
-CMake's own directories (CMakeFiles, hidden ones like .cmake) are skipped."
-  (unless (file-directory-p dir)
-    (user-error "emacs-cpp: no build directory %s; configure and build the preset \
-first" dir))
-  (seq-filter #'emacs-cpp-debug--executable-p
-              (sort (directory-files-recursively
-                     dir "" nil
-                     (lambda (subdir)
-                       (let ((name (file-name-nondirectory subdir)))
-                         (not (or (equal name "CMakeFiles")
-                                  (string-prefix-p "." name))))))
-                    #'string<)))
+(defun emacs-cpp-debug-programs (dir)
+  "Return the executable targets of build directory DIR as (TARGET . PROGRAM).
+Read from DIR's build.ninja, so targets never built are listed too (D-033);
+PROGRAM is the absolute path CMake links the target to.  File order."
+  (let ((ninja (expand-file-name "build.ninja" dir)))
+    (unless (file-readable-p ninja)
+      (user-error "emacs-cpp: no %s; configure the preset, with the Ninja generator \
+\(gdb-preset reads its targets, D-033)" ninja))
+    (with-temp-buffer
+      (insert-file-contents ninja)
+      (let (programs)
+        ;; build <output>[ | <implicit outputs>]: <LANG>_EXECUTABLE_LINKER__<target>_<config>
+        (while (re-search-forward
+                (concat "^build \\(\\(?:[^ :$\n]\\|\\$.\\)+\\)"
+                        "\\(?:[^:$\n]\\|\\$.\\)*: "
+                        "[A-Za-z]+_EXECUTABLE_LINKER__\\([^ \n]+\\)")
+                nil t)
+          (let* ((output (match-string 1))
+                 (rule (match-string 2))
+                 ;; The block's CONFIG; none without a build type (rule ends in "_").
+                 (config (save-excursion
+                           (if (re-search-forward "^  CONFIG = \\(.*\\)$"
+                                                  (save-excursion
+                                                    (re-search-forward "^$" nil 'move)
+                                                    (point))
+                                                  t)
+                               (match-string 1)
+                             "")))
+                 (suffix (concat "_" config)))
+            (unless (string-suffix-p suffix rule)
+              (error "emacs-cpp: link rule %s in %s does not end in %s" rule ninja suffix))
+            (push (cons (string-remove-suffix suffix rule)
+                        (expand-file-name (emacs-cpp-debug--ninja-unescape output) dir))
+                  programs)))
+        (nreverse programs)))))
 
 (defun emacs-cpp-debug-read-program ()
-  "Ask for a program of the active preset's build directory; return its path.
+  "Ask for an executable target of the active preset; return its program path.
 The `:program' of `gdb-preset'; dape calls it in the project root."
   (let* ((root (emacs-cpp-debug--root))
          (dir (emacs-cpp-debug--build-dir root))
-         (programs (mapcar (lambda (file) (file-relative-name file dir))
-                           (emacs-cpp-debug-executables dir))))
+         (programs (emacs-cpp-debug-programs dir))
+         (targets (mapcar #'car programs)))
     (unless programs
-      (user-error "emacs-cpp: no program in %s; build the preset first" dir))
-    (expand-file-name
-     (completing-read (format "Program in %s: " (abbreviate-file-name dir))
-                      programs nil t nil 'emacs-cpp-debug--program-history
-                      (or (seq-find (lambda (old) (member old programs))
-                                    emacs-cpp-debug--program-history)
-                          (and (length= programs 1) (car programs))))
-     dir)))
+      (user-error "emacs-cpp: %s has no executable target" dir))
+    (cdr (assoc (completing-read
+                 (format "Target in %s: " (abbreviate-file-name dir))
+                 targets nil t nil 'emacs-cpp-debug--program-history
+                 (or (seq-find (lambda (old) (member old targets))
+                               emacs-cpp-debug--program-history)
+                     (and (length= targets 1) (car targets))))
+                programs))))
 
 (defun emacs-cpp-debug-gdb-arguments ()
   "Return gdb's arguments after `--interpreter=dap', from the options above."
@@ -108,15 +124,15 @@ exist (D-032)" script)))
      '("-iex" "set auto-solib-add off"))))
 
 (defun emacs-cpp-debug-build-command (root program)
-  "Return the command that builds PROGRAM's target in ROOT's active preset.
-The target is the program's file name, CMake's default for an executable."
-  (let ((dir (emacs-cpp-debug--build-dir root)))
-    (unless (and (file-name-absolute-p program)
-                 (file-in-directory-p program dir))
-      (user-error "emacs-cpp: program %s is not in the build directory %s (D-031)"
+  "Return the command building the target that links PROGRAM in ROOT's preset."
+  (let* ((dir (emacs-cpp-debug--build-dir root))
+         (target (car (rassoc (expand-file-name program dir)
+                              (emacs-cpp-debug-programs dir)))))
+    (unless target
+      (user-error "emacs-cpp: %s is no executable target's program in %s (D-033)"
                   program dir))
     (format "cmake --build %s --target %s" (shell-quote-argument dir)
-            (shell-quote-argument (file-name-nondirectory program)))))
+            (shell-quote-argument target))))
 
 (defun emacs-cpp-debug--prepare (config)
   "Return CONFIG with gdb's arguments and the build of its program (dape's `fn').

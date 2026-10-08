@@ -52,7 +52,7 @@ with `done when: ...`).
 | id | status | size | title | source | what |
 |----|--------|------|-------|--------|------|
 | T-005 | open | M | presets build | D-005 | done when: preset build errors jump to source |
-| T-006 | open | M | dape debugging | D-002, D-030, D-031 | code 0019; owner RMO check |
+| T-006 | open | M | dape debugging | D-030, D-031, D-033 | code 0019, 0020; owner check |
 | T-007 | open | S | `C-c l` map | D-004 | done when: which-key lists every DESIGN 10 key |
 |       |      |   | (`C-c l P` exists since T-004) | | |
 | T-010 | open | S | Info manuals | DESIGN 12 | done when: `C-h i` lists magit, projectile |
@@ -67,7 +67,8 @@ with `done when: ...`).
   step over, step in and quit work, no gdb left; with `emacs-cpp-debug-lazy-symbols` t
   the first stop takes about 2 s instead of 17 s; ERT covers program choice, gdb
   arguments, refusals and a toy session; make check / make test pass. Code and tests:
-  0019. Left: the owner's RMO check.
+  0019. Owner's first RMO try: no program offered (build/debug never built); targets
+  now come from build.ninja (D-033, 0020). Left: the owner's RMO check.
 - T-014: the config runs the patched clangd (D-026) installed from
   packaging/clangd-index-nav (D-027); done when (agreed 2026-10-08): the config starts
   the patched clangd with --navigation-from-index when its path is set (customize

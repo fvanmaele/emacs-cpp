@@ -3,8 +3,8 @@
 ;;; Commentary:
 
 ;; Unit tests for lisp/init-debug.el on temporary directories, and one session in the
-;; shipped profile: `gdb-preset' is evaluated as `C-x C-a d' evaluates it, rebuilds a
-;; toy program whose source changed after its last build, stops at a breakpoint and
+;; shipped profile: `gdb-preset' is evaluated as `C-x C-a d' evaluates it, builds a
+;; toy program that was configured but never built (D-033), stops at a breakpoint and
 ;; is driven like the S2 spike (stack, Locals, watch, step in, out and over, end).
 ;; Needs cmake, ninja, c++, gdb >= 14.1 and git.
 
@@ -35,9 +35,9 @@ add_executable(toy src/main.cc)
     ("CMakePresets.json" . ,init-debug-test--presets)
     ("src/main.cc" . "int twice(int x) { return 2 * x; }
 int main() {
-  int value = 1;
+  int value = 21;
   int result = twice(value);
-  return result - 2;
+  return result - 42;
 }
 "))
   "The toy program: a local, and a call to step into.")
@@ -74,53 +74,65 @@ Buffers visited during BODY and dape sessions it started are killed afterwards."
       (accept-process-output nil 0.1))
     value))
 
-(defun init-debug-test--copy-program (file)
-  "Copy an ELF program of the system to FILE, creating its directory."
-  (make-directory (file-name-directory file) t)
-  (copy-file (executable-find "true") file)
-  (set-file-modes file #o755))
+(defconst init-debug-test--ninja
+  "# Link the executable main
 
-(ert-deftest init-debug-executables-are-programs-of-the-build-directory ()
+build main: CXX_EXECUTABLE_LINKER__main_Debug CMakeFiles/main.dir/src/main.cc.o | /usr/lib/libz.so
+  CONFIG = Debug
+  TARGET_FILE = main
+
+build sub/libs.so: CXX_SHARED_LIBRARY_LINKER__s_Debug sub/CMakeFiles/s.dir/a.cc.o
+  CONFIG = Debug
+
+build sub/be$ tool | sub/be.map: CXX_EXECUTABLE_LINKER__b_x_Debug sub/CMakeFiles/b_x.dir/a.cc.o
+  CONFIG = Debug
+
+build bin/plain: C_EXECUTABLE_LINKER__plain_ CMakeFiles/plain.dir/p.c.o
+  DEP_FILE = CMakeFiles/plain.dir/link.d
+"
+  "Link blocks as CMake's Ninja generator writes them: a subdirectory target whose
+OUTPUT_NAME has a space (Ninja's `$ '), a shared library, a block without CONFIG
+\(no build type).")
+
+(ert-deftest init-debug-programs-are-the-executable-targets-of-build-ninja ()
   (init-test--load)
-  (init-debug-test--with-project `(("CMakePresets.json" . ,init-debug-test--presets))
+  (init-debug-test--with-project
+      `(("CMakePresets.json" . ,init-debug-test--presets)
+        ("build/debug/build.ninja" . ,init-debug-test--ninja))
     (let ((dir (expand-file-name "build/debug" root)))
-      (dolist (name '("main" "tests/unit" "libtoy.so" "libtoy.so.1.2"
-                      "CMakeFiles/3.31/CompilerIdCXX/a.out" ".cmake/api/x"))
-        (init-debug-test--copy-program (expand-file-name name dir)))
-      ;; An executable script and a non-executable ELF are not programs either.
-      (write-region "#!/bin/sh\n" nil (expand-file-name "run.sh" dir))
-      (set-file-modes (expand-file-name "run.sh" dir) #o755)
-      (copy-file (executable-find "true") (expand-file-name "data.bin" dir))
-      (set-file-modes (expand-file-name "data.bin" dir) #o644)
-      (should (equal (emacs-cpp-debug-executables dir)
-                     (list (expand-file-name "main" dir)
-                           (expand-file-name "tests/unit" dir))))
-      ;; The prompt offers them relative to the build directory, the single one or
-      ;; the last pick as default, and returns the absolute path.
+      (should (equal (emacs-cpp-debug-programs dir)
+                     `(("main" . ,(expand-file-name "main" dir))
+                       ("b_x" . ,(expand-file-name "sub/be tool" dir))
+                       ("plain" . ,(expand-file-name "bin/plain" dir)))))
+      ;; Offered by target name, the last pick as default; the program path returned.
       (let (offered default)
         (cl-letf (((symbol-function 'completing-read)
                    (lambda (_prompt collection &rest args)
                      (setq offered collection default (nth 4 args))
-                     "tests/unit")))
-          (let ((emacs-cpp-debug--program-history '("gone" "main")))
+                     "b_x")))
+          (let ((emacs-cpp-debug--program-history '("gone" "plain")))
             (should (equal (emacs-cpp-debug-read-program)
-                           (expand-file-name "tests/unit" dir))))
-          (should (equal offered '("main" "tests/unit")))
-          (should (equal default "main")))))))
+                           (expand-file-name "sub/be tool" dir))))
+          (should (equal offered '("main" "b_x" "plain")))
+          (should (equal default "plain"))))
+      ;; The build uses the target name, not the file name.
+      (should (equal (emacs-cpp-debug-build-command
+                      root (expand-file-name "sub/be tool" dir))
+                     (format "cmake --build %s --target b_x"
+                             (shell-quote-argument dir)))))))
 
 (ert-deftest init-debug-errors-instead-of-guessing ()
   (init-test--load)
   (init-debug-test--with-project `(("CMakePresets.json" . ,init-debug-test--presets))
-    ;; Not configured, then configured with nothing built.
+    ;; Not configured (or not with Ninja): no build.ninja.
     (should-error (emacs-cpp-debug-read-program) :type 'user-error)
+    ;; Configured, but no executable target.
     (make-directory (expand-file-name "build/debug" root) t)
+    (write-region "build sub/libs.so: CXX_SHARED_LIBRARY_LINKER__s_ a.o\n" nil
+                  (expand-file-name "build/debug/build.ninja" root))
     (should-error (emacs-cpp-debug-read-program) :type 'user-error)
-    ;; A program outside the build directory has no target to build.
-    (should-error (emacs-cpp-debug-build-command root "/usr/bin/true") :type 'user-error)
-    (should (equal (emacs-cpp-debug-build-command
-                    root (expand-file-name "build/debug/tests/unit" root))
-                   (format "cmake --build %s --target unit"
-                           (shell-quote-argument (expand-file-name "build/debug" root))))))
+    ;; A program no target links has nothing to build.
+    (should-error (emacs-cpp-debug-build-command root "/usr/bin/true") :type 'user-error))
   ;; Outside any project.
   (let ((default-directory (file-name-as-directory (make-temp-file "emacs-cpp-none" t))))
     (unwind-protect
@@ -202,13 +214,8 @@ Buffers visited during BODY and dape sessions it started are killed afterwards."
   (require 'dape)
   (init-debug-test--with-project init-debug-test--files
     (should (eql 0 (call-process "cmake" nil nil nil "--preset" "debug")))
-    (should (eql 0 (call-process "cmake" nil nil nil "--build" "build/debug")))
-    ;; Changed after the build: only a rebuild by gdb-preset shows 21.
-    (let ((main (expand-file-name "src/main.cc" root)))
-      (with-temp-file main
-        (insert-file-contents main)
-        (search-forward "value = 1;")
-        (replace-match "value = 21;")))
+    ;; Configured, never built: the target exists only in build.ninja.
+    (should-not (file-exists-p (expand-file-name "build/debug/toy" root)))
     (let ((source (find-file-noselect (expand-file-name "src/main.cc" root)))
           (init-debug-test--stops 0)
           ;; Batch has no windows to arrange; count stops instead.

@@ -137,7 +137,7 @@ Observed on the owner machine, 2026-10-07:
 | C++, LSP | `lisp/init-cpp.el` | PROTOTYPE | T-004: c++-ts-mode, eglot |
 | presets | `lisp/emacs-cpp-presets.el` | PROTOTYPE | T-004: D-016 - D-018 |
 | CMake | `lisp/init-cmake.el` | UNVALIDATED | NEW: presets, compile |
-| debugger | `lisp/init-debug.el` | PROTOTYPE | T-006: dape `gdb-preset` (D-031) |
+| debugger | `lisp/init-debug.el` | PROTOTYPE | T-006: `gdb-preset` (D-031, D-033) |
 | git | `lisp/init-git.el` | KEEP | T-002: magit; diff-hl later |
 | keys | `lisp/init-keys.el` | UNVALIDATED | NEW: `C-c l` map (D-004) |
 | tests | `test/*.el`, `make test` | KEEP | 21 ERT tests after T-004 |
@@ -259,11 +259,20 @@ Known defects: none yet (nothing built).
   started with `C-x C-a d gdb-preset RET` (`:bind-keymap` loads dape on the first
   `C-x C-a`). It asks for a program among the ELF executables under the active
   preset's `binaryDir` (not `CMakeFiles/`, hidden directories or `.so` files; last
-  pick is the default), builds its target first (`cmake --build <binaryDir> --target
-  <file name>`; a failed build starts no session), and starts gdb in the project root
+  pick is the default) [SUPERSEDED by D-033: targets from build.ninja], builds its
+  target first (`cmake --build <binaryDir> --target <file name>` [target name per
+  D-033]; a failed build starts no session), and starts gdb in the project root
   with `set debuginfod enabled off` (D-014). `emacs-cpp-debug-lazy-symbols` (default
   nil) adds `set auto-solib-add off` (D-030). Breakpoints across sessions: dape's own
   `dape-breakpoint-save` / `-load`, nothing automatic.
+- DECIDED D-033 (owner 2026-10-08, T-006 RMO check): `gdb-preset` offers the preset's
+  executable targets from `<binaryDir>/build.ninja` (`build <output>:
+  <LANG>_EXECUTABLE_LINKER__<target>_<CONFIG>`), so a target never built can be
+  picked and built; the target name comes from the rule, not the file name
+  (`OUTPUT_NAME` works). Ninja generator only: no build.ninja refuses the session.
+  Reason: the owner's RMO `build/debug` was configured but not built, and the ELF
+  scan of D-031 offered nothing. Not taken: CMake's file API (query file in the build
+  directory plus a reconfigure).
 - DECIDED D-032 (owner 2026-10-08, O-14): gdb scripts outside the repo, such as
   deal.II's `contrib/utilities/dotgdbinit.py`, are listed in
   `emacs-cpp-debug-gdb-scripts` (default nil, so none by default); each is sourced
@@ -626,6 +635,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-030 | 2026-10-08 | gdb with full symbols; on-demand symbols as an option | 9 | O-14 |
 | D-031 | 2026-10-08 | dape `gdb-preset`: pick a preset program, build, gdb | 9 | T-006 |
 | D-032 | 2026-10-08 | gdb scripts (deal.II printers) by option, default none | 9 | O-14 |
+| D-033 | 2026-10-08 | `gdb-preset` targets from build.ninja, not a scan | 9 | owner |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.

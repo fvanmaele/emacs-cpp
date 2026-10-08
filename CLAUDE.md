@@ -10,7 +10,7 @@ An Emacs 31 configuration giving the owner a CLion-like C++ environment (navigat
 refactoring, diagnostics, CMake presets, debugger, git, jump-to-anything) on one Arch
 Linux workstation. It will never be an Emacs distribution, a multi-OS config or a CLion
 keymap emulation (DESIGN 2).
-**Status (2026-10-08):** design ruled through D-032. dape `gdb-preset` debugs the active
+**Status (2026-10-08):** design ruled through D-033. dape `gdb-preset` debugs the active
 preset's programs (T-006, D-031; owner checks on RMO). clangd stays (T-004); a locally
 patched clangd answers navigation from its index (S8 PASS: first `M-.` on RMO 9.3 ->
 1.4 s; `#include` lines too) and compiles headers with an includer's flags from its
