@@ -137,7 +137,7 @@ Observed on the owner machine, 2026-10-07:
 | C++, LSP | `lisp/init-cpp.el` | PROTOTYPE | T-004: c++-ts-mode, eglot |
 | presets | `lisp/emacs-cpp-presets.el` | PROTOTYPE | T-004: D-016 - D-018 |
 | CMake build | `lisp/emacs-cpp-presets.el`, projectile form | PROTOTYPE | T-005 (D-035) |
-| CMake mode | `lisp/init-cmake.el` | UNVALIDATED | NEW: cmake-mode (D-013) |
+| CMake mode | `lisp/init-cmake.el` | PROTOTYPE | system cmake-mode (D-013) |
 | debugger | `lisp/init-debug.el` | PROTOTYPE | T-006: `gdb-preset` (D-031, D-033) |
 | git | `lisp/init-git.el` | KEEP | T-002: magit; diff-hl later |
 | keys | `lisp/init-keys.el` | UNVALIDATED | NEW: `C-c l` map (D-004) |
