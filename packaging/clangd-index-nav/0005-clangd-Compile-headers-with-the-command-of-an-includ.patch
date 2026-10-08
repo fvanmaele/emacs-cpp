@@ -1,0 +1,342 @@
+From b704ffd663177599f034592b41199f3c9ed407e5 Mon Sep 17 00:00:00 2001
+From: Ferdinand Vanmaele <info@fvanmaele.de>
+Date: Thu, 8 Oct 2026 05:30:36 +0200
+Subject: [PATCH] [clangd] Compile headers with the command of an includer from
+ the index
+
+A header has no compile command of its own; clangd borrows one from an open
+file that includes it once that file's preamble is built (TUScheduler's
+HeaderIncluderCache), and otherwise uses a command the compilation database
+guesses from file names. The choice is made when the header is opened and
+kept until it changes. With --navigation-from-index an #include jump opens
+the header before the includer is parsed, and a header opened first never
+had an includer: on a project with a vendored library the guess came from
+that library's source and the header showed "file not found" errors.
+
+The background index knows an includer of every header it has stored: the
+loader walks each translation unit's include graph and records the TU for
+every shard it reaches (LoadedShard::DependentTU), and indexing in this
+session sees the same graph. BackgroundIndex::includerOf returns that TU,
+waiting (bounded) while stored shards are still loading. With the hidden
+flag --header-flags-from-index the TUScheduler's compilation database asks
+it for files without a reliable command and transfers the includer's
+command; HeaderIncluderCache still takes precedence. Headers no source file
+includes keep the guessed command (logged).
+
+Synthetic project with a vendored fmt library, second session: a header
+reached by an #include jump, and the same header opened first, 2 errors
+("Kokkos_Macros.hpp file not found", command inferred from
+fmt/src/format.cc) -> 0 errors (inferred from src/main.cc).
+ClangdTests 1413/1413 (new: BackgroundIndexTest.IncluderOfHeaders).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ clang-tools-extra/clangd/ClangdServer.cpp     | 43 ++++++++++++++++-
+ clang-tools-extra/clangd/ClangdServer.h       |  8 ++++
+ clang-tools-extra/clangd/index/Background.cpp | 35 ++++++++++++++
+ clang-tools-extra/clangd/index/Background.h   | 21 ++++++++
+ clang-tools-extra/clangd/tool/ClangdMain.cpp  | 11 +++++
+ .../clangd/unittests/BackgroundIndexTests.cpp | 48 +++++++++++++++++++
+ 6 files changed, 165 insertions(+), 1 deletion(-)
+
+diff --git a/clang-tools-extra/clangd/ClangdServer.cpp b/clang-tools-extra/clangd/ClangdServer.cpp
+index b50c9b1ba..6f993d322 100644
+--- a/clang-tools-extra/clangd/ClangdServer.cpp
++++ b/clang-tools-extra/clangd/ClangdServer.cpp
+@@ -62,6 +62,44 @@ namespace clang {
+ namespace clangd {
+ namespace {
+ 
++// The compile database of the TUScheduler with HeaderFlagsFromIndex: a file
++// without a reliable command (a header: the database guesses one from file
++// names) borrows the command of a source file that includes it according to
++// the background index. TUScheduler's own includer cache (open files that were
++// parsed) still takes precedence, as for any command that is not reliable.
++class IncluderFromIndexCDB : public DelegatingCDB {
++public:
++  IncluderFromIndexCDB(const GlobalCompilationDatabase &Base,
++                       const std::unique_ptr<BackgroundIndex> &Index)
++      : DelegatingCDB(&Base), Index(Index) {}
++
++  std::optional<tooling::CompileCommand>
++  getCompileCommand(PathRef File) const override {
++    auto Cmd = DelegatingCDB::getCompileCommand(File);
++    if ((Cmd && Cmd->Heuristic.empty()) || !Index)
++      return Cmd;
++    auto Includer = Index->includerOf(File, std::chrono::seconds(5));
++    if (!Includer) {
++      vlog("Compile command for {0}: no source file includes it in the index",
++           File);
++      return Cmd;
++    }
++    auto IncluderCmd = DelegatingCDB::getCompileCommand(*Includer);
++    if (!IncluderCmd || !IncluderCmd->Heuristic.empty()) {
++      vlog("Compile command for {0}: {1} includes it, but has no command",
++           File, *Includer);
++      return Cmd;
++    }
++    vlog("Compile command for {0} from {1}, which includes it (index)", File,
++         *Includer);
++    return tooling::transferCompileCommand(std::move(*IncluderCmd), File);
++  }
++
++private:
++  // Set after construction (ClangdServer creates the index later).
++  const std::unique_ptr<BackgroundIndex> &Index;
++};
++
+ // Tracks number of times a tweak has been offered.
+ static constexpr trace::Metric TweakAvailable(
+     "tweak_available", trace::Metric::Counter, "tweak_id");
+@@ -238,7 +276,10 @@ ClangdServer::ClangdServer(const GlobalCompilationDatabase &CDB,
+   // Pass a callback into `WorkScheduler` to extract symbols from a newly
+   // parsed file and rebuild the file index synchronously each time an AST
+   // is parsed.
+-  WorkScheduler.emplace(CDB, TUScheduler::Options(Opts),
++  if (Opts.HeaderFlagsFromIndex && Opts.BackgroundIndex)
++    SchedulerCDB = std::make_unique<IncluderFromIndexCDB>(CDB, BackgroundIdx);
++  WorkScheduler.emplace(SchedulerCDB ? *SchedulerCDB : CDB,
++                        TUScheduler::Options(Opts),
+                         std::make_unique<UpdateIndexCallbacks>(
+                             DynamicIdx.get(), Callbacks, TFS,
+                             IndexTasks ? &*IndexTasks : nullptr,
+diff --git a/clang-tools-extra/clangd/ClangdServer.h b/clang-tools-extra/clangd/ClangdServer.h
+index be3526bf6..0d2e1bcd5 100644
+--- a/clang-tools-extra/clangd/ClangdServer.h
++++ b/clang-tools-extra/clangd/ClangdServer.h
+@@ -134,6 +134,12 @@ public:
+     /// the file to be parsed. Positions the shard does not cover, and edited
+     /// files, use the AST as usual.
+     bool NavigationFromIndex = false;
++    /// If true (and BackgroundIndex is on), a file without a reliable compile
++    /// command (e.g. a header) borrows the command of a source file that
++    /// includes it according to the background index, instead of the command
++    /// guessed from file names; waits for stored shards that are still
++    /// loading.
++    bool HeaderFlagsFromIndex = false;
+ 
+     /// If set, use this index to augment code completion results.
+     SymbolIndex *StaticIndex = nullptr;
+@@ -546,6 +552,8 @@ private:
+ 
+   std::optional<std::string> WorkspaceRoot;
+   std::optional<AsyncTaskRunner> IndexTasks; // for stdlib indexing.
++  // With HeaderFlagsFromIndex: the compile database WorkScheduler uses.
++  std::unique_ptr<GlobalCompilationDatabase> SchedulerCDB;
+   std::optional<TUScheduler> WorkScheduler;
+   // Invalidation policy used for actions that we assume are "transient".
+   TUScheduler::ASTActionInvalidation Transient;
+diff --git a/clang-tools-extra/clangd/index/Background.cpp b/clang-tools-extra/clangd/index/Background.cpp
+index 9061cb95f..b653fc64c 100644
+--- a/clang-tools-extra/clangd/index/Background.cpp
++++ b/clang-tools-extra/clangd/index/Background.cpp
+@@ -135,6 +135,11 @@ BackgroundQueue::Task BackgroundIndex::changedFilesTask(
+     SPAN_ATTACH(Tracer, "files", int64_t(ChangedFiles.size()));
+ 
+     auto NeedsReIndexing = loadProject(std::move(ChangedFiles));
++    {
++      std::lock_guard<std::mutex> Lock(IncludersMu);
++      --ProjectsLoading;
++    }
++    IncludersChanged.notify_all();
+     // Run indexing for files that need to be updated.
+     std::shuffle(NeedsReIndexing.begin(), NeedsReIndexing.end(),
+                  std::mt19937(std::random_device{}()));
+@@ -184,6 +189,25 @@ std::unique_ptr<IndexFileIn> BackgroundIndex::loadShard(PathRef File) {
+   return IndexStorageFactory(File)->loadShard(File);
+ }
+ 
++void BackgroundIndex::recordIncluders(
++    llvm::ArrayRef<std::pair<std::string, std::string>> HeaderAndTU) {
++  std::lock_guard<std::mutex> Lock(IncludersMu);
++  for (const auto &[Header, TU] : HeaderAndTU)
++    if (Header != TU)
++      Includers.try_emplace(Header, TU);
++}
++
++std::optional<std::string>
++BackgroundIndex::includerOf(PathRef Header,
++                            std::chrono::steady_clock::duration Wait) {
++  std::unique_lock<std::mutex> Lock(IncludersMu);
++  IncludersChanged.wait_for(Lock, Wait, [&] { return ProjectsLoading == 0; });
++  auto It = Includers.find(Header);
++  if (It == Includers.end())
++    return std::nullopt;
++  return It->getValue();
++}
++
+ /// Given index results from a TU, only update symbols coming from files that
+ /// are different or missing from than \p ShardVersionsSnapshot. Also stores new
+ /// index information on IndexStorage.
+@@ -193,6 +217,7 @@ void BackgroundIndex::update(
+     bool HadErrors) {
+   // Keys are URIs.
+   llvm::StringMap<std::pair<Path, FileDigest>> FilesToUpdate;
++  std::vector<std::pair<std::string, std::string>> HeaderAndTU;
+   // Note that sources do not contain any information regarding missing headers,
+   // since we don't even know what absolute path they should fall in.
+   for (const auto &IndexIt : *Index.Sources) {
+@@ -202,6 +227,7 @@ void BackgroundIndex::update(
+       elog("Failed to resolve URI: {0}", AbsPath.takeError());
+       continue;
+     }
++    HeaderAndTU.emplace_back(*AbsPath, MainFile.str());
+     const auto DigestIt = ShardVersionsSnapshot.find(*AbsPath);
+     // File has different contents, or indexing was successful this time.
+     if (DigestIt == ShardVersionsSnapshot.end() ||
+@@ -210,6 +236,8 @@ void BackgroundIndex::update(
+       FilesToUpdate[IGN.URI] = {std::move(*AbsPath), IGN.Digest};
+   }
+ 
++  recordIncluders(HeaderAndTU);
++
+   // Shard slabs into files.
+   FileShardedIndex ShardedIndex(std::move(Index));
+ 
+@@ -369,6 +397,13 @@ BackgroundIndex::loadProject(std::vector<std::string> MainFiles) {
+   // Load shards for all of the mainfiles.
+   const std::vector<LoadedShard> Result =
+       loadIndexShards(MainFiles, IndexStorageFactory, CDB);
++  {
++    std::vector<std::pair<std::string, std::string>> HeaderAndTU;
++    for (const auto &LS : Result)
++      if (LS.Shard)
++        HeaderAndTU.emplace_back(LS.AbsolutePath, LS.DependentTU);
++    recordIncluders(HeaderAndTU);
++  }
+   size_t LoadedShards = 0;
+   {
+     // Update in-memory state.
+diff --git a/clang-tools-extra/clangd/index/Background.h b/clang-tools-extra/clangd/index/Background.h
+index 65a90073a..02e2532b1 100644
+--- a/clang-tools-extra/clangd/index/Background.h
++++ b/clang-tools-extra/clangd/index/Background.h
+@@ -161,9 +161,21 @@ public:
+   // The indexing happens in a background thread, so the symbols will be
+   // available sometime later.
+   void enqueue(const std::vector<std::string> &ChangedFiles) {
++    {
++      std::lock_guard<std::mutex> Lock(IncludersMu);
++      ++ProjectsLoading;
++    }
+     Queue.push(changedFilesTask(ChangedFiles));
+   }
+ 
++  /// A source file that includes \p Header, directly or through other
++  /// headers: the translation unit whose indexing produced the header's stored
++  /// shard (recorded when the shards are loaded at startup), or one indexed in
++  /// this session. While stored shards are being loaded, waits for them up to
++  /// \p Wait. std::nullopt if no source file is known to include \p Header.
++  std::optional<std::string>
++  includerOf(PathRef Header, std::chrono::steady_clock::duration Wait);
++
+   /// Boosts priority of indexing related to Path.
+   /// Typically used to index TUs when headers are opened.
+   void boostRelated(llvm::StringRef Path);
+@@ -216,6 +228,15 @@ private:
+   llvm::StringMap<ShardVersion> ShardVersions; // Key is absolute file path.
+   std::mutex ShardVersionsMu;
+ 
++  // Header -> a translation unit that includes it (see includerOf).
++  llvm::StringMap<std::string> Includers;
++  // Number of enqueued shard loads (changedFilesTask) not finished yet.
++  unsigned ProjectsLoading = 0;
++  std::mutex IncludersMu;
++  std::condition_variable IncludersChanged;
++  void recordIncluders(llvm::ArrayRef<std::pair<std::string, std::string>>
++                           HeaderAndTU);
++
+   BackgroundIndexStorage::Factory IndexStorageFactory;
+   // Tries to load shards for the MainFiles and their dependencies.
+   std::vector<std::string> loadProject(std::vector<std::string> MainFiles);
+diff --git a/clang-tools-extra/clangd/tool/ClangdMain.cpp b/clang-tools-extra/clangd/tool/ClangdMain.cpp
+index 9a23658b6..10aa825e0 100644
+--- a/clang-tools-extra/clangd/tool/ClangdMain.cpp
++++ b/clang-tools-extra/clangd/tool/ClangdMain.cpp
+@@ -182,6 +182,16 @@ opt<bool> NavigationFromIndex{
+     Hidden,
+ };
+ 
++opt<bool> HeaderFlagsFromIndex{
++    "header-flags-from-index",
++    cat(Features),
++    desc("Compile a header that has no compile command with the command of a "
++         "source file that includes it, as recorded by the background index, "
++         "instead of a command guessed from file names. Experimental."),
++    init(false),
++    Hidden,
++};
++
+ opt<llvm::ThreadPriority> BackgroundIndexPriority{
+     "background-index-priority",
+     cat(Features),
+@@ -977,6 +987,7 @@ clangd accepts flags on the commandline, and in the CLANGD_FLAGS environment var
+   Opts.BackgroundIndex = EnableBackgroundIndex;
+   Opts.BackgroundIndexPriority = BackgroundIndexPriority;
+   Opts.NavigationFromIndex = NavigationFromIndex;
++  Opts.HeaderFlagsFromIndex = HeaderFlagsFromIndex;
+   Opts.ReferencesLimit = ReferencesLimit;
+   Opts.Rename.LimitFiles = RenameFileLimit;
+   auto PAI = createProjectAwareIndex(
+diff --git a/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp b/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp
+index 3143a21e6..2ca45ad27 100644
+--- a/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp
++++ b/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp
+@@ -782,6 +782,54 @@ TEST_F(BackgroundIndexTest, DirectIncludesTest) {
+               emptyIncludeNode());
+ }
+ 
++TEST_F(BackgroundIndexTest, IncluderOfHeaders) {
++  // HeaderFlagsFromIndex: a header borrows the compile command of a source
++  // file that includes it, directly or through other headers.
++  MockFS FS;
++  FS.Files[testPath("root/inc/b.h")] = "int b();";
++  FS.Files[testPath("root/inc/a.h")] = "#include \"b.h\"\nint a();";
++  FS.Files[testPath("root/inc/unused.h")] = "int u();";
++  std::string MainPath = testPath("root/src/A.cc");
++  FS.Files[MainPath] = "#include <a.h>\nint main() { return a() + b(); }";
++  llvm::StringMap<std::string> Storage;
++  size_t CacheHits = 0;
++  MemoryShardStorage MSS(Storage, CacheHits);
++  tooling::CompileCommand Cmd;
++  Cmd.Filename = MainPath;
++  Cmd.Directory = testPath("root");
++  Cmd.CommandLine = {"clang++", "-I" + testPath("root/inc"), MainPath};
++
++  // Indexed in this session.
++  {
++    OverlayCDB CDB(/*Base=*/nullptr);
++    BackgroundIndex Idx(FS, CDB, [&](llvm::StringRef) { return &MSS; },
++                        /*Opts=*/{});
++    CDB.setCompileCommand(MainPath, Cmd);
++    ASSERT_TRUE(Idx.blockUntilIdleForTest());
++    EXPECT_EQ(Idx.includerOf(testPath("root/inc/a.h"), std::chrono::seconds(0)),
++              MainPath);
++    EXPECT_EQ(Idx.includerOf(testPath("root/inc/b.h"), std::chrono::seconds(0)),
++              MainPath);
++    // Not included by any source file; a source file includes no one.
++    EXPECT_FALSE(Idx.includerOf(testPath("root/inc/unused.h"),
++                                std::chrono::seconds(0)));
++    EXPECT_FALSE(Idx.includerOf(MainPath, std::chrono::seconds(0)));
++  }
++  // A new session: the stored shards are loaded asynchronously; includerOf
++  // waits for the load instead of answering "unknown" too early.
++  {
++    CacheHits = 0;
++    OverlayCDB CDB(/*Base=*/nullptr);
++    BackgroundIndex Idx(FS, CDB, [&](llvm::StringRef) { return &MSS; },
++                        /*Opts=*/{});
++    CDB.setCompileCommand(MainPath, Cmd);
++    EXPECT_EQ(Idx.includerOf(testPath("root/inc/b.h"), std::chrono::seconds(10)),
++              MainPath);
++    ASSERT_TRUE(Idx.blockUntilIdleForTest());
++    EXPECT_EQ(CacheHits, 3U); // A.cc, a.h, b.h loaded; nothing re-indexed.
++  }
++}
++
+ TEST_F(BackgroundIndexTest, ShardStorageLoad) {
+   MockFS FS;
+   FS.Files[testPath("root/A.h")] = R"cpp(
+-- 
+2.56.0
+

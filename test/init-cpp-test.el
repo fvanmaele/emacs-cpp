@@ -130,7 +130,7 @@ any eglot server shut down."
     (and (file-executable-p program) program)))
 
 (ert-deftest init-cpp-patched-clangd-navigates ()
-  "D-026: with `emacs-cpp-clangd-program' set, eglot runs it with the index flag."
+  "D-026: with `emacs-cpp-clangd-program' set, eglot runs it with the index flags."
   (init-test--load)
   (let ((program (init-cpp-test--patched-clangd)))
     (unless program
@@ -145,7 +145,8 @@ any eglot server shut down."
                          (list program
                                (concat "--compile-commands-dir="
                                        (expand-file-name "build/debug" root))
-                               "--navigation-from-index"))))
+                               "--navigation-from-index"
+                               "--header-flags-from-index"))))
         (should (member (file-name-nondirectory
                          (init-cpp-test--definition-file main "answer()"))
                         '("answer.h" "answer.cc")))

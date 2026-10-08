@@ -121,14 +121,18 @@
     file))
 
 (ert-deftest emacs-cpp-presets-patched-clangd-program ()
-  "D-026: a configured clangd must exist and support --navigation-from-index."
+  "D-026: a configured clangd must exist and support the patched flags."
   (emacs-cpp-presets-test--with-project
       `(("CMakePresets.json" . ,emacs-cpp-presets-test--presets))
     (let* ((project (cons 'transient root))
            (warning-minimum-log-level :emergency)
            (dir (expand-file-name "build/debug" root))
            (patched (emacs-cpp-presets-test--fake-clangd
-                     root "patched" "  --navigation-from-index - Answer ..."))
+                     root "patched" "  --navigation-from-index - Answer ...
+  --header-flags-from-index - Compile ..."))
+           ;; pkgrel 2: navigation only.
+           (older (emacs-cpp-presets-test--fake-clangd
+                   root "older" "  --navigation-from-index - Answer ..."))
            (plain (emacs-cpp-presets-test--fake-clangd root "plain" "  --background-index"))
            (emacs-cpp-presets--navigation-support nil))
       (make-directory dir t)
@@ -137,8 +141,11 @@
       (let ((emacs-cpp-clangd-program patched))
         (should (equal (emacs-cpp-presets-clangd-contact nil project)
                        (list patched (concat "--compile-commands-dir=" dir)
-                             "--navigation-from-index"))))
-      ;; Not the patched build, or not there: refused, no silent system clangd.
+                             "--navigation-from-index" "--header-flags-from-index"))))
+      ;; An older patched build, not the patched build, or not there: refused,
+      ;; no silent system clangd and no silently missing flag.
+      (let ((emacs-cpp-clangd-program older))
+        (should-error (emacs-cpp-presets-clangd-contact nil project) :type 'user-error))
       (let ((emacs-cpp-clangd-program plain))
         (should-error (emacs-cpp-presets-clangd-contact nil project) :type 'user-error))
       (let ((emacs-cpp-clangd-program (expand-file-name "missing" root)))
