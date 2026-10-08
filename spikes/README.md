@@ -33,6 +33,9 @@ code is written for it. Each spike is a self-contained directory with its own bu
 - **S8 clangd navigation from the index** - does a clangd patched to answer `M-.` /
   `M-?` from the file's stored index shard (D-025, O-11) make the first `M-.` after a
   restart fast on RMO, with the same answers?
+- **S9 header opened first** - does a header opened as the first file after a restart
+  get guessed flags because it asks before the project reaches the background index
+  (O-21, D-028)? Owner ruled spike first (tier 3) before patch 0006.
 - **S4 cold-header flags** - DROPPED 2026-10-08: replaced by D-028 (patched clangd
   takes an includer from its index; owner ruled tier 2, toy reproduction as evidence).
   Was: which mechanism gives a header opened first (no including
