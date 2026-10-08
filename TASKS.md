@@ -43,7 +43,8 @@ with `done when: ...`).
   completion, consult-eglot-symbols, M-. into libraries OK; M-. inside library headers
   and auto-start fixed by D-019; rename works (owner, 2026-10-08, slow before D-026).
   clang-tidy: a `.clang-tidy` finding reaches eglot (toy, 2026-10-08; RMO now has a
-  `.clang-tidy`; not yet checked there). Closed with the v0.1 tag (0017).
+  `.clang-tidy`; owner 2026-10-08: findings appear in flymake). Closed with the v0.1
+  tag (0017).
 - T-008: measure DESIGN 11 budgets (`emacs-init-time`, clangd numbers from S1) after
   T-004; done when: numbers are in DESIGN 11 and each tuning setting cites one.
 
