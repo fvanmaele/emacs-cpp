@@ -53,4 +53,4 @@ code is written for it. Each spike is a self-contained directory with its own bu
 | S6 | PASS | s6-ccls/RESULTS.md |
 | S7 | PKGBUILD ready, owner to build | |
 | S8 | PASS (run 2) | s8-clangd-index-navigation/RESULTS.md |
-| S2 | RUN ready (dry run on the toy passes), owner runs | |
+| S2 | PASS (run 1) | s2-dape-gdb/RESULTS.md |

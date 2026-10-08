@@ -245,8 +245,13 @@ Known defects: none yet (nothing built).
 ## 9. Debugger (dape)
 - DECIDED D-002: dape is the debugger front-end; gdb 17 via its native DAP interpreter
   is the default adapter, lldb-dap the alternate.
-- UNDECIDED (S2): deriving the program path from the active preset's `binaryDir`;
-  breakpoints persisting across sessions.
+- S2 PASS (2026-10-08, RMO): dape + gdb 18.1 DAP stops at a source breakpoint, shows
+  stack, variables and a watch, steps and ends cleanly; lldb-dap too. Findings for
+  T-006: program path = active preset's `binaryDir` + target name; breakpoints persist
+  with `dape-breakpoint-save` / `-load`; the stop takes 17 s on RMO (gdb reading
+  `libdeal_II.g.so`, not dape), 2.3 s with shared-library symbols on demand (deal.II
+  frames then lack symbols); deal.II's printers need `contrib/utilities/dotgdbinit.py`
+  sourced as a gdb script. Variant choice: O-14.
 
 ## 10. Keys
 - DECIDED D-004: Emacs-native bindings (`M-.`, `M-?`, `M-,`, `C-c p` projectile) plus one
@@ -486,6 +491,10 @@ presets, GoogleTest runner.
   `#include` request was logged (answered from the index); the errors seen after it
   were O-5 (D-028). With pkgrel 3 the owner reports `M-.` on a name works; no cause
   beyond the `#include` case was found.
+- O-14 (OPEN, from S2 2026-10-08): which gdb setup T-006 ships: full symbols at start
+  (17 s to the first stop on RMO, deal.II code steppable) or on demand (2.3 s, deal.II
+  symbols loaded when needed); and whether deal.II's printers are loaded from the
+  owner's deal.II checkout. Owner rules before T-006's done-when.
 - O-12 (OPEN, owner question 2026-10-08): Bear (4.2.2, installed) to make compile
   databases for dependent libraries instead of patching clangd. Bear records the
   compiler calls of a build that is run; it helps build systems that cannot export a

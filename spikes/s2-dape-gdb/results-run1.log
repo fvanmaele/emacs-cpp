@@ -1,0 +1,65 @@
+# S2 run 2026-10-08T06:28:18+02:00 on copy of /home/alad/source/repos/RMO-gross-pitaevskii, target main
+gdb: GNU gdb (GDB) 18.1
+lldb-dap: lldb-dap: LLVM (http://llvm.org/):
+dape: 0.27.1
+flags:  12 -g 10 -ggdb 10 -O0 10 -O2 
+load: 0.89 1.48 1.45
+gdb alone to src/main.cc:76: 17404 ms (1 stop)
+
+adapter gdb: GNU gdb (GDB) 18.1
+program /tmp/s2/work/rmo/build/debug/main
+breakpoint src/main.cc:76; adapter arguments: "-iex|set debuginfod enabled off"
+stopped after 17264 ms at main main.cc:76 (breakpoint line 76)
+stack: main main.cc:76
+scope "Arguments": argc=1, argv=0x7fffffffe088
+  argv (nil): value="/tmp/s2/work/rmo/build/deb...
+watch argc = 1
+next: main main.cc:80
+step in: std::allocator<char>::allocator allocator.h:168
+session ended: yes
+source breakpoints: 1, after remove-all 0, after load 1
+debugger processes left: 
+
+adapter gdb: GNU gdb (GDB) 18.1
+program /tmp/s2/work/rmo/build/debug/main
+breakpoint src/main.cc:76; adapter arguments: "-iex|set debuginfod enabled off|-iex|source /tmp/s2/work/rmo/dealii-printers.gdb"
+stopped after 17407 ms at main main.cc:76 (breakpoint line 76)
+stack: main main.cc:76
+scope "Arguments": argc=1, argv=0x7fffffffe058
+  argv (nil): value="/tmp/s2/work/rmo/build/deb...
+watch argc = 1
+next: main main.cc:80
+step in: std::allocator<char>::allocator allocator.h:168
+session ended: yes
+source breakpoints: 1, after remove-all 0, after load 1
+debugger processes left: 
+
+adapter gdb: GNU gdb (GDB) 18.1
+program /tmp/s2/work/rmo/build/debug/main
+breakpoint src/main.cc:76; adapter arguments: "-iex|set debuginfod enabled off|-iex|source /tmp/s2/work/rmo/dealii-printers.gdb|-iex|set auto-solib-add off"
+stopped after 2331 ms at main main.cc:76 (breakpoint line 76)
+stack: main main.cc:76
+scope "Arguments": argc=1, argv=0x7fffffffe038
+  argv (nil): value="/tmp/s2/work/rmo/build/deb...
+watch argc = 1
+next: main main.cc:80
+step in: std::allocator<char>::allocator allocator.h:168
+session ended: yes
+source breakpoints: 1, after remove-all 0, after load 1
+debugger processes left: 
+
+adapter lldb-dap: lldb-dap: LLVM (http://llvm.org/):
+program /tmp/s2/work/rmo/build/debug/main
+breakpoint src/main.cc:76; adapter arguments: ""
+stopped after 15440 ms at main main.cc:76 (breakpoint line 76)
+stack: main main.cc:76 <- __libc_start_call_main libc_start_call_main.h:59 <- __libc_start_main_impl libc-start.c:372 <- _start main`_start:13
+scope "Locals": argc=1, argv=0x00007fffffffe0b8, opts=ProgramOptions
+  argv (char **): *argv=0x00007fffffffe4c6 "/tmp/s2...
+watch argc = 1
+next: main main.cc:80
+step in: boost::program_options::options_description::options_description(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, unsigned int, unsigned int) options_description.cpp:309
+session ended: yes
+source breakpoints: 1, after remove-all 0, after load 1
+debugger processes left: 
+
+load after: 1.31 1.49 1.46

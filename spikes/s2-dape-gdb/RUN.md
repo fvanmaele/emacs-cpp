@@ -65,4 +65,5 @@ on a line, `M-x dape-breakpoint-toggle`, then `M-x dape RET gdb :program
 keys are under `C-x C-a`. Report anything that looks wrong.
 
 ## Hand back
-`spikes/s2-dape-gdb/results.log`; delete `/tmp/s2` afterwards.
+`spikes/s2-dape-gdb/results.log` (run 1 kept as `results-run1.log`); delete
+`/tmp/s2` afterwards.
