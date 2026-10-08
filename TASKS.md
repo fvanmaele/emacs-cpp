@@ -16,7 +16,7 @@ with `done when: ...`).
 | T-002 | done 0002 | L | skeleton + packages | D-003, D-006 | owner confirmed 2026-10-07 |
 | T-003 | done 0004 | M | completion stack | Q-3 | owner confirmed 2026-10-07 |
 | T-004 | done 0017 | M | eglot + clangd | D-001, S1 | v0.1 tagged by owner |
-| T-008 | open | S | performance baseline | D-010 | see below |
+| T-008 | done 0023 | S | performance baseline | D-010, D-038 | startup 0.36 -> 0.15 s |
 
 - T-009 (owner, in RMO): `CMAKE_CXX_EXTENSIONS OFF`, commit `CMakePresets.json`, ignore
   `build/`; exact commands in `spikes/s1-compile-db/RUN.md`; done when: committed in RMO
@@ -46,7 +46,8 @@ with `done when: ...`).
   `.clang-tidy`; owner 2026-10-08: findings appear in flymake). Closed with the v0.1
   tag (0017).
 - T-008: measure DESIGN 11 budgets (`emacs-init-time`, clangd numbers from S1) after
-  T-004; done when: numbers are in DESIGN 11 and each tuning setting cites one.
+  T-004; done when: numbers are in DESIGN 11 and each tuning setting cites one. Done
+  2026-10-08 (0023): startup, GC and LSP-reply numbers in DESIGN 11, D-038.
 
 ## Later
 | id | status | size | title | source | what |

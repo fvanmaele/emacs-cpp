@@ -326,10 +326,19 @@ Budgets, measured on the owner machine (T-008 measures, numbers land here):
   HOME holding only the two symlinks, 2026-10-07, while an owner simulation ran at
   about 390 % CPU (load average 8 - 10): T-002 config 0.60 - 0.95 s, T-003 config
   0.77 - 1.21 s. Not a valid verdict on the budget; T-008 measures on an idle machine.
+  T-008 (2026-10-08, idle: load 0.1 - 0.6 of 16 cores, v0.2.0 config,
+  `scripts/measure-startup.sh`, 10 runs each, `emacs -nw`, native code cached):
+  0.355 s median (0.350 - 0.366), of which 22 garbage collections 0.22 s; with
+  `gc-cons-threshold` 64 MB during startup 0.151 s (0.147 - 0.156), 1 collection.
+  Within budget either way; the threshold is adopted (D-038).
 - Typing: no perceptible lag in a reference-project `.cc` buffer while clangd builds
   its preamble or background index.
-- clangd: a deal.II translation unit's first parse and RSS are recorded by S1; the
-  background index of a deal.II-sized tree must not starve the build (low priority).
+- clangd: a deal.II translation unit's first parse and RSS are recorded by S1: RMO's
+  `main.cc` 13.3 - 13.4 s and 776 - 779 MB with C++20 (S1 run 2); a header 6.6 - 8.0 s,
+  380 MB. With the patched clangd the first `M-.` answers from the index in 1.4 s
+  (S8), below jsonrpc's 10 s request timeout. The background index of a deal.II-sized
+  tree must not starve the build (low priority). Typing lag: not measured, owner's
+  observation (none reported up to v0.2.0).
 Mechanisms, each PROPOSED until measured:
 - Packages byte-compiled by `make packages`; one combined autoloads file; no
   `package.el` activation at startup. Native compilation is left to Emacs's default
@@ -338,8 +347,14 @@ Mechanisms, each PROPOSED until measured:
   startup is within budget. (Supersedes "ahead-of-time byte- and native-compiled",
   2026-10-07.)
 - Everything deferred (`use-package-always-defer` t) except the completion UI and theme.
-- `gc-cons-threshold` raised in `early-init.el`, restored to a moderate value after
-  startup; `read-process-output-max` 4 MB (large LSP replies).
+- DECIDED D-038 (T-008, 2026-10-08): `gc-cons-threshold` 64 MB from `early-init.el`
+  until `emacs-startup-hook`, then Emacs's default (800 KB) again: startup 0.355 ->
+  0.151 s (above). After startup a higher value gains nothing measurable: eglot
+  `documentSymbol` of a 5000-function file (5001 symbols, about 190 ms per reply), 10
+  replies: median 188 ms at 800 KB, 16 MB and 64 MB; collections 2 / 1 / 1, 0.077 /
+  0.035 / 0.039 s in all. (Supersedes "restored to a moderate value after startup".)
+- REJECTED (T-008): `read-process-output-max` 4 MB. Same workload, 64 KB (Emacs 31
+  default) / 1 MB / 4 MB: median 188 / 187 / 190 ms. Default kept.
 - clangd options vs latency (2026-10-08, synthetic two-file deal.II + Boost project,
   batch, load average 14 - 16 from an owner simulation; cold / warm index). First
   `M-.`: defaults 7.2 / 8.2 s, `--pch-storage=memory` 13.3 / 10.0 s, `-j=4` with
@@ -396,8 +411,8 @@ Mechanisms, each PROPOSED until measured:
   13.4 s in S1, so a first `M-.` right after opening may time out.
 - eglot: `eglot-events-buffer-config` size 0 (no JSON logging; the eglot manual's
   first performance advice) and `eglot-autoshutdown` t, adopted in T-004.
-  `eglot-sync-connect` and `read-process-output-max` (64 KB default in Emacs 31) stay
-  at their defaults until measured.
+  `eglot-sync-connect` stays at its default (not measured); `read-process-output-max`
+  measured, default kept (T-008).
 - clangd flags in section 7.
 - Not adopted unless a measurement asks for it: `emacs-lsp-booster` (an external binary,
   would need its own D-nnn), gcmh.
@@ -677,8 +692,9 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-033 | 2026-10-08 | `gdb-preset` targets from build.ninja, not a scan | 9 | owner |
 | D-034 | 2026-10-08 | built-in which-key-mode on for key hints | 10 | O-16 |
 | D-035 | 2026-10-08 | projectile cmake commands use the active preset's dir | 8 | O-17 |
-| D-037 | 2026-10-08 | repeat-mode on; only dape's stepping commands repeat | 10 | O-15 |
 | D-036 | 2026-10-08 | gutter clicks set breakpoints; red marks, stop line lit | 9 | O-18 |
+| D-037 | 2026-10-08 | repeat-mode on; only dape's stepping commands repeat | 10 | O-15 |
+| D-038 | 2026-10-08 | gc-cons-threshold 64 MB during startup only | 11 | T-008 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
