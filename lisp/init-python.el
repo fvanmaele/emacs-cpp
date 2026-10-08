@@ -6,9 +6,8 @@
 ;; `python-ts-mode' on the system grammar, pyright through eglot in project files,
 ;; and dape's own `debugpy' configuration (`C-x C-a d debugpy RET' debugs the current
 ;; file).  All three come from the Arch packages tree-sitter-python, pyright and
-;; python-debugpy.  The C++ setup is not touched: the project markers below apply to
-;; Python buffers only; eglot's pyright entry is in eglot's form (lisp/init-cpp.el),
-;; the debugger's in dape's (lisp/init-debug.el).
+;; python-debugpy.  The C++ setup is not touched; eglot's pyright entry is in eglot's
+;; form (lisp/init-cpp.el), the debugger's in dape's (lisp/init-debug.el).
 
 ;;; Code:
 
@@ -19,9 +18,8 @@
 
 (defun emacs-cpp-python-eglot-ensure ()
   "Start eglot (pyright) for a Python file of a project; not for a loose file.
-A project is a git repository or, for Python buffers only, a directory with
-pyproject.toml or setup.py."
-  (setq-local project-vc-extra-root-markers '("pyproject.toml" "setup.py"))
+A project is what projectile finds: a git repository, else a directory with
+pyproject.toml, setup.py or another of its markers."
   (when (project-current)
     (eglot-ensure)))
 

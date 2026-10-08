@@ -36,9 +36,11 @@ Once per session: after `C-c t' has closed the tree, it stays closed."
 (defun emacs-cpp-treemacs-open-once ()
   "Show the tree for the visited file if it is the session's first project file.
 From `find-file-hook'; waits until the buffer is shown in a window, so files
-visited in the background (magit, `M-.' previews) do not count."
+visited in the background (magit, `M-.' previews) do not count, nor do git's own
+files (a commit message under .git/)."
   (when (and emacs-cpp-tree-open-automatically
              (not emacs-cpp--tree-opened)
+             (not (string-match-p "/\\.git/" (or buffer-file-name "")))
              (project-current))
     (let ((buffer (current-buffer)))
       (run-at-time
@@ -47,11 +49,12 @@ visited in the background (magit, `M-.' previews) do not count."
          (when-let* (((not emacs-cpp--tree-opened))
                      ((buffer-live-p buffer))
                      (window (get-buffer-window buffer)))
-           (setq emacs-cpp--tree-opened t)
            (unless (treemacs-get-local-window)
              ;; The tree takes the focus; give it back to the file.
              (with-selected-window window
-               (treemacs-add-and-display-current-project-exclusively)))))))))
+               (treemacs-add-and-display-current-project-exclusively)))
+           ;; Only once it is shown: a failure above leaves the next file to try.
+           (setq emacs-cpp--tree-opened t)))))))
 
 (defun emacs-cpp-treemacs-toggle ()
   "Close the tree if it is visible, else show the current project in it (D-029).

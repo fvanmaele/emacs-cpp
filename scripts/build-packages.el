@@ -232,6 +232,12 @@ Signal an error for one that does not exist."
 DIR is emptied first, so a manual dropped from .gitmodules disappears.
 Return the number of manuals."
   (let ((files (cl-loop for spec in specs append (build-packages-info-files root spec))))
+    ;; Each manual becomes lib/info/<base name>.info: two equal names would collide.
+    (dolist (name (delete-dups (mapcar #'file-name-base files)))
+      (let ((same (seq-filter (lambda (file) (equal (file-name-base file) name)) files)))
+        (when (cdr same)
+          (error "build-packages: two manuals would both be %s.info:\n  %s"
+                 name (string-join same "\n  ")))))
     (when (file-directory-p dir)
       (delete-directory dir t))
     (make-directory dir t)

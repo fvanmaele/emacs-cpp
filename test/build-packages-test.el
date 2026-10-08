@@ -146,7 +146,13 @@ Hello.
       (should-error (build-packages-write-info root (list spec) dir))
       (write-region build-packages-test--texi nil (expand-file-name "lib/p/docs/toy.texi" root))
       (let ((exec-path nil))
-        (should-error (build-packages-write-info root (list spec) dir))))))
+        (should-error (build-packages-write-info root (list spec) dir)))
+      ;; Two manuals with one base name would overwrite each other.
+      (make-directory (expand-file-name "lib/q/doc" root) t)
+      (write-region build-packages-test--texi nil (expand-file-name "lib/q/doc/toy.texi" root))
+      (should-error (build-packages-write-info
+                     root (list spec (list :name "q" :path "lib/q" :info '("doc/toy.texi")))
+                     dir)))))
 
 (provide 'build-packages-test)
 ;;; build-packages-test.el ends here

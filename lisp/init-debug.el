@@ -184,11 +184,16 @@ emacs-cpp-debug--prepare against it (D-031)"))
   ;; dape's debugpy (Python, D-045) listens on 0.0.0.0, every network interface;
   ;; keep the debugger to this machine.  dape connects to `host' (default
   ;; "localhost", which may resolve to IPv6 ::1 first), so name the address too.
+  ;; Remote files (TRAMP) are not covered: the adapter then listens on the remote
+  ;; machine's loopback, which dape cannot reach (DESIGN 2, one workstation).
   (dolist (name '(debugpy debugpy-module))
-    (let ((config (alist-get name dape-configs)))
+    (let* ((config (alist-get name dape-configs))
+           (args (plist-get config 'command-args)))
+      (unless (and config (or (member "0.0.0.0" args) (member "127.0.0.1" args)))
+        (error "emacs-cpp: dape's `%s' configuration changed (command-args %S); \
+review its listening address in lisp/init-debug.el (D-045)" name args))
       (plist-put config 'command-args
-                 (cl-substitute "127.0.0.1" "0.0.0.0" (plist-get config 'command-args)
-                                :test #'equal))
+                 (cl-substitute "127.0.0.1" "0.0.0.0" args :test #'equal))
       (plist-put config 'host "127.0.0.1")))
   ;; dape puts every command on its repeat map; only stepping should repeat (D-037),
   ;; so that after `C-x C-a b' or `w' the next letter is text again.
