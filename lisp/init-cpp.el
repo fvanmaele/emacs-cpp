@@ -32,6 +32,10 @@
   ;; Ahead of eglot's own clangd entry, which starts clangd without a database.
   (add-to-list 'eglot-server-programs
                '(c++-ts-mode . emacs-cpp-presets-clangd-contact))
+  ;; Python rides along with pyright (D-045), named so that another server eglot
+  ;; knows (pylsp, basedpyright) does not take over when installed later.
+  (add-to-list 'eglot-server-programs
+               '((python-ts-mode python-mode) . ("pyright-langserver" "--stdio")))
   ;; No JSON event log (the eglot manual's first performance advice); shut clangd
   ;; down when its last buffer closes.
   (setq eglot-events-buffer-config '(:size 0 :format full)

@@ -181,6 +181,13 @@ emacs-cpp-debug--prepare against it (D-031)"))
   (require 'hl-line)
   (face-spec-set 'dape-breakpoint-face '((t :inherit error)))
   (face-spec-set 'dape-source-line-face '((t :inherit hl-line :extend t)))
+  ;; dape's debugpy (Python, D-045) listens on 0.0.0.0, every network interface;
+  ;; keep the debugger to this machine.
+  (dolist (name '(debugpy debugpy-module))
+    (let ((config (alist-get name dape-configs)))
+      (plist-put config 'command-args
+                 (cl-substitute "127.0.0.1" "0.0.0.0" (plist-get config 'command-args)
+                                :test #'equal))))
   ;; dape puts every command on its repeat map; only stepping should repeat (D-037),
   ;; so that after `C-x C-a b' or `w' the next letter is text again.
   (dolist (command '(dape dape-breakpoint-log dape-breakpoint-expression

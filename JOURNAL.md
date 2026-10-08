@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0030 | 2026-10-08 | T-018: Python rides along | T-018 | D-045 |
 | 0029 | 2026-10-08 | T-019: patch 0007, header wait ends at the includers | T-019 | D-047 |
 | 0028 | 2026-10-08 | T-019: patch 0006, header waits for the handover | T-019 | D-046 |
 | 0027 | 2026-10-08 | S9 run 1: PASS, header races the index handover | S9 | none |

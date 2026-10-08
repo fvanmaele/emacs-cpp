@@ -39,6 +39,7 @@
 (require 'init-cpp)
 (require 'init-cmake)
 (require 'init-debug)
+(require 'init-python)
 (require 'init-git)
 (require 'init-writing)
 
