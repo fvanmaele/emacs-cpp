@@ -38,7 +38,10 @@
   (treemacs-project-follow-mode))
 
 ;; Lets treemacs add and follow projectile projects; loaded once both are loaded.
+;; With `use-package-always-defer' an :after form alone never loads (it did not,
+;; T-002 to T-015).
 (use-package treemacs-projectile
+  :demand t
   :after (treemacs projectile))
 
 (provide 'init-project)
