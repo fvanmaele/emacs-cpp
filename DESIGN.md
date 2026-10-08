@@ -418,7 +418,9 @@ presets, GoogleTest runner.
   `workspace/didChangeConfiguration`, which eglot sends at connect; standalone repro
   `docs/upstream/ccls_race_repro.py`: 11/25 aborts with it, 0/25 without, 0/25 with one
   thread. Fix on branch `t013-ccls-hybrid`: ccls gets its own eglot server class and
-  is not sent that notification. Issue draft:
+  is not sent that notification (reduces, does not remove: ccls tests with the fix,
+  15 runs, 2 failed runs and 2 aborts vs 6 and 12 before; a second trigger remains,
+  index.threads 1 remains the safe setting). Issue draft:
   `docs/upstream/ccls-didChangeConfiguration-race.md`.
 - O-11 (OPEN, owner question 2026-10-08): clangd answering navigation from its index
   while the file is not parsed yet. Findings in `RESEARCH_clangd_index_navigation.md`:
