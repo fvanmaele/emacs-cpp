@@ -285,6 +285,10 @@ Known defects: none yet (nothing built).
   `r` rename, `a` code action, `f` format, `i` implementation, `d` declaration, `h` call
   hierarchy, `t` type hierarchy, `o` other file, `s` workspace symbol, `e` project
   diagnostics, `I` inlay hints toggle. Debugger keys stay on dape's own prefix + repeat map.
+- DECIDED D-034 (owner 2026-10-08, O-16): built-in `which-key-mode` is on: after any
+  prefix (`C-c p`, `C-x C-a`, `C-c l`) its keys appear once you pause 1 s
+  (`which-key-idle-delay` default); `C-h` after a prefix still searches them (embark);
+  projectile's own menu stays on `C-c p m`. Turning it on costs about 11 ms at start.
 - DECIDED D-029 (owner 2026-10-08): `C-c t` toggles the project tree; treemacs runs
   `treemacs-project-follow-mode`, so the tree shows only the project of the selected
   buffer (projectile's, via treemacs-projectile) and follows it. Not opened at
@@ -528,7 +532,7 @@ presets, GoogleTest runner.
   and its repeat map, but a repeat map works only with `repeat-mode`, which is off. Turning
   it on also enables Emacs's other repeat maps (`C-x o o`, `C-x u u`, `C-x { {`). Until
   ruled, every step is `C-x C-a n` again. Owner rules: `repeat-mode` on, or not.
-- O-16 (OPEN, owner question 2026-10-08): visual hints for key sequences (`C-c p p`;
+- O-16 (RESOLVED 2026-10-08 with D-034): visual hints for key sequences (`C-c p p`;
   compare org's dispatchers). Proposed: built-in `which-key-mode`, `C-h` after a prefix
   kept, projectile's transient on `C-c p m` documented (RESEARCH_keys_build_debug_ui 1).
 - O-17 (OPEN, owner question 2026-10-08): `C-c p c c` runs `cmake --build build` in the
@@ -649,6 +653,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-031 | 2026-10-08 | dape `gdb-preset`: pick a preset program, build, gdb | 9 | T-006 |
 | D-032 | 2026-10-08 | gdb scripts (deal.II printers) by option, default none | 9 | O-14 |
 | D-033 | 2026-10-08 | `gdb-preset` targets from build.ninja, not a scan | 9 | owner |
+| D-034 | 2026-10-08 | built-in which-key-mode on for key hints | 10 | O-16 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.

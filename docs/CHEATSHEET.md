@@ -73,10 +73,14 @@ In any list: words separated by space match in any order (`vec tria` finds
 | `C-h B` | search all key bindings |
 | prefix then `C-h` | list what a prefix (e.g. `C-c p`) offers |
 
+After any prefix (`C-c p`, `C-x C-a`, `C-c l`), wait a second: which-key shows the keys
+that can follow (D-034). `C-h` in that popup pages through them.
+
 ## Projects, CMake presets, building
 | Key | Does |
 |---|---|
 | `C-c p p` | switch project |
+| `C-c p m` | menu of all projectile commands, grouped |
 | `C-c l P` | choose the active CMake preset (clangd restarts with its build dir) |
 | `C-c p c c` | compile the project (asks for the command) |
 | `C-c p c o` / `c t` / `c r` | configure / test / run (also ask) |
@@ -116,8 +120,7 @@ switches when you move to a file of another project (D-029). Inside the tree:
 ## Not there yet
 - Debugger and breakpoints (dape, gdb): milestone v0.3, spike S2.
 - The `C-c l` code-action keys (rename, format, implementation, ...): T-007. Until then
-  use the `M-x` commands above. `which-key` is not enabled; `C-h` after a prefix lists
-  its keys.
+  use the `M-x` commands above.
 
 ## Setup on the supported machine (Arch Linux)
 1. Clone with submodules; `~/.emacs.d/init.el` and `early-init.el` are symlinks to this

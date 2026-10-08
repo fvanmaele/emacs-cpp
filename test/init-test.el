@@ -57,6 +57,7 @@ The temporary home is deleted when Emacs exits."
   (should (equal custom-file (expand-file-name "custom.el" init-test--home)))
   (should (memq 'modus-vivendi-tritanopia custom-enabled-themes))
   (should (bound-and-true-p projectile-mode))
+  (should (bound-and-true-p which-key-mode))   ; D-034
   (should (eq (keymap-lookup projectile-mode-map "C-c p") 'projectile-command-map))
   (should (eq (keymap-lookup global-map "C-x g") 'magit-status))
   (should (eq (assoc-default "notes.md" auto-mode-alist #'string-match) 'markdown-mode))
