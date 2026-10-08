@@ -1,0 +1,40 @@
+# S8 run 2026-10-08T04:12:56+02:00 on copy of /home/alad/source/repos/RMO-gross-pitaevskii
+system: clangd version 23.1.1
+patched: clangd version 23.1.1 (/home/alad/source/repos/llvm-clangd/clang 2c0b7bf32132c41e86cef21f02638efdf736a8ac)
+load: 0.38 1.65 1.81
+clangd  session 1: first M-. 9908 ms -> variant; then M-? 0 ms (0 refs, 0 distinct); 10088 ms after open
+clangd  session 2: first M-. 9282 ms -> variant; then M-? 12 ms (26 refs, 15 distinct); 9383 ms after open
+  ref ../../../../usr/include/boost/container_hash/hash.hpp:461
+  ref ../../../../usr/include/c++/16/variant:1390
+  ref ../../../../usr/include/c++/16/variant:1395
+  ref ../../../../usr/include/c++/16/variant:1955
+  ref ../../../../usr/include/c++/16/variant:1995
+  ref ../../../../usr/include/deal.II/bundled/taskflow/utility/serializer.hpp:609
+  ref include/rmo/lac.h:112
+  ref include/rmo/lac.h:120
+  ref include/rmo/lac.h:143
+  ref include/rmo/lac.h:153
+  ref include/rmo/lac.h:165
+  ref src/main_bench.cc:106
+  ref src/main_coarse.cc:386
+  ref src/main_coarse.cc:411
+  ref staging/test/arpack.cc:136
+clangd (--navigation-from-index) session 1: first M-. 10215 ms -> variant; then M-? 1 ms (0 refs, 0 distinct); 10400 ms after open
+clangd (--navigation-from-index) session 2: first M-. 1358 ms -> variant; then M-? 22 ms (16 refs, 16 distinct); 1467 ms after open
+  ref ../../../../usr/include/boost/container_hash/hash.hpp:461
+  ref ../../../../usr/include/c++/16/variant:1390
+  ref ../../../../usr/include/c++/16/variant:1395
+  ref ../../../../usr/include/c++/16/variant:1955
+  ref ../../../../usr/include/c++/16/variant:1995
+  ref ../../../../usr/include/deal.II/bundled/taskflow/utility/serializer.hpp:609
+  ref include/rmo/lac.h:112
+  ref include/rmo/lac.h:120
+  ref include/rmo/lac.h:143
+  ref include/rmo/lac.h:153
+  ref include/rmo/lac.h:165
+  ref src/main.cc:41
+  ref src/main_bench.cc:106
+  ref src/main_coarse.cc:386
+  ref src/main_coarse.cc:411
+  ref staging/test/arpack.cc:136
+load after: 0.93 1.64 1.80

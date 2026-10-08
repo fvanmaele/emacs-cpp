@@ -1,10 +1,21 @@
 # S8 - clangd navigation from the index: results
 
-Verdict: FAIL (run 1, 2026-10-08). Speed met (first `M-.` 1356 ms vs 9281 ms, same
-target), but find-references returned 14 entries against the system clangd's 26: a bug
-in the patch, found and fixed in clangd commit bd81165ed (below). Run 2 decides.
+Verdict: PASS (run 2, 2026-10-08). On RMO, after a restart with the index on disk, the
+patched clangd's first `M-.` took 1358 ms (system: 9282 ms) with the same target, and
+its `M-?` contained all 15 distinct locations of the system answer plus the call under
+the cursor. Run 1 (FAIL, references bug, fixed in clangd bd81165ed) is kept below.
 
-## Environment
+## Run 2 (2026-10-08 04:12, load 0.38)
+Raw output: `results-run2.log`. Patched build includes bd81165ed (its `--version`
+still names 2c0b7bf32, the revision captured at the last configure).
+| clangd | session 2 first `M-.` | target | `M-?` entries / distinct |
+|---|---|---|---|
+| system | 9282 ms | variant | 26 / 15 |
+| patched, `--navigation-from-index` | 1358 ms | variant | 16 / 16 |
+The patched list is the system list's 15 distinct locations plus `src/main.cc:41`.
+Session 1 (no stored index): both about 10 s.
+
+## Environment (run 1)
 Owner machine, 2026-10-08 03:56, load 0.07 at start. System clangd 23.1.1; patched
 clangd 23.1.1 from `~/source/repos/llvm-clangd` (commits 8b73a0490, 2c0b7bf32).
 Copy of RMO at `/tmp/s8/work/rmo`. Raw output: `results-run1.log`.

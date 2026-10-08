@@ -438,7 +438,9 @@ presets, GoogleTest runner.
   of a build directory. Spike S8 measures RMO. S8 run 1 (RMO): first `M-.` 9281 ->
   1356 ms, same target; references bug (two symbols recorded at one range, one kept)
   fixed in bd81165ed; afterwards the index answer contains all 15 distinct locations
-  of the AST answer plus the call under the cursor. Run 2 pending.
+  of the AST answer plus the call under the cursor. S8 run 2 PASS: first `M-.`
+  9282 -> 1358 ms, same target, references contain the system answer. Integration
+  into the config is the owner's call (T-014 to be agreed).
 - O-12 (OPEN, owner question 2026-10-08): Bear (4.2.2, installed) to make compile
   databases for dependent libraries instead of patching clangd. Bear records the
   compiler calls of a build that is run; it helps build systems that cannot export a

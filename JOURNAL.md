@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0013 | 2026-10-08 | S8 run 2: PASS, patched clangd 7x faster on RMO | S8 | D-025 |
 | 0012 | 2026-10-08 | S8 run 1: 7x faster, a references bug found and fixed | S8 | D-025 |
 | 0011 | 2026-10-08 | clangd answers navigation from its index (local patch) | S8 | D-025 |
 | 0009 | 2026-10-08 | S6 PASS: ccls answers from its disk index | S6 | none yet |
