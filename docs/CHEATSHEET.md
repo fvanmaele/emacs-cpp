@@ -72,6 +72,7 @@ In any list: words separated by space match in any order (`vec tria` finds
 | `C-.` then `E` | export a candidate list to a buffer (e.g. grep results to edit) |
 | `C-h B` | search all key bindings |
 | prefix then `C-h` | list what a prefix (e.g. `C-c p`) offers |
+| `C-h i` | manuals: Emacs, magit, embark, orderless, dash, with-editor |
 
 After any prefix (`C-c p`, `C-x C-a`, `C-c l`), wait a second: which-key shows the keys
 that can follow (D-034). `C-h` in that popup pages through them.
@@ -145,7 +146,8 @@ switches when you move to a file of another project (D-029). Inside the tree:
 
 ## Setup on the supported machine (Arch Linux)
 1. Clone with submodules; `~/.emacs.d/init.el` and `early-init.el` are symlinks to this
-   repository (D-003). `make packages` byte-compiles the pinned packages.
+   repository (D-003). `make packages` byte-compiles the pinned packages and builds
+   their manuals for `C-h i` (needs the `texinfo` package, D-039).
 2. Patched clangd (D-026, D-027):
    `cd packaging/clangd-index-nav && makepkg -si` (about 30 min), then
    `M-x customize-variable RET emacs-cpp-clangd-program` =

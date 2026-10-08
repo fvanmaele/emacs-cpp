@@ -440,7 +440,16 @@ Mechanisms, each PROPOSED until measured:
   (generated per package directory so files are named by bare library name, as
   package.el does). `init.el` loads both and stops with "run make packages" if absent;
   `make test` fails if any `.elc` is missing or older than its `.el`.
-- Known gap: package Info manuals (magit, projectile) are not built; T-010.
+- SUPERSEDED by D-039 (2026-10-08): "Known gap: package Info manuals (magit,
+  projectile) are not built; T-010."
+- DECIDED D-039 (owner 2026-10-08, T-010): `make packages` builds the Texinfo manuals
+  the packages ship, listed per submodule with the `.gitmodules` key `info`: magit,
+  magit-section, with-editor, embark, orderless, dash. `makeinfo` and `install-info`
+  (texinfo package) write `lib/info/*.info` and its `dir` (git-ignored); `C-h i` lists
+  them through `Info-additional-directory-list`. A missing tool, a missing listed
+  manual or a makeinfo error stops the build; makeinfo warnings pass. Not built
+  (owner): projectile (AsciiDoc only; a pandoc conversion worked, 21 chapters, links
+  between pages lost) and the Org READMEs (vertico, consult, corfu, ...).
 - REJECTED: borg (the tool this layout imitates). It assumes the package repository is
   the Emacs directory itself, which contradicts D-003; reconsider if own glue grows past
   about 100 lines. Measured after T-002: `scripts/build-packages.el` has 183 lines of
@@ -695,6 +704,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-036 | 2026-10-08 | gutter clicks set breakpoints; red marks, stop line lit | 9 | O-18 |
 | D-037 | 2026-10-08 | repeat-mode on; only dape's stepping commands repeat | 10 | O-15 |
 | D-038 | 2026-10-08 | gc-cons-threshold 64 MB during startup only | 11 | T-008 |
+| D-039 | 2026-10-08 | `make packages` builds shipped Texinfo manuals | 12 | T-010 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.

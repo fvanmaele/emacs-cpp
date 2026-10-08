@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0024 | 2026-10-08 | T-010: package manuals in `C-h i` | T-010 | D-039 |
 | 0023 | 2026-10-08 | T-008: performance baseline, startup GC | T-008 | D-038 |
 | 0022 | 2026-10-08 | Milestone v0.2.0: build and debug | v0.2 | D-030..D-037 |
 | 0021 | 2026-10-08 | T-005: build the active preset from any buffer | T-005 | D-035 |
