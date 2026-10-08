@@ -273,6 +273,12 @@ Known defects: none yet (nothing built).
   Reason: the owner's RMO `build/debug` was configured but not built, and the ELF
   scan of D-031 offered nothing. Not taken: CMake's file API (query file in the build
   directory plus a reconfigure).
+- DECIDED D-036 (owner 2026-10-08, O-18): `dape-breakpoint-mode` in C and C++ buffers
+  (`c-ts-base-mode-hook`): clicking the fringe (margin in a terminal) toggles a
+  breakpoint, mouse-2 / mouse-3 add a condition / log message. It loads dape (135 ms)
+  with the first such buffer; not on `prog-mode`, since `*scratch*` would load it at
+  every start. Breakpoints inherit the theme's `error` face (red), the stopped line its
+  `hl-line` face; the modus themes style neither dape face.
 - DECIDED D-032 (owner 2026-10-08, O-14): gdb scripts outside the repo, such as
   deal.II's `contrib/utilities/dotgdbinit.py`, are listed in
   `emacs-cpp-debug-gdb-scripts` (default nil, so none by default); each is sourced
@@ -539,7 +545,7 @@ presets, GoogleTest runner.
   root, which RMO's preset layout cannot build; CLion builds from any buffer. Proposed
   for T-005: projectile's cmake commands use the active preset's build directory
   (RESEARCH_keys_build_debug_ui 2). Not `C-x C-a b`, which toggles a breakpoint.
-- O-18 (OPEN, owner question 2026-10-08): breakpoint indicators. dape draws a fringe
+- O-18 (RESOLVED 2026-10-08 with D-036): breakpoint indicators. dape draws a fringe
   circle (GUI) or "B" (terminal) in the keyword colour; gutter clicks need
   `dape-breakpoint-global-mode` (off); the stopped line is not highlighted. Proposed:
   that mode on, red breakpoints, highlighted stop line (RESEARCH_keys_build_debug_ui 3).
@@ -654,6 +660,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-032 | 2026-10-08 | gdb scripts (deal.II printers) by option, default none | 9 | O-14 |
 | D-033 | 2026-10-08 | `gdb-preset` targets from build.ninja, not a scan | 9 | owner |
 | D-034 | 2026-10-08 | built-in which-key-mode on for key hints | 10 | O-16 |
+| D-036 | 2026-10-08 | gutter clicks set breakpoints; red marks, stop line lit | 9 | O-18 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
