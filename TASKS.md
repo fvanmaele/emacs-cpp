@@ -64,6 +64,7 @@ with `done when: ...`).
 | T-016 | done 0026 | M | diff-hl | D-042, v0.4 | right fringe, follows magit; test |
 | T-017 | done 0026 | M | breadcrumb | D-043, v0.4 | path + function in header; test |
 | T-018 | open | M | Python rides along | D-045, O-19 | blocked: owner installs packages |
+| T-019 | open | S | header first: patch 0006 | D-046 | code 0028; owner: pkgrel 4 + S9 |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -91,6 +92,11 @@ with `done when: ...`).
   Python files of a project (`pyproject.toml`, `setup.py` or a git root), not in files
   outside one; `M-.` and `C-c l r` work through it; dape's `debugpy` config stops at a
   breakpoint in a toy script; the C++ tests unchanged; make test / make check pass.
+- T-019: done when (agreed 2026-10-08): a clangd unit test asks a header's command
+  before the project broadcast and gets the includer's; ClangdTests all pass; pkgrel 4
+  carries 0006; S9 rerun on RMO (owner): header first 10 / 10 from the index, 0
+  errors, decision under 1.5 s after opening; make test passes. Code, tests, package:
+  0028. Left: the owner's install and S9 run 2.
 - T-014: the config runs the patched clangd (D-026) installed from
   packaging/clangd-index-nav (D-027); done when (agreed 2026-10-08): the config starts
   the patched clangd with --navigation-from-index when its path is set (customize

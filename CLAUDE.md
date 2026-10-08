@@ -15,9 +15,9 @@ keymap emulation (DESIGN 2).
 from any buffer (T-005), both checked by the owner on RMO. clangd stays (T-004); a locally
 patched clangd answers navigation from its index (S8 PASS: first `M-.` on RMO 9.3 -> 1.4
 s; `#include` lines too) and compiles headers with an includer's flags from its index
-(D-028, O-5), packaged in `packaging/clangd-index-nav` (pkgrel 3) and selected by
-`emacs-cpp-clangd-program` (T-014, T-011; owner checks on RMO). The ccls hybrid is closed
-(branch kept).
+(D-028, O-5), packaged in `packaging/clangd-index-nav` (pkgrel 4 with patch 0006, D-046)
+and selected by `emacs-cpp-clangd-program` (T-014, T-011; owner checks on RMO). The ccls
+hybrid is closed (branch kept).
 
 ## Hard rules (each with its reason)
 - Change-size ladder: tier 1 trivial = commit with Reasoning only; tier 2 feature = `done

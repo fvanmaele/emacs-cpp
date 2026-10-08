@@ -1,0 +1,136 @@
+From 9fc23463e3e6cdd32cf986f13f8700a5e68f0890 Mon Sep 17 00:00:00 2001
+From: Ferdinand Vanmaele <info@fvanmaele.de>
+Date: Thu, 8 Oct 2026 20:46:37 +0200
+Subject: [PATCH] [clangd] Header flags from the index: wait for the project
+ handover first
+
+BackgroundIndex::includerOf waited only while stored shards were loading,
+counted from BackgroundIndex::enqueue. The compile database hands a newly
+found project to the index on its broadcast thread, after the first lookup
+returns; a header opened as the first file of a session asks for its
+includer right after that lookup, so it saw no load in progress, did not
+wait, found no includer and kept the command guessed from file names.
+
+includerOf now first calls blockUntilIdle on the compile database, so that
+pending announcements have run and the load is counted, then waits for the
+load, both within the same bound.
+
+RMO (deal.II project with a vendored fmt library, 3950 stored shards),
+header opened first after a restart: before, 10 of 10 sessions got the
+guess (inferred from fmt/src/os.cc, 21 errors), the decision logged at or
+1 ms before "Enqueueing 13 commands for indexing"; the shard load takes
+0.4 s. Toy of the same shape with this change: 10 of 10 from the index.
+ClangdTests 1414/1414 (new: BackgroundIndexTest.
+IncluderOfHeaderAskedBeforeTheProjectArrives, fails without the change).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ clang-tools-extra/clangd/index/Background.cpp |  8 ++-
+ clang-tools-extra/clangd/index/Background.h   |  6 ++-
+ .../clangd/unittests/BackgroundIndexTests.cpp | 53 +++++++++++++++++++
+ 3 files changed, 64 insertions(+), 3 deletions(-)
+
+diff --git a/clang-tools-extra/clangd/index/Background.cpp b/clang-tools-extra/clangd/index/Background.cpp
+index b653fc64c..0a07ecfb2 100644
+--- a/clang-tools-extra/clangd/index/Background.cpp
++++ b/clang-tools-extra/clangd/index/Background.cpp
+@@ -200,8 +200,14 @@ void BackgroundIndex::recordIncluders(
+ std::optional<std::string>
+ BackgroundIndex::includerOf(PathRef Header,
+                             std::chrono::steady_clock::duration Wait) {
++  auto Until = std::chrono::steady_clock::now() + Wait;
++  // The compile database hands a newly found project to the index on its own
++  // thread (enqueue() then counts the load). A header that asks before that
++  // would see no load and not wait, so let pending announcements run first.
++  // Not under IncludersMu: an announcement calls enqueue().
++  CDB.blockUntilIdle(Deadline(Until));
+   std::unique_lock<std::mutex> Lock(IncludersMu);
+-  IncludersChanged.wait_for(Lock, Wait, [&] { return ProjectsLoading == 0; });
++  IncludersChanged.wait_until(Lock, Until, [&] { return ProjectsLoading == 0; });
+   auto It = Includers.find(Header);
+   if (It == Includers.end())
+     return std::nullopt;
+diff --git a/clang-tools-extra/clangd/index/Background.h b/clang-tools-extra/clangd/index/Background.h
+index 02e2532b1..15195c704 100644
+--- a/clang-tools-extra/clangd/index/Background.h
++++ b/clang-tools-extra/clangd/index/Background.h
+@@ -171,8 +171,10 @@ public:
+   /// A source file that includes \p Header, directly or through other
+   /// headers: the translation unit whose indexing produced the header's stored
+   /// shard (recorded when the shards are loaded at startup), or one indexed in
+-  /// this session. While stored shards are being loaded, waits for them up to
+-  /// \p Wait. std::nullopt if no source file is known to include \p Header.
++  /// this session. Waits up to \p Wait in total: first for the compile
++  /// database to hand over the projects it has found (blockUntilIdle), then
++  /// for their stored shards to load. std::nullopt if no source file is known
++  /// to include \p Header.
+   std::optional<std::string>
+   includerOf(PathRef Header, std::chrono::steady_clock::duration Wait);
+ 
+diff --git a/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp b/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp
+index 2ca45ad27..3e5bdf483 100644
+--- a/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp
++++ b/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp
+@@ -830,6 +830,59 @@ TEST_F(BackgroundIndexTest, IncluderOfHeaders) {
+   }
+ }
+ 
++// A compile database that announces its commands only when asked to become
++// idle, as DirectoryBasedGlobalCompilationDatabase announces a newly found
++// project on its broadcast thread some time after the first lookup.
++class AnnounceOnIdleCDB : public GlobalCompilationDatabase {
++public:
++  AnnounceOnIdleCDB(tooling::CompileCommand Cmd) : Cmd(std::move(Cmd)) {}
++  std::optional<tooling::CompileCommand>
++  getCompileCommand(PathRef File) const override {
++    if (File == Cmd.Filename)
++      return Cmd;
++    return std::nullopt;
++  }
++  bool blockUntilIdle(Deadline) const override {
++    if (!Announced.exchange(true))
++      OnCommandChanged.broadcast({Cmd.Filename});
++    return true;
++  }
++
++private:
++  tooling::CompileCommand Cmd;
++  mutable std::atomic<bool> Announced{false};
++};
++
++TEST_F(BackgroundIndexTest, IncluderOfHeaderAskedBeforeTheProjectArrives) {
++  // A header opened first after a restart asks for its includer before the
++  // compile database has handed the project to the index (spike S9): the
++  // answer must still come from the stored shards, not "unknown".
++  MockFS FS;
++  FS.Files[testPath("root/inc/b.h")] = "int b();";
++  std::string MainPath = testPath("root/src/A.cc");
++  FS.Files[MainPath] = "#include <b.h>\nint main() { return b(); }";
++  llvm::StringMap<std::string> Storage;
++  size_t CacheHits = 0;
++  MemoryShardStorage MSS(Storage, CacheHits);
++  tooling::CompileCommand Cmd;
++  Cmd.Filename = MainPath;
++  Cmd.Directory = testPath("root");
++  Cmd.CommandLine = {"clang++", "-I" + testPath("root/inc"), MainPath};
++  {
++    OverlayCDB CDB(/*Base=*/nullptr);
++    BackgroundIndex Idx(FS, CDB, [&](llvm::StringRef) { return &MSS; },
++                        /*Opts=*/{});
++    CDB.setCompileCommand(MainPath, Cmd);
++    ASSERT_TRUE(Idx.blockUntilIdleForTest());
++  }
++  AnnounceOnIdleCDB CDB(Cmd);
++  BackgroundIndex Idx(FS, CDB, [&](llvm::StringRef) { return &MSS; },
++                      /*Opts=*/{});
++  EXPECT_EQ(Idx.includerOf(testPath("root/inc/b.h"), std::chrono::seconds(10)),
++            MainPath);
++  ASSERT_TRUE(Idx.blockUntilIdleForTest());
++}
++
+ TEST_F(BackgroundIndexTest, ShardStorageLoad) {
+   MockFS FS;
+   FS.Files[testPath("root/A.h")] = R"cpp(
+-- 
+2.56.0
+
