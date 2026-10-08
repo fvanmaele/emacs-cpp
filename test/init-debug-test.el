@@ -179,6 +179,11 @@ OUTPUT_NAME has a space (Ninja's `$ '), a shared library, a block without CONFIG
   (with-temp-buffer
     (c++-ts-mode)
     (should dape-breakpoint-mode))
+  ;; D-037: stepping repeats, the rest does not.
+  (dolist (command '(dape-next dape-step-in dape-step-out dape-continue dape-until))
+    (should (eq (get command 'repeat-map) 'dape-global-map)))
+  (dolist (command '(dape dape-breakpoint-toggle dape-watch-dwim dape-info))
+    (should-not (get command 'repeat-map)))
   (let ((config (alist-get 'gdb-preset dape-configs)))
     (should (eq (plist-get config 'fn) #'emacs-cpp-debug--prepare))
     (should (eq (plist-get config :program) #'emacs-cpp-debug-read-program))

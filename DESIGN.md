@@ -283,6 +283,11 @@ Known defects: none yet (nothing built).
   Reason: the owner's RMO `build/debug` was configured but not built, and the ELF
   scan of D-031 offered nothing. Not taken: CMake's file API (query file in the build
   directory plus a reconfigure).
+- DECIDED D-037 (owner 2026-10-08, O-15): built-in `repeat-mode` is on (3 ms at start),
+  so after `C-x C-a n` plain `n s o c p r f u < >` keep stepping; Emacs's own repeat
+  maps (`C-x o o`, `C-x u u`) come with it. dape gives every command its repeat map;
+  only stepping and execution commands keep it, so after `C-x C-a b` / `w` / `i` the
+  next letter is text again (checked in `emacs -nw`).
 - DECIDED D-036 (owner 2026-10-08, O-18): `dape-breakpoint-mode` in C and C++ buffers
   (`c-ts-base-mode-hook`): clicking the fringe (margin in a terminal) toggles a
   breakpoint, mouse-2 / mouse-3 add a condition / log message. It loads dape (135 ms)
@@ -509,26 +514,26 @@ presets, GoogleTest runner.
   15 runs, 2 failed runs and 2 aborts vs 6 and 12 before; a second trigger remains,
   index.threads 1 remains the safe setting). Issue draft:
   `docs/upstream/ccls-didChangeConfiguration-race.md`.
-- O-11 (OPEN, owner question 2026-10-08): clangd answering navigation from its index
-  while the file is not parsed yet. Findings in `RESEARCH_clangd_index_navigation.md`:
-  the per-file shards already hold every reference with its position and a content
-  digest; missing are a by-position lookup, a validity check against the digest and a
-  fast path in `ClangdServer::locateSymbolAt` / `findReferences` (precedent:
-  `--completion-parse`). An upstream change, a few hundred lines plus tests.
-  Implemented locally 2026-10-08 (D-025): `~/source/repos/llvm-clangd`, commits
-  8b73a0490 and 2c0b7bf32 on clangd 23.1.1, hidden flag `--navigation-from-index`;
-  a task polls the index while the AST path runs, whichever answers first wins.
-  ClangdTests 1409 / 1409 (4 new). Synthetic deal.II project through eglot, second
-  session: first `M-.` 6623 ms -> 606 ms, same target. Not covered (AST as before):
-  function-local symbols, `auto`, `#include` lines, edited files, the first session
-  of a build directory. Spike S8 measures RMO. S8 run 1 (RMO): first `M-.` 9281 ->
-  1356 ms, same target; references bug (two symbols recorded at one range, one kept)
-  fixed in bd81165ed; afterwards the index answer contains all 15 distinct locations
-  of the AST answer plus the call under the cursor. S8 run 2 PASS: first `M-.`
-  9282 -> 1358 ms, same target, references contain the system answer. RESOLVED:
-  D-026, D-027, T-014. Owner report 2026-10-08 (after installing pkgrel 1): `M-.` on
-  an `#include` line still waited; now answered from the shard's include graph
-  (8df32dbe5, patch 0004; synthetic project 6226 -> 1 ms). Second report: O-13.
+- O-11 (RESOLVED 2026-10-08 with D-026, D-027, T-014): clangd answering navigation from
+  its index while the file is not parsed yet. Findings in
+  `RESEARCH_clangd_index_navigation.md`: the per-file shards already hold every reference
+  with its position and a content digest; missing are a by-position lookup, a validity
+  check against the digest and a fast path in `ClangdServer::locateSymbolAt` /
+  `findReferences` (precedent: `--completion-parse`). An upstream change, a few hundred
+  lines plus tests. Implemented locally 2026-10-08 (D-025): `~/source/repos/llvm-clangd`,
+  commits 8b73a0490 and 2c0b7bf32 on clangd 23.1.1, hidden flag
+  `--navigation-from-index`; a task polls the index while the AST path runs, whichever
+  answers first wins. ClangdTests 1409 / 1409 (4 new). Synthetic deal.II project through
+  eglot, second session: first `M-.` 6623 ms -> 606 ms, same target. Not covered (AST as
+  before): function-local symbols, `auto`, `#include` lines, edited files, the first
+  session of a build directory. Spike S8 measures RMO. S8 run 1 (RMO): first `M-.` 9281
+  -> 1356 ms, same target; references bug (two symbols recorded at one range, one kept)
+  fixed in bd81165ed; afterwards the index answer contains all 15 distinct locations of
+  the AST answer plus the call under the cursor. S8 run 2 PASS: first `M-.` 9282 -> 1358
+  ms, same target, references contain the system answer. RESOLVED: D-026, D-027, T-014.
+  Owner report 2026-10-08 (after installing pkgrel 1): `M-.` on an `#include` line still
+  waited; now answered from the shard's include graph (8df32dbe5, patch 0004; synthetic
+  project 6226 -> 1 ms). Second report: O-13.
 - O-13 (CLOSED 2026-10-08, owner: works with pkgrel 3): on RMO, `M-.` on a name in a
   second file still
   waits for the parse. Not reproduced on the synthetic project (2 ms in a second
@@ -544,7 +549,7 @@ presets, GoogleTest runner.
   (17 s to the first stop on RMO, deal.II code steppable) or on demand (2.3 s, deal.II
   symbols loaded when needed); and whether deal.II's printers are loaded from the
   owner's deal.II checkout. Owner rules before T-006's done-when.
-- O-15 (OPEN, found by T-006 2026-10-08): D-004 keeps the debugger keys on dape's prefix
+- O-15 (RESOLVED 2026-10-08 with D-037): D-004 keeps the debugger keys on dape's prefix
   and its repeat map, but a repeat map works only with `repeat-mode`, which is off. Turning
   it on also enables Emacs's other repeat maps (`C-x o o`, `C-x u u`, `C-x { {`). Until
   ruled, every step is `C-x C-a n` again. Owner rules: `repeat-mode` on, or not.
@@ -559,8 +564,8 @@ presets, GoogleTest runner.
   circle (GUI) or "B" (terminal) in the keyword colour; gutter clicks need
   `dape-breakpoint-global-mode` (off); the stopped line is not highlighted. Proposed:
   that mode on, red breakpoints, highlighted stop line (RESEARCH_keys_build_debug_ui 3).
-- O-12 (OPEN, owner question 2026-10-08): Bear (4.2.2, installed) to make compile
-  databases for dependent libraries instead of patching clangd. Bear records the
+- O-12 (DEFERRED 2026-10-08, owner: revisit after v0.4): Bear (4.2.2, installed) to make
+  compile databases for dependent libraries instead of patching clangd. Bear records the
   compiler calls of a build that is run; it helps build systems that cannot export a
   database (make, autotools, b2). Findings: the installed deal-ii and boost packages
   carry headers and binaries, no library sources (deal-ii: 93 example `.cc`, boost: 2
@@ -596,8 +601,8 @@ presets, GoogleTest runner.
   and correctness on RMO). Not candidates: GNU Global / ctags (not installed; not
   semantic, no template or overload resolution); C++20 modules (the system deal.II
   9.8 is not built with module support).
-- O-9 (owner question 2026-10-08): static index (`clangd-indexer` .dex) for system
-  libraries under `/usr/include`, background index for projects. Possible: clangd
+- O-9 (CLOSED 2026-10-08, owner: not wanted): static index (`clangd-indexer` .dex) for
+  system libraries under `/usr/include`, background index for projects. Possible: clangd
   config `Index: External: File: <dex>, MountPoint: /usr/include` (absolute mount
   points only in the user config, which Qt Creator owns and overwrites; a separate
   config via `XDG_CONFIG_HOME` for our clangd would be needed); `--index-file` is
@@ -609,9 +614,10 @@ presets, GoogleTest runner.
   header to index, rerun after library updates, the static index held in clangd's
   memory from the start (D-021 concern). Not pursued unless the owner wants that
   feature (would be spike S8).
-- O-7: owner 2026-10-08: after `eglot-rename` answered N, "file not found" errors
-  return. Not reproduced (synthetic project: N opens no file, main.cc stays at 0
-  diagnostics). Needs the buffer name and its clangd command from the owner.
+- O-7 (CLOSED 2026-10-08, owner: not seen since pkgrel 3; reopen with the buffer name and
+  its clangd command): owner 2026-10-08: after `eglot-rename` answered N, "file not
+  found" errors return. Not reproduced (synthetic project: N opens no file, main.cc stays
+  at 0 diagnostics). Needs the buffer name and its clangd command from the owner.
 Resolved:
 - 2026-10-07, owner: LSP + debugger stack = eglot + dape (D-001, D-002); config home =
   this repo symlinked as `~/.emacs.d/init.el` (D-003); keys = Emacs-native + prefix
@@ -671,6 +677,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-033 | 2026-10-08 | `gdb-preset` targets from build.ninja, not a scan | 9 | owner |
 | D-034 | 2026-10-08 | built-in which-key-mode on for key hints | 10 | O-16 |
 | D-035 | 2026-10-08 | projectile cmake commands use the active preset's dir | 8 | O-17 |
+| D-037 | 2026-10-08 | repeat-mode on; only dape's stepping commands repeat | 10 | O-15 |
 | D-036 | 2026-10-08 | gutter clicks set breakpoints; red marks, stop line lit | 9 | O-18 |
 
 ## Parity verdicts (from RESEARCH_*.md)
