@@ -124,3 +124,11 @@
 	url = https://github.com/svaante/dape
 	ignore = untracked
 	build-exclude = dape-tests.el
+[submodule "diff-hl"]
+	path = lib/diff-hl
+	url = https://github.com/dgutov/diff-hl
+	ignore = untracked
+[submodule "breadcrumb"]
+	path = lib/breadcrumb
+	url = https://github.com/joaotavora/breadcrumb
+	ignore = untracked

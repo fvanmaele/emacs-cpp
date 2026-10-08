@@ -163,6 +163,12 @@ emacs-cpp-debug--prepare against it (D-031)"))
       (plist-put :program #'emacs-cpp-debug-read-program)
       (plist-put :cwd #'dape-cwd))))
 
+;; gud (M-x gdb, pdb, perldb) binds its map on `gud-key-prefix' globally when it
+;; loads; on the default C-x C-a that would take dape's keys for the session (D-044).
+(use-package gud
+  :init
+  (setq gud-key-prefix (kbd "C-x M-a")))
+
 (use-package dape
   ;; dape binds its prefix only once loaded; this loads it on the first C-x C-a.
   :bind-keymap ("C-x C-a" . dape-global-map)

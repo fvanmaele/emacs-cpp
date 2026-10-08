@@ -21,7 +21,9 @@ macOS), `RET` = Enter.
 | `M-x eglot-find-typeDefinition` | definition of the type of the thing at point |
 | `C-c l o` or `C-c p a` | switch between header and source (`.h` <-> `.cc`) |
 
-Several results open as a list with preview: move with the arrows, `RET` jumps.
+Several results open as a list with preview: move with the arrows, `RET` jumps. The
+header line shows the file's path in the project and the function at point; click a
+part to jump (D-043).
 
 ## Refactoring and code actions
 | Key | Does |
@@ -118,6 +120,9 @@ first word after `-` as the program. For fixed arguments per project, a
 `.dir-locals.el` in the project:
 `((c++-ts-mode . ((dape-command . (gdb-preset :args ["--levels" "5"])))))`.
 
+Emacs's older debugger front-end (`M-x gdb`, `M-x pdb`, `M-x perldb`) uses `C-x M-a`
+as its prefix (D-044), so it does not take dape's `C-x C-a`.
+
 The line the program stopped at is highlighted. Options: `emacs-cpp-debug-lazy-symbols`
 (faster first stop, D-030), `emacs-cpp-debug-gdb-scripts` (deal.II printers, D-032).
 
@@ -128,6 +133,9 @@ The line the program stopped at is highlighted. Options: `emacs-cpp-debug-lazy-s
 | `C-x M-g` | all magit commands |
 | `C-c M-g` | commands for the current file (blame, log, diff) |
 | `?` in magit | help for the current buffer |
+
+Lines changed since the last commit are marked in the right fringe (green added, blue
+changed, red deleted), after each save and each magit action (D-042).
 
 ## Project tree (treemacs)
 `C-c t` opens / closes the tree. It shows only the project of the buffer you are in and
@@ -145,10 +153,6 @@ switches when you move to a file of another project (D-029). Inside the tree:
 | `t h` | show / hide dotfiles |
 | `?` | help |
 | `q` | close the tree |
-
-## Not there yet
-- Changed-line marks in the fringe (diff-hl, T-016); path and function in the header
-  line (breadcrumb, T-017).
 
 ## Setup on the supported machine (Arch Linux)
 1. Clone with submodules; `~/.emacs.d/init.el` and `early-init.el` are symlinks to this

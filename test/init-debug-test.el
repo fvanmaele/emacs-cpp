@@ -139,6 +139,14 @@ OUTPUT_NAME has a space (Ninja's `$ '), a shared library, a block without CONFIG
         (should-error (emacs-cpp-debug-read-program) :type 'user-error)
       (delete-directory default-directory t))))
 
+(ert-deftest init-debug-gud-leaves-c-x-c-a-to-dape ()
+  "D-044: loading gud (M-x gdb, pdb, perldb) binds its map on C-x M-a, not C-x C-a."
+  (init-test--load)
+  (require 'dape)
+  (require 'gud)
+  (should (eq (keymap-lookup global-map "C-x C-a d") 'dape))
+  (should (eq (keymap-lookup global-map "C-x M-a") gud-global-map)))
+
 (ert-deftest init-debug-gdb-arguments-follow-the-options ()
   (init-test--load)
   (let ((emacs-cpp-debug-lazy-symbols nil)
