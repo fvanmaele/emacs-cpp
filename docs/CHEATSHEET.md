@@ -3,7 +3,8 @@
 Keys as bound by this configuration (checked 2026-10-08 with `where-is` in the shipped
 config). `M-x cmd` means: no key yet, run the command by name (`M-x`, then type part of
 the name; completion is fuzzy). Notation: `C-` = Control, `M-` = Meta (Alt; Option on
-macOS), `RET` = Enter.
+macOS), `RET` = Enter. Everyday Emacs (windows, tabs, editing) and the common
+tasks step by step: `docs/MANUAL.md`.
 
 ## Code navigation (clangd through eglot)
 | Key | Does |
