@@ -90,3 +90,28 @@ their uses have no shard reference and take the AST path. Result: ClangdTests
   `locateSymbolTextually` does inside clangd, but earlier.
 - Note on memory: keeping a by-position table for every file in memory roughly doubles
   the reference storage; loading only the current file's shard on demand avoids that.
+
+## 6. Prior work on the same problem (owner question 2026-10-08)
+- clangd upstream: the RFC "A C++ pseudo parser for tooling" (Sam McCall, cfe-dev,
+  November 2021) targeted the same gap: long warm-up before features work, and no
+  symbol results until indexing completes ("people very often value latency over
+  correctness when editing C++ code"). It became clang-pseudo, was moved to
+  clang-tools-extra, and was removed in September 2024 as incomplete and unmaintained
+  (discourse "Removing pseudo parser"); it is not in the 23.1.1 tree.
+- clangd today: the background index, a static index (`clangd-indexer`, `--index-file`
+  / `Index: External`) and a remote index (for very large projects) all serve
+  cross-file queries; none answers a position before the file is parsed. Code
+  completion is the exception (`--completion-parse=auto`, index-only when no preamble).
+- ccls (and cquery before it): stores, per file, which symbol each token refers to,
+  and answers navigation from that on-disk index (S6).
+- Microsoft C/C++ extension for VS Code: a "Tag Parser" builds a symbol database
+  (`.BROWSE.VC.DB`) and gives quick, "fuzzy" Go to Definition results, also as the
+  fallback when the compiler-based engine cannot resolve or is not ready.
+- Not searched further: Qt Creator, CLion internals, web code browsers built on
+  pre-computed indexes (Kythe, Sourcegraph scip-clang, Woboq), Emacs ctags-based
+  fallbacks (citre, dumb-jump).
+- `clangd-indexer` from the local tree (`build/bin/clangd-indexer`, built 2026-10-08) is
+  the stock 23.1.1 indexer: the three local commits change only how clangd answers,
+  not how it indexes; it writes a monolithic `.dex` (no `--index-type=sharded`, that is
+  PR 175209, spike S7).
+
