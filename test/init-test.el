@@ -117,6 +117,21 @@ without one, the default theme is."
   (should-not (recentf-include-p (expand-file-name ".cache/treemacs-persist"
                                                    user-emacs-directory))))
 
+(ert-deftest init-treemacs-magit-loads-with-both ()
+  "T-015: treemacs-magit loads once treemacs and magit are loaded."
+  (init-test--load)
+  (defvar treemacs-persist-file)
+  (defvar treemacs-last-error-persist-file)
+  (setq treemacs-persist-file (expand-file-name "treemacs-persist" init-test--home)
+        treemacs-last-error-persist-file
+        (expand-file-name "treemacs-persist-at-last-error" init-test--home))
+  (require 'treemacs)
+  (require 'magit)
+  (should (featurep 'treemacs-magit))
+  (should (memq 'treemacs-magit--schedule-update magit-post-stage-hook))
+  ;; The same pattern: treemacs-projectile once treemacs and projectile are loaded.
+  (should (featurep 'treemacs-projectile)))
+
 (ert-deftest init-info-lists-the-package-manuals ()
   "D-039: C-h i lists the manuals `make packages' built."
   (init-test--load)
