@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0022 | 2026-10-08 | Milestone v0.2.0: build and debug | v0.2 | D-030..D-037 |
 | 0021 | 2026-10-08 | T-005: build the active preset from any buffer | T-005 | D-035 |
 | 0020 | 2026-10-08 | T-006 fix: `gdb-preset` targets from build.ninja | T-006 | D-033 |
 | 0019 | 2026-10-08 | T-006: dape `gdb-preset`, a preset program | T-006 | D-031, D-032 |

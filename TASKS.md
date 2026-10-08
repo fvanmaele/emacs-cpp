@@ -51,8 +51,8 @@ with `done when: ...`).
 ## Later
 | id | status | size | title | source | what |
 |----|--------|------|-------|--------|------|
-| T-005 | open | M | presets build | D-005, D-035 | code 0021; owner RMO check |
-| T-006 | open | M | dape debugging | D-030, D-031, D-033 | code 0019, 0020; owner check |
+| T-005 | done 0021 | M | presets build | D-005, D-035 | owner: RMO checked, v0.2.0 |
+| T-006 | done 0019 | M | dape debugging | D-031, D-033 | owner: RMO checked, v0.2.0 |
 | T-007 | open | S | `C-c l` map | D-004 | done when: which-key lists every DESIGN 10 key |
 |       |      |   | (`C-c l P` exists since T-004) | | |
 | T-010 | open | S | Info manuals | DESIGN 12 | done when: `C-h i` lists magit, projectile |
@@ -63,7 +63,7 @@ with `done when: ...`).
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
-  check.
+  check. Owner 2026-10-08: RMO check passed (v0.2.0, 0022).
 - T-006: dape `gdb-preset` (D-031, D-032); done when (agreed 2026-10-08): in RMO with
   the `debug` preset, `C-x C-a d gdb-preset RET`, picking `main`, builds it and stops at
   a breakpoint in `src/main.cc` with stack, Locals (incl. `opts`) and a watch shown;
@@ -71,7 +71,8 @@ with `done when: ...`).
   the first stop takes about 2 s instead of 17 s; ERT covers program choice, gdb
   arguments, refusals and a toy session; make check / make test pass. Code and tests:
   0019. Owner's first RMO try: no program offered (build/debug never built); targets
-  now come from build.ninja (D-033, 0020). Left: the owner's RMO check.
+  now come from build.ninja (D-033, 0020). Owner 2026-10-08: RMO check passed
+  (v0.2.0, 0022).
 - T-014: the config runs the patched clangd (D-026) installed from
   packaging/clangd-index-nav (D-027); done when (agreed 2026-10-08): the config starts
   the patched clangd with --navigation-from-index when its path is set (customize
