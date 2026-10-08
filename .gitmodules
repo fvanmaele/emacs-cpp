@@ -113,3 +113,8 @@
 	path = lib/consult-eglot
 	url = https://github.com/mohkale/consult-eglot
 	ignore = untracked
+[submodule "dape"]
+	path = lib/dape
+	url = https://github.com/svaante/dape
+	ignore = untracked
+	build-exclude = dape-tests.el

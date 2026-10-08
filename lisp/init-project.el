@@ -3,6 +3,8 @@
 ;;; Commentary:
 
 ;; projectile and treemacs, carried over from the retired ~/.emacs (DESIGN 12).
+;; `C-c t' toggles the tree; it shows only the current buffer's project and follows
+;; it to other projects (D-029).
 
 ;;; Code:
 
@@ -11,7 +13,19 @@
   :config
   (keymap-set projectile-mode-map "C-c p" #'projectile-command-map))
 
-(use-package treemacs)
+(defun emacs-cpp-treemacs-toggle ()
+  "Close the tree if it is visible, else show the current project in it (D-029).
+`treemacs' itself asks for a project root while its workspace is empty."
+  (interactive)
+  (if-let* ((window (treemacs-get-local-window)))
+      (delete-window window)
+    (treemacs-add-and-display-current-project-exclusively)))
+
+(use-package treemacs
+  :bind ("C-c t" . emacs-cpp-treemacs-toggle)
+  :commands treemacs-get-local-window
+  :config
+  (treemacs-project-follow-mode))
 
 ;; Lets treemacs add and follow projectile projects; loaded once both are loaded.
 (use-package treemacs-projectile
