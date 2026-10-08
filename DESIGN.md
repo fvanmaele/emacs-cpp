@@ -188,6 +188,11 @@ Known defects: none yet (nothing built).
   commits as patches, four since pkgrel 2; standalone build against the system LLVM) to
   `/opt/clangd-index-nav`, depending on `llvm-libs` and `clang` = 23.1.1 exactly, so
   an LLVM upgrade is visible to pacman and needs a rebuild of the package.
+- DECIDED D-047 (owner 2026-10-08, T-019, S9 run 2): patch 0007 (llvm-clangd cb118e30f,
+  pkgrel 5): the wait of D-028 / D-046 ends as soon as the includers are recorded
+  (right after the stored shards are read), not when the whole load returns. On RMO
+  that drops about 0.6 s (merging symbols, rebuilding the index) from every header's
+  wait; S9 run 2 measured 1.48 - 1.56 s from opening to the decision with 0006 alone.
 - DECIDED D-046 (owner 2026-10-08, O-21, S9 PASS): patch 0006 (llvm-clangd 9fc23463e,
   pkgrel 4): `BackgroundIndex::includerOf` first waits for the compile database to hand
   over its pending projects (`blockUntilIdle`), then for the stored shards to load,
@@ -777,6 +782,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-044 | 2026-10-08 | gud's prefix on `C-x M-a`, not dape's `C-x C-a` | 9 | O-20 |
 | D-045 | 2026-10-08 | Python rides along: ts-mode, pyright, debugpy | 5 | O-19 |
 | D-046 | 2026-10-08 | patch 0006: header waits for the project handover | 7 | O-21 |
+| D-047 | 2026-10-08 | patch 0007: header wait ends once includers are known | 7 | T-019 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
