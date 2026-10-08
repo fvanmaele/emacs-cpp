@@ -73,6 +73,10 @@ In any list: words separated by space match in any order (`vec tria` finds
 | `C-h B` | search all key bindings |
 | prefix then `C-h` | list what a prefix (e.g. `C-c p`) offers |
 | `C-h i` | manuals: Emacs, magit, embark, orderless, dash, with-editor |
+| `C-x C-r` | open a recently visited file (`C-x b` lists them too) |
+
+Theme: `M-x customize-themes`, pick one, "Save Theme Settings"; it stays after a
+restart. Without a saved choice the theme is `modus-vivendi-tritanopia`.
 
 After any prefix (`C-c p`, `C-x C-a`, `C-c l`), wait a second: which-key shows the keys
 that can follow (D-034). `C-h` in that popup pages through them.

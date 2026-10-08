@@ -77,6 +77,46 @@ The temporary home is deleted when Emacs exits."
   (should (string-prefix-p (expand-file-name "lib/" build-packages-root)
                            (locate-library "treemacs"))))
 
+(defun init-test--theme-after-startup (custom)
+  "Start the configuration in a child Emacs with CUSTOM as custom.el (nil: none).
+Return the themes that give the `default' face its look, as `princ'ed text."
+  (let ((home (file-name-as-directory (make-temp-file "emacs-cpp-theme" t))))
+    (unwind-protect
+        (progn
+          (when custom
+            (write-region custom nil (expand-file-name "custom.el" home)))
+          (with-temp-buffer
+            (call-process
+             (expand-file-name invocation-name invocation-directory) nil t nil
+             "-Q" "--batch" "--eval"
+             (format "(progn (setq user-emacs-directory %S)
+                       (load %S nil t) (load %S nil t) (run-hooks 'after-init-hook)
+                       (princ (format \"THEMES %%S\" (mapcar #'car (get 'default 'theme-face)))))"
+                     home
+                     (expand-file-name "early-init.el" build-packages-root)
+                     (expand-file-name "init.el" build-packages-root)))
+            (goto-char (point-min))
+            (and (re-search-forward "^THEMES \\(.*\\)" nil t) (match-string 1))))
+      (delete-directory home t))))
+
+(ert-deftest init-saved-theme-survives-restart ()
+  "D-040: a theme saved with customize-themes is the one in effect after startup;
+without one, the default theme is."
+  (should (equal (init-test--theme-after-startup
+                  "(custom-set-variables '(custom-enabled-themes '(modus-vivendi-tinted)))\n")
+                 "(modus-vivendi-tinted)"))
+  (should (equal (init-test--theme-after-startup nil) "(modus-vivendi-tritanopia)")))
+
+(ert-deftest init-recent-files-are-kept ()
+  "D-041: recentf records visited files, not Emacs's own state files."
+  (init-test--load)
+  (should (bound-and-true-p recentf-mode))
+  (should (= recentf-max-saved-items 200))
+  (should (eq (keymap-lookup global-map "C-x C-r") 'consult-recent-file))
+  (should (recentf-include-p (expand-file-name "src/main.cc" temporary-file-directory)))
+  (should-not (recentf-include-p (expand-file-name ".cache/treemacs-persist"
+                                                   user-emacs-directory))))
+
 (ert-deftest init-info-lists-the-package-manuals ()
   "D-039: C-h i lists the manuals `make packages' built."
   (init-test--load)

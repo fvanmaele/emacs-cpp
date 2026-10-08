@@ -6,8 +6,15 @@
 
 ;;; Code:
 
-;; Built-in theme, carried over from the retired ~/.emacs.
-(load-theme 'modus-vivendi-tritanopia t)
+;; Built-in theme, carried over from the retired ~/.emacs, unless one was saved with
+;; `M-x customize-themes'.  custom.el loads at the end of init.el, so the choice is
+;; known only after it; loading this theme first and the saved one from custom.el
+;; left no theme in effect (white background, D-040).
+(defun emacs-cpp-ui-default-theme ()
+  "Load the default theme unless custom.el enabled one."
+  (unless custom-enabled-themes
+    (load-theme 'modus-vivendi-tritanopia t)))
+(add-hook 'after-init-hook #'emacs-cpp-ui-default-theme -90)
 
 ;; Built in: after a stepping key of the debugger (`C-x C-a n'), plain `n', `s', `o',
 ;; `c' ... repeat it; any other key ends that (D-037).  Emacs's own repeat maps

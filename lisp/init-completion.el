@@ -38,6 +38,19 @@
   :init
   (savehist-mode))
 
+(defun emacs-cpp-recentf-state-file-p (file)
+  "Non-nil if FILE is under `user-emacs-directory''s .cache/ (state, not work)."
+  (file-in-directory-p file (expand-file-name ".cache/" user-emacs-directory)))
+
+;; Recently visited files survive restarts (D-041): `C-x b' lists them below the
+;; buffers, `C-x C-r' picks one, `C-c p e' those of the project.
+(use-package recentf
+  :init
+  (setopt recentf-max-saved-items 200
+          ;; Emacs's own state files (treemacs, caches) are not "recent files".
+          recentf-exclude (list #'emacs-cpp-recentf-state-file-p))
+  (recentf-mode))
+
 (use-package orderless
   :demand t
   :config
@@ -60,6 +73,7 @@
 
 (use-package consult
   :bind (("C-x b" . consult-buffer)
+         ("C-x C-r" . consult-recent-file)
          ("C-x 4 b" . consult-buffer-other-window)
          ("C-x p b" . consult-project-buffer)
          ("M-y" . consult-yank-pop)
