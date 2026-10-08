@@ -513,6 +513,15 @@ presets, GoogleTest runner.
   library sources would get RMO's flags unless the databases are merged or the
   directory is chosen per file; indexing deal.II's sources in the session is hours of
   CPU and GB of index (D-010), so it would be indexed offline as a static index (O-9).
+  Measured 2026-10-08 (`RESEARCH_library_sources_index.md`): no Bear and no build
+  needed (CMake database 38 s, instantiation files 1.2 s); the whole library indexes
+  offline in 142 s wall / 35 min CPU / 10.1 GB peak into a 40 MB index; with it, `M-.`
+  reaches definitions in deal.II (`vector.templates.h`, `tria.cc`) instead of header
+  declarations, `M-?` includes uses inside the library; clangd +116 MB. Gaps: the
+  index loads on the first query (that one misses it); the patched clangd's index-first
+  path ignores it (no file config context). Bear only for non-CMake libraries (b2
+  Boost). Open for the owner: adopt (offline build step, kept source copy, a patch for
+  the index-first path) or not.
 - O-8 (RESOLVED 2026-10-08, D-023): ccls instead of clangd, clangd, or a hybrid. S6 on RMO:
   ccls answers `M-.` 1.2 s after start from its on-disk index (clangd: 10.5 s per
   file), headers opened first are clean (O-5), memory 0.7 - 0.9 GB; first indexing per
