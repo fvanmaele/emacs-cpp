@@ -61,8 +61,8 @@ with `done when: ...`).
 | T-013 | closed (D-026) | L | ccls + clang-tidy | D-023, D-024 | branch kept, not merged |
 | T-014 | done 0014 | M | patched clangd | D-026, D-027 | owner: RMO M-. works (pkgrel 3) |
 | T-015 | done (tier 1) | S | treemacs-magit | v0.4 | loaded with treemacs + magit; test |
-| T-016 | open | M | diff-hl | D-042, v0.4 | done when: see below |
-| T-017 | open | M | breadcrumb | D-043, v0.4 | done when: see below |
+| T-016 | done 0026 | M | diff-hl | D-042, v0.4 | right fringe, follows magit; test |
+| T-017 | done 0026 | M | breadcrumb | D-043, v0.4 | path + function in header; test |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
