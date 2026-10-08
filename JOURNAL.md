@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0017 | 2026-10-08 | Milestone v0.1.0: navigation | v0.1 | D-001..D-029 |
 | 0016 | 2026-10-08 | Project tree on `C-c t`, following the project | owner | D-029 |
 | 0015 | 2026-10-08 | T-011: header flags from the index (patch 0005) | T-011 | D-028 |
 | 0014 | 2026-10-08 | T-014: the patched clangd in the config | T-014 | D-026, D-027 |

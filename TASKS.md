@@ -15,7 +15,7 @@ with `done when: ...`).
 | T-009 | done 0003 | S | RMO build fixes | D-011, D-012 | RMO commit 9dc35b7 |
 | T-002 | done 0002 | L | skeleton + packages | D-003, D-006 | owner confirmed 2026-10-07 |
 | T-003 | done 0004 | M | completion stack | Q-3 | owner confirmed 2026-10-07 |
-| T-004 | next | M | eglot + clangd | D-001, S1 | 2026-10-08 fixes; owner check left |
+| T-004 | done 0017 | M | eglot + clangd | D-001, S1 | v0.1 tagged by owner |
 | T-008 | open | S | performance baseline | D-010 | see below |
 
 - T-009 (owner, in RMO): `CMAKE_CXX_EXTENSIONS OFF`, commit `CMakePresets.json`, ignore
@@ -41,8 +41,9 @@ with `done when: ...`).
   completions (on TAB / C-M-i since D-020); consult-eglot vendored and
   `consult-eglot-symbols` lists project symbols. Owner check 2026-10-08: usages,
   completion, consult-eglot-symbols, M-. into libraries OK; M-. inside library headers
-  and auto-start fixed by D-019; clang-tidy waits for an RMO `.clang-tidy`; rename
-  not yet reported.
+  and auto-start fixed by D-019; rename works (owner, 2026-10-08, slow before D-026).
+  clang-tidy: a `.clang-tidy` finding reaches eglot (toy, 2026-10-08; RMO now has a
+  `.clang-tidy`; not yet checked there). Closed with the v0.1 tag (0017).
 - T-008: measure DESIGN 11 budgets (`emacs-init-time`, clangd numbers from S1) after
   T-004; done when: numbers are in DESIGN 11 and each tuning setting cites one.
 
