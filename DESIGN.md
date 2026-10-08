@@ -524,6 +524,8 @@ presets, GoogleTest runner.
 | clangd too slow / too large on deal.II scale | S1 numbers | owner | v0.1 |
 
 ## Research program
+- `RESEARCH_other_languages.md` (owner question 2026-10-08): Python, R, Perl next to
+  the C++ setup. Findings in; rulings O-19, O-20.
 - `RESEARCH_keys_build_debug_ui.md` (owner questions 2026-10-08): key hints, building
   from any buffer, breakpoint indicators. Findings in; rulings O-16, O-17, O-18.
 - `RESEARCH_refactoring.md`: which CLion refactorings clangd code actions cover in
@@ -612,6 +614,25 @@ presets, GoogleTest runner.
   circle (GUI) or "B" (terminal) in the keyword colour; gutter clicks need
   `dape-breakpoint-global-mode` (off); the stopped line is not highlighted. Proposed:
   that mode on, red breakpoints, highlighted stop line (RESEARCH_keys_build_debug_ui 3).
+- O-21 (OPEN, owner report 2026-10-08): a header opened first right after a restart
+  (`iteration.h` from `C-x C-r`) gets the guessed flags and "too many errors"; opening
+  another file first, then the header, is fine. `staging/test/lumping.cc` includes it
+  and is in the database, so the index knows an includer. Cause found by reading
+  clangd (D-028, patch 0005): the header's command is asked for before the project is
+  handed to the background index. The compile database announces a newly found
+  project on its own broadcast thread (`BroadcastThread`), which calls
+  `BackgroundIndex::enqueue`, where the load counter rises; `includerOf` waits only
+  while that counter is above 0, so it sees 0, does not wait and finds no includer.
+  Proposed patch 0006: in `IncluderFromIndexCDB`, first `blockUntilIdle` on the
+  database (the broadcast has run, the load is counted), then wait for the load, both
+  within the same 5 s. Owner rules: tier and done-when (rebuild pkgrel 4).
+- O-19 (OPEN, owner question 2026-10-08): which of Python, R and Perl ride along, and
+  how far: mode only, plus a language server, plus a debugger
+  (`RESEARCH_other_languages.md` 3). Python needs only Arch packages; Perl's server is
+  CPAN-only; R needs ESS as a new submodule.
+- O-20 (OPEN, found 2026-10-08): gud (`M-x pdb`, `M-x perldb`, `M-x gdb`) binds its map
+  on `C-x C-a` globally when it loads, which takes dape's prefix for the session.
+  Proposed: `gud-key-prefix` on a free key (`C-x M-a`, `C-x M-d` or `C-x C-y`).
 - O-12 (DEFERRED 2026-10-08, owner: revisit after v0.4): Bear (4.2.2, installed) to make
   compile databases for dependent libraries instead of patching clangd. Bear records the
   compiler calls of a build that is run; it helps build systems that cannot export a
