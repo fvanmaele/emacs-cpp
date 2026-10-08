@@ -95,6 +95,7 @@ run BODY, then shut down eglot servers and kill the buffers it visited."
   (require 'dape)
   (should (member "127.0.0.1" (plist-get (alist-get 'debugpy dape-configs) 'command-args)))
   (should-not (member "0.0.0.0" (plist-get (alist-get 'debugpy dape-configs) 'command-args)))
+  (should (equal (plist-get (alist-get 'debugpy dape-configs) 'host) "127.0.0.1"))
   (init-python-test--with-dir '(("run.py" . "x = 20\ny = x + 22\nprint(y)\n")) t
     (let ((source (find-file-noselect (expand-file-name "run.py" root)))
           (stops 0)
@@ -114,6 +115,9 @@ run BODY, then shut down eglot servers and kill the buffers it visited."
             (accept-process-output nil 0.1)))
         (setq connection (dape--live-connection 'stopped t))
         (should connection)
+        ;; Connected to the IPv4 loopback address, not through a name lookup.
+        (should (equal (plist-get (process-contact (jsonrpc--process connection) t) :host)
+                       "127.0.0.1"))
         (let (done frame result)
           (dape--stack-trace connection (dape--current-thread connection) 20
                              (lambda (&rest _) (setq done t)))

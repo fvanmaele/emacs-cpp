@@ -131,7 +131,8 @@ Observed on the owner machine, 2026-10-07:
   buffers only, `pyproject.toml` and `setup.py` also mark a project root
   (`project-vc-extra-root-markers`, buffer-local), so C++ project roots are unchanged;
   dape's `debugpy` listens on 127.0.0.1 instead of upstream's 0.0.0.0 (every network
-  interface).
+  interface), and dape connects to 127.0.0.1, not to "localhost" (which can resolve to
+  IPv6 ::1 first).
 - DECIDED D-040 (2026-10-08, owner report "custom themes are not saved on restart"):
   `custom.el` loads last, so a setting saved with Customize wins over the config's
   default. The default theme (`modus-vivendi-tritanopia`) is loaded from
