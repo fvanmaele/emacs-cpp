@@ -1,0 +1,408 @@
+From 8df32dbe56d2bd56575f24bd440b2509ae24e5ca Mon Sep 17 00:00:00 2001
+From: Ferdinand Vanmaele <info@fvanmaele.de>
+Date: Thu, 8 Oct 2026 05:03:34 +0200
+Subject: [PATCH] [clangd] Index navigation: #include lines, and log why the
+ AST is needed
+
+Go-to-definition on an #include line waited for the file's preamble (6.2 s on
+a synthetic deal.II project after a restart) although the shard's include graph
+already records the headers that exactly this content included.
+locateIncludeFromShard reads the spelled name on the cursor's line and answers
+with the one direct include whose path ends with it (component boundary). It
+does not answer when the content changed since indexing, when no or several
+direct includes match, for "." / ".." components, or for macro includes; the
+AST path then answers as before. Errors elsewhere in the file do not matter
+here, so unlike symbol lookups the HadErrors flag does not block it.
+
+With --log=verbose, navigation that falls back to the AST now says why: file
+not open, no stored shard, content changed, indexed with errors, no indexed
+reference at the position, or the index did not know the symbol within 5 s.
+The shard is loaded once per request.
+
+Synthetic project, second session: #include line 6226 -> 1 ms; other
+definitions unchanged (2 - 606 ms). ClangdTests 1412/1412 (new:
+IncludeLineMatchesTheAST, IncludeLineNeedsExactlyOneMatchingInclude).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ clang-tools-extra/clangd/ClangdServer.cpp     |  52 +++++++--
+ clang-tools-extra/clangd/ClangdServer.h       |  12 +-
+ clang-tools-extra/clangd/XRefs.cpp            | 109 +++++++++++++++++-
+ clang-tools-extra/clangd/XRefs.h              |  19 +++
+ .../clangd/unittests/BackgroundIndexTests.cpp |  74 +++++++++++-
+ 5 files changed, 248 insertions(+), 18 deletions(-)
+
+diff --git a/clang-tools-extra/clangd/ClangdServer.cpp b/clang-tools-extra/clangd/ClangdServer.cpp
+index c9f028c0c..b50c9b1ba 100644
+--- a/clang-tools-extra/clangd/ClangdServer.cpp
++++ b/clang-tools-extra/clangd/ClangdServer.cpp
+@@ -847,27 +847,54 @@ bool pollIndex(FirstAnswer<T> &Answer,
+ }
+ } // namespace
+ 
+-std::optional<std::pair<std::shared_ptr<IndexFileIn>, std::vector<SymbolID>>>
+-ClangdServer::indexedSymbolsAt(PathRef File, Position Pos) {
++std::optional<ClangdServer::NavigationShard>
++ClangdServer::navigationShard(PathRef File) {
+   if (!NavigationFromIndex || !BackgroundIdx)
+     return std::nullopt;
+   auto Draft = getDraft(File);
+-  if (!Draft)
++  if (!Draft) {
++    vlog("Navigation in {0} needs the AST: the file is not open", File);
+     return std::nullopt;
++  }
+   std::shared_ptr<IndexFileIn> Shard = BackgroundIdx->loadShard(File);
+-  if (!Shard)
++  if (!Shard) {
++    vlog("Navigation in {0} needs the AST: no stored index shard", File);
+     return std::nullopt;
++  }
++  return std::make_pair(std::move(Shard), std::move(Draft));
++}
++
++std::optional<std::pair<std::shared_ptr<IndexFileIn>, std::vector<SymbolID>>>
++ClangdServer::indexedSymbolsAt(PathRef File, Position Pos,
++                               const NavigationShard &Loaded) {
++  const auto &[Shard, Draft] = Loaded;
+   auto IDs = clangd::symbolsAtFromShard(*Shard, File, *Draft, Pos);
+-  if (IDs.empty())
++  if (IDs.empty()) {
++    llvm::StringRef Why = clangd::whyShardCannotAnswer(*Shard, File, *Draft);
++    if (Why.empty())
++      vlog("Navigation in {0} at {1} needs the AST: no indexed reference there",
++           File, Pos);
++    else
++      vlog("Navigation in {0} needs the AST: {1}", File, Why);
+     return std::nullopt;
+-  return std::make_pair(std::move(Shard), std::move(IDs));
++  }
++  return std::make_pair(Shard, std::move(IDs));
+ }
+ 
+ void ClangdServer::locateSymbolAt(PathRef File, Position Pos,
+                                   Callback<std::vector<LocatedSymbol>> CB) {
++  auto Loaded = navigationShard(File);
++  // An #include line names its header: the shard's include graph knows it.
++  if (Loaded)
++    if (auto Include = clangd::locateIncludeFromShard(*Loaded->first, File,
++                                                      *Loaded->second, Pos)) {
++      vlog("Definitions in {0} answered from the index shard (#include)", File);
++      return CB(std::vector<LocatedSymbol>{std::move(*Include)});
++    }
+   auto Answer =
+       std::make_shared<FirstAnswer<std::vector<LocatedSymbol>>>(std::move(CB));
+-  if (auto Indexed = indexedSymbolsAt(File, Pos)) {
++  if (auto Indexed =
++          Loaded ? indexedSymbolsAt(File, Pos, *Loaded) : std::nullopt) {
+     WorkScheduler->run(
+         "DefinitionsFromIndex", File,
+         [Answer, Shard = Indexed->first, IDs = Indexed->second,
+@@ -876,6 +903,10 @@ void ClangdServer::locateSymbolAt(PathRef File, Position Pos,
+                 return clangd::locateIndexedSymbols(IDs, *Shard, Path, Index);
+               }))
+             vlog("Definitions in {0} answered from the index shard", Path);
++          else if (!Answer->answered())
++            vlog("Definitions in {0} need the AST: the index did not know the "
++                 "symbol within 5 s",
++                 Path);
+         });
+   }
+   auto Action = [Pos, Answer,
+@@ -1088,8 +1119,9 @@ void ClangdServer::findReferences(PathRef File, Position Pos, uint32_t Limit,
+                                   Callback<ReferencesResult> CB) {
+   auto Answer = std::make_shared<FirstAnswer<ReferencesResult>>(std::move(CB));
+   // Containers need the AST path; everything else may come from the shard.
++  auto Loaded = AddContainer ? std::nullopt : navigationShard(File);
+   if (auto Indexed =
+-          AddContainer ? std::nullopt : indexedSymbolsAt(File, Pos)) {
++          Loaded ? indexedSymbolsAt(File, Pos, *Loaded) : std::nullopt) {
+     WorkScheduler->run(
+         "ReferencesFromIndex", File,
+         [Answer, IDs = Indexed->second, Path = File.str(), Limit, this] {
+@@ -1098,6 +1130,10 @@ void ClangdServer::findReferences(PathRef File, Position Pos, uint32_t Limit,
+                                                               Index);
+               }))
+             vlog("References in {0} answered from the index shard", Path);
++          else if (!Answer->answered())
++            vlog("References in {0} need the AST: the index had no reference "
++                 "within 5 s",
++                 Path);
+         });
+   }
+   auto Action = [Pos, Limit, AddContainer, Answer,
+diff --git a/clang-tools-extra/clangd/ClangdServer.h b/clang-tools-extra/clangd/ClangdServer.h
+index 9c3369329..be3526bf6 100644
+--- a/clang-tools-extra/clangd/ClangdServer.h
++++ b/clang-tools-extra/clangd/ClangdServer.h
+@@ -485,10 +485,16 @@ public:
+ 
+ private:
+   FeatureModuleSet *FeatureModules;
+-  /// With NavigationFromIndex: the stored shard of \p File and the symbols it
+-  /// records at \p Pos, if the open file's content matches the shard.
++  /// A file's stored index shard and the file's current text.
++  using NavigationShard =
++      std::pair<std::shared_ptr<IndexFileIn>, std::shared_ptr<const std::string>>;
++  /// With NavigationFromIndex: the stored shard of the open file \p File and
++  /// its current text; logs why not otherwise.
++  std::optional<NavigationShard> navigationShard(PathRef File);
++  /// The symbols \p Loaded (the shard of \p File) records at \p Pos, if the
++  /// open file's content matches the shard; logs why not otherwise.
+   std::optional<std::pair<std::shared_ptr<IndexFileIn>, std::vector<SymbolID>>>
+-  indexedSymbolsAt(PathRef File, Position Pos);
++  indexedSymbolsAt(PathRef File, Position Pos, const NavigationShard &Loaded);
+ 
+   const GlobalCompilationDatabase &CDB;
+   const ThreadsafeFS &getHeaderFS() const {
+diff --git a/clang-tools-extra/clangd/XRefs.cpp b/clang-tools-extra/clangd/XRefs.cpp
+index 12176cad1..c317356ed 100644
+--- a/clang-tools-extra/clangd/XRefs.cpp
++++ b/clang-tools-extra/clangd/XRefs.cpp
+@@ -2581,18 +2581,115 @@ llvm::DenseSet<const Decl *> getNonLocalDeclRefs(ParsedAST &AST,
+   return DeclRefs;
+ }
+ 
++namespace {
++// The shard's include graph node of \p MainFilePath if the shard was built from
++// \p Content, else nullptr with the reason in \p Why.
++const IncludeGraphNode *shardNodeFor(const IndexFileIn &Shard,
++                                     llvm::StringRef MainFilePath,
++                                     llvm::StringRef Content,
++                                     llvm::StringRef &Why) {
++  if (!Shard.Sources) {
++    Why = "the shard has no include graph";
++    return nullptr;
++  }
++  auto Node = Shard.Sources->find(URI::create(MainFilePath).toString());
++  if (Node == Shard.Sources->end()) {
++    Why = "the shard does not describe the file";
++    return nullptr;
++  }
++  if (Node->getValue().Digest != digest(Content)) {
++    Why = "the file changed since it was indexed";
++    return nullptr;
++  }
++  return &Node->getValue();
++}
++} // namespace
++
++llvm::StringRef whyShardCannotAnswer(const IndexFileIn &Shard,
++                                     llvm::StringRef MainFilePath,
++                                     llvm::StringRef Content) {
++  llvm::StringRef Why;
++  const IncludeGraphNode *Node =
++      shardNodeFor(Shard, MainFilePath, Content, Why);
++  if (!Node)
++    return Why;
++  if (Node->Flags & IncludeGraphNode::SourceFlag::HadErrors)
++    return "the file was indexed with errors";
++  if (!Shard.Refs)
++    return "the shard has no references";
++  return "";
++}
++
++std::optional<LocatedSymbol> locateIncludeFromShard(const IndexFileIn &Shard,
++                                                    llvm::StringRef MainFilePath,
++                                                    llvm::StringRef Content,
++                                                    Position Pos) {
++  llvm::StringRef Why;
++  const IncludeGraphNode *Node =
++      shardNodeFor(Shard, MainFilePath, Content, Why);
++  if (!Node)
++    return std::nullopt;
++  // The line at the cursor: the AST path answers anywhere on an #include line.
++  llvm::SmallVector<llvm::StringRef> Lines;
++  Content.split(Lines, '\n');
++  if (Pos.line < 0 || static_cast<size_t>(Pos.line) >= Lines.size())
++    return std::nullopt;
++  llvm::StringRef Line = Lines[Pos.line].trim();
++  if (!Line.consume_front("#"))
++    return std::nullopt;
++  Line = Line.ltrim();
++  if (!Line.consume_front("include_next") && !Line.consume_front("include") &&
++      !Line.consume_front("import"))
++    return std::nullopt;
++  Line = Line.ltrim();
++  char Close = Line.starts_with("<") ? '>' : Line.starts_with("\"") ? '"' : 0;
++  if (!Close) // e.g. a macro naming the header: needs the preprocessor.
++    return std::nullopt;
++  llvm::StringRef Spelled = Line.drop_front().split(Close).first;
++  if (Spelled.empty() || Spelled.size() + 1 >= Line.size())
++    return std::nullopt;
++  // "." and ".." components would need the includer's directory: leave them
++  // to the AST.
++  for (auto It = llvm::sys::path::begin(Spelled, llvm::sys::path::Style::posix),
++            End = llvm::sys::path::end(Spelled);
++       It != End; ++It)
++    if (*It == "." || *It == "..")
++      return std::nullopt;
++  // The header is the one direct include whose path ends with the spelled
++  // name: the include graph records the resolved headers of exactly this
++  // content. With no match or more than one, the AST decides.
++  std::optional<std::string> Resolved;
++  for (llvm::StringRef IncludeURI : Node->DirectIncludes) {
++    auto Path = URI::resolve(IncludeURI, MainFilePath);
++    if (!Path) {
++      llvm::consumeError(Path.takeError());
++      continue;
++    }
++    llvm::StringRef P = *Path;
++    if (!P.consume_back(Spelled) || !P.ends_with("/"))
++      continue;
++    if (Resolved && *Resolved != *Path)
++      return std::nullopt;
++    Resolved = std::move(*Path);
++  }
++  if (!Resolved)
++    return std::nullopt;
++  LocatedSymbol File;
++  File.Name = std::string(llvm::sys::path::filename(*Resolved));
++  File.PreferredDeclaration = {URIForFile::canonicalize(*Resolved, MainFilePath),
++                               Range{}};
++  File.Definition = File.PreferredDeclaration;
++  return File;
++}
++
+ std::vector<SymbolID> symbolsAtFromShard(const IndexFileIn &Shard,
+                                          llvm::StringRef MainFilePath,
+                                          llvm::StringRef Content,
+                                          Position Pos) {
+-  if (!Shard.Sources || !Shard.Refs)
+-    return {};
+-  std::string FileURI = URI::create(MainFilePath).toString();
+   // The shard's positions are only valid for the content it was built from.
+-  auto Node = Shard.Sources->find(FileURI);
+-  if (Node == Shard.Sources->end() || Node->getValue().Digest != digest(Content) ||
+-      (Node->getValue().Flags & IncludeGraphNode::SourceFlag::HadErrors))
++  if (!whyShardCannotAnswer(Shard, MainFilePath, Content).empty())
+     return {};
++  std::string FileURI = URI::create(MainFilePath).toString();
+ 
+   auto Key = [](uint32_t Line, uint32_t Column) {
+     return std::make_pair(Line, Column);
+diff --git a/clang-tools-extra/clangd/XRefs.h b/clang-tools-extra/clangd/XRefs.h
+index c93aa1eec..71a7803ed 100644
+--- a/clang-tools-extra/clangd/XRefs.h
++++ b/clang-tools-extra/clangd/XRefs.h
+@@ -118,6 +118,25 @@ ReferencesResult findReferences(ParsedAST &AST, Position Pos, uint32_t Limit,
+ 
+ struct IndexFileIn;
+ 
++/// Why the shard of \p MainFilePath cannot answer positions in \p Content: the
++/// file's text changed since indexing, it was indexed with errors, or the shard
++/// lacks the data. Empty when it can.
++llvm::StringRef whyShardCannotAnswer(const IndexFileIn &Shard,
++                                     llvm::StringRef MainFilePath,
++                                     llvm::StringRef Content);
++
++/// locateSymbolAt for an #include line (as the AST path, anywhere on the line),
++/// answered from the include graph of the file's shard: the file's direct
++/// include whose path ends with the spelled name. Answers only when \p Content
++/// is the text the shard was built from (errors elsewhere in the file do not
++/// matter) and exactly one direct include matches; std::nullopt otherwise
++/// (also for "." / ".." components and macro includes). Callers then use the
++/// AST.
++std::optional<LocatedSymbol> locateIncludeFromShard(const IndexFileIn &Shard,
++                                                    llvm::StringRef MainFilePath,
++                                                    llvm::StringRef Content,
++                                                    Position Pos);
++
+ /// Returns the symbols referenced at \p Pos of the file \p MainFilePath, looked
+ /// up in the background-index shard of that file instead of a parsed AST. More
+ /// than one when the shard records several symbols at the same range (e.g. two
+diff --git a/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp b/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp
+index ed925ffc9..3143a21e6 100644
+--- a/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp
++++ b/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp
+@@ -177,7 +177,7 @@ protected:
+     struct $bar[[Bar]] {};
+   )cpp"};
+   Annotations Main{R"cpp(
+-    #include "foo.h"
++    #inc$inc^lude "foo.h"
+     int $def[[foo]]() { return 1; }
+     $kw^int main() {
+       $type^Bar b;
+@@ -344,6 +344,78 @@ TEST(NavigationFromShard, AllSymbolsAtTheSameRangeAreTargets) {
+   EXPECT_EQ(Result->References.size(), 2u);
+ }
+ 
++TEST_F(NavigationFromShardTest, IncludeLineMatchesTheAST) {
++  auto Shard = Idx->loadShard(MainPath);
++  ASSERT_TRUE(Shard);
++  ParsedAST AST = buildAST();
++  auto FromShard =
++      locateIncludeFromShard(*Shard, MainPath, Main.code(), Main.point("inc"));
++  ASSERT_TRUE(FromShard);
++  auto FromAST = locateSymbolAt(AST, Main.point("inc"), Idx.get());
++  ASSERT_EQ(FromAST.size(), 1u);
++  EXPECT_EQ(FromShard->Name, FromAST[0].Name);
++  EXPECT_EQ(FromShard->PreferredDeclaration, FromAST[0].PreferredDeclaration);
++  EXPECT_EQ(FromShard->Definition, FromAST[0].Definition);
++  EXPECT_EQ(FromShard->PreferredDeclaration.uri.file(), testPath("root/foo.h"));
++  // Not on an #include line; or the content changed since indexing.
++  EXPECT_FALSE(locateIncludeFromShard(*Shard, MainPath, Main.code(),
++                                      Main.point("call")));
++  std::string Edited = "// edited\n" + Main.code().str();
++  EXPECT_FALSE(locateIncludeFromShard(*Shard, MainPath, Edited,
++                                      Main.point("inc")));
++}
++
++TEST(NavigationFromShard, IncludeLineNeedsExactlyOneMatchingInclude) {
++  std::string Path = testPath("p/src/a.cc");
++  std::string FileURI = URI::create(Path).toString();
++  std::vector<std::string> IncludeURIs = {
++      URI::create(testPath("p/include/one/x.h")).toString(),
++      URI::create(testPath("p/include/two/x.h")).toString(),
++      URI::create(testPath("p/include/max.h")).toString(),
++      URI::create(testPath("p/include/rmo/option.h")).toString()};
++  llvm::StringRef Content = "#include <rmo/option.h>\n"
++                            "  #  include \"one/x.h\"\n"
++                            "#include \"x.h\"\n"
++                            "#include \"../include/max.h\"\n"
++                            "#include HEADER\n"
++                            "#include \"ax.h\"\n"
++                            "#include <rmo/option.h\n"
++                            "int main();\n";
++  IndexFileIn Shard;
++  IncludeGraph Sources;
++  IncludeGraphNode &Node = Sources[FileURI];
++  Node.URI = FileURI;
++  Node.Digest = digest(Content);
++  // Errors elsewhere in the file do not change which headers were included.
++  Node.Flags = IncludeGraphNode::SourceFlag::HadErrors;
++  for (const std::string &U : IncludeURIs)
++    Node.DirectIncludes.push_back(U);
++  Shard.Sources = std::move(Sources);
++
++  auto At = [&](int Line, int Column = 0) {
++    return locateIncludeFromShard(Shard, Path, Content, Position{Line, Column});
++  };
++  auto Option = At(0, 12);
++  ASSERT_TRUE(Option);
++  EXPECT_EQ(Option->Name, "option.h");
++  EXPECT_EQ(Option->PreferredDeclaration.uri.file(),
++            testPath("p/include/rmo/option.h"));
++  EXPECT_EQ(Option->PreferredDeclaration.range, Range{});
++  EXPECT_EQ(Option->Definition, Option->PreferredDeclaration);
++  // Spaces around '#', quotes, a directory that tells the two x.h apart.
++  auto One = At(1);
++  ASSERT_TRUE(One);
++  EXPECT_EQ(One->PreferredDeclaration.uri.file(),
++            testPath("p/include/one/x.h"));
++  EXPECT_FALSE(At(2)); // two direct includes end with /x.h
++  EXPECT_FALSE(At(3)); // ".." needs the includer's directory
++  EXPECT_FALSE(At(4)); // a macro names the header
++  EXPECT_FALSE(At(5)); // max.h ends with "ax.h" but not with "/ax.h"
++  EXPECT_FALSE(At(6)); // no closing '>'
++  EXPECT_FALSE(At(7)); // not an #include line
++  EXPECT_FALSE(At(42)); // past the end
++}
++
+ TEST_F(NavigationFromShardTest, ReferencesMatchTheAST) {
+   auto Shard = Idx->loadShard(MainPath);
+   ASSERT_TRUE(Shard);
+-- 
+2.56.0
+

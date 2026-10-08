@@ -168,8 +168,8 @@ Known defects: none yet (nothing built).
   refuses eglot (no silent fall back to the system clangd). Supersedes D-023 / D-024
   (ccls hybrid, never merged; branch `t013-ccls-hybrid` kept for reference).
 - DECIDED D-027 (owner 2026-10-08): the patched clangd is installed from
-  `packaging/clangd-index-nav` (PKGBUILD: 23.1.1 tarball plus the three clangd
-  commits as patches, standalone build against the system LLVM) to
+  `packaging/clangd-index-nav` (PKGBUILD: 23.1.1 tarball plus the local clangd
+  commits as patches, four since pkgrel 2; standalone build against the system LLVM) to
   `/opt/clangd-index-nav`, depending on `llvm-libs` and `clang` = 23.1.1 exactly, so
   an LLVM upgrade is visible to pacman and needs a rebuild of the package.
 - DECIDED D-023 (superseded by D-026) (owner 2026-10-08, after S6): eglot runs ccls,
@@ -454,7 +454,15 @@ presets, GoogleTest runner.
   fixed in bd81165ed; afterwards the index answer contains all 15 distinct locations
   of the AST answer plus the call under the cursor. S8 run 2 PASS: first `M-.`
   9282 -> 1358 ms, same target, references contain the system answer. RESOLVED:
-  D-026, D-027, T-014.
+  D-026, D-027, T-014. Owner report 2026-10-08 (after installing pkgrel 1): `M-.` on
+  an `#include` line still waited; now answered from the shard's include graph
+  (8df32dbe5, patch 0004; synthetic project 6226 -> 1 ms). Second report: O-13.
+- O-13 (OPEN, owner report 2026-10-08): on RMO, `M-.` on a name in a second file still
+  waits for the parse. Not reproduced on the synthetic project (2 ms in a second
+  source and in a header). Candidates: the file was indexed with errors, has no
+  stored shard, changed since indexing, or the name has no indexed reference (e.g. a
+  member through a dependent type). Patch 0004 logs the reason; owner run with
+  `CLANGD_FLAGS=--log=verbose`, see TASKS T-014.
 - O-12 (OPEN, owner question 2026-10-08): Bear (4.2.2, installed) to make compile
   databases for dependent libraries instead of patching clangd. Bear records the
   compiler calls of a build that is run; it helps build systems that cannot export a

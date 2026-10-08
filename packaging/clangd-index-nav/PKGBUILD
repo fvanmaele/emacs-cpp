@@ -1,6 +1,7 @@
 # Local package of emacs-cpp (T-014, D-026, D-027); not for the AUR.
-# clangd 23.1.1 with the three emacs-cpp patches that answer go-to-definition and
-# find-references from the background index while a file is not parsed yet
+# clangd 23.1.1 with the four emacs-cpp patches that answer go-to-definition (also
+# on #include lines) and find-references from the background index while a file is
+# not parsed yet
 # (hidden flag --navigation-from-index; RESEARCH_clangd_index_navigation.md, S8).
 # Built against the system LLVM 23.1.1 and installed to /opt, next to (not instead
 # of) the clang package's clangd.  Patches: `git format-patch 6e2cc8df7..HEAD` in
@@ -8,7 +9,7 @@
 
 pkgname=clangd-index-nav
 pkgver=23.1.1
-pkgrel=1
+pkgrel=2
 pkgdesc="clangd $pkgver answering navigation from its index before parsing (emacs-cpp patches)"
 arch=(x86_64)
 url="https://github.com/llvm/llvm-project"
@@ -21,11 +22,13 @@ options=(!lto !debug)
 source=("https://github.com/llvm/llvm-project/releases/download/llvmorg-$pkgver/llvm-project-$pkgver.src.tar.xz"
         0001-clangd-Answer-definitions-and-references-from-the-in.patch
         0002-clangd-Race-the-index-shard-against-the-AST-for-navi.patch
-        0003-clangd-Index-navigation-all-symbols-at-the-cursor-s-.patch)
+        0003-clangd-Index-navigation-all-symbols-at-the-cursor-s-.patch
+        0004-clangd-Index-navigation-include-lines-and-log-why-th.patch)
 sha256sums=('ebe9be46fe8756d58c5b198ffad0fa2a766257add81a4dc52179bfacc7888ee6'
             'a8c5acda8b7e43611f22297cb9ba6f95e62c464a6ac78f8027c267973d4702bb'
             '3b3cce804554ab484a2f5396f28cb87f66b87ad4ccd4d6e8e65f4bc7e89feab1'
-            '38d74440d2f6ebc79e0efde2f2633188965e7789d7448809816deff03617b2e5')
+            '38d74440d2f6ebc79e0efde2f2633188965e7789d7448809816deff03617b2e5'
+            'e7f1f654d1855f1931fe2c6098207d33b6bc25042645ffb3775fd68cfdaffe04')
 
 prepare() {
   cd llvm-project-$pkgver.src

@@ -57,7 +57,7 @@ with `done when: ...`).
 | T-011 | open | M | cold-header flags | O-5, S4 | done when: S4 applied, see below |
 | T-012 | rejected (D-021) | M | preamble warm-up | S5 | owner ruled out extra open files |
 | T-013 | closed (D-026) | L | ccls + clang-tidy | D-023, D-024 | branch kept, not merged |
-| T-014 | next | M | patched clangd | D-026, D-027 | built; owner install left, see below |
+| T-014 | next | M | patched clangd | D-026, D-027 | pkgrel 2 built; owner check left |
 
 - T-014: the config runs the patched clangd (D-026) installed from
   packaging/clangd-index-nav (D-027); done when (agreed 2026-10-08): the config starts
@@ -65,6 +65,11 @@ with `done when: ...`).
   variable, default: the system clangd), fails loudly if the configured binary is
   missing or lacks the flag; make test covers both the system and the patched server;
   on RMO, after a restart, M-. on a deal.II / std name answers within 2 s.
+  Extension (owner report, agreed 2026-10-08): after a restart, M-. on an `#include`
+  line of an unchanged file answers from the index (unit test in BackgroundIndexTests,
+  synthetic project under 1 s); ambiguous or unmatched includes take the old path;
+  ClangdTests pass; the package carries the patch. Done: 8df32dbe5, patch 0004,
+  pkgrel 2. Left: owner installs pkgrel 2 and reports the log reason for O-13.
 - T-013 (closed, superseded by D-026): hybrid per D-023 / D-024, built on branch
   `t013-ccls-hybrid`; done when (agreed
   2026-10-08): in a fresh Emacs on RMO with a .clang-tidy, after ccls's first indexing:

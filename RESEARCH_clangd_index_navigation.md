@@ -82,6 +82,12 @@ whichever answers first delivers the result once (`FirstAnswer` in ClangdServer.
 lacks the symbol. Findings while testing: function-local symbols are not indexed, so
 their uses have no shard reference and take the AST path. Result: ClangdTests
 1409 / 1409; synthetic deal.II project, second session, first `M-.` 6623 -> 606 ms.
+Commit 8df32dbe5 (owner report: `M-.` on `#include <rmo/option.h>` still slow): the
+shard's include graph lists the headers that the indexed content included directly
+(`IncludeGraphNode::DirectIncludes`, kept per file by `FileShardedIndex`); the one whose
+path ends with the spelled name is the answer, as `locateFileReferent` gives it from
+the AST. Synthetic project: 6226 -> 1 ms. The same commit logs (verbose) why a request
+falls back to the AST.
 
 ## 5. Without changing clangd
 - Name-based quick jump: while the definition request is pending, query
