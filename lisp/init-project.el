@@ -4,7 +4,8 @@
 
 ;; projectile and treemacs, carried over from the retired ~/.emacs (DESIGN 12).
 ;; `C-c t' toggles the tree; it shows only the current buffer's project and follows
-;; it to other projects (D-029).
+;; it to other projects (D-029).  It opens by itself with the first project file of a
+;; session, unless `emacs-cpp-tree-open-automatically' is nil (D-048).
 
 ;;; Code:
 
@@ -23,6 +24,35 @@
    :compile #'emacs-cpp-presets-compile-command
    :test #'emacs-cpp-presets-test-command))
 
+(defcustom emacs-cpp-tree-open-automatically t
+  "Non-nil: show the project tree with the first project file of a session (D-048).
+Once per session: after `C-c t' has closed the tree, it stays closed."
+  :type 'boolean
+  :group 'tools)
+
+(defvar emacs-cpp--tree-opened nil
+  "Non-nil once the tree was shown in this session (D-048).")
+
+(defun emacs-cpp-treemacs-open-once ()
+  "Show the tree for the visited file if it is the session's first project file.
+From `find-file-hook'; waits until the buffer is shown in a window, so files
+visited in the background (magit, `M-.' previews) do not count."
+  (when (and emacs-cpp-tree-open-automatically
+             (not emacs-cpp--tree-opened)
+             (project-current))
+    (let ((buffer (current-buffer)))
+      (run-at-time
+       0 nil
+       (lambda ()
+         (when-let* (((not emacs-cpp--tree-opened))
+                     ((buffer-live-p buffer))
+                     (window (get-buffer-window buffer)))
+           (setq emacs-cpp--tree-opened t)
+           (unless (treemacs-get-local-window)
+             ;; The tree takes the focus; give it back to the file.
+             (with-selected-window window
+               (treemacs-add-and-display-current-project-exclusively)))))))))
+
 (defun emacs-cpp-treemacs-toggle ()
   "Close the tree if it is visible, else show the current project in it (D-029).
 `treemacs' itself asks for a project root while its workspace is empty."
@@ -33,7 +63,10 @@
 
 (use-package treemacs
   :bind ("C-c t" . emacs-cpp-treemacs-toggle)
-  :commands treemacs-get-local-window
+  :commands (treemacs-get-local-window
+             treemacs-add-and-display-current-project-exclusively)
+  :init
+  (add-hook 'find-file-hook #'emacs-cpp-treemacs-open-once)
   :config
   (treemacs-project-follow-mode))
 
