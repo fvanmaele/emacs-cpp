@@ -435,7 +435,24 @@ presets, GoogleTest runner.
   ClangdTests 1409 / 1409 (4 new). Synthetic deal.II project through eglot, second
   session: first `M-.` 6623 ms -> 606 ms, same target. Not covered (AST as before):
   function-local symbols, `auto`, `#include` lines, edited files, the first session
-  of a build directory. Spike S8 measures RMO.
+  of a build directory. Spike S8 measures RMO. S8 run 1 (RMO): first `M-.` 9281 ->
+  1356 ms, same target; references bug (two symbols recorded at one range, one kept)
+  fixed in bd81165ed; afterwards the index answer contains all 15 distinct locations
+  of the AST answer plus the call under the cursor. Run 2 pending.
+- O-12 (OPEN, owner question 2026-10-08): Bear (4.2.2, installed) to make compile
+  databases for dependent libraries instead of patching clangd. Bear records the
+  compiler calls of a build that is run; it helps build systems that cannot export a
+  database (make, autotools, b2). Findings: the installed deal-ii and boost packages
+  carry headers and binaries, no library sources (deal-ii: 93 example `.cc`, boost: 2
+  `.cpp`), so there is nothing to record; deal.II would have to be built from source
+  (`~/source/repos/dealii`, CMake, which exports a database itself, Bear not needed),
+  at the installed version (9.8.0) so that headers and sources match. It would let
+  clangd index library sources: definitions in deal.II `.cc` files and uses inside the
+  library. It does not change the per-file parse of RMO's files, so it complements the
+  patch rather than replacing it. Costs: D-016 passes one database directory, so
+  library sources would get RMO's flags unless the databases are merged or the
+  directory is chosen per file; indexing deal.II's sources in the session is hours of
+  CPU and GB of index (D-010), so it would be indexed offline as a static index (O-9).
 - O-8 (RESOLVED 2026-10-08, D-023): ccls instead of clangd, clangd, or a hybrid. S6 on RMO:
   ccls answers `M-.` 1.2 s after start from its on-disk index (clangd: 10.5 s per
   file), headers opened first are clean (O-5), memory 0.7 - 0.9 GB; first indexing per

@@ -51,5 +51,5 @@ code is written for it. Each spike is a self-contained directory with its own bu
 | S5 | FAIL, closed by owner ruling (D-021) | s5-preamble-warmup/RESULTS.md |
 | S6 | PASS | s6-ccls/RESULTS.md |
 | S7 | PKGBUILD ready, owner to build | |
-| S8 | ready, owner to run | |
+| S8 | run 1 FAIL (bug fixed), run 2 pending | s8-clangd-index-navigation/RESULTS.md |
 | S2 | not started | |

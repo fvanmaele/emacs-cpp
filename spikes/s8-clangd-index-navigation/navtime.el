@@ -35,10 +35,20 @@
              (t2 (current-time))
              (refs (xref-backend-references 'eglot (xref-backend-identifier-at-point 'eglot)))
              (r (ms t2)))
-        (say "%s %s session %d: first M-. %d ms -> %s; then M-? %d ms (%d refs); %d ms after open"
-             (file-name-nondirectory program) (or flags "") n d
-             (and defs (file-name-nondirectory (xref-location-group (xref-item-location (car defs)))))
-             r (length refs) (ms t0)))
+        (let ((locations (sort (delete-dups
+                                (mapcar (lambda (ref)
+                                          (let ((loc (xref-item-location ref)))
+                                            (format "%s:%s" (file-relative-name
+                                                             (xref-location-group loc) root)
+                                                    (xref-location-line loc))))
+                                        refs))
+                               #'string<)))
+          (say "%s %s session %d: first M-. %d ms -> %s; then M-? %d ms (%d refs, %d distinct); %d ms after open"
+               (file-name-nondirectory program) (or flags "") n d
+               (and defs (file-name-nondirectory (xref-location-group (xref-item-location (car defs)))))
+               r (length refs) (length locations) (ms t0))
+          (when (= n 2)
+            (dolist (location locations) (say "  ref %s" location)))))
       ;; Session 1: let the background index finish before shutting down.
       (when (= n 1) (settle (string-to-number (or (getenv "S8_SETTLE") "120"))))
       (eglot-shutdown (eglot-current-server)))

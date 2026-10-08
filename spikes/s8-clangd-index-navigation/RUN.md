@@ -30,7 +30,10 @@ and its count, and the time since opening the file.
 
 ## Pass criteria
 PASS if, in session 2, the patched clangd's first `M-.` takes under 2 s and returns
-the same target file as the system clangd, and `M-?` returns the same count.
+the same target file as the system clangd, and its `M-?` contains every distinct
+location of the system clangd's `M-?` (the log lists them). (Superseded 2026-10-08:
+"`M-?` returns the same count"; the system answer can list locations twice, see
+RESULTS.md.)
 
 ## Dry run (synthetic deal.II + Boost project, 2026-10-08)
 Session 2: system clangd first `M-.` 6662 ms, patched 604 ms, same target
@@ -38,6 +41,11 @@ Session 2: system clangd first `M-.` 6662 ms, patched 604 ms, same target
 expected: there is no stored shard yet. The patched binary's `--version` names the
 first commit (8b73a0490); LLVM embeds the revision only at configure time, the binary
 contains both commits.
+
+## Run 2 (after run 1, see RESULTS.md)
+Rebuild the patched clangd first (`ninja -C ~/source/repos/llvm-clangd/build clangd`,
+already done on 2026-10-08), remove `/tmp/s8`, move `results.log` away (done: kept as
+`results-run1.log`), then the same command.
 
 ## Hand back
 `spikes/s8-clangd-index-navigation/results.log`; delete `/tmp/s8` afterwards.
