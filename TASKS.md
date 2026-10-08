@@ -63,6 +63,7 @@ with `done when: ...`).
 | T-015 | done (tier 1) | S | treemacs-magit | v0.4 | loaded with treemacs + magit; test |
 | T-016 | done 0026 | M | diff-hl | D-042, v0.4 | right fringe, follows magit; test |
 | T-017 | done 0026 | M | breadcrumb | D-043, v0.4 | path + function in header; test |
+| T-018 | open | M | Python rides along | D-045, O-19 | blocked: owner installs packages |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -84,6 +85,12 @@ with `done when: ...`).
   toy repository.
 - T-017: done when: C++ buffers show the project-relative path and the function at
   point in the header line; test on a toy project.
+- T-018 (opened 2026-10-08, O-19): needs `sudo pacman -S tree-sitter-python pyright
+  python-debugpy` (owner). Done when: `.py` files open in `python-ts-mode` (startup
+  stops with the fix if the grammar is missing, as for C++); eglot starts pyright in
+  Python files of a project (`pyproject.toml`, `setup.py` or a git root), not in files
+  outside one; `M-.` and `C-c l r` work through it; dape's `debugpy` config stops at a
+  breakpoint in a toy script; the C++ tests unchanged; make test / make check pass.
 - T-014: the config runs the patched clangd (D-026) installed from
   packaging/clangd-index-nav (D-027); done when (agreed 2026-10-08): the config starts
   the patched clangd with --navigation-from-index when its path is set (customize
