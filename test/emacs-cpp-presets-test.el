@@ -113,5 +113,36 @@
                      (list "clangd" (concat "--compile-commands-dir="
                                             (expand-file-name "build/debug" root))))))))
 
+(defun emacs-cpp-presets-test--fake-clangd (dir name help)
+  "Write an executable NAME in DIR whose --help-hidden prints HELP."
+  (let ((file (expand-file-name name dir)))
+    (write-region (format "#!/bin/sh\nprintf '%%s\\n' '%s'\n" help) nil file)
+    (set-file-modes file #o755)
+    file))
+
+(ert-deftest emacs-cpp-presets-patched-clangd-program ()
+  "D-026: a configured clangd must exist and support --navigation-from-index."
+  (emacs-cpp-presets-test--with-project
+      `(("CMakePresets.json" . ,emacs-cpp-presets-test--presets))
+    (let* ((project (cons 'transient root))
+           (warning-minimum-log-level :emergency)
+           (dir (expand-file-name "build/debug" root))
+           (patched (emacs-cpp-presets-test--fake-clangd
+                     root "patched" "  --navigation-from-index - Answer ..."))
+           (plain (emacs-cpp-presets-test--fake-clangd root "plain" "  --background-index"))
+           (emacs-cpp-presets--navigation-support nil))
+      (make-directory dir t)
+      (write-region "[{\"file\": \"a.cc\", \"command\": \"c++ -std=c++20 -c a.cc\"}]"
+                    nil (expand-file-name "compile_commands.json" dir))
+      (let ((emacs-cpp-clangd-program patched))
+        (should (equal (emacs-cpp-presets-clangd-contact nil project)
+                       (list patched (concat "--compile-commands-dir=" dir)
+                             "--navigation-from-index"))))
+      ;; Not the patched build, or not there: refused, no silent system clangd.
+      (let ((emacs-cpp-clangd-program plain))
+        (should-error (emacs-cpp-presets-clangd-contact nil project) :type 'user-error))
+      (let ((emacs-cpp-clangd-program (expand-file-name "missing" root)))
+        (should-error (emacs-cpp-presets-clangd-contact nil project) :type 'user-error)))))
+
 (provide 'emacs-cpp-presets-test)
 ;;; emacs-cpp-presets-test.el ends here

@@ -123,6 +123,42 @@ any eglot server shut down."
             (accept-process-output nil 0.2)))
         (should (init-cpp-test--tidy-diagnostic))))))
 
+(defun init-cpp-test--patched-clangd ()
+  "The patched clangd to test (D-026), or nil when it is not installed."
+  (let ((program (or (getenv "EMACS_CPP_PATCHED_CLANGD")
+                     "/opt/clangd-index-nav/bin/clangd")))
+    (and (file-executable-p program) program)))
+
+(ert-deftest init-cpp-patched-clangd-navigates ()
+  "D-026: with `emacs-cpp-clangd-program' set, eglot runs it with the index flag."
+  (init-test--load)
+  (let ((program (init-cpp-test--patched-clangd)))
+    (unless program
+      (ert-skip "patched clangd not installed (packaging/clangd-index-nav)"))
+    (init-cpp-test--with-project init-cpp-test--files
+      (should (eql 0 (call-process "cmake" nil nil nil "--preset" "debug")))
+      (let* ((emacs-cpp-clangd-program program)
+             (main (init-cpp-test--visit (expand-file-name "src/main.cc" root))))
+        (with-current-buffer main
+          (should (eglot-managed-p))
+          (should (equal (process-command (jsonrpc--process (eglot-current-server)))
+                         (list program
+                               (concat "--compile-commands-dir="
+                                       (expand-file-name "build/debug" root))
+                               "--navigation-from-index"))))
+        (should (member (file-name-nondirectory
+                         (init-cpp-test--definition-file main "answer()"))
+                        '("answer.h" "answer.cc")))
+        (with-current-buffer main
+          (goto-char (point-min))
+          (search-forward "answer()")
+          (goto-char (1+ (match-beginning 0)))
+          ;; In a first session clangd knows other files' references only once
+          ;; it has indexed them; the system clangd also returns just the call
+          ;; here (measured 2026-10-08), so only that one is required.
+          (should (xref-backend-references
+                   'eglot (xref-backend-identifier-at-point 'eglot))))))))
+
 (ert-deftest init-cpp-eglot-only-for-preset-projects ()
   (init-test--load)
   ;; A project without presets: no server, an echo-area note instead (D-005).

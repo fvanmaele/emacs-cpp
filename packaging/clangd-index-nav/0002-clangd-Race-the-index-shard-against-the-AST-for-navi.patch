@@ -1,0 +1,339 @@
+From 2c0b7bf32132c41e86cef21f02638efdf736a8ac Mon Sep 17 00:00:00 2001
+From: Ferdinand Vanmaele <info@fvanmaele.de>
+Date: Thu, 8 Oct 2026 03:50:34 +0200
+Subject: [PATCH 2/3] [clangd] Race the index shard against the AST for
+ navigation
+
+The first version answered from the shard synchronously and fell back to the
+AST when the merged index did not know the symbol yet. At startup the
+background index loads its stored shards asynchronously, so a go-to-definition
+sent right after opening a file found nothing and waited for the AST anyway.
+
+Now, when the shard records a symbol at the cursor, a task polls the index
+(50 ms steps, up to 5 s) while the AST path runs as before; whichever answers
+first delivers the result, once. locateIndexedSymbol and
+findReferencesToIndexedSymbol return std::nullopt while the index does not
+know the symbol, which is what the polling waits on.
+
+Measured through eglot on a two-file project including deal.II and Boost,
+second session (stored index): first go-to-definition 6623 ms -> 606 ms, same
+result; ClangdTests 1409/1409 pass.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ clang-tools-extra/clangd/ClangdServer.cpp     | 115 ++++++++++++++----
+ clang-tools-extra/clangd/ClangdServer.h       |   5 +
+ clang-tools-extra/clangd/XRefs.cpp            |  44 ++++---
+ clang-tools-extra/clangd/XRefs.h              |  14 +++
+ .../clangd/unittests/BackgroundIndexTests.cpp |  16 +++
+ 5 files changed, 157 insertions(+), 37 deletions(-)
+
+diff --git a/clang-tools-extra/clangd/ClangdServer.cpp b/clang-tools-extra/clangd/ClangdServer.cpp
+index 01bbb973a..9677258ca 100644
+--- a/clang-tools-extra/clangd/ClangdServer.cpp
++++ b/clang-tools-extra/clangd/ClangdServer.cpp
+@@ -51,6 +51,7 @@
+ #include <future>
+ #include <memory>
+ #include <mutex>
++#include <thread>
+ #include <optional>
+ #include <string>
+ #include <type_traits>
+@@ -804,22 +805,86 @@ void ClangdServer::applyTweak(PathRef File, Range Sel, StringRef TweakID,
+   WorkScheduler->runWithAST("ApplyTweak", File, std::move(Action));
+ }
+ 
++namespace {
++// Hands a request's result to its callback once, from whichever of two paths
++// answers first: the background-index shard (NavigationFromIndex) or the AST.
++template <typename T> class FirstAnswer {
++public:
++  explicit FirstAnswer(Callback<T> CB) : CB(std::move(CB)) {}
++  bool answered() const { return Done; }
++  // Returns true if this call delivered the result.
++  bool answer(llvm::Expected<T> Result) {
++    std::lock_guard<std::mutex> Lock(Mu);
++    if (Done) {
++      if (!Result)
++        llvm::consumeError(Result.takeError());
++      return false;
++    }
++    Done = true;
++    CB(std::move(Result));
++    return true;
++  }
++
++private:
++  std::mutex Mu;
++  std::atomic<bool> Done{false};
++  Callback<T> CB;
++};
++
++// Asks Query every 50 ms until it answers, the AST path has answered, or 5 s
++// have passed. The background index loads its stored shards asynchronously at
++// startup, so symbols of other files may only become available shortly after.
++template <typename T>
++bool pollIndex(FirstAnswer<T> &Answer,
++               llvm::function_ref<std::optional<T>()> Query) {
++  auto Deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
++  while (!Answer.answered() && std::chrono::steady_clock::now() < Deadline) {
++    if (auto Result = Query())
++      return Answer.answer(std::move(*Result));
++    std::this_thread::sleep_for(std::chrono::milliseconds(50));
++  }
++  return false;
++}
++} // namespace
++
++std::optional<std::pair<std::shared_ptr<IndexFileIn>, SymbolID>>
++ClangdServer::indexedSymbolAt(PathRef File, Position Pos) {
++  if (!NavigationFromIndex || !BackgroundIdx)
++    return std::nullopt;
++  auto Draft = getDraft(File);
++  if (!Draft)
++    return std::nullopt;
++  std::shared_ptr<IndexFileIn> Shard = BackgroundIdx->loadShard(File);
++  if (!Shard)
++    return std::nullopt;
++  auto ID = clangd::symbolAtFromShard(*Shard, File, *Draft, Pos);
++  if (!ID)
++    return std::nullopt;
++  return std::make_pair(std::move(Shard), *ID);
++}
++
+ void ClangdServer::locateSymbolAt(PathRef File, Position Pos,
+                                   Callback<std::vector<LocatedSymbol>> CB) {
+-  if (NavigationFromIndex && BackgroundIdx) {
+-    if (auto Draft = getDraft(File))
+-      if (auto Shard = BackgroundIdx->loadShard(File))
+-        if (auto Result = clangd::locateSymbolFromShard(*Shard, File, *Draft,
+-                                                        Pos, Index)) {
+-          vlog("Definitions in {0} answered from the index shard", File);
+-          return CB(std::move(*Result));
+-        }
++  auto Answer =
++      std::make_shared<FirstAnswer<std::vector<LocatedSymbol>>>(std::move(CB));
++  if (auto Indexed = indexedSymbolAt(File, Pos)) {
++    WorkScheduler->run(
++        "DefinitionsFromIndex", File,
++        [Answer, Shard = Indexed->first, ID = Indexed->second,
++         Path = File.str(), this] {
++          if (pollIndex<std::vector<LocatedSymbol>>(*Answer, [&] {
++                return clangd::locateIndexedSymbol(ID, *Shard, Path, Index);
++              }))
++            vlog("Definitions in {0} answered from the index shard", Path);
++        });
+   }
+-  auto Action = [Pos, CB = std::move(CB),
++  auto Action = [Pos, Answer,
+                  this](llvm::Expected<InputsAndAST> InpAST) mutable {
++    if (Answer->answered())
++      return;
+     if (!InpAST)
+-      return CB(InpAST.takeError());
+-    CB(clangd::locateSymbolAt(InpAST->AST, Pos, Index));
++      return (void)Answer->answer(InpAST.takeError());
++    Answer->answer(clangd::locateSymbolAt(InpAST->AST, Pos, Index));
+   };
+ 
+   WorkScheduler->runWithAST("Definitions", File, std::move(Action));
+@@ -1021,21 +1086,27 @@ void ClangdServer::findImplementations(
+ void ClangdServer::findReferences(PathRef File, Position Pos, uint32_t Limit,
+                                   bool AddContainer,
+                                   Callback<ReferencesResult> CB) {
++  auto Answer = std::make_shared<FirstAnswer<ReferencesResult>>(std::move(CB));
+   // Containers need the AST path; everything else may come from the shard.
+-  if (NavigationFromIndex && BackgroundIdx && !AddContainer) {
+-    if (auto Draft = getDraft(File))
+-      if (auto Shard = BackgroundIdx->loadShard(File))
+-        if (auto Result = clangd::findReferencesFromShard(*Shard, File, *Draft,
+-                                                          Pos, Limit, Index)) {
+-          vlog("References in {0} answered from the index shard", File);
+-          return CB(std::move(*Result));
+-        }
++  if (auto Indexed = AddContainer ? std::nullopt : indexedSymbolAt(File, Pos)) {
++    WorkScheduler->run(
++        "ReferencesFromIndex", File,
++        [Answer, ID = Indexed->second, Path = File.str(), Limit, this] {
++          if (pollIndex<ReferencesResult>(*Answer, [&] {
++                return clangd::findReferencesToIndexedSymbol(ID, Path, Limit,
++                                                             Index);
++              }))
++            vlog("References in {0} answered from the index shard", Path);
++        });
+   }
+-  auto Action = [Pos, Limit, AddContainer, CB = std::move(CB),
++  auto Action = [Pos, Limit, AddContainer, Answer,
+                  this](llvm::Expected<InputsAndAST> InpAST) mutable {
++    if (Answer->answered())
++      return;
+     if (!InpAST)
+-      return CB(InpAST.takeError());
+-    CB(clangd::findReferences(InpAST->AST, Pos, Limit, Index, AddContainer));
++      return (void)Answer->answer(InpAST.takeError());
++    Answer->answer(
++        clangd::findReferences(InpAST->AST, Pos, Limit, Index, AddContainer));
+   };
+ 
+   WorkScheduler->runWithAST("References", File, std::move(Action));
+diff --git a/clang-tools-extra/clangd/ClangdServer.h b/clang-tools-extra/clangd/ClangdServer.h
+index 3f8476371..924b03abc 100644
+--- a/clang-tools-extra/clangd/ClangdServer.h
++++ b/clang-tools-extra/clangd/ClangdServer.h
+@@ -485,6 +485,11 @@ public:
+ 
+ private:
+   FeatureModuleSet *FeatureModules;
++  /// With NavigationFromIndex: the stored shard of \p File and the symbol it
++  /// records at \p Pos, if the open file's content matches the shard.
++  std::optional<std::pair<std::shared_ptr<IndexFileIn>, SymbolID>>
++  indexedSymbolAt(PathRef File, Position Pos);
++
+   const GlobalCompilationDatabase &CDB;
+   const ThreadsafeFS &getHeaderFS() const {
+     return UseDirtyHeaders ? *DirtyFS : TFS;
+diff --git a/clang-tools-extra/clangd/XRefs.cpp b/clang-tools-extra/clangd/XRefs.cpp
+index ad5a71b54..dcfc50609 100644
+--- a/clang-tools-extra/clangd/XRefs.cpp
++++ b/clang-tools-extra/clangd/XRefs.cpp
+@@ -2620,12 +2620,8 @@ std::optional<SymbolID> symbolAtFromShard(const IndexFileIn &Shard,
+ }
+ 
+ std::optional<std::vector<LocatedSymbol>>
+-locateSymbolFromShard(const IndexFileIn &Shard, llvm::StringRef MainFilePath,
+-                      llvm::StringRef Content, Position Pos,
+-                      const SymbolIndex *Index) {
+-  auto ID = symbolAtFromShard(Shard, MainFilePath, Content, Pos);
+-  if (!ID)
+-    return std::nullopt;
++locateIndexedSymbol(const SymbolID &ID, const IndexFileIn &Shard,
++                    llvm::StringRef MainFilePath, const SymbolIndex *Index) {
+   std::optional<LocatedSymbol> Result;
+   auto FromSymbol = [&](const Symbol &Sym) {
+     LocatedSymbol Located;
+@@ -2642,11 +2638,11 @@ locateSymbolFromShard(const IndexFileIn &Shard, llvm::StringRef MainFilePath,
+   };
+   if (Index) {
+     LookupRequest Req;
+-    Req.IDs.insert(*ID);
++    Req.IDs.insert(ID);
+     Index->lookup(Req, FromSymbol);
+   }
+   if (!Result && Shard.Symbols) {
+-    auto It = Shard.Symbols->find(*ID);
++    auto It = Shard.Symbols->find(ID);
+     if (It != Shard.Symbols->end())
+       FromSymbol(*It);
+   }
+@@ -2656,17 +2652,13 @@ locateSymbolFromShard(const IndexFileIn &Shard, llvm::StringRef MainFilePath,
+ }
+ 
+ std::optional<ReferencesResult>
+-findReferencesFromShard(const IndexFileIn &Shard, llvm::StringRef MainFilePath,
+-                        llvm::StringRef Content, Position Pos, uint32_t Limit,
+-                        const SymbolIndex *Index) {
++findReferencesToIndexedSymbol(const SymbolID &ID, llvm::StringRef MainFilePath,
++                              uint32_t Limit, const SymbolIndex *Index) {
+   if (!Index)
+     return std::nullopt;
+-  auto ID = symbolAtFromShard(Shard, MainFilePath, Content, Pos);
+-  if (!ID)
+-    return std::nullopt;
+   ReferencesResult Results;
+   RefsRequest Req;
+-  Req.IDs.insert(*ID);
++  Req.IDs.insert(ID);
+   if (Limit)
+     Req.Limit = Limit;
+   Results.HasMore = Index->refs(Req, [&](const Ref &R) {
+@@ -2683,6 +2675,8 @@ findReferencesFromShard(const IndexFileIn &Shard, llvm::StringRef MainFilePath,
+           ReferencesResult::Declaration | ReferencesResult::Definition;
+     Results.References.push_back(std::move(Result));
+   });
++  if (Results.References.empty())
++    return std::nullopt;
+   if (Limit && Results.References.size() > Limit) {
+     Results.References.resize(Limit);
+     Results.HasMore = true;
+@@ -2690,5 +2684,25 @@ findReferencesFromShard(const IndexFileIn &Shard, llvm::StringRef MainFilePath,
+   return Results;
+ }
+ 
++std::optional<std::vector<LocatedSymbol>>
++locateSymbolFromShard(const IndexFileIn &Shard, llvm::StringRef MainFilePath,
++                      llvm::StringRef Content, Position Pos,
++                      const SymbolIndex *Index) {
++  auto ID = symbolAtFromShard(Shard, MainFilePath, Content, Pos);
++  if (!ID)
++    return std::nullopt;
++  return locateIndexedSymbol(*ID, Shard, MainFilePath, Index);
++}
++
++std::optional<ReferencesResult>
++findReferencesFromShard(const IndexFileIn &Shard, llvm::StringRef MainFilePath,
++                        llvm::StringRef Content, Position Pos, uint32_t Limit,
++                        const SymbolIndex *Index) {
++  auto ID = symbolAtFromShard(Shard, MainFilePath, Content, Pos);
++  if (!ID)
++    return std::nullopt;
++  return findReferencesToIndexedSymbol(*ID, MainFilePath, Limit, Index);
++}
++
+ } // namespace clangd
+ } // namespace clang
+diff --git a/clang-tools-extra/clangd/XRefs.h b/clang-tools-extra/clangd/XRefs.h
+index b47eac37d..d0b97b1a2 100644
+--- a/clang-tools-extra/clangd/XRefs.h
++++ b/clang-tools-extra/clangd/XRefs.h
+@@ -129,6 +129,20 @@ std::optional<SymbolID> symbolAtFromShard(const IndexFileIn &Shard,
+                                           llvm::StringRef Content,
+                                           Position Pos);
+ 
++/// locateSymbolAt for the indexed symbol \p ID, answered from \p Index (or the
++/// shard's own symbols) without an AST. Returns std::nullopt while neither knows
++/// the symbol, e.g. before the background index has loaded its stored shards.
++std::optional<std::vector<LocatedSymbol>>
++locateIndexedSymbol(const SymbolID &ID, const IndexFileIn &Shard,
++                    llvm::StringRef MainFilePath, const SymbolIndex *Index);
++
++/// findReferences for the indexed symbol \p ID, answered from \p Index without
++/// an AST. Returns std::nullopt while the index has no reference to it (the
++/// symbol was found at a reference, so a loaded index has at least that one).
++std::optional<ReferencesResult>
++findReferencesToIndexedSymbol(const SymbolID &ID, llvm::StringRef MainFilePath,
++                              uint32_t Limit, const SymbolIndex *Index);
++
+ /// locateSymbolAt for the symbol given by symbolAtFromShard, answered from
+ /// \p Index (or the shard's own symbols), without an AST. Returns std::nullopt
+ /// when the shard cannot answer.
+diff --git a/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp b/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp
+index 7cfd1f86b..698f7611e 100644
+--- a/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp
++++ b/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp
+@@ -271,6 +271,22 @@ TEST_F(NavigationFromShardTest, NoAnswerWhereTheShardCannotTell) {
+                                        Main.point("call"), 0, Idx.get()));
+ }
+ 
++TEST_F(NavigationFromShardTest, NoAnswerBeforeTheIndexKnowsTheSymbol) {
++  // At startup the background index loads its stored shards asynchronously;
++  // until then a symbol of another file is unknown. The server keeps asking
++  // (while the AST path runs), so both lookups must say "not yet".
++  auto Shard = Idx->loadShard(MainPath);
++  ASSERT_TRUE(Shard);
++  auto ID = symbolAtFromShard(*Shard, MainPath, Main.code(), Main.point("type"));
++  ASSERT_TRUE(ID);
++  auto Empty = MemIndex::build(SymbolSlab(), RefSlab(), RelationSlab());
++  EXPECT_FALSE(locateIndexedSymbol(*ID, *Shard, MainPath, Empty.get()));
++  EXPECT_FALSE(findReferencesToIndexedSymbol(*ID, MainPath, 0, Empty.get()));
++  // Once the index has it, both answer.
++  EXPECT_TRUE(locateIndexedSymbol(*ID, *Shard, MainPath, Idx.get()));
++  EXPECT_TRUE(findReferencesToIndexedSymbol(*ID, MainPath, 0, Idx.get()));
++}
++
+ TEST_F(NavigationFromShardTest, ReferencesMatchTheAST) {
+   auto Shard = Idx->loadShard(MainPath);
+   ASSERT_TRUE(Shard);
+-- 
+2.56.0
+

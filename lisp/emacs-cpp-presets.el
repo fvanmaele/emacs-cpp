@@ -32,6 +32,18 @@
   :type 'file
   :group 'tools)
 
+(defcustom emacs-cpp-clangd-program nil
+  "The patched clangd that answers navigation from its index, or nil (D-026).
+Nil starts the system clangd.  A path, normally
+/opt/clangd-index-nav/bin/clangd from packaging/clangd-index-nav (D-027), starts
+that program with --navigation-from-index; it must exist and support the flag,
+otherwise eglot is refused rather than started without it."
+  :type '(choice (const :tag "System clangd" nil) file)
+  :group 'tools)
+
+(defvar emacs-cpp-presets--navigation-support nil
+  "Cache of (PROGRAM MODTIME . SUPPORTED) for `emacs-cpp-clangd-program'.")
+
 (defconst emacs-cpp-presets--files '("CMakePresets.json" "CMakeUserPresets.json")
   "Preset files read from a project root, in CMake's order.")
 
@@ -207,6 +219,38 @@ refusal visible (D-018)."
     (display-warning 'emacs-cpp message :error)
     (user-error "%s" message)))
 
+(defun emacs-cpp-presets--supports-navigation-p (program)
+  "Return non-nil if PROGRAM's help lists --navigation-from-index.
+Asked once per program file version."
+  (let ((modtime (file-attribute-modification-time (file-attributes program)))
+        (cached emacs-cpp-presets--navigation-support))
+    (if (and cached (equal (car cached) program) (equal (cadr cached) modtime))
+        (cddr cached)
+      (let ((supported
+             (with-temp-buffer
+               (and (eql 0 (call-process program nil t nil "--help-hidden"))
+                    (progn (goto-char (point-min))
+                           (search-forward "--navigation-from-index" nil t))
+                    t))))
+        (setq emacs-cpp-presets--navigation-support
+              (cons program (cons modtime supported)))
+        supported))))
+
+(defun emacs-cpp-presets--clangd-program ()
+  "Return the clangd program and the arguments that come with it (D-026)."
+  (let ((program emacs-cpp-clangd-program))
+    (cond
+     ((null program) (list "clangd"))
+     ((not (file-executable-p program))
+      (emacs-cpp-presets--refuse
+       "emacs-cpp: emacs-cpp-clangd-program %s is not executable; install \
+packaging/clangd-index-nav or set it to nil (D-026)" program))
+     ((not (emacs-cpp-presets--supports-navigation-p program))
+      (emacs-cpp-presets--refuse
+       "emacs-cpp: %s lacks --navigation-from-index; it is not the patched clangd \
+(D-026)" program))
+     (t (list program "--navigation-from-index")))))
+
 (defun emacs-cpp-presets-clangd-contact (_interactive project)
   "Return the clangd command for PROJECT, for `eglot-server-programs'."
   (let* ((root (expand-file-name (project-root project)))
@@ -220,7 +264,8 @@ refusal visible (D-018)."
     (condition-case err
         (emacs-cpp-presets-check-database database)
       (user-error (emacs-cpp-presets--refuse "%s" (error-message-string err))))
-    (list "clangd" (concat "--compile-commands-dir=" dir))))
+    (let ((command (emacs-cpp-presets--clangd-program)))
+      `(,(car command) ,(concat "--compile-commands-dir=" dir) ,@(cdr command)))))
 
 ;;;; Starting eglot
 
