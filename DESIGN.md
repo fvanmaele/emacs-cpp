@@ -387,7 +387,8 @@ Mechanisms, each PROPOSED until measured:
   transient, compat, seq, cl-lib, org, which-key. Vendored, 28 repositories:
   - completion: vertico, orderless, marginalia, consult, embark (holds embark-consult),
     corfu, cape (vendored by T-003); consult-eglot v0.5.0 (T-004).
-  - IDE: dape, diff-hl, breadcrumb.
+  - IDE: dape (vendored 0.27.1 for S2, owner consent 2026-10-08; its `use-package`
+    form comes with T-006), diff-hl, breadcrumb.
   - project + tree: projectile, treemacs (holds treemacs-projectile), and its
     dependencies dash, s, ace-window, avy, pfuture, hydra (holds lv), ht, cfrs,
     posframe.
