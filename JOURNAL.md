@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0021 | 2026-10-08 | T-005: build the active preset from any buffer | T-005 | D-035 |
 | 0020 | 2026-10-08 | T-006 fix: `gdb-preset` targets from build.ninja | T-006 | D-033 |
 | 0019 | 2026-10-08 | T-006: dape `gdb-preset`, a preset program | T-006 | D-031, D-032 |
 | 0018 | 2026-10-08 | S2 run 1: PASS, dape + gdb on RMO | S2 | D-002 |
