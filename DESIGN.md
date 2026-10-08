@@ -343,9 +343,14 @@ Known defects: none yet (nothing built).
   projectile's own menu stays on `C-c p m`. Turning it on costs about 11 ms at start.
 - DECIDED D-029 (owner 2026-10-08): `C-c t` toggles the project tree; treemacs runs
   `treemacs-project-follow-mode`, so the tree shows only the project of the selected
-  buffer (projectile's, via treemacs-projectile) and follows it. Not opened at
-  startup. `C-c t` opens with the current project directly (`treemacs` alone asks for
-  a root while the workspace is empty). `C-x t t` stays Emacs's tab-bar key.
+  buffer (projectile's, via treemacs-projectile) and follows it. "Not opened at startup":
+  SUPERSEDED by D-048. `C-c t` opens with the current project directly (`treemacs` alone
+  asks for a root while the workspace is empty). `C-x t t` stays Emacs's tab-bar key.
+- DECIDED D-048 (owner 2026-10-08): the tree opens by itself, once per session, when
+  the first file of a project is shown in a window (also a file given on the command
+  line); the cursor stays in the file. Once `C-c t` has closed it, it stays closed.
+  Option `emacs-cpp-tree-open-automatically` (default t). Not at startup itself:
+  `*scratch*` has no project, and treemacs (70 ms) loads only with the tree.
 
 ## 11. Performance (Q-2, D-010)
 Budgets, measured on the owner machine (T-008 measures, numbers land here):
@@ -783,6 +788,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-045 | 2026-10-08 | Python rides along: ts-mode, pyright, debugpy | 5 | O-19 |
 | D-046 | 2026-10-08 | patch 0006: header waits for the project handover | 7 | O-21 |
 | D-047 | 2026-10-08 | patch 0007: header wait ends once includers are known | 7 | T-019 |
+| D-048 | 2026-10-08 | tree opens with the first project file (option) | 10 | owner |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.

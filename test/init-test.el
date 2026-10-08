@@ -175,6 +175,46 @@ without one, the default theme is."
       (when-let* ((buffer (get-file-buffer file))) (kill-buffer buffer))
       (delete-directory root t))))
 
+(ert-deftest init-treemacs-opens-with-the-first-project-file ()
+  "D-048: the tree opens once, with the first project file shown, focus stays on
+the file; closed with C-c t it stays closed; never with the option off."
+  (init-test--load)
+  (defvar treemacs-persist-file)
+  (defvar treemacs-last-error-persist-file)
+  (setq treemacs-persist-file (expand-file-name "treemacs-persist" init-test--home)
+        treemacs-last-error-persist-file
+        (expand-file-name "treemacs-persist-at-last-error" init-test--home))
+  (let* ((root (file-name-as-directory (make-temp-file "emacs-cpp-tree" t)))
+         (files (mapcar (lambda (name) (expand-file-name name root)) '("a.cc" "b.cc")))
+         (emacs-cpp--tree-opened nil))
+    (unwind-protect
+        (progn
+          (make-directory (expand-file-name ".git" root))
+          (dolist (file files) (write-region "int a;\n" nil file))
+          (delete-other-windows)
+          ;; Option off: no tree.
+          (let ((emacs-cpp-tree-open-automatically nil))
+            (find-file (car files))
+            (sit-for 0.1)
+            (should-not (treemacs-get-local-window)))
+          (kill-buffer (get-file-buffer (car files)))
+          ;; Option on: the first project file shown opens it, focus on the file.
+          (let ((emacs-cpp-tree-open-automatically t))
+            (find-file (car files))
+            (sit-for 0.1)
+            (should (treemacs-get-local-window))
+            (should (equal (buffer-file-name (window-buffer (selected-window)))
+                           (car files)))
+            ;; Closed by hand, it stays closed for later files.
+            (emacs-cpp-treemacs-toggle)
+            (should-not (treemacs-get-local-window))
+            (find-file (cadr files))
+            (sit-for 0.1)
+            (should-not (treemacs-get-local-window))))
+      (dolist (file files)
+        (when-let* ((buffer (get-file-buffer file))) (kill-buffer buffer)))
+      (delete-directory root t))))
+
 (ert-deftest init-completion-stack-is-active ()
   "T-003: vertico, orderless, marginalia, consult, embark, corfu, cape are wired."
   (init-test--load)

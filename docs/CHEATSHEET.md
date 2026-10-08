@@ -109,7 +109,7 @@ for the project; `M-x projectile-discard-command-cache` returns to the preset's.
 |---|---|
 | `C-x C-a b` / click the fringe | toggle a breakpoint on the line (red mark) |
 | `C-x C-a d` `gdb-preset RET` | pick a target of the active preset, build it, debug it |
-| `C-x C-a n` / `s` / `o` / `c` | step over / into / out / continue; then plain `n` `s` `o` `c` repeat |
+| `C-x C-a n` `s` `o` `c` | step over / into / out / continue; then just `n` `s` `o` `c` |
 | `C-x C-a w` | watch an expression |
 | `C-x C-a i` | info buffers: stack, locals, breakpoints, threads |
 | `C-x C-a q` | end the session |
@@ -139,8 +139,10 @@ Lines changed since the last commit are marked in the right fringe (green added,
 changed, red deleted), after each save and each magit action (D-042).
 
 ## Project tree (treemacs)
-`C-c t` opens / closes the tree. It shows only the project of the buffer you are in and
-switches when you move to a file of another project (D-029). Inside the tree:
+`C-c t` opens / closes the tree. It opens by itself with the first project file of a
+session (D-048; `emacs-cpp-tree-open-automatically` nil turns that off). It shows only
+the project of the buffer you are in and switches when you move to a file of another
+project (D-029). Inside the tree:
 
 | Key | Does |
 |---|---|
