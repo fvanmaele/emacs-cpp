@@ -14,6 +14,10 @@
 ;; library's symbols at start unless `emacs-cpp-debug-lazy-symbols' is set (D-030),
 ;; and sources `emacs-cpp-debug-gdb-scripts', such as deal.II's printers (D-032).
 ;; Breakpoints are kept with dape's own `dape-breakpoint-save' and `-load'.
+;;
+;; In source buffers the fringe (the margin in a terminal) toggles breakpoints with a
+;; click, as CLion's gutter does; breakpoints are drawn in the theme's error colour
+;; and the line the program stopped at is highlighted (D-036).
 
 ;;; Code:
 
@@ -162,8 +166,15 @@ emacs-cpp-debug--prepare against it (D-031)"))
 (use-package dape
   ;; dape binds its prefix only once loaded; this loads it on the first C-x C-a.
   :bind-keymap ("C-x C-a" . dape-global-map)
+  ;; Gutter clicks in C and C++ buffers; dape (135 ms) loads with the first one.  Not
+  ;; `prog-mode': *scratch* is one, and would load dape at every startup.
+  :hook (c-ts-base-mode . dape-breakpoint-mode)
   :config
-  (setf (alist-get 'gdb-preset dape-configs) (emacs-cpp-debug--gdb-preset-config)))
+  (setf (alist-get 'gdb-preset dape-configs) (emacs-cpp-debug--gdb-preset-config))
+  ;; The theme styles neither face; inheriting keeps them in the theme's colours.
+  (require 'hl-line)
+  (face-spec-set 'dape-breakpoint-face '((t :inherit error)))
+  (face-spec-set 'dape-source-line-face '((t :inherit hl-line :extend t))))
 
 (provide 'init-debug)
 ;;; init-debug.el ends here

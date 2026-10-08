@@ -92,6 +92,19 @@ that can follow (D-034). `C-h` in that popup pages through them.
 For a preset build, answer the compile prompt with e.g.
 `cmake --build --preset debug` (the prompt remembers it).
 
+## Debugging (dape + gdb)
+| Key | Does |
+|---|---|
+| `C-x C-a b` / click the fringe | toggle a breakpoint on the line (red mark) |
+| `C-x C-a d` `gdb-preset RET` | pick a target of the active preset, build it, debug it |
+| `C-x C-a n` / `s` / `o` / `c` | step over / into / out / continue |
+| `C-x C-a w` | watch an expression |
+| `C-x C-a i` | info buffers: stack, locals, breakpoints, threads |
+| `C-x C-a q` | end the session |
+
+The line the program stopped at is highlighted. Options: `emacs-cpp-debug-lazy-symbols`
+(faster first stop, D-030), `emacs-cpp-debug-gdb-scripts` (deal.II printers, D-032).
+
 ## Git (magit)
 | Key | Does |
 |---|---|
@@ -118,7 +131,6 @@ switches when you move to a file of another project (D-029). Inside the tree:
 | `q` | close the tree |
 
 ## Not there yet
-- Debugger and breakpoints (dape, gdb): milestone v0.3, spike S2.
 - The `C-c l` code-action keys (rename, format, implementation, ...): T-007. Until then
   use the `M-x` commands above.
 

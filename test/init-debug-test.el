@@ -172,6 +172,13 @@ OUTPUT_NAME has a space (Ninja's `$ '), a shared library, a block without CONFIG
   (require 'dape)
   (should (eq (keymap-lookup global-map "C-x C-a d") 'dape))
   (should (eq (keymap-lookup global-map "C-x C-a n") 'dape-next))
+  ;; D-036: gutter clicks in C/C++ buffers, red breakpoints, highlighted stop line.
+  (should (memq 'dape-breakpoint-mode c-ts-base-mode-hook))
+  (should (eq (face-attribute 'dape-breakpoint-face :inherit) 'error))
+  (should (eq (face-attribute 'dape-source-line-face :inherit) 'hl-line))
+  (with-temp-buffer
+    (c++-ts-mode)
+    (should dape-breakpoint-mode))
   (let ((config (alist-get 'gdb-preset dape-configs)))
     (should (eq (plist-get config 'fn) #'emacs-cpp-debug--prepare))
     (should (eq (plist-get config :program) #'emacs-cpp-debug-read-program))
