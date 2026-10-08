@@ -528,6 +528,7 @@ presets, GoogleTest runner.
 | first `M-.` / rename per file waits 7 - 13 s | S5 (closed), S6 | owner | O-8 |
 | index rebuilt from scratch per preset / build dir | S7 | owner | - |
 | patched clangd's index navigation slower / wrong on RMO | S8 | owner | O-11 |
+| header opened first after a restart gets guessed flags | S9 | owner | O-21 |
 | own package build glue mis-orders compilation | none (tests) | - | v0.1 |
 | clangd too slow / too large on deal.II scale | S1 numbers | owner | v0.1 |
 
@@ -633,7 +634,9 @@ presets, GoogleTest runner.
   while that counter is above 0, so it sees 0, does not wait and finds no includer.
   Proposed patch 0006: in `IncluderFromIndexCDB`, first `blockUntilIdle` on the
   database (the broadcast has run, the load is counted), then wait for the load, both
-  within the same 5 s. Owner rules: tier and done-when (rebuild pkgrel 4).
+  within the same 5 s. Owner ruled spike first (S9, tier 3). S9 dry run (toy shaped
+  like RMO): 1 of 5 header-first sessions got the guess (5 errors), its decision in
+  the same millisecond as "Enqueueing"; source first always from the index.
 - O-19 (RESOLVED 2026-10-08 with D-045): which of Python, R and Perl ride along, and
   how far: mode only, plus a language server, plus a debugger
   (`RESEARCH_other_languages.md` 3). Python needs only Arch packages; Perl's server is
