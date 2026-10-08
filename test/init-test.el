@@ -50,8 +50,8 @@ The temporary home is deleted when Emacs exits."
 (ert-deftest init-loads-and-matches-retired-dot-emacs ()
   "init.el loads without error and keeps the behaviour of the retired ~/.emacs."
   (init-test--load)
-  (dolist (feature '(init-ui init-completion init-project init-cpp init-debug init-git
-                     init-writing))
+  (dolist (feature '(init-ui init-completion init-project init-cpp init-cmake init-debug
+                     init-git init-writing))
     (should (featurep feature)))
   (should-not package-enable-at-startup)
   (should (equal custom-file (expand-file-name "custom.el" init-test--home)))
@@ -62,6 +62,15 @@ The temporary home is deleted when Emacs exits."
   (should (eq (keymap-lookup projectile-mode-map "C-c p") 'projectile-command-map))
   (should (eq (keymap-lookup global-map "C-x g") 'magit-status))
   (should (eq (assoc-default "notes.md" auto-mode-alist #'string-match) 'markdown-mode))
+  ;; D-013: CMake files get the system cmake-mode.
+  (let ((file (expand-file-name "CMakeLists.txt" init-test--home)))
+    (write-region "project(toy CXX)\n" nil file)
+    (with-current-buffer (find-file-noselect file)
+      (unwind-protect
+          (should (eq major-mode 'cmake-mode))
+        (kill-buffer)))
+    (should (string-prefix-p "/usr/share/emacs/site-lisp/" (locate-library "cmake-mode"))))
+  (should (eq (assoc-default "x/FindFoo.cmake" auto-mode-alist #'string-match) 'cmake-mode))
   (dolist (command '(treemacs treemacs-projectile org-journal-new-entry))
     (should (commandp command)))
   ;; The tree's libraries come from lib/, not from the retired package.el tree.
