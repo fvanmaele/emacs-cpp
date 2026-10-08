@@ -62,6 +62,13 @@ and nothing fails. Issue #197 (2019) reported the same assertion for a different
   configuration notification also doubles the start-up indexing work for clients that
   send it at connect time (eglot does).
 
+### A second, rarer trigger
+With the notification suppressed in the Emacs client, aborts with the same assertion
+still occurred, less often: 2 of 15 runs of our editor tests (12 of 15 runs had
+aborted before). Not yet isolated; a likely candidate is concurrent indexing of a
+header shared by two translation units. `index.threads` = 1 avoided all aborts in our
+runs (25 standalone, 15 editor-test runs).
+
 ### Client-side workaround (used in our Emacs configuration)
 Do not send `workspace/didChangeConfiguration` to ccls at connect time (eglot:
 replace `eglot-signal-didChangeConfiguration` in `eglot-connect-hook` for a ccls
