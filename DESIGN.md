@@ -122,6 +122,11 @@ Observed on the owner machine, 2026-10-07:
 - `use-package-expand-minimally` t: use-package then does not wrap forms in its own
   error catching, so a broken package form stops startup (principle 1).
 - Packages: section 12 (D-006). `package.el` is not used at startup.
+- DECIDED D-045 (owner 2026-10-08, O-19): Python rides along with mode, language
+  server and debugger (T-018): `python-ts-mode` (system grammar `tree-sitter-python`),
+  pyright through eglot in project files, debugpy through dape's own config; all from
+  the Arch repositories, no submodule. R and Perl: not configured (built-in modes
+  only, as before).
 - DECIDED D-040 (2026-10-08, owner report "custom themes are not saved on restart"):
   `custom.el` loads last, so a setting saved with Customize wins over the config's
   default. The default theme (`modus-vivendi-tritanopia`) is loaded from
@@ -629,7 +634,7 @@ presets, GoogleTest runner.
   Proposed patch 0006: in `IncluderFromIndexCDB`, first `blockUntilIdle` on the
   database (the broadcast has run, the load is counted), then wait for the load, both
   within the same 5 s. Owner rules: tier and done-when (rebuild pkgrel 4).
-- O-19 (OPEN, owner question 2026-10-08): which of Python, R and Perl ride along, and
+- O-19 (RESOLVED 2026-10-08 with D-045): which of Python, R and Perl ride along, and
   how far: mode only, plus a language server, plus a debugger
   (`RESEARCH_other_languages.md` 3). Python needs only Arch packages; Perl's server is
   CPAN-only; R needs ESS as a new submodule.
@@ -758,6 +763,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-042 | 2026-10-08 | diff-hl 1.10.0 vendored, marks in the right fringe | 12 | T-016 |
 | D-043 | 2026-10-08 | breadcrumb vendored at bcf7f1d | 12 | T-017 |
 | D-044 | 2026-10-08 | gud's prefix on `C-x M-a`, not dape's `C-x C-a` | 9 | O-20 |
+| D-045 | 2026-10-08 | Python rides along: ts-mode, pyright, debugpy | 5 | O-19 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
