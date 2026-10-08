@@ -61,7 +61,7 @@ with `done when: ...`).
 | T-012 | rejected (D-021) | M | preamble warm-up | S5 | owner ruled out extra open files |
 | T-013 | closed (D-026) | L | ccls + clang-tidy | D-023, D-024 | branch kept, not merged |
 | T-014 | done 0014 | M | patched clangd | D-026, D-027 | owner: RMO M-. works (pkgrel 3) |
-| T-015 | next | S | treemacs-magit | v0.4 | done when: loaded once treemacs and magit are |
+| T-015 | done (tier 1) | S | treemacs-magit | v0.4 | loaded with treemacs + magit; test |
 | T-016 | open | M | diff-hl | D-042, v0.4 | done when: see below |
 | T-017 | open | M | breadcrumb | D-043, v0.4 | done when: see below |
 
