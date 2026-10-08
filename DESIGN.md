@@ -172,6 +172,14 @@ Known defects: none yet (nothing built).
   commits as patches, four since pkgrel 2; standalone build against the system LLVM) to
   `/opt/clangd-index-nav`, depending on `llvm-libs` and `clang` = 23.1.1 exactly, so
   an LLVM upgrade is visible to pacman and needs a rebuild of the package.
+- DECIDED D-028 (owner 2026-10-08, tier 2; resolves O-5 for indexed headers): the
+  patched clangd compiles a header without a database entry with the command of a
+  source file that includes it, as the background index records (patch 0005, hidden
+  flag `--header-flags-from-index`, waits up to 5 s for stored shards still loading);
+  clangd's own includer cache keeps precedence. The config passes both patched flags
+  and refuses a binary lacking either (D-026). Headers no indexed source includes, and
+  first sessions before indexing, keep clangd's guess. Replaces spike S4 (owner
+  ruling: the synthetic reproduction is the evidence, RMO the proof).
 - DECIDED D-023 (superseded by D-026) (owner 2026-10-08, after S6): eglot runs ccls,
   told the active preset's
   build directory (`compilationDatabaseDirectory`) and keeping its index cache in
@@ -207,11 +215,11 @@ Known defects: none yet (nothing built).
   GCC 16 defaults to C++20, so CMake omits `-std` and clangd then assumes C++17 (false
   errors, S1 run 1). Projects set `CMAKE_CXX_EXTENSIONS OFF`, which makes CMake emit
   `-std=c++NN`. Enforced at eglot start by D-018.
-- UNDECIDED (S4, O-5): headers are not in the database; a header opened with no
-  including file open gets flags interpolated from a "nearest" entry (in RMO
-  `fmt/src/format.cc`, wrong include paths). S1 live check: once an including `.cc` is
-  open, clangd reuses its flags and the header is clean; opened first, it shows errors.
-  Mitigation candidates and their spike: S4, gating T-011.
+- DECIDED via D-028 (was UNDECIDED, S4, O-5): headers are not in the database; a
+  header opened with no including file open gets flags interpolated from a "nearest"
+  entry (in RMO `fmt/src/format.cc`, wrong include paths). S1 live check: once an
+  including `.cc` is open, clangd reuses its flags and the header is clean; opened
+  first, it shows errors. The patched clangd takes an includer from its index (D-028).
 - DECIDED D-008: C++ major mode is `c++-ts-mode` on the system grammar; `.h` files open
   in `c++-ts-mode` (the owner's projects are C++, and no C grammar is installed). A
   missing grammar is a startup error, not a fallback to `c++-mode`.
@@ -398,7 +406,7 @@ presets, GoogleTest runner.
 |---|---|---|---|
 | clangd misses compile DB under preset `binaryDir` | S1 | owner | v0.1 |
 | dape + `gdb -i dap` fails on a preset-built binary | S2 | owner | v0.3 |
-| header opened first gets wrong flags (false errors) | S4 | owner | T-011 |
+| header opened first gets wrong flags (errors) | D-028 (S4 dropped) | owner | T-011 |
 | first `M-.` / rename per file waits 7 - 13 s | S5 (closed), S6 | owner | O-8 |
 | index rebuilt from scratch per preset / build dir | S7 | owner | - |
 | patched clangd's index navigation slower / wrong on RMO | S8 | owner | O-11 |
@@ -410,9 +418,14 @@ presets, GoogleTest runner.
   clangd 22 (fills the (R) rows of section 1). After v0.1.
 
 ## Open questions ledger (LIVING)
-- O-5: cold-header flags (DESIGN 7) -> S4, and S6 (ccls) round 3. Owner 2026-10-08:
-  also after `M-.` into a project header no open source includes ("rmo/lac.h not
-  found"), not only for headers opened first. O-7 is probably the same case.
+- O-5 (RESOLVED 2026-10-08 with D-028 for headers the index knows): cold-header flags
+  (DESIGN 7) -> S4, and S6 (ccls) round 3. Owner 2026-10-08: also after `M-.` into a
+  project header no open source includes ("rmo/lac.h not found"), not only for headers
+  opened first. O-7 is probably the same case. After patch 0004 the `#include` jump
+  opened `rmo/option.h` before `main.cc` was parsed: many errors (owner report).
+  Cause (TUScheduler): the command is chosen once, at open; the includer cache fills
+  only from parsed open files. Fmt toy: 2 errors -> 0 with D-028, by jump and opened
+  first. Left: headers no source includes keep the guess.
 - O-10 (CLOSED 2026-10-08 with D-026; ccls not adopted, report draft kept): ccls
   0.20250815.1 (Arch build, assertions compiled in)
   aborts intermittently: `query.cc:275 ... DB::applyIndexUpdate ... Assertion 'v >= 0'
@@ -462,7 +475,9 @@ presets, GoogleTest runner.
   source and in a header). Candidates: the file was indexed with errors, has no
   stored shard, changed since indexing, or the name has no indexed reference (e.g. a
   member through a dependent type). Patch 0004 logs the reason; owner run with
-  `CLANGD_FLAGS=--log=verbose`, see TASKS T-014.
+  `CLANGD_FLAGS=--log=verbose`, see TASKS T-014. Owner run 2026-10-08: only the
+  `#include` request was logged (answered from the index); the errors seen after it
+  were O-5 (D-028). Open until a second-file name lookup is logged with pkgrel 3.
 - O-12 (OPEN, owner question 2026-10-08): Bear (4.2.2, installed) to make compile
   databases for dependent libraries instead of patching clangd. Bear records the
   compiler calls of a build that is run; it helps build systems that cannot export a
@@ -558,6 +573,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-025 | 2026-10-08 | local clangd tree ~/source/repos/llvm-clangd (O-11) | 11 | owner |
 | D-026 | 2026-10-08 | patched clangd via emacs-cpp-clangd-program, loud | 7 | O-11 |
 | D-027 | 2026-10-08 | patched clangd packaged to /opt, pinned to LLVM 23.1.1 | 7 | owner |
+| D-028 | 2026-10-08 | header compile command from an includer in the index | 7 | O-5 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.

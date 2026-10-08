@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0015 | 2026-10-08 | T-011: header flags from the index (patch 0005) | T-011 | D-028 |
 | 0014 | 2026-10-08 | T-014: the patched clangd in the config | T-014 | D-026, D-027 |
 | 0013 | 2026-10-08 | S8 run 2: PASS, patched clangd 7x faster on RMO | S8 | D-025 |
 | 0012 | 2026-10-08 | S8 run 1: 7x faster, a references bug found and fixed | S8 | D-025 |

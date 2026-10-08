@@ -33,7 +33,9 @@ code is written for it. Each spike is a self-contained directory with its own bu
 - **S8 clangd navigation from the index** - does a clangd patched to answer `M-.` /
   `M-?` from the file's stored index shard (D-025, O-11) make the first `M-.` after a
   restart fast on RMO, with the same answers?
-- **S4 cold-header flags** - which mechanism gives a header opened first (no including
+- **S4 cold-header flags** - DROPPED 2026-10-08: replaced by D-028 (patched clangd
+  takes an includer from its index; owner ruled tier 2, toy reproduction as evidence).
+  Was: which mechanism gives a header opened first (no including
   file open) the flags of a translation unit that includes it: (a) header entries added
   to a generated database from `ninja -t deps` after a build, (b) Emacs opens an
   including source file in the background, (c) accept and document. Gates T-011
@@ -47,7 +49,6 @@ code is written for it. Each spike is a self-contained directory with its own bu
 | Spike | Status | RESULTS |
 |---|---|---|
 | S1 | PASS (run 2) | s1-compile-db/RESULTS.md |
-| S4 | not started | |
 | S5 | FAIL, closed by owner ruling (D-021) | s5-preamble-warmup/RESULTS.md |
 | S6 | PASS | s6-ccls/RESULTS.md |
 | S7 | PKGBUILD ready, owner to build | |

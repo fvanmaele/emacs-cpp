@@ -10,11 +10,12 @@ An Emacs 31 configuration giving the owner a CLion-like C++ environment (navigat
 refactoring, diagnostics, CMake presets, debugger, git, jump-to-anything) on one Arch
 Linux workstation. It will never be an Emacs distribution, a multi-OS config or a CLion
 keymap emulation (DESIGN 2).
-**Status (2026-10-08):** design ruled through D-027. clangd stays (T-004); a locally
+**Status (2026-10-08):** design ruled through D-028. clangd stays (T-004); a locally
 patched clangd answers navigation from its index (S8 PASS: first `M-.` on RMO 9.3 ->
-1.4 s), packaged in `packaging/clangd-index-nav` and selected by
-`emacs-cpp-clangd-program` (T-014; owner installs and sets it). The ccls hybrid is
-closed (branch kept). Cold headers (O-5): S4.
+1.4 s; `#include` lines too) and compiles headers with an includer's flags from its
+index (D-028, O-5), packaged in `packaging/clangd-index-nav` (pkgrel 3) and selected by
+`emacs-cpp-clangd-program` (T-014, T-011; owner checks on RMO). The ccls hybrid is
+closed (branch kept).
 
 ## Hard rules (each with its reason)
 - Change-size ladder: tier 1 trivial = commit with Reasoning only; tier 2 feature = `done

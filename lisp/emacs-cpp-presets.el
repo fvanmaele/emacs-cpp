@@ -25,6 +25,7 @@
 (require 'cl-lib)
 (require 'project)
 (require 'subr-x)
+(require 'seq)
 
 (defcustom emacs-cpp-presets-state-file
   (expand-file-name "emacs-cpp-presets.eld" user-emacs-directory)
@@ -36,13 +37,17 @@
   "The patched clangd that answers navigation from its index, or nil (D-026).
 Nil starts the system clangd.  A path, normally
 /opt/clangd-index-nav/bin/clangd from packaging/clangd-index-nav (D-027), starts
-that program with --navigation-from-index; it must exist and support the flag,
-otherwise eglot is refused rather than started without it."
+that program with `emacs-cpp-presets--patched-flags'; it must exist and support
+them, otherwise eglot is refused rather than started without them."
   :type '(choice (const :tag "System clangd" nil) file)
   :group 'tools)
 
+(defconst emacs-cpp-presets--patched-flags
+  '("--navigation-from-index" "--header-flags-from-index")
+  "Flags of the patched clangd (D-026, D-028), passed when it is configured.")
+
 (defvar emacs-cpp-presets--navigation-support nil
-  "Cache of (PROGRAM MODTIME . SUPPORTED) for `emacs-cpp-clangd-program'.")
+  "Cache of (PROGRAM MODTIME . MISSING-FLAGS) for `emacs-cpp-clangd-program'.")
 
 (defconst emacs-cpp-presets--files '("CMakePresets.json" "CMakeUserPresets.json")
   "Preset files read from a project root, in CMake's order.")
@@ -219,22 +224,24 @@ refusal visible (D-018)."
     (display-warning 'emacs-cpp message :error)
     (user-error "%s" message)))
 
-(defun emacs-cpp-presets--supports-navigation-p (program)
-  "Return non-nil if PROGRAM's help lists --navigation-from-index.
+(defun emacs-cpp-presets--missing-flags (program)
+  "Return the `emacs-cpp-presets--patched-flags' PROGRAM's help does not list.
 Asked once per program file version."
   (let ((modtime (file-attribute-modification-time (file-attributes program)))
         (cached emacs-cpp-presets--navigation-support))
     (if (and cached (equal (car cached) program) (equal (cadr cached) modtime))
         (cddr cached)
-      (let ((supported
+      (let ((missing
              (with-temp-buffer
-               (and (eql 0 (call-process program nil t nil "--help-hidden"))
-                    (progn (goto-char (point-min))
-                           (search-forward "--navigation-from-index" nil t))
-                    t))))
+               (if (eql 0 (call-process program nil t nil "--help-hidden"))
+                   (seq-remove (lambda (flag)
+                                 (goto-char (point-min))
+                                 (search-forward flag nil t))
+                               emacs-cpp-presets--patched-flags)
+                 emacs-cpp-presets--patched-flags))))
         (setq emacs-cpp-presets--navigation-support
-              (cons program (cons modtime supported)))
-        supported))))
+              (cons program (cons modtime missing)))
+        missing))))
 
 (defun emacs-cpp-presets--clangd-program ()
   "Return the clangd program and the arguments that come with it (D-026)."
@@ -245,11 +252,12 @@ Asked once per program file version."
       (emacs-cpp-presets--refuse
        "emacs-cpp: emacs-cpp-clangd-program %s is not executable; install \
 packaging/clangd-index-nav or set it to nil (D-026)" program))
-     ((not (emacs-cpp-presets--supports-navigation-p program))
+     ((emacs-cpp-presets--missing-flags program)
       (emacs-cpp-presets--refuse
-       "emacs-cpp: %s lacks --navigation-from-index; it is not the patched clangd \
-(D-026)" program))
-     (t (list program "--navigation-from-index")))))
+       "emacs-cpp: %s lacks %s; it is not the current patched clangd, rebuild \
+packaging/clangd-index-nav (D-026)"
+       program (string-join (emacs-cpp-presets--missing-flags program) " ")))
+     (t (cons program emacs-cpp-presets--patched-flags)))))
 
 (defun emacs-cpp-presets-clangd-contact (_interactive project)
   "Return the clangd command for PROJECT, for `eglot-server-programs'."

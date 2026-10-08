@@ -89,6 +89,23 @@ path ends with the spelled name is the answer, as `locateFileReferent` gives it 
 the AST. Synthetic project: 6226 -> 1 ms. The same commit logs (verbose) why a request
 falls back to the AST.
 
+## 4a. Header compile commands (owner report 2026-10-08)
+- `TUScheduler.cpp`, `ASTWorker::update`: a file without a reliable command (the
+  database's interpolated guess carries a `Heuristic`) borrows the command of a proxy
+  from `HeaderIncluderCache`; that cache is filled only when an open file's preamble
+  is built (`HeaderIncluders.update`). The command is chosen at each update, so a
+  header opened before its includer is parsed keeps the guess until it changes.
+- In RMO the guess is `fmt/src/format.cc` (include paths without deal.II). Fast
+  `#include` jumps (patch 0004) made this frequent; reproduced on a toy with a vendored
+  fmt library: 2 errors ("Kokkos_Macros.hpp" not found), 0 after `revert-buffer` once
+  `main.cc` was parsed.
+- The background index knows includers: `BackgroundIndexLoader::load` walks each TU's
+  include graph and sets `LoadedShard::DependentTU` for every shard it reaches
+  (transitively), and `BackgroundIndex::update` sees each TU's graph when indexing.
+  Patch 0005 records header -> TU from both and lets a compilation database wrapper
+  in front of the TUScheduler transfer that TU's command
+  (`tooling::transferCompileCommand`). Toy: 0 errors by jump and opened first.
+
 ## 5. Without changing clangd
 - Name-based quick jump: while the definition request is pending, query
   `workspace/symbol` (index only, instant) for the identifier at point and offer the
