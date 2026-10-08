@@ -38,3 +38,27 @@ the source's parse had started).
 ## Decision
 Patch 0006 as proposed in O-21; owner rules its done-when (tier 2 now that the spike
 confirmed the cause).
+
+## Run 2 (2026-10-08 21:16, pkgrel 4 with patch 0006, load 3.1 / 13.4 / 14.8)
+Raw output: `results-run2.log`. Same copy, index session 3950 shards after 49.2 s.
+
+| opened first | runs | command from | errors | open -> decision | Enqueueing -> decision |
+|---|---|---|---|---|---|
+| header | 10 | index (`lumping.cc`) | 0 | 1476 - 1555 ms | 966 - 1036 ms |
+| source | 10 | index (`lumping.cc`) | 0 | 976 - 1081 ms (header) | 977 - 1081 ms |
+
+- Patch 0006 fixes the race: 10 / 10 header-first sessions take the includer's
+  command (run 1: 0 / 10).
+- Where the time goes, in both kinds of session alike: the shards load in 0.39 -
+  0.46 s ("Enqueueing" to "after loading index from disk"), then 0.57 - 0.63 s pass
+  until the decision. `loadProject` logs that line and then still builds the
+  searchable index from the 3950 shards and works out which files need re-indexing;
+  patch 0005's wait ends only when `loadProject` returns. Run 1's source-first
+  sessions show the same 1 s.
+- Against T-019's done-when ("decision under 1.5 s after opening"): 5 of 10 runs are
+  above, by at most 55 ms (median 1497 ms). The 1.5 s rested on the estimate "the load
+  takes 0.4 s"; the wait also covers the 0.6 s check. The machine was not idle before
+  the run (5-minute load 13.4).
+- The includers are recorded right after the shards are read, before the symbols
+  are merged and the index is built, so the wait could end there (at least 0.6 s
+  earlier for every header that waits).
