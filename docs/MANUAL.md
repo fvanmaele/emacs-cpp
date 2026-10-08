@@ -30,13 +30,66 @@ name (type part of it; the list narrows as you type).
 |---|---|
 | frame | an operating-system window |
 | window | a pane inside the frame |
-| buffer | an open file (or other text); it stays open when no window shows it |
+| buffer | an open file (or other text) |
 | minibuffer | the line at the bottom where Emacs asks and you answer |
 | region | the selected text |
 | kill / yank | cut / paste |
 | point | the cursor position |
 
-## 2. Ten keys to start with
+## 2. How it fits together
+```
+ CMakePresets.json --(active preset: C-c l P, kept per project)--> build/<preset>/
+                                                                      |
+      +----------------------------+----------------------------------+------+
+      |                            |                                         |
+ compile_commands.json      .cache/clangd/index                        build.ninja
+ flags of every source      what is defined and used where             all targets
+      |                            |                                         |
+      +-------------+--------------+                                         |
+                    v                                                        v
+                 clangd <--eglot--> Emacs <--dape--> gdb <------- gdb-preset: picks a
+                                      |                           target, builds it,
+                         C-c p c c: cmake --build build/<preset>  then starts gdb
+```
+- **One preset drives everything.** The build command, the flags clangd parses with
+  and the list of programs to debug all come from the active preset's build
+  directory. Switching the preset restarts clangd with the other directory. Emacs
+  keeps no build settings of its own.
+- **A project is the folder with `.git`.** Project commands (`C-c p ...`), the tree
+  and clangd all use that folder. A C++ file outside a project, or in a project
+  without `CMakePresets.json`, gets no clangd.
+- **clangd needs the flags of each file.** It reads them from
+  `compile_commands.json`, which `cmake --preset` writes. A header has no entry of its
+  own; it borrows the flags of a source file that includes it. When it cannot, the
+  header shows many false errors.
+- **The index is clangd's memory of the whole project.** It is built in the
+  background the first time, kept in the build directory and reused after a restart:
+  that is why "find usages" sees every file, and why `M-.` answers at once even before
+  the file is parsed (the locally patched clangd). Each preset has its own index, so a
+  first switch to a new preset indexes again.
+- **Buffers outlive windows.** Closing a window, or switching it to another buffer,
+  keeps the file open; `C-x b` brings it back. `**` in the mode line means unsaved
+  changes.
+- **The minibuffer is the one picker.** Files, buffers, symbols, commands, search
+  results: all appear as a list there. Type words in any order to narrow it (`ite gpe`
+  finds `include/rmo/gpe/iteration.h`), the arrows move, a preview shows the selected
+  item, notes on the right describe it, and `C-.` offers other actions on it. Lists put
+  what you chose recently first.
+- **Prefix keys are grouped.** `C-x ...` is Emacs itself; `C-c` + a letter is this
+  configuration (`C-c p` projects, `C-c l` code, `C-c t` tree); `C-x C-a` the debugger.
+  Some keys repeat with a single letter after the first use.
+- **Two fringes, two jobs.** The left fringe belongs to the debugger (breakpoints,
+  current line), the right fringe to git (changed lines), so the marks never cover each
+  other.
+- **What lives where.** The configuration and its packages are in this repository
+  (packages pinned as git submodules; `make packages` builds them; nothing is
+  downloaded at startup). Your own settings (`custom.el`), history, recent files and
+  bookmarks are in `~/.emacs.d/` and survive updates.
+- **It fails loudly.** When something is missing, Emacs stops with a message that
+  says what to do (for example `no compile_commands.json ... run cmake --preset
+  debug`) instead of half working with wrong results.
+
+## 3. Ten keys to start with
 | Key | Does |
 |---|---|
 | `C-g` | cancel whatever is going on (press it when stuck) |
@@ -53,7 +106,7 @@ name (type part of it; the list narrows as you type).
 After a prefix key (`C-x`, `C-c p`, `C-c l`, `C-x C-a`) wait a second: a popup lists
 the keys that can follow.
 
-## 3. Moving and editing
+## 4. Moving and editing
 | Key | Does |
 |---|---|
 | `C-a` / `C-e` | start / end of line |
@@ -71,7 +124,7 @@ the keys that can follow.
 
 After `C-x u` (undo), plain `u` undoes again.
 
-## 4. Windows, tabs, frames
+## 5. Windows, tabs, frames
 ```
  C-x 2 (split below)    C-x 3 (split right)    C-x 1 (keep only this)
  +-----------+          +-----+-----+          +-----------+
@@ -79,7 +132,7 @@ After `C-x u` (undo), plain `u` undoes again.
  +-----------+          |  A  |  B  |          |     A     |
  |     B     |          |     |     |          |           |
  +-----------+          +-----+-----+          +-----------+
- C-x 0 closes the window you are in; its buffer stays open.
+ C-x 0 closes the window you are in.
 ```
 
 | Key | Does |
@@ -96,7 +149,7 @@ After `C-x u` (undo), plain `u` undoes again.
 | `C-x t o` | next tab, then `o` / `O`; `C-x t RET` picks one by name; `C-x t 0` closes |
 | `C-x 5 2` / `C-x 5 0` | new / close frame |
 
-## 5. Files and projects
+## 6. Files and projects
 | Key | Does |
 |---|---|
 | `C-c p p` | switch project |
@@ -108,10 +161,7 @@ After `C-x u` (undo), plain `u` undoes again.
 | `C-x r m` / `C-x r b` | set / jump to a bookmark |
 | `C-c p m` | menu of all project commands |
 
-In any list in the minibuffer, words separated by a space match in any order: `ite
-gpe` finds `include/rmo/gpe/iteration.h`.
-
-## 6. Searching
+## 7. Searching
 | Key | Does |
 |---|---|
 | `M-s l` | lines of this buffer, with preview |
@@ -120,7 +170,7 @@ gpe` finds `include/rmo/gpe/iteration.h`.
 | `C-c p r` | replace in the whole project |
 | `C-.` then `E` | in a result list: copy it to a buffer; there `e` edits the files |
 
-## 7. Working on C++
+## 8. Working on C++
 eglot starts clangd by itself when you open a C++ file of a project that has
 `CMakePresets.json`. The header line shows where you are; inlay hints show parameter
 names and deduced types.
@@ -141,7 +191,7 @@ names and deduced types.
 | `C-c l e` | errors and warnings of the project |
 | `C-c l I` | hide / show inlay hints |
 
-## 8. Building
+## 9. Building
 ```
  C-c l P          C-c p c o          C-c p c c          M-g n / M-g p
  pick preset ---> configure    ---> build        ---> next / previous error
@@ -150,7 +200,7 @@ names and deduced types.
 `C-c p c t` runs the tests (`ctest`). The command is shown before it runs: add
 `--target main` to build one target. All of these work from any file of the project.
 
-## 9. Debugging
+## 10. Debugging
 ```
  C-x C-a b         C-x C-a d gdb-preset RET   C-x C-a n s o c     C-x C-a q
  breakpoint  --->  pick target: builds it --> step over / into  -> end
@@ -162,7 +212,7 @@ After the first step key (`C-x C-a n`), plain `n` `s` `o` `c` keep going. Progra
 arguments: `gdb-preset :args ["--levels" "5"]` at the `C-x C-a d` prompt; the prompt
 starts with your last input.
 
-## 10. Git
+## 11. Git
 | Key | Does |
 |---|---|
 | `C-x g` | status: `s` stage, `u` unstage, `P` push, `F` pull, `l l` log |
@@ -170,7 +220,7 @@ starts with your last input.
 | `C-c M-g` | this file: blame, log, diff |
 | `?` | in a magit buffer: all its keys |
 
-## 11. Help
+## 12. Help
 | Key | Does |
 |---|---|
 | `C-h k` then a key | what that key does |
@@ -180,7 +230,6 @@ starts with your last input.
 | `C-h i` | manuals (Emacs, magit, embark, ...) |
 | prefix then `C-h` | list the keys after that prefix |
 
-## 12. Settings that stay
+## 13. Settings that stay
 `M-x customize-variable` (or `M-x customize-themes` for the colours), change, then
-"Save for future sessions". Saved settings go to `~/.emacs.d/custom.el`, outside the
-repository, and win over the configuration's defaults.
+"Save for future sessions". Saved settings win over the configuration's defaults.
