@@ -73,6 +73,10 @@ headers, and waiting for the asynchronous load). `make test` 24 / 24 with the pk
 - **Risk:** headers no source file includes, and first sessions before indexing,
   still get the guess.
 
+## Owner verification (2026-10-08)
+With pkgrel 3 on RMO: `option.h` reached by the `#include` jump and
+`include/rmo/fe/assemble.h` opened first show no flymake errors. T-011 done.
+
 ## How to verify
 Owner: install pkgrel 3, restart Emacs, open RMO `src/main.cc`, `M-.` on
 `#include <rmo/option.h>`: no flymake errors in `option.h`. Restart, open

@@ -54,7 +54,7 @@ with `done when: ...`).
 | T-007 | open | S | `C-c l` map | D-004 | done when: which-key lists every DESIGN 10 key |
 |       |      |   | (`C-c l P` exists since T-004) | | |
 | T-010 | open | S | Info manuals | DESIGN 12 | done when: `C-h i` lists magit, projectile |
-| T-011 | next | M | cold-header flags | O-5, D-028 | pkgrel 3 built; owner check left |
+| T-011 | done 0015 | M | cold-header flags | O-5, D-028 | owner: RMO headers clean |
 | T-012 | rejected (D-021) | M | preamble warm-up | S5 | owner ruled out extra open files |
 | T-013 | closed (D-026) | L | ccls + clang-tidy | D-023, D-024 | branch kept, not merged |
 | T-014 | done 0014 | M | patched clangd | D-026, D-027 | owner: RMO M-. works (pkgrel 3) |
@@ -85,4 +85,4 @@ with `done when: ...`).
   `M-.` on its `#include` line and `include/rmo/fe/assemble.h` opened first show no
   flymake errors; the config refuses loudly a clangd lacking the flag; ClangdTests and
   `make test` pass; pkgrel 3 carries the patch; first sessions unchanged. Done on the
-  toy (b704ffd66, pkgrel 3); left: owner installs pkgrel 3 and checks RMO.
+  toy (b704ffd66, pkgrel 3); owner 2026-10-08 on RMO: no errors in either case.
