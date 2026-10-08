@@ -175,52 +175,11 @@ without one, the default theme is."
       (when-let* ((buffer (get-file-buffer file))) (kill-buffer buffer))
       (delete-directory root t))))
 
-(ert-deftest init-treemacs-opens-with-the-first-project-file ()
-  "D-048: the tree opens once, with the first project file shown, focus stays on
-the file; git's own files do not count; closed with C-c t it stays closed;
-never with the option off."
+(ert-deftest init-treemacs-opens-only-on-c-c-t ()
+  "D-049: visiting a project file does not open the tree; only C-c t does."
   (init-test--load)
-  (defvar treemacs-persist-file)
-  (defvar treemacs-last-error-persist-file)
-  (setq treemacs-persist-file (expand-file-name "treemacs-persist" init-test--home)
-        treemacs-last-error-persist-file
-        (expand-file-name "treemacs-persist-at-last-error" init-test--home))
-  (let* ((root (file-name-as-directory (make-temp-file "emacs-cpp-tree" t)))
-         (file (lambda (name) (expand-file-name name root)))
-         (emacs-cpp--tree-opened nil))
-    (cl-flet ((show (name) (find-file (funcall file name)) (sit-for 0.1)))
-      (unwind-protect
-          (progn
-            (make-directory (funcall file ".git") t)
-            (dolist (name '("a.cc" "b.cc" "c.cc" ".git/COMMIT_EDITMSG"))
-              (write-region "x\n" nil (funcall file name)))
-            (delete-other-windows)
-            ;; Option off: no tree.
-            (let ((emacs-cpp-tree-open-automatically nil))
-              (show "a.cc")
-              (should-not (treemacs-get-local-window)))
-            (let ((emacs-cpp-tree-open-automatically t))
-              ;; A commit message under .git/ does not open it.
-              (show ".git/COMMIT_EDITMSG")
-              (should-not (treemacs-get-local-window))
-              ;; The first project file does, and keeps the focus.
-              (show "b.cc")
-              (should (treemacs-get-local-window))
-              (should (equal (buffer-file-name (window-buffer (selected-window)))
-                             (funcall file "b.cc")))
-              ;; Closed by hand, it stays closed for later files.
-              (emacs-cpp-treemacs-toggle)
-              (should-not (treemacs-get-local-window))
-              (show "c.cc")
-              (should-not (treemacs-get-local-window))))
-        ;; With magit loaded the commit message is a with-editor buffer, whose
-        ;; buffer-local `kill-buffer-query-functions' refuses to let it be killed.
-        (dolist (name '("a.cc" "b.cc" "c.cc" ".git/COMMIT_EDITMSG"))
-          (when-let* ((buffer (get-file-buffer (funcall file name))))
-            (with-current-buffer buffer
-              (kill-local-variable 'kill-buffer-query-functions))
-            (kill-buffer buffer)))
-        (delete-directory root t)))))
+  (should-not (memq 'emacs-cpp-treemacs-open-once find-file-hook))
+  (should-not (boundp 'emacs-cpp-tree-open-automatically)))
 
 (ert-deftest init-completion-stack-is-active ()
   "T-003: vertico, orderless, marginalia, consult, embark, corfu, cape are wired."
