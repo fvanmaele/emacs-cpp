@@ -78,7 +78,8 @@ In any list: words separated by space match in any order (`vec tria` finds
 |---|---|
 | `C-c p p` | switch project |
 | `C-c l P` | choose the active CMake preset (clangd restarts with its build dir) |
-| `C-c p c o` / `c c` / `c t` / `c r` | configure / compile / test / run the project (asks for the command) |
+| `C-c p c c` | compile the project (asks for the command) |
+| `C-c p c o` / `c t` / `c r` | configure / test / run (also ask) |
 | `C-c p t` | toggle between implementation and test |
 | `C-c p !` | shell command in the project root |
 | `C-c p r` | replace text in the whole project |
