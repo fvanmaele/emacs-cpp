@@ -137,7 +137,7 @@ Observed on the owner machine, 2026-10-07:
 | C++, LSP | `lisp/init-cpp.el` | PROTOTYPE | T-004: c++-ts-mode, eglot |
 | presets | `lisp/emacs-cpp-presets.el` | PROTOTYPE | T-004: D-016 - D-018 |
 | CMake | `lisp/init-cmake.el` | UNVALIDATED | NEW: presets, compile |
-| debugger | `lisp/init-debug.el` | UNVALIDATED | NEW: dape |
+| debugger | `lisp/init-debug.el` | PROTOTYPE | T-006: dape `gdb-preset` (D-031) |
 | git | `lisp/init-git.el` | KEEP | T-002: magit; diff-hl later |
 | keys | `lisp/init-keys.el` | UNVALIDATED | NEW: `C-c l` map (D-004) |
 | tests | `test/*.el`, `make test` | KEEP | 21 ERT tests after T-004 |
@@ -255,6 +255,20 @@ Known defects: none yet (nothing built).
 - DECIDED D-030 (owner 2026-10-08, O-14): gdb starts with full symbols (deal.II code
   steppable at once; 17 s to the first stop on RMO); loading shared-library symbols
   on demand (`set auto-solib-add off`, 2.3 s) is an option the owner can turn on.
+- DECIDED D-031 (owner 2026-10-08, T-006): a `gdb-preset` entry in `dape-configs`,
+  started with `C-x C-a d gdb-preset RET` (`:bind-keymap` loads dape on the first
+  `C-x C-a`). It asks for a program among the ELF executables under the active
+  preset's `binaryDir` (not `CMakeFiles/`, hidden directories or `.so` files; last
+  pick is the default), builds its target first (`cmake --build <binaryDir> --target
+  <file name>`; a failed build starts no session), and starts gdb in the project root
+  with `set debuginfod enabled off` (D-014). `emacs-cpp-debug-lazy-symbols` (default
+  nil) adds `set auto-solib-add off` (D-030). Breakpoints across sessions: dape's own
+  `dape-breakpoint-save` / `-load`, nothing automatic.
+- DECIDED D-032 (owner 2026-10-08, O-14): gdb scripts outside the repo, such as
+  deal.II's `contrib/utilities/dotgdbinit.py`, are listed in
+  `emacs-cpp-debug-gdb-scripts` (default nil, so none by default); each is sourced
+  with `set script-extension off` (read as gdb commands whatever the extension); a
+  listed file that is missing refuses the session.
 
 ## 10. Keys
 - DECIDED D-004: Emacs-native bindings (`M-.`, `M-?`, `M-,`, `C-c p` projectile) plus one
@@ -396,7 +410,7 @@ Mechanisms, each PROPOSED until measured:
   - completion: vertico, orderless, marginalia, consult, embark (holds embark-consult),
     corfu, cape (vendored by T-003); consult-eglot v0.5.0 (T-004).
   - IDE: dape (vendored 0.27.1 for S2, owner consent 2026-10-08; its `use-package`
-    form comes with T-006), diff-hl, breadcrumb.
+    form is in `lisp/init-debug.el`, T-006), diff-hl, breadcrumb.
   - project + tree: projectile, treemacs (holds treemacs-projectile), and its
     dependencies dash, s, ace-window, avy, pfuture, hydra (holds lv), ht, cfrs,
     posframe.
@@ -494,11 +508,15 @@ presets, GoogleTest runner.
   `#include` request was logged (answered from the index); the errors seen after it
   were O-5 (D-028). With pkgrel 3 the owner reports `M-.` on a name works; no cause
   beyond the `#include` case was found.
-- O-14 (RESOLVED 2026-10-08 with D-030; printers: proposed with T-006): which gdb
+- O-14 (RESOLVED 2026-10-08 with D-030; printers: D-032, option off): which gdb
   setup T-006 ships: full symbols at start
   (17 s to the first stop on RMO, deal.II code steppable) or on demand (2.3 s, deal.II
   symbols loaded when needed); and whether deal.II's printers are loaded from the
   owner's deal.II checkout. Owner rules before T-006's done-when.
+- O-15 (OPEN, found by T-006 2026-10-08): D-004 keeps the debugger keys on dape's prefix
+  and its repeat map, but a repeat map works only with `repeat-mode`, which is off. Turning
+  it on also enables Emacs's other repeat maps (`C-x o o`, `C-x u u`, `C-x { {`). Until
+  ruled, every step is `C-x C-a n` again. Owner rules: `repeat-mode` on, or not.
 - O-12 (OPEN, owner question 2026-10-08): Bear (4.2.2, installed) to make compile
   databases for dependent libraries instead of patching clangd. Bear records the
   compiler calls of a build that is run; it helps build systems that cannot export a
@@ -606,6 +624,8 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-028 | 2026-10-08 | header compile command from an includer in the index | 7 | O-5 |
 | D-029 | 2026-10-08 | `C-c t` toggles treemacs, following the project | 10 | owner |
 | D-030 | 2026-10-08 | gdb with full symbols; on-demand symbols as an option | 9 | O-14 |
+| D-031 | 2026-10-08 | dape `gdb-preset`: pick a preset program, build, gdb | 9 | T-006 |
+| D-032 | 2026-10-08 | gdb scripts (deal.II printers) by option, default none | 9 | O-14 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
