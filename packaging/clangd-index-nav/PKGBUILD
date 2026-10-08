@@ -3,14 +3,15 @@
 # and find-references answered from the background index while a file is not parsed
 # yet (hidden flag --navigation-from-index; RESEARCH_clangd_index_navigation.md, S8),
 # and headers compiled with the command of an includer the index knows (hidden flag
-# --header-flags-from-index; O-5).
+# --header-flags-from-index; O-5), also when the header is the first file opened
+# (patch 0006, O-21, S9).
 # Built against the system LLVM 23.1.1 and installed to /opt, next to (not instead
 # of) the clang package's clangd.  Patches: `git format-patch 6e2cc8df7..HEAD` in
 # ~/source/repos/llvm-clangd.
 
 pkgname=clangd-index-nav
 pkgver=23.1.1
-pkgrel=3
+pkgrel=4
 pkgdesc="clangd $pkgver answering navigation from its index before parsing (emacs-cpp patches)"
 arch=(x86_64)
 url="https://github.com/llvm/llvm-project"
@@ -25,13 +26,15 @@ source=("https://github.com/llvm/llvm-project/releases/download/llvmorg-$pkgver/
         0002-clangd-Race-the-index-shard-against-the-AST-for-navi.patch
         0003-clangd-Index-navigation-all-symbols-at-the-cursor-s-.patch
         0004-clangd-Index-navigation-include-lines-and-log-why-th.patch
-        0005-clangd-Compile-headers-with-the-command-of-an-includ.patch)
+        0005-clangd-Compile-headers-with-the-command-of-an-includ.patch
+        0006-clangd-Header-flags-from-the-index-wait-for-the-proj.patch)
 sha256sums=('ebe9be46fe8756d58c5b198ffad0fa2a766257add81a4dc52179bfacc7888ee6'
             'a8c5acda8b7e43611f22297cb9ba6f95e62c464a6ac78f8027c267973d4702bb'
             '3b3cce804554ab484a2f5396f28cb87f66b87ad4ccd4d6e8e65f4bc7e89feab1'
             '38d74440d2f6ebc79e0efde2f2633188965e7789d7448809816deff03617b2e5'
             'e7f1f654d1855f1931fe2c6098207d33b6bc25042645ffb3775fd68cfdaffe04'
-            'd5f1eb92789917b9b389ac40ce768e0ad8de3c08f93badaac427b18234cf25b5')
+            'd5f1eb92789917b9b389ac40ce768e0ad8de3c08f93badaac427b18234cf25b5'
+            '6743669f1489a3e5706caa0f8cf0e189790bf8639f077acd9bc3cb34c4524bd6')
 
 prepare() {
   cd llvm-project-$pkgver.src

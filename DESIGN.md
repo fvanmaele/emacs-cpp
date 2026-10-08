@@ -188,6 +188,11 @@ Known defects: none yet (nothing built).
   commits as patches, four since pkgrel 2; standalone build against the system LLVM) to
   `/opt/clangd-index-nav`, depending on `llvm-libs` and `clang` = 23.1.1 exactly, so
   an LLVM upgrade is visible to pacman and needs a rebuild of the package.
+- DECIDED D-046 (owner 2026-10-08, O-21, S9 PASS): patch 0006 (llvm-clangd 9fc23463e,
+  pkgrel 4): `BackgroundIndex::includerOf` first waits for the compile database to hand
+  over its pending projects (`blockUntilIdle`), then for the stored shards to load,
+  both within the 5 s of D-028, so a header opened as the first file of a session gets
+  its includer's command. Cost on RMO: about 0.4 s more for such a header (the load).
 - DECIDED D-028 (owner 2026-10-08, tier 2; resolves O-5 for indexed headers): the
   patched clangd compiles a header without a database entry with the command of a
   source file that includes it, as the background index records (patch 0005, hidden
@@ -639,7 +644,8 @@ presets, GoogleTest runner.
   the index. S9 run 1 on RMO PASS, hypothesis confirmed (0027): header first 10 / 10
   guessed (`fmt/src/os.cc`, 21 errors), decision at or 1 ms before "Enqueueing"; source
   first 10 / 10 from `staging/test/lumping.cc`, 0 errors; loading the 3950 stored shards
-  takes 0.4 s, so the 5 s cap is not involved. Next: patch 0006, done-when by the owner.
+  takes 0.4 s, so the 5 s cap is not involved. Patch 0006 (D-046, T-019) built and
+  tested locally; left: pkgrel 4 installed and S9 rerun on RMO (owner).
 - O-19 (RESOLVED 2026-10-08 with D-045): which of Python, R and Perl ride along, and
   how far: mode only, plus a language server, plus a debugger
   (`RESEARCH_other_languages.md` 3). Python needs only Arch packages; Perl's server is
@@ -770,6 +776,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-043 | 2026-10-08 | breadcrumb vendored at bcf7f1d | 12 | T-017 |
 | D-044 | 2026-10-08 | gud's prefix on `C-x M-a`, not dape's `C-x C-a` | 9 | O-20 |
 | D-045 | 2026-10-08 | Python rides along: ts-mode, pyright, debugpy | 5 | O-19 |
+| D-046 | 2026-10-08 | patch 0006: header waits for the project handover | 7 | O-21 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
