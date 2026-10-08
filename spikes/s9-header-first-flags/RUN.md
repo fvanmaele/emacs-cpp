@@ -35,9 +35,9 @@ file), flymake's error count in the header, and clangd's timestamps for the star
 the stored shards, next to the patch's decision.
 
 ## Verdict criteria
-CONFIRMED if at least one header-first session gets the guess with its decision
-logged at or before "Enqueueing", and no source-first session does. REFUTED if every
-session gets the includer; then the report needs another cause (for example the 5 s
+PASS (hypothesis confirmed) if at least one header-first session gets the guess with
+its decision logged at or before "Enqueueing", and no source-first session does. FAIL
+if every session gets the includer; then the report needs another cause (for example the 5 s
 cap: a decision more than 5 s after "Enqueueing" with "load end" later still).
 
 ## Dry run (toy shaped like RMO, 2026-10-08)
