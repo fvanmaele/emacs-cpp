@@ -52,7 +52,7 @@ with `done when: ...`).
 | id | status | size | title | source | what |
 |----|--------|------|-------|--------|------|
 | T-005 | open | M | presets build | D-005 | done when: preset build errors jump to source |
-| T-006 | open | M | dape debugging | D-002, S2 PASS | O-14 first; done when: v0.3 ladder |
+| T-006 | open | M | dape debugging | D-002, D-030 | done when: to agree (owner) |
 | T-007 | open | S | `C-c l` map | D-004 | done when: which-key lists every DESIGN 10 key |
 |       |      |   | (`C-c l P` exists since T-004) | | |
 | T-010 | open | S | Info manuals | DESIGN 12 | done when: `C-h i` lists magit, projectile |

@@ -251,7 +251,10 @@ Known defects: none yet (nothing built).
   with `dape-breakpoint-save` / `-load`; the stop takes 17 s on RMO (gdb reading
   `libdeal_II.g.so`, not dape), 2.3 s with shared-library symbols on demand (deal.II
   frames then lack symbols); deal.II's printers need `contrib/utilities/dotgdbinit.py`
-  sourced as a gdb script. Variant choice: O-14.
+  sourced as a gdb script. Variant choice: O-14, ruled by D-030.
+- DECIDED D-030 (owner 2026-10-08, O-14): gdb starts with full symbols (deal.II code
+  steppable at once; 17 s to the first stop on RMO); loading shared-library symbols
+  on demand (`set auto-solib-add off`, 2.3 s) is an option the owner can turn on.
 
 ## 10. Keys
 - DECIDED D-004: Emacs-native bindings (`M-.`, `M-?`, `M-,`, `C-c p` projectile) plus one
@@ -491,7 +494,8 @@ presets, GoogleTest runner.
   `#include` request was logged (answered from the index); the errors seen after it
   were O-5 (D-028). With pkgrel 3 the owner reports `M-.` on a name works; no cause
   beyond the `#include` case was found.
-- O-14 (OPEN, from S2 2026-10-08): which gdb setup T-006 ships: full symbols at start
+- O-14 (RESOLVED 2026-10-08 with D-030; printers: proposed with T-006): which gdb
+  setup T-006 ships: full symbols at start
   (17 s to the first stop on RMO, deal.II code steppable) or on demand (2.3 s, deal.II
   symbols loaded when needed); and whether deal.II's printers are loaded from the
   owner's deal.II checkout. Owner rules before T-006's done-when.
@@ -592,6 +596,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-027 | 2026-10-08 | patched clangd packaged to /opt, pinned to LLVM 23.1.1 | 7 | owner |
 | D-028 | 2026-10-08 | header compile command from an includer in the index | 7 | O-5 |
 | D-029 | 2026-10-08 | `C-c t` toggles treemacs, following the project | 10 | owner |
+| D-030 | 2026-10-08 | gdb with full symbols; on-demand symbols as an option | 9 | O-14 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
