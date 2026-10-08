@@ -72,6 +72,10 @@ with its binary.
   `#include "x.h"` and an active `#include <dir/x.h>`: the jump goes to `dir/x.h`
   where clangd's AST answer would be none.
 
+## Owner verification (2026-10-08)
+With pkgrel 3 installed: `M-.` on `#include <rmo/option.h>` instant (log: answered
+from the index shard), `M-.` on a name works. T-014 done.
+
 ## How to verify
 `make test` (24 tests; the patched-server test is skipped until the package is
 installed, or run it now with `EMACS_CPP_PATCHED_CLANGD=<path> make test`). Owner:

@@ -470,14 +470,16 @@ presets, GoogleTest runner.
   D-026, D-027, T-014. Owner report 2026-10-08 (after installing pkgrel 1): `M-.` on
   an `#include` line still waited; now answered from the shard's include graph
   (8df32dbe5, patch 0004; synthetic project 6226 -> 1 ms). Second report: O-13.
-- O-13 (OPEN, owner report 2026-10-08): on RMO, `M-.` on a name in a second file still
+- O-13 (CLOSED 2026-10-08, owner: works with pkgrel 3): on RMO, `M-.` on a name in a
+  second file still
   waits for the parse. Not reproduced on the synthetic project (2 ms in a second
   source and in a header). Candidates: the file was indexed with errors, has no
   stored shard, changed since indexing, or the name has no indexed reference (e.g. a
   member through a dependent type). Patch 0004 logs the reason; owner run with
   `CLANGD_FLAGS=--log=verbose`, see TASKS T-014. Owner run 2026-10-08: only the
   `#include` request was logged (answered from the index); the errors seen after it
-  were O-5 (D-028). Open until a second-file name lookup is logged with pkgrel 3.
+  were O-5 (D-028). With pkgrel 3 the owner reports `M-.` on a name works; no cause
+  beyond the `#include` case was found.
 - O-12 (OPEN, owner question 2026-10-08): Bear (4.2.2, installed) to make compile
   databases for dependent libraries instead of patching clangd. Bear records the
   compiler calls of a build that is run; it helps build systems that cannot export a
