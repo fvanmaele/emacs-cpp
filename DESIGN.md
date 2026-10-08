@@ -451,6 +451,8 @@ presets, GoogleTest runner.
 | clangd too slow / too large on deal.II scale | S1 numbers | owner | v0.1 |
 
 ## Research program
+- `RESEARCH_keys_build_debug_ui.md` (owner questions 2026-10-08): key hints, building
+  from any buffer, breakpoint indicators. Findings in; rulings O-16, O-17, O-18.
 - `RESEARCH_refactoring.md`: which CLion refactorings clangd code actions cover in
   clangd 22 (fills the (R) rows of section 1). After v0.1.
 
@@ -526,6 +528,17 @@ presets, GoogleTest runner.
   and its repeat map, but a repeat map works only with `repeat-mode`, which is off. Turning
   it on also enables Emacs's other repeat maps (`C-x o o`, `C-x u u`, `C-x { {`). Until
   ruled, every step is `C-x C-a n` again. Owner rules: `repeat-mode` on, or not.
+- O-16 (OPEN, owner question 2026-10-08): visual hints for key sequences (`C-c p p`;
+  compare org's dispatchers). Proposed: built-in `which-key-mode`, `C-h` after a prefix
+  kept, projectile's transient on `C-c p m` documented (RESEARCH_keys_build_debug_ui 1).
+- O-17 (OPEN, owner question 2026-10-08): `C-c p c c` runs `cmake --build build` in the
+  root, which RMO's preset layout cannot build; CLion builds from any buffer. Proposed
+  for T-005: projectile's cmake commands use the active preset's build directory
+  (RESEARCH_keys_build_debug_ui 2). Not `C-x C-a b`, which toggles a breakpoint.
+- O-18 (OPEN, owner question 2026-10-08): breakpoint indicators. dape draws a fringe
+  circle (GUI) or "B" (terminal) in the keyword colour; gutter clicks need
+  `dape-breakpoint-global-mode` (off); the stopped line is not highlighted. Proposed:
+  that mode on, red breakpoints, highlighted stop line (RESEARCH_keys_build_debug_ui 3).
 - O-12 (OPEN, owner question 2026-10-08): Bear (4.2.2, installed) to make compile
   databases for dependent libraries instead of patching clangd. Bear records the
   compiler calls of a build that is run; it helps build systems that cannot export a
