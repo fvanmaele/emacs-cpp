@@ -64,7 +64,7 @@ with `done when: ...`).
 | T-016 | done 0026 | M | diff-hl | D-042, v0.4 | right fringe, follows magit; test |
 | T-017 | done 0026 | M | breadcrumb | D-043, v0.4 | path + function in header; test |
 | T-018 | open | M | Python rides along | D-045, O-19 | blocked: owner installs packages |
-| T-019 | open | S | header first: patch 0006 | D-046 | code 0028; owner: pkgrel 4 + S9 |
+| T-019 | open | S | header first: 0006, 0007 | D-046, D-047 | code 0028, 0029; owner: S9 |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -96,7 +96,9 @@ with `done when: ...`).
   before the project broadcast and gets the includer's; ClangdTests all pass; pkgrel 4
   carries 0006; S9 rerun on RMO (owner): header first 10 / 10 from the index, 0
   errors, decision under 1.5 s after opening; make test passes. Code, tests, package:
-  0028. Left: the owner's install and S9 run 2.
+  0028. S9 run 2 (pkgrel 4): 10 / 10 from the index, 0 errors, but 1.48 - 1.56 s
+  (5 of 10 over 1.5 s); owner chose patch 0007 (0029, pkgrel 5), same done-when.
+  Left: the owner's install and S9 run 3.
 - T-014: the config runs the patched clangd (D-026) installed from
   packaging/clangd-index-nav (D-027); done when (agreed 2026-10-08): the config starts
   the patched clangd with --navigation-from-index when its path is set (customize

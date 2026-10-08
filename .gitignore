@@ -2,3 +2,8 @@
 /lib/load-path.el
 /lib/autoloads.el
 /lib/info/
+# Left by makepkg in packaging/clangd-index-nav (the package is built there).
+/packaging/clangd-index-nav/src/
+/packaging/clangd-index-nav/pkg/
+/packaging/clangd-index-nav/*.tar.xz
+/packaging/clangd-index-nav/*.pkg.tar.zst
