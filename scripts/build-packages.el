@@ -8,6 +8,7 @@
 ;;
 ;;   lib/load-path.el   adds every package directory to `load-path'
 ;;   lib/autoloads.el   the autoloads of all packages, in one file
+;;   lib/info/          the packages' Info manuals and their `dir' index (D-039)
 ;;
 ;; Extra keys a submodule section in .gitmodules may carry:
 ;;
@@ -15,9 +16,12 @@
 ;;                          submodule; repeatable; default "."
 ;;   build-exclude = FILE   file not compiled and not scanned for autoloads (needs a
 ;;                          package that is not vendored); repeatable
+;;   info = FILE            Texinfo manual built with makeinfo into lib/info/,
+;;                          relative to the submodule; repeatable
 ;;
-;; Anything wrong (unknown key, missing directory, stale exclude, compile error) stops
-;; the build with an error (DESIGN 4, principle 1).
+;; Anything wrong (unknown key, missing directory or manual, stale exclude, compile
+;; error, makeinfo missing or failing) stops the build with an error (DESIGN 4,
+;; principle 1).
 
 ;;; Code:
 
@@ -31,7 +35,7 @@
   "Root of the emacs-cpp repository (the parent of scripts/).")
 
 (defconst build-packages-known-keys
-  '("path" "url" "branch" "ignore" "load-path" "build-exclude")
+  '("path" "url" "branch" "ignore" "load-path" "build-exclude" "info")
   "Keys allowed in a .gitmodules submodule section.")
 
 (defconst build-packages-default-excludes
@@ -42,7 +46,7 @@
 
 (defun build-packages-parse-config-lines (lines)
   "Parse LINES of `git config --get-regexp ^submodule\\.' output into specs.
-Each spec is a plist (:name :path :load-path :build-exclude), in .gitmodules
+Each spec is a plist (:name :path :load-path :build-exclude :info), in .gitmodules
 order.  Signal an error for an unknown key or a submodule without a path."
   (let (specs)
     (dolist (line lines)
@@ -68,7 +72,8 @@ order.  Signal an error for an unknown key or a submodule without a path."
                :load-path (or (reverse (alist-get "load-path" keys nil nil #'equal))
                               '("."))
                :build-exclude (reverse
-                               (alist-get "build-exclude" keys nil nil #'equal)))))
+                               (alist-get "build-exclude" keys nil nil #'equal))
+               :info (reverse (alist-get "info" keys nil nil #'equal)))))
      (reverse specs))))
 
 (defun build-packages-read-specs (root)
@@ -195,6 +200,48 @@ name (\"projectile\", not \"projectile/projectile\") and resolves through
       (insert "\n" build-packages--local-variables-line "\n"
               ";; no-byte-compile: t\n;; no-update-autoloads: t\n;; End:\n"))))
 
+;;;; Info manuals
+
+(defun build-packages-info-files (root spec)
+  "Return the absolute Texinfo files SPEC lists under ROOT.
+Signal an error for one that does not exist."
+  (mapcar
+   (lambda (file)
+     (let ((abs (expand-file-name file (expand-file-name (plist-get spec :path) root))))
+       (unless (file-exists-p abs)
+         (error "build-packages: info %s of %s does not exist" file (plist-get spec :name)))
+       abs))
+   (plist-get spec :info)))
+
+(defun build-packages--run (program &rest args)
+  "Run PROGRAM with ARGS; return its output, or signal an error naming the cause."
+  (with-temp-buffer
+    (let ((status (condition-case nil
+                      (apply #'call-process program nil t nil args)
+                    (file-missing
+                     (error "build-packages: %s not found; install texinfo (D-039)"
+                            program)))))
+      (unless (eql status 0)
+        (error "build-packages: %s %s failed (%s):
+%s"
+               program (string-join args " ") status (buffer-string)))
+      (buffer-string))))
+
+(defun build-packages-write-info (root specs dir)
+  "Build the Texinfo manuals of SPECS under ROOT into DIR, with its `dir' index.
+DIR is emptied first, so a manual dropped from .gitmodules disappears.
+Return the number of manuals."
+  (let ((files (cl-loop for spec in specs append (build-packages-info-files root spec))))
+    (when (file-directory-p dir)
+      (delete-directory dir t))
+    (make-directory dir t)
+    (dolist (texi files)
+      (let ((info (expand-file-name (concat (file-name-base texi) ".info") dir)))
+        ;; Warnings (upstream style) pass; only a failure stops the build.
+        (build-packages--run "makeinfo" "--no-split" "-o" info texi)
+        (build-packages--run "install-info" (concat "--info-dir=" dir) info)))
+    (length files)))
+
 ;;;; Compilation
 
 (defun build-packages-compile (root specs)
@@ -227,7 +274,9 @@ Signal an error listing every file that failed."
     (let ((count (build-packages-compile root specs)))
       (build-packages-write-load-path root specs (expand-file-name "load-path.el" lib))
       (build-packages-write-autoloads root specs (expand-file-name "autoloads.el" lib))
-      (message "build-packages: %d packages, %d files compiled" (length specs) count))))
+      (message "build-packages: %d packages, %d files compiled, %d manuals"
+               (length specs) count
+               (build-packages-write-info root specs (expand-file-name "info" lib))))))
 
 (defun build-packages-batch ()
   "Entry point for `make packages'."

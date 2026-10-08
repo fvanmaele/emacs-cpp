@@ -77,6 +77,17 @@ The temporary home is deleted when Emacs exits."
   (should (string-prefix-p (expand-file-name "lib/" build-packages-root)
                            (locate-library "treemacs"))))
 
+(ert-deftest init-info-lists-the-package-manuals ()
+  "D-039: C-h i lists the manuals `make packages' built."
+  (init-test--load)
+  (require 'info)
+  (with-temp-buffer
+    (Info-mode)
+    (Info-find-node "dir" "Top")
+    (dolist (entry '("* Magit:" "* Embark:" "* Orderless:" "* Dash:" "* Emacs:"))
+      (goto-char (point-min))
+      (should (search-forward entry nil t)))))
+
 (ert-deftest init-treemacs-follows-the-project ()
   "D-029: `C-c t' toggles the tree, which follows the current buffer's project."
   (init-test--load)

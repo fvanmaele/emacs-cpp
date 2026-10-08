@@ -1,4 +1,4 @@
-;;; init-ui.el --- Theme, key hints  -*- lexical-binding: t; -*-
+;;; init-ui.el --- Theme, key hints, manuals  -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 
@@ -19,6 +19,17 @@
 ;; (`which-key-idle-delay', 1 s) (D-034).  `C-h' after a prefix still searches them.
 (use-package which-key
   :hook (after-init . which-key-mode))
+
+(defconst emacs-cpp-info-directory (expand-file-name "lib/info" emacs-cpp-root)
+  "Info manuals of the vendored packages, built by `make packages' (D-039).")
+
+;; C-h i lists them next to Emacs's own manuals.
+(use-package info
+  :config
+  (unless (file-exists-p (expand-file-name "dir" emacs-cpp-info-directory))
+    (error "emacs-cpp: no %s/dir; run `make packages' in %s (D-039)"
+           emacs-cpp-info-directory emacs-cpp-root))
+  (add-to-list 'Info-additional-directory-list emacs-cpp-info-directory))
 
 (provide 'init-ui)
 ;;; init-ui.el ends here
