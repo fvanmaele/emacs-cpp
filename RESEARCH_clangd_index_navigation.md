@@ -107,11 +107,49 @@ their uses have no shard reference and take the AST path. Result: ClangdTests
 - Microsoft C/C++ extension for VS Code: a "Tag Parser" builds a symbol database
   (`.BROWSE.VC.DB`) and gives quick, "fuzzy" Go to Definition results, also as the
   fallback when the compiler-based engine cannot resolve or is not ready.
-- Not searched further: Qt Creator, CLion internals, web code browsers built on
-  pre-computed indexes (Kythe, Sourcegraph scip-clang, Woboq), Emacs ctags-based
-  fallbacks (citre, dumb-jump).
+- Qt Creator: see section 7.
+- Not searched further: CLion internals, web code browsers built on pre-computed
+  indexes (Kythe, Sourcegraph scip-clang, Woboq), Emacs ctags-based fallbacks (citre,
+  dumb-jump).
 - `clangd-indexer` from the local tree (`build/bin/clangd-indexer`, built 2026-10-08) is
   the stock 23.1.1 indexer: the three local commits change only how clangd answers,
   not how it indexes; it writes a monolithic `.dex` (no `--index-type=sharded`, that is
   PR 175209, spike S7).
 
+
+## 7. Qt Creator (owner question 2026-10-08)
+Source read: `~/source/repos/qt-creator`, commit 3ab64c8e2811 (2026-10-07). Read only,
+nothing run or measured.
+- Two code models. Qt Creator runs clangd (plugin `clangcodemodel`) next to its own
+  "built-in" model (plugin `cppeditor` on the hand-written parser in
+  `src/libs/3rdparty/cplusplus`). The built-in indexer (`cppindexingsupport.cpp`,
+  `index()`) preprocesses and parses every project file and the headers it includes,
+  using the include paths and language features of the CMake project part. It keeps
+  the result in memory as a `CPlusPlus::Snapshot`. Nothing is written to disk, so it
+  runs again in every session. It stays on while clangd is in use: setting
+  `EnableIndexing`, default on, or `QTC_NO_CODE_INDEXER=1` to turn it off.
+- Routing (`ClangModelManagerSupport` in `clangmodelmanagersupport.cpp`):
+  - `followSymbol`, `findUsages`, `globalRename` and `switchDeclDef` go to clangd only
+    when `ClangdClient::isFullyIndexed()` is true. Until then they go to the built-in
+    model (`CppModelManager::Backend::Builtin`).
+  - `isFullyIndexed` becomes true when clangd ends its `backgroundIndexProgress` work
+    done progress (`clangdclient.cpp`, `Client::workDone`). Until then the answer comes
+    from the built-in model, which looks up names by scope (`LookupContext`) without
+    clang's semantic analysis; it does not wait for clangd's AST.
+  - When clangd answers a go to definition without a target, and the mode is not
+    `Exact`, Qt Creator asks the built-in model again.
+- After indexing, Qt Creator waits like any other client. `ClangdFollowSymbol` sends
+  `textDocument/definition` and, at the same time, clangd's `textDocument/ast` for the
+  cursor (to detect virtual calls and offer overrides). In clangd both run with the
+  parsed file (`runWithAST`). The first M-. after opening a file therefore waits for
+  the parse, as in S1 / S5. In a second session, the stored shards load and the
+  progress ends early. From then on Qt Creator has the same wait that S8 removed, but
+  this was not measured.
+- clangd command line (`clientInterface`): `--background-index`,
+  `--background-index-priority`, `--limit-references=0`, `--rename-file-limit=0`,
+  `--clang-tidy=0` (clang-tidy runs separately), `--use-dirty-headers`, and
+  `--compile-commands-dir` set to a directory Qt Creator writes from the project.
+  None of these flags avoids the wait for the parse.
+- Summary: Qt Creator hides the cold-index period with a second, approximate parser
+  that runs all the time. It does not answer from clangd's index before the parse, and
+  it has no counterpart to `--navigation-from-index`.
