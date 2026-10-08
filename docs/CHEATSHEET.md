@@ -13,21 +13,23 @@ macOS), `RET` = Enter.
 | `M-,` | go back to where you were before `M-.` / `M-?` |
 | `C-M-,` | go forward again |
 | `C-M-.` | search symbols in the whole project by name |
-| `M-x consult-eglot-symbols` | the same, with live preview |
+| `C-c l s` | the same, with live preview (`consult-eglot-symbols`) |
 | `M-g i` | symbols of this file (functions, classes); `M-g I`: of all open files |
-| `M-x eglot-find-implementation` | implementations / overrides |
-| `M-x eglot-find-declaration` | declaration (header) of a definition |
+| `C-c l i` | implementations / overrides |
+| `C-c l d` | declaration (header) of a definition |
+| `C-c l h` / `C-c l t` | call hierarchy / type hierarchy |
 | `M-x eglot-find-typeDefinition` | definition of the type of the thing at point |
-| `C-c p a` | switch between header and source (`.h` <-> `.cc`) |
+| `C-c l o` or `C-c p a` | switch between header and source (`.h` <-> `.cc`) |
 
 Several results open as a list with preview: move with the arrows, `RET` jumps.
 
 ## Refactoring and code actions
 | Key | Does |
 |---|---|
-| `M-x eglot-rename` | rename the symbol in the whole project |
-| `M-x eglot-code-actions` | fixes and refactorings clangd offers here |
-| `M-x eglot-format-buffer` | clang-format the file (`eglot-format`: the region) |
+| `C-c l r` | rename the symbol in the whole project |
+| `C-c l a` | fixes and refactorings clangd offers here |
+| `C-c l f` | clang-format the region, or the file without a region |
+| `C-c l I` | hide / show inlay hints (parameter names, deduced types) |
 | `M-;` | comment / uncomment the region or line |
 
 ## Errors and warnings (flymake)
@@ -35,7 +37,7 @@ Several results open as a list with preview: move with the arrows, `RET` jumps.
 |---|---|
 | `M-g f` | list this file's diagnostics, jump with preview |
 | `M-x flymake-goto-next-error` | next diagnostic (`...-prev-error`: previous) |
-| `M-x flymake-show-project-diagnostics` | all diagnostics of the project |
+| `C-c l e` | all diagnostics of the project |
 | `M-g e` | jump to an error in the `*compilation*` buffer |
 | `M-g n` / `M-g p` | next / previous compilation error |
 
@@ -145,8 +147,8 @@ switches when you move to a file of another project (D-029). Inside the tree:
 | `q` | close the tree |
 
 ## Not there yet
-- The `C-c l` code-action keys (rename, format, implementation, ...): T-007. Until then
-  use the `M-x` commands above.
+- Changed-line marks in the fringe (diff-hl, T-016); path and function in the header
+  line (breadcrumb, T-017).
 
 ## Setup on the supported machine (Arch Linux)
 1. Clone with submodules; `~/.emacs.d/init.el` and `early-init.el` are symlinks to this
