@@ -145,10 +145,8 @@ Lines changed since the last commit are marked in the right fringe (green added,
 changed, red deleted), after each save and each magit action (D-042).
 
 ## Project tree (treemacs)
-`C-c t` opens / closes the tree. It opens by itself with the first project file of a
-session (D-048; `emacs-cpp-tree-open-automatically` nil turns that off). It shows only
-the project of the buffer you are in and switches when you move to a file of another
-project (D-029). Inside the tree:
+`C-c t` opens / closes the tree. It shows only the project of the buffer you are in and
+switches when you move to a file of another project (D-029). Inside the tree:
 
 | Key | Does |
 |---|---|
