@@ -122,17 +122,20 @@ Observed on the owner machine, 2026-10-07:
 - `use-package-expand-minimally` t: use-package then does not wrap forms in its own
   error catching, so a broken package form stops startup (principle 1).
 - Packages: section 12 (D-006). `package.el` is not used at startup.
-- DECIDED D-045 (owner 2026-10-08, O-19): Python rides along with mode, language
-  server and debugger (T-018): `python-ts-mode` (system grammar `tree-sitter-python`),
-  pyright through eglot in project files, debugpy through dape's own config; all from
-  the Arch repositories, no submodule. R and Perl: not configured (built-in modes
-  only, as before). Built in T-018: pyright is named in `eglot-server-programs` (eglot
-  would otherwise take pylsp or basedpyright first if installed later); for Python
-  buffers only, `pyproject.toml` and `setup.py` also mark a project root
-  (`project-vc-extra-root-markers`, buffer-local), so C++ project roots are unchanged;
-  dape's `debugpy` listens on 127.0.0.1 instead of upstream's 0.0.0.0 (every network
-  interface), and dape connects to 127.0.0.1, not to "localhost" (which can resolve to
-  IPv6 ::1 first).
+- DECIDED D-045 (owner 2026-10-08, O-19): Python rides along with mode, language server
+  and debugger (T-018): `python-ts-mode` (system grammar `tree-sitter-python`), pyright
+  through eglot in project files, debugpy through dape's own config; all from the Arch
+  repositories, no submodule. R and Perl: not configured (built-in modes only, as
+  before). Built in T-018: pyright is named in `eglot-server-programs` (eglot would
+  otherwise take pylsp or basedpyright first if installed later); a Python project is
+  what projectile finds (git root first, else `pyproject.toml`, `setup.py` and its other
+  markers), as for C++ (SUPERSEDED, code review 0031: "for Python buffers only,
+  `pyproject.toml` and `setup.py` also mark a project root, buffer-local" - the
+  buffer-local value had no effect); dape's `debugpy` listens on 127.0.0.1 instead of
+  upstream's 0.0.0.0 (every network interface), and dape connects to 127.0.0.1, not to
+  "localhost" (which can resolve to IPv6 ::1 first); startup stops if dape's debugpy
+  entries change shape. Remote files (TRAMP) cannot be debugged this way: the adapter
+  would listen on the remote loopback (DESIGN 2).
 - DECIDED D-040 (2026-10-08, owner report "custom themes are not saved on restart"):
   `custom.el` loads last, so a setting saved with Customize wins over the config's
   default. The default theme (`modus-vivendi-tritanopia`) is loaded from
@@ -356,6 +359,8 @@ Known defects: none yet (nothing built).
 - DECIDED D-048 (owner 2026-10-08): the tree opens by itself, once per session, when
   the first file of a project is shown in a window (also a file given on the command
   line); the cursor stays in the file. Once `C-c t` has closed it, it stays closed.
+  git's own files (`.git/COMMIT_EDITMSG`) do not count; a failed attempt leaves the
+  next file to try (code review 0031).
   Option `emacs-cpp-tree-open-automatically` (default t). Not at startup itself:
   `*scratch*` has no project, and treemacs (70 ms) loads only with the tree.
 

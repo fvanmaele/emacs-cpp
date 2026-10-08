@@ -65,6 +65,7 @@ with `done when: ...`).
 | T-017 | done 0026 | M | breadcrumb | D-043, v0.4 | path + function in header; test |
 | T-018 | done 0030 | M | Python rides along | D-045, O-19 | mode, pyright, debugpy; tests |
 | T-019 | done 0029 | S | header first: 0006, 0007 | D-046, D-047 | S9 run 3: 0.9 s |
+| T-020 | open | S | patch 0008 (review 0031) | D-046, D-047 | owner: rebuild now or later |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -100,6 +101,13 @@ with `done when: ...`).
   (5 of 10 over 1.5 s); owner chose patch 0007 (0029, pkgrel 5), same done-when.
   S9 run 3 (pkgrel 5, owner 2026-10-08): 10 / 10 from the index, 0 errors, 0.91 -
   1.02 s after opening; make test 42 / 42 with pkgrel 5. Done.
+- T-020 (opened 2026-10-08 by the code review, 0031): patch 0008 for the local clangd:
+  `includerOf` looks up a known includer before waiting for the compile database (no
+  stall while its broadcast thread is busy with another project, nor for headers that
+  have no includer); the load counter's increment and decrement paired in one place;
+  the long doc comment of 0007 wrapped at 80 columns. Done when: ClangdTests pass, a
+  unit test shows a known includer answered while the database is busy, pkgrel 6
+  built, S9 unchanged on RMO (owner).
 - T-014: the config runs the patched clangd (D-026) installed from
   packaging/clangd-index-nav (D-027); done when (agreed 2026-10-08): the config starts
   the patched clangd with --navigation-from-index when its path is set (customize
