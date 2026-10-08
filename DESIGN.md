@@ -581,7 +581,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-026 | 2026-10-08 | patched clangd via emacs-cpp-clangd-program, loud | 7 | O-11 |
 | D-027 | 2026-10-08 | patched clangd packaged to /opt, pinned to LLVM 23.1.1 | 7 | owner |
 | D-028 | 2026-10-08 | header compile command from an includer in the index | 7 | O-5 |
-| D-029 | 2026-10-08 | `C-c t` toggles treemacs; it follows the current project | 10 | owner |
+| D-029 | 2026-10-08 | `C-c t` toggles treemacs, following the project | 10 | owner |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
