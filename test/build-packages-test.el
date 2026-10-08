@@ -30,11 +30,16 @@
                   "submodule.dash.path lib/dash"
                   "submodule.dash.ignore untracked"
                   "submodule.dash.build-exclude a.el"
-                  "submodule.dash.build-exclude b.el"))))
+                  "submodule.dash.build-exclude b.el"
+                  "submodule.magit.info docs/magit.texi"
+                  "submodule.magit.info docs/magit-section.texi"))))
     (should (equal (mapcar (lambda (s) (plist-get s :name)) specs) '("magit" "dash")))
     (should (equal (plist-get (nth 0 specs) :load-path) '("lisp")))
     (should (equal (plist-get (nth 1 specs) :load-path) '(".")))
-    (should (equal (plist-get (nth 1 specs) :build-exclude) '("a.el" "b.el")))))
+    (should (equal (plist-get (nth 1 specs) :build-exclude) '("a.el" "b.el")))
+    (should (equal (plist-get (nth 0 specs) :info)
+                   '("docs/magit.texi" "docs/magit-section.texi")))
+    (should-not (plist-get (nth 1 specs) :info))))
 
 (ert-deftest build-packages-parse-handles-dotted-names ()
   (let ((specs (build-packages-parse-config-lines
@@ -101,6 +106,47 @@
           (should (string-match-p "(autoload 'p-cmd \"p\"" text))
           (should-not (string-match-p "p-test-cmd" text))
           (should-not (file-exists-p (expand-file-name ".build-packages-loaddefs" dir))))))))
+
+(defconst build-packages-test--texi
+  "\\input texinfo
+@setfilename toy.info
+@settitle Toy
+@dircategory Emacs
+@direntry
+* Toy: (toy).           A toy manual.
+@end direntry
+@node Top
+@top Toy
+Hello.
+@bye
+"
+  "The smallest manual with a `dir' entry.")
+
+(ert-deftest build-packages-info-manuals-and-dir ()
+  "D-039: listed manuals are built into DIR with a `dir' entry; old ones go."
+  (build-packages-test--with-tree '("lib/p/docs/toy.texi")
+    (write-region build-packages-test--texi nil (expand-file-name "lib/p/docs/toy.texi" root))
+    (let ((dir (expand-file-name "lib/info" root))
+          (spec (list :name "p" :path "lib/p" :info '("docs/toy.texi"))))
+      (make-directory dir t)
+      (write-region "" nil (expand-file-name "stale.info" dir))
+      (should (= (build-packages-write-info root (list spec) dir) 1))
+      (should (file-exists-p (expand-file-name "toy.info" dir)))
+      (should-not (file-exists-p (expand-file-name "stale.info" dir)))
+      (should (string-match-p "\\* Toy: (toy)\\."
+                              (with-temp-buffer
+                                (insert-file-contents (expand-file-name "dir" dir))
+                                (buffer-string))))
+      ;; A listed manual that is missing, a broken one, and no makeinfo all stop.
+      (should-error (build-packages-write-info
+                     root (list (list :name "p" :path "lib/p" :info '("docs/gone.texi")))
+                     dir))
+      (write-region "@node Top\n@top T\n@xref{Nowhere}.\n@bye\n" nil
+                    (expand-file-name "lib/p/docs/toy.texi" root))
+      (should-error (build-packages-write-info root (list spec) dir))
+      (write-region build-packages-test--texi nil (expand-file-name "lib/p/docs/toy.texi" root))
+      (let ((exec-path nil))
+        (should-error (build-packages-write-info root (list spec) dir))))))
 
 (provide 'build-packages-test)
 ;;; build-packages-test.el ends here

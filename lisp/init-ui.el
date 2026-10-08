@@ -1,4 +1,4 @@
-;;; init-ui.el --- Theme, key hints  -*- lexical-binding: t; -*-
+;;; init-ui.el --- Theme, key hints, manuals  -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 
@@ -6,8 +6,15 @@
 
 ;;; Code:
 
-;; Built-in theme, carried over from the retired ~/.emacs.
-(load-theme 'modus-vivendi-tritanopia t)
+;; Built-in theme, carried over from the retired ~/.emacs, unless one was saved with
+;; `M-x customize-themes'.  custom.el loads at the end of init.el, so the choice is
+;; known only after it; loading this theme first and the saved one from custom.el
+;; left no theme in effect (white background, D-040).
+(defun emacs-cpp-ui-default-theme ()
+  "Load the default theme unless custom.el enabled one."
+  (unless custom-enabled-themes
+    (load-theme 'modus-vivendi-tritanopia t)))
+(add-hook 'after-init-hook #'emacs-cpp-ui-default-theme -90)
 
 ;; Built in: after a stepping key of the debugger (`C-x C-a n'), plain `n', `s', `o',
 ;; `c' ... repeat it; any other key ends that (D-037).  Emacs's own repeat maps
@@ -19,6 +26,17 @@
 ;; (`which-key-idle-delay', 1 s) (D-034).  `C-h' after a prefix still searches them.
 (use-package which-key
   :hook (after-init . which-key-mode))
+
+(defconst emacs-cpp-info-directory (expand-file-name "lib/info" emacs-cpp-root)
+  "Info manuals of the vendored packages, built by `make packages' (D-039).")
+
+;; C-h i lists them next to Emacs's own manuals.
+(use-package info
+  :config
+  (unless (file-exists-p (expand-file-name "dir" emacs-cpp-info-directory))
+    (error "emacs-cpp: no %s/dir; run `make packages' in %s (D-039)"
+           emacs-cpp-info-directory emacs-cpp-root))
+  (add-to-list 'Info-additional-directory-list emacs-cpp-info-directory))
 
 (provide 'init-ui)
 ;;; init-ui.el ends here

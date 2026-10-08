@@ -17,6 +17,7 @@
 	path = lib/dash
 	url = https://github.com/magnars/dash.el
 	ignore = untracked
+	info = dash.texi
 [submodule "s"]
 	path = lib/s
 	url = https://github.com/magnars/s.el
@@ -56,11 +57,14 @@
 	url = https://github.com/magit/magit
 	ignore = untracked
 	load-path = lisp
+	info = docs/magit.texi
+	info = docs/magit-section.texi
 [submodule "with-editor"]
 	path = lib/with-editor
 	url = https://github.com/magit/with-editor
 	ignore = untracked
 	load-path = lisp
+	info = docs/with-editor.texi
 [submodule "cond-let"]
 	path = lib/cond-let
 	url = https://github.com/tarsius/cond-let
@@ -87,6 +91,7 @@
 	path = lib/orderless
 	url = https://github.com/oantolin/orderless
 	ignore = untracked
+	info = orderless.texi
 [submodule "marginalia"]
 	path = lib/marginalia
 	url = https://github.com/minad/marginalia
@@ -99,6 +104,7 @@
 	path = lib/embark
 	url = https://github.com/oantolin/embark
 	ignore = untracked
+	info = embark.texi
 [submodule "corfu"]
 	path = lib/corfu
 	url = https://github.com/minad/corfu
