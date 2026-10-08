@@ -122,6 +122,16 @@ Observed on the owner machine, 2026-10-07:
 - `use-package-expand-minimally` t: use-package then does not wrap forms in its own
   error catching, so a broken package form stops startup (principle 1).
 - Packages: section 12 (D-006). `package.el` is not used at startup.
+- DECIDED D-040 (2026-10-08, owner report "custom themes are not saved on restart"):
+  `custom.el` loads last, so a setting saved with Customize wins over the config's
+  default. The default theme (`modus-vivendi-tritanopia`) is loaded from
+  `after-init-hook` only when no theme was saved. Cause found: loading it before
+  `custom.el` enabled the saved theme left no theme's faces in effect (white
+  background in a graphical frame, `custom-enabled-themes` naming the saved one).
+- DECIDED D-041 (owner 2026-10-08): built-in `recentf-mode` is on, 200 files, Emacs's
+  state files under `~/.emacs.d/.cache/` left out. `C-x b` (consult) lists recent
+  files below the buffers, `C-x C-r` is `consult-recent-file` (instead of
+  `find-file-read-only`), `C-c p e` the project's. Startup unchanged (0.151 s).
 
 ## 6. Architecture
 | block | location | tag | notes |
@@ -705,6 +715,8 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-037 | 2026-10-08 | repeat-mode on; only dape's stepping commands repeat | 10 | O-15 |
 | D-038 | 2026-10-08 | gc-cons-threshold 64 MB during startup only | 11 | T-008 |
 | D-039 | 2026-10-08 | `make packages` builds shipped Texinfo manuals | 12 | T-010 |
+| D-040 | 2026-10-08 | default theme only when Customize saved none | 5 | owner |
+| D-041 | 2026-10-08 | recentf on; `C-x C-r` picks a recent file | 5 | owner |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
