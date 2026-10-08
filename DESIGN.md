@@ -479,6 +479,11 @@ Mechanisms, each PROPOSED until measured:
     corfu, cape (vendored by T-003); consult-eglot v0.5.0 (T-004).
   - IDE: dape (vendored 0.27.1 for S2, owner consent 2026-10-08; its `use-package`
     form is in `lisp/init-debug.el`, T-006), diff-hl, breadcrumb.
+- DECIDED D-042 (owner consent 2026-10-08, T-016): diff-hl vendored at tag 1.10.0
+  (github.com/dgutov/diff-hl). Its marks go to the right fringe, since the left one
+  holds dape's breakpoints and the debugger's arrow (D-036).
+- DECIDED D-043 (owner consent 2026-10-08, T-017): breadcrumb vendored at commit
+  bcf7f1d (github.com/joaotavora/breadcrumb; no tags upstream).
   - project + tree: projectile, treemacs (holds treemacs-projectile), and its
     dependencies dash, s, ace-window, avy, pfuture, hydra (holds lv), ht, cfrs,
     posframe.
@@ -717,6 +722,8 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-039 | 2026-10-08 | `make packages` builds shipped Texinfo manuals | 12 | T-010 |
 | D-040 | 2026-10-08 | default theme only when Customize saved none | 5 | owner |
 | D-041 | 2026-10-08 | recentf on; `C-x C-r` picks a recent file | 5 | owner |
+| D-042 | 2026-10-08 | diff-hl 1.10.0 vendored, marks in the right fringe | 12 | T-016 |
+| D-043 | 2026-10-08 | breadcrumb vendored at bcf7f1d | 12 | T-017 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.

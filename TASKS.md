@@ -54,13 +54,16 @@ with `done when: ...`).
 |----|--------|------|-------|--------|------|
 | T-005 | done 0021 | M | presets build | D-005, D-035 | owner: RMO checked, v0.2.0 |
 | T-006 | done 0019 | M | dape debugging | D-031, D-033 | owner: RMO checked, v0.2.0 |
-| T-007 | open | S | `C-c l` map | D-004 | done when: which-key lists every DESIGN 10 key |
+| T-007 | next | S | `C-c l` map | D-004 | done when: which-key lists every DESIGN 10 key |
 |       |      |   | (`C-c l P` exists since T-004) | | |
 | T-010 | done 0024 | S | Info manuals | D-039 | `C-h i` lists magit (projectile: none) |
 | T-011 | done 0015 | M | cold-header flags | O-5, D-028 | owner: RMO headers clean |
 | T-012 | rejected (D-021) | M | preamble warm-up | S5 | owner ruled out extra open files |
 | T-013 | closed (D-026) | L | ccls + clang-tidy | D-023, D-024 | branch kept, not merged |
 | T-014 | done 0014 | M | patched clangd | D-026, D-027 | owner: RMO M-. works (pkgrel 3) |
+| T-015 | next | S | treemacs-magit | v0.4 | done when: loaded once treemacs and magit are |
+| T-016 | open | M | diff-hl | D-042, v0.4 | done when: see below |
+| T-017 | open | M | breadcrumb | D-043, v0.4 | done when: see below |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -74,6 +77,14 @@ with `done when: ...`).
   0019. Owner's first RMO try: no program offered (build/debug never built); targets
   now come from build.ninja (D-033, 0020). Owner 2026-10-08: RMO check passed
   (v0.2.0, 0022).
+- v0.4 rows (opened 2026-10-08, owner): T-007 also covers inlay hints, which eglot 31
+  already turns on in every managed buffer; `C-c l I` toggles them. T-007 done when:
+  every D-004 letter under `C-c l` runs its command (test), which-key lists them.
+- T-016: done when: in a git file buffer, changed lines are marked in the right
+  fringe (margin in a terminal), refreshed after magit stages or commits; test on a
+  toy repository.
+- T-017: done when: C++ buffers show the project-relative path and the function at
+  point in the header line; test on a toy project.
 - T-014: the config runs the patched clangd (D-026) installed from
   packaging/clangd-index-nav (D-027); done when (agreed 2026-10-08): the config starts
   the patched clangd with --navigation-from-index when its path is set (customize
