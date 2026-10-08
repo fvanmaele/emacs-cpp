@@ -559,6 +559,7 @@ presets, GoogleTest runner.
 | index rebuilt from scratch per preset / build dir | S7 | owner | - |
 | patched clangd's index navigation slower / wrong on RMO | S8 | owner | O-11 |
 | header opened first after a restart gets guessed flags | S9 (PASS) | owner | - |
+| deal.II sources index unused or too costly on RMO | S10 | owner | O-12 |
 | own package build glue mis-orders compilation | none (tests) | - | v0.1 |
 | clangd too slow / too large on deal.II scale | S1 numbers | owner | v0.1 |
 
@@ -679,7 +680,12 @@ presets, GoogleTest runner.
 - O-20 (RESOLVED 2026-10-08 with D-044): gud (`M-x pdb`, `M-x perldb`, `M-x gdb`) binds
   its map on `C-x C-a` globally when it loads, which takes dape's prefix for the session.
   Proposed: `gud-key-prefix` on a free key (`C-x M-a`, `C-x M-d` or `C-x C-y`).
-- O-12 (DEFERRED 2026-10-08, owner: revisit after v0.4): Bear (4.2.2, installed) to make
+- O-12 (OPEN, owner 2026-10-08: adopt, spike S10 first; T-020 folded into the same
+  clangd rebuild): S10 dry run (synthetic project): the patched clangd with the deal.II
+  index answers the first `M-.` with the definition (`vector.templates.h:477`,
+  `tria.cc:15874`), `M-?` 2 -> 8 and 2 -> 18, +30 MB; no clangd patch needed (the
+  research's miss was a config without `MountPoint`). Was DEFERRED, revisit after v0.4:
+  Bear (4.2.2, installed) to make
   compile databases for dependent libraries instead of patching clangd. Bear records the
   compiler calls of a build that is run; it helps build systems that cannot export a
   database (make, autotools, b2). Findings: the installed deal-ii and boost packages

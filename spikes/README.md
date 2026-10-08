@@ -36,6 +36,9 @@ code is written for it. Each spike is a self-contained directory with its own bu
 - **S9 header opened first** - does a header opened as the first file after a restart
   get guessed flags because it asks before the project reaches the background index
   (O-21, D-028)? Owner ruled spike first (tier 3) before patch 0006.
+- **S10 deal.II sources index** - does an offline index of deal.II's sources make
+  `M-.` reach definitions and `M-?` uses inside the library on RMO, with the patched
+  clangd, at what memory (O-12)?
 - **S4 cold-header flags** - DROPPED 2026-10-08: replaced by D-028 (patched clangd
   takes an includer from its index; owner ruled tier 2, toy reproduction as evidence).
   Was: which mechanism gives a header opened first (no including
