@@ -304,6 +304,9 @@ Known defects: none yet (nothing built).
   with the first such buffer; not on `prog-mode`, since `*scratch*` would load it at
   every start. Breakpoints inherit the theme's `error` face (red), the stopped line its
   `hl-line` face; the modus themes style neither dape face.
+- DECIDED D-044 (owner 2026-10-08, O-20): `gud-key-prefix` is `C-x M-a`. gud (`M-x
+  gdb`, `pdb`, `perldb`) binds its map globally on that prefix when it loads; on the
+  default `C-x C-a` it took dape's keys for the rest of the session.
 - DECIDED D-032 (owner 2026-10-08, O-14): gdb scripts outside the repo, such as
   deal.II's `contrib/utilities/dotgdbinit.py`, are listed in
   `emacs-cpp-debug-gdb-scripts` (default nil, so none by default); each is sourced
@@ -630,8 +633,8 @@ presets, GoogleTest runner.
   how far: mode only, plus a language server, plus a debugger
   (`RESEARCH_other_languages.md` 3). Python needs only Arch packages; Perl's server is
   CPAN-only; R needs ESS as a new submodule.
-- O-20 (OPEN, found 2026-10-08): gud (`M-x pdb`, `M-x perldb`, `M-x gdb`) binds its map
-  on `C-x C-a` globally when it loads, which takes dape's prefix for the session.
+- O-20 (RESOLVED 2026-10-08 with D-044): gud (`M-x pdb`, `M-x perldb`, `M-x gdb`) binds
+  its map on `C-x C-a` globally when it loads, which takes dape's prefix for the session.
   Proposed: `gud-key-prefix` on a free key (`C-x M-a`, `C-x M-d` or `C-x C-y`).
 - O-12 (DEFERRED 2026-10-08, owner: revisit after v0.4): Bear (4.2.2, installed) to make
   compile databases for dependent libraries instead of patching clangd. Bear records the
@@ -754,6 +757,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-041 | 2026-10-08 | recentf on; `C-x C-r` picks a recent file | 5 | owner |
 | D-042 | 2026-10-08 | diff-hl 1.10.0 vendored, marks in the right fringe | 12 | T-016 |
 | D-043 | 2026-10-08 | breadcrumb vendored at bcf7f1d | 12 | T-017 |
+| D-044 | 2026-10-08 | gud's prefix on `C-x M-a`, not dape's `C-x C-a` | 9 | O-20 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
