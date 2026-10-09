@@ -66,6 +66,7 @@ with `done when: ...`).
 | T-018 | done 0030 | M | Python rides along | D-045, O-19 | mode, pyright, debugpy; tests |
 | T-019 | done 0029 | S | header first: 0006, 0007 | D-046, D-047 | S9 run 3: 0.9 s |
 | T-020 | open | S | patch 0008 (review 0031) | D-046, D-047 | owner: rebuild now or later |
+| T-021 | open | M | config starts on macOS | D-050 | cmake-mode path, tests; proposed |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -108,6 +109,15 @@ with `done when: ...`).
   the long doc comment of 0007 wrapped at 80 columns. Done when: ClangdTests pass, a
   unit test shows a known includer answered while the database is busy, pkgrel 6
   built, S9 unchanged on RMO (owner).
+- T-021 (opened 2026-10-09, D-050): make the config start and test cleanly on the
+  owner's Mac (DESIGN 3 macOS observations). Known so far: `init-cmake.el` names only
+  `/usr/share/emacs/site-lisp` (MacPorts: `/opt/local/share/emacs/site-lisp`);
+  `${hostSystemName}` in presets is an error outside GNU/Linux; a build-script test
+  fails on `/var` vs `/private/var`; the other 14 failures not yet examined (most may
+  follow from the startup stop). Tier 2. PROPOSED done when (owner to agree): Emacs
+  starts on the Mac with no errors; `make test` passes there except tests that need
+  gdb or the patched clangd, which skip with a reason until O-22 / O-23 are ruled;
+  `make test` still passes on Arch.
 - T-014: the config runs the patched clangd (D-026) installed from
   packaging/clangd-index-nav (D-027); done when (agreed 2026-10-08): the config starts
   the patched clangd with --navigation-from-index when its path is set (customize
