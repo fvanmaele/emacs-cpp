@@ -735,7 +735,7 @@ presets, GoogleTest runner.
   no ruling asked yet.
 - `RESEARCH_file_watches_macos.md` (owner question 2026-10-09, T-029): kqueue's
   descriptor per watch, Emacs's limits on the Mac, who watches in a C++ session.
-  Findings in; ruling O-26.
+  Findings in; O-26 ruled (D-054 confirmed, upstream report T-032).
 - `RESEARCH_keys_build_debug_ui.md` (owner questions 2026-10-08): key hints, building
   from any buffer, breakpoint indicators. Findings in; rulings O-16, O-17, O-18.
 - `RESEARCH_refactoring.md`: which CLion refactorings clangd code actions cover in
