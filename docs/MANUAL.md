@@ -273,6 +273,18 @@ What the settings cannot express:
 Where `TAB` and clang-format differ, `C-c l f` on the lines (a region) gives
 clang-format's result.
 
+To move a line by hand, by the project's step (`c-ts-indent-offset`), with spaces or
+tabs as `indent-tabs-mode` says (D-066):
+
+| Key | Does |
+|---|---|
+| `M-i` | white space up to the next step, at point (`M-m` first: to the line's text) |
+| `C-x TAB`, then `S-<right>` / `S-<left>` | move the selected lines one step right / left; `<right>` / `<left>`: one column; any other key ends it |
+| `C-u 4 C-x TAB` | move the selected lines 4 columns right; `C-u -4` left |
+
+`TAB` itself does not add a step: it puts the line where the rules say (a second `TAB`
+completes). `C-q TAB` inserts a literal tab character.
+
 ### A project's code style, taken from a file
 Two files in the project root decide how code looks, and they must agree:
 - `.clang-format`: what `C-c l f` produces (clangd reads it). Without one clangd
