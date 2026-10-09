@@ -76,7 +76,7 @@ with `done when: ...`).
 | T-028 | done 0037 | S | review debug and presets code | owner | 5 taken, O-25 to rule |
 | T-029 | done | M | file watches on macOS | owner, D-054 | RESEARCH doc; O-26 to rule |
 | T-030 | next | M | targets from CMake's file API | D-056, O-25 | done-when agreed |
-| T-031 | next | M | platform defaults files | D-055, T-024 | done-when agreed |
+| T-031 | done 0039 | M | platform defaults files | D-055, T-024 | debugger offered first |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO

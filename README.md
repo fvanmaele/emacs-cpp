@@ -145,6 +145,7 @@ Load order is the contract: a module may only use modules loaded before it (DESI
 |---|---|
 | `early-init.el` | before the first frame: startup GC threshold, no package.el |
 | `init.el` | loads the generated files, sets up use-package, requires the modules |
+| `lisp/defaults-gnu-linux.el`, `lisp/defaults-darwin.el` | defaults by platform (D-055) |
 | `lisp/init-ui.el` | theme, which-key, Info manuals of the packages |
 | `lisp/init-completion.el` | vertico, orderless, marginalia, consult, embark, corfu, cape |
 | `lisp/init-project.el` | projectile, treemacs (`C-c t`) |
