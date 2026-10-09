@@ -837,12 +837,15 @@ presets, GoogleTest runner.
   are the suspects, not measured).
 - O-27 (OPEN, owner question 2026-10-09, `RESEARCH_navigation_delays.md`): the first
   `M-.` in a file after a restart waits 7 - 13 s for clangd's parse on the Mac because
-  the patched clangd refuses shards flagged "indexed with errors"; 5 of RMO's 11
-  sources carried that flag although they compile now (indexed during an edit; clangd
-  never re-indexes for the flag alone; a header created later is no dependency).
-  Options: (a) delete the index by hand when it happens, (b) patch 0009: re-index
-  flagged sources at startup, (c) missing headers as dependencies, (d) the Emacs side
-  (`vc-refresh-state` about 70 ms per opened file). Owner to rule.
+  the patched clangd refuses shards flagged "indexed with errors"; 5 of RMO's 11 sources
+  carried that flag although they compile now (indexed during an edit). A flag heals at
+  the next start only if the flagged source itself changed; a fixed header heals one
+  includer, a header created later none; clangd re-indexes nothing for an edit during a
+  session (research 4). Options: (a) delete the index by hand when it happens, (b) patch
+  0009: re-run the indexer on flagged sources at startup (no flagged shard is trusted; a
+  still-broken source stays flagged and answered from the parse), (c) missing headers as
+  dependencies, (d) the Emacs side (`vc-refresh-state` about 70 ms per opened file).
+  Owner to rule.
 - O-26 (RESOLVED 2026-10-09: (a) D-054 confirmed, (d) upstream report, T-032; T-029,
   revisited 2026-10-09): what D-054 should be. Revisit: the premise of a 207-watch limit
   for an Emacs started from the Dock was wrong; Emacs.app started through Launch
