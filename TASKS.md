@@ -84,7 +84,7 @@ with `done when: ...`).
 | T-036 | open | S | send the c++-ts-mode namespace report | D-061 | owner sends the draft |
 | T-037 | open | S | send the c-ts-mode local style report | owner | owner sends it |
 | T-038 | done 0044 | S | indentation from plain dir-locals | D-062 | RMO data-only |
-| T-039 | open | S | c-ts-mode report: member after blank line | D-062 | to draft, send |
+| T-039 | open | S | c-ts-mode report: member after blank line | D-062 | owner sends it |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -217,9 +217,11 @@ with `done when: ...`).
   name, one build step; the file API instead of build.ninja is O-25.
 - T-039 (opened 2026-10-10, owner report: `explicit ...` after `public:` typed at column
   0): the workaround is in (D-062, test `init-cpp-indent-members-after-a-blank-line`).
-  Left: draft `docs/upstream/` report with an `emacs -Q` reproduction (c-ts-common's
-  baseline rule, "Condition 2 for initializer list", catches `field_declaration_list`;
-  same in master); the owner sends it. Done when: sent, bug number noted here.
+  Drafted 2026-10-10: `docs/upstream/c-ts-mode-member-after-blank-line.md`, reproduction
+  `c_ts_mode_member_blank_line_repro.el`, with a one-line fix tested over master
+  (c-ts-common's baseline rule, "Condition 2 for initializer list", catches
+  `field_declaration_list`; same in master); outward, so the owner sends it. Done when:
+  sent, bug number noted here.
 - T-038 (opened 2026-10-10, owner: "update dir-locals.el, preferably without
   executable code"; D-062): tier 2 in `lisp/init-cpp.el`. Done when (agreed
   2026-10-10): ERT shows a dir-local `bsd` applies, the brace rule holds, the option
