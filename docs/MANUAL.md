@@ -201,8 +201,9 @@ Two files in the project root decide how code looks, and they must agree:
 Open a file that already has the project's style, then:
 
 1. Note the indent step (2, 4 or 8 columns), tabs or spaces (`M-x whitespace-mode`
-   marks tabs; run it again to hide the marks), and whether the `{` of an `if` or
-   `for` stands on the `if` line or on its own line.
+   marks tabs; run it again to hide the marks), whether the `{` of an `if` or
+   `for` stands on the `if` line or on its own line, and the same for `namespace`
+   and `class`.
 2. Find the closest of clang-format's built-in styles. `M-!` runs a shell command in
    the file's directory; replace `FILE` by the file's name:
    ```
@@ -235,16 +236,31 @@ Open a file that already has the project's style, then:
    - the `eval` line: only when `{` stands on its own line under the `if` (`bsd`).
      Without it the style is `gnu`, which indents such a `{` one step further; for
      `{` on the `if` line any style indents the same.
+   - when `{` stands on its own line after `namespace` or `class`, or namespace
+     contents are not indented: every style of Emacs 31.1 indents those, so the
+     `eval` line also needs three rules (`progn` runs both):
+     ```
+     (eval . (progn
+               (c-ts-mode-set-style 'bsd)
+               (treesit-simple-indent-add-rules
+                'cpp '(((parent-is "namespace_definition") standalone-parent 0)
+                       ((parent-is "class_specifier") standalone-parent 0)
+                       ((n-p-gp nil "declaration_list" "namespace_definition")
+                        parent-bol 0)))))
+     ```
 
    Setting `c-ts-mode-indent-style` directly in `.dir-locals.el` does nothing:
    `c++-ts-mode` builds its indent rules before it reads the file (checked in Emacs
    31.1, 2026-10-09). Emacs asks once whether to trust the `eval` line; `!` trusts it
    for good (saved in `custom.el`).
-5. Files already open keep their old settings: reopen them with `C-x C-v RET`. To
-   check, `C-x h TAB` re-indents the whole file and `C-c l f` formats it: neither
-   should change anything (the mode line shows `**` when the buffer changed; `C-/`
-   undoes). Lines that `TAB` still moves are where Emacs's rules and clang-format
-   differ (long argument lists, lambdas); `C-c l f` is the one that counts.
+5. Files already open keep their old settings: reopen them with `C-x C-v RET` (save
+   them first). To check, `TAB` on a few lines should leave them where they are, and
+   `C-c l f` with a region should change nothing in it (the mode line shows `**`
+   when the buffer changed; `C-/` undoes). Emacs's rules cover less than
+   clang-format: on RMO, `case` labels, arguments after a `(` at the end of a line
+   and some template classes still move (`RESEARCH_indent_guessing.md` 3). Format
+   the lines you edit (`C-c l f` on a region) rather than whole files: hand-aligned
+   code and boost `add_options()` chains do not survive a whole-file format.
 
 ## 9. Building
 ```
