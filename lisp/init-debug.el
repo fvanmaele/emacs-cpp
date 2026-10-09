@@ -55,6 +55,26 @@ this to its own file, /opt/local/bin/lldb-dap-mp-23.  Set it with
                  (file :tag "Program (path or name)"))
   :group 'tools)
 
+(defcustom emacs-cpp-debug-default-configuration emacs-cpp-default-debug-configuration
+  "The debug configuration `C-x C-a d' offers first in a C++ buffer (D-055).
+Offered only while dape's history holds no `gdb-preset' or `lldb-preset' entry;
+after that the last one used comes first, as dape does.  The default comes from
+the platform's defaults file: `gdb-preset' on Linux, `lldb-preset' on macOS."
+  :type '(choice (const gdb-preset) (const lldb-preset))
+  :group 'tools)
+
+(defun emacs-cpp-debug--offer-default ()
+  "Put `emacs-cpp-debug-default-configuration' first at `C-x C-a d' (D-055).
+For `dape-read-config-hook': in a C++ buffer without a project setting
+\(`dape-command') and while dape's history has no preset entry, add the
+default to the history, where dape's prompt takes its first input from."
+  (when (and (derived-mode-p 'c-ts-base-mode)
+             (null dape-command)
+             (not (seq-some (lambda (entry)
+                              (string-match-p "\\`\\(?:gdb\\|lldb\\)-preset\\_>" entry))
+                            dape-history)))
+    (push (symbol-name emacs-cpp-debug-default-configuration) dape-history)))
+
 (defvar emacs-cpp-debug--program-history nil
   "Targets picked for `gdb-preset' and `lldb-preset'.")
 
@@ -228,6 +248,7 @@ parts, started with `emacs-cpp-debug-lldb-dap' (D-051)."
   :config
   (setf (alist-get 'gdb-preset dape-configs) (emacs-cpp-debug--gdb-preset-config))
   (setf (alist-get 'lldb-preset dape-configs) (emacs-cpp-debug--lldb-preset-config))
+  (add-hook 'dape-read-config-hook #'emacs-cpp-debug--offer-default)
   ;; The theme styles neither face; inheriting keeps them in the theme's colours.
   (require 'hl-line)
   (face-spec-set 'dape-breakpoint-face '((t :inherit error)))

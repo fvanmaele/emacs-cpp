@@ -32,6 +32,16 @@
 (setq use-package-always-defer t
       use-package-expand-minimally t)
 
+;; Defaults that differ by platform, one file each (D-055), before the modules that
+;; use them.  An unknown platform stops here instead of starting half-configured.
+(defun emacs-cpp-defaults-feature (platform)
+  "Return the defaults feature for PLATFORM, a `system-type' value (D-055)."
+  (pcase platform
+    ('gnu/linux 'defaults-gnu-linux)
+    ('darwin 'defaults-darwin)
+    (_ (error "emacs-cpp: no defaults file for platform %s (D-055)" platform))))
+(require (emacs-cpp-defaults-feature system-type))
+
 ;; Module order is the contract (DESIGN 5): a module may only use modules above it.
 (require 'init-ui)
 (require 'init-completion)

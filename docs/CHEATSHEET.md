@@ -110,6 +110,9 @@ for the project; `M-x projectile-discard-command-cache` returns to the preset's.
 | `C-x C-a b` / click the fringe | toggle a breakpoint on the line (red mark) |
 | `C-x C-a d` `gdb-preset RET` | pick a target of the active preset, build it, debug it |
 | `C-x C-a d` `lldb-preset RET` | the same with lldb (macOS; on Arch too, D-051) |
+
+The prompt starts with `gdb-preset` on Arch and `lldb-preset` on macOS until one of
+them was used; then with your last input (D-055).
 | `C-x C-a n` `s` `o` `c` | step over / into / out / continue; then just `n` `s` `o` `c` |
 | `C-x C-a w` | watch an expression |
 | `C-x C-a i` | info buffers: stack, locals, breakpoints, threads |

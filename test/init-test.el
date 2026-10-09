@@ -110,6 +110,30 @@ Return the themes that give the `default' face its look, as `princ'ed text."
             (and (re-search-forward "^THEMES \\(.*\\)" nil t) (match-string 1))))
       (delete-directory home t))))
 
+(defun init-test--defined-names (file)
+  "Return the names FILE defines with defconst, defvar or defcustom, sorted."
+  (with-temp-buffer
+    (insert-file-contents file)
+    (let (names form)
+      (while (setq form (ignore-error end-of-file (read (current-buffer))))
+        (when (memq (car-safe form) '(defconst defvar defcustom))
+          (push (symbol-name (cadr form)) names)))
+      (sort names #'string<))))
+
+(ert-deftest init-defaults-per-platform ()
+  "D-055: one defaults file per platform, the same names in each; an unknown
+platform stops startup."
+  (init-test--load)
+  (should (featurep (emacs-cpp-defaults-feature system-type)))
+  (should-error (emacs-cpp-defaults-feature 'windows-nt))
+  (let ((names (mapcar (lambda (platform)
+                         (init-test--defined-names
+                          (locate-library
+                           (symbol-name (emacs-cpp-defaults-feature platform)))))
+                       '(gnu/linux darwin))))
+    (should (car names))
+    (should (equal (car names) (cadr names)))))
+
 (ert-deftest init-saved-theme-survives-restart ()
   "D-040: a theme saved with customize-themes is the one in effect after startup;
 without one, the default theme is."
