@@ -193,10 +193,13 @@ names and deduced types.
 
 ### A project's code style, taken from a file
 Two files in the project root decide how code looks, and they must agree:
-- `.clang-format`: what `C-c l f` produces (clangd reads it). Without one clangd
-  formats in LLVM style, so `C-c l f` rewrites the file in a style nobody chose.
-- `.dir-locals.el`: what `TAB` and `RET` indent to. Emacs indents by its own rules;
-  it does not read `.clang-format`.
+- `.clang-format`: what `C-c l f` produces, and where `RET` puts the new line once
+  clangd runs (clangd reads it; the line `RET` ended stays as you typed it, D-061).
+  Without one clangd formats in LLVM style, so `C-c l f` rewrites the file in a style
+  nobody chose.
+- `.dir-locals.el`: what `TAB` indents to, and the line after typing `}`, `;` and
+  the like; `RET` too in files without clangd. Emacs indents by its own rules; it
+  does not read `.clang-format`.
 
 Open a file that already has the project's style, then:
 

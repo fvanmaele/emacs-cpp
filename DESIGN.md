@@ -369,7 +369,9 @@ Known defects: none yet (nothing built).
   electric characters (`}`, `;`, ...) keep Emacs's tree-sitter rules; buffers without
   eglot keep electric indentation. The tree-sitter gap for namespace and class braces
   goes upstream (`docs/upstream/c-ts-mode-namespace-class-braces.md`, T-036);
-  projects meanwhile carry the three rules in `.dir-locals.el` (MANUAL 8). Code: T-035.
+  projects meanwhile carry the three rules in `.dir-locals.el` (MANUAL 8). Code: T-035
+  (0043). A second report (owner 2026-10-10, T-037): a local `c-ts-mode-indent-style`
+  is set but not applied, hence the `eval` in MANUAL 8.
 
 ## 8. Build (CMake presets)
 - DECIDED D-005: `CMakePresets.json` is the toolchain / profile mechanism; Emacs never
