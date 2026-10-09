@@ -146,6 +146,8 @@ Observed on the owner's Mac, 2026-10-09 (D-050):
 6. No module without a section here; no risky change without a PASS spike.
 7. Performance is measured, not assumed (section 11): a tuning setting lands only with
    the number it moved, or with the source that justifies it.
+8. DECIDED D-058 (owner 2026-10-09, O-24 c): `make test` passes on the machine at hand
+   (Arch or the Mac) before a commit; the other platform is not required.
 
 ## 5. Load model (the core contract)
 - `early-init.el`: frame / UI settings, startup garbage-collection threshold,
@@ -177,8 +179,8 @@ Observed on the owner's Mac, 2026-10-09 (D-050):
   `system-type` before the modules; they hold choices only, e.g. the debugger offered
   first (Linux: gdb, macOS: lldb). Platform mechanics stay inside their modules as
   `system-type` branches: cmake-mode's directory (D-013), eglot's watch limits
-  (D-054), lldb-dap's program (D-051), `${hostSystemName}` (D-016). PROPOSED done when
-  for the code (owner to agree): `init.el` loads the file for the running platform and
+  (D-054), lldb-dap's program (D-051), `${hostSystemName}` (D-016). Done when for the
+  code (agreed 2026-10-09, T-031): `init.el` loads the file for the running platform and
   stops with an error on an unknown one; `C-x C-a d` in a C++ buffer offers
   `gdb-preset` on Linux and `lldb-preset` on macOS when dape's history has no entry
   (history still wins); tests on both platforms; make test passes.
@@ -420,7 +422,7 @@ Known defects: none yet (nothing built).
   write `reply/index-*.json`; its `codemodel-v2` object lists configurations and
   targets, each target file has `type` (`EXECUTABLE`), `name` and `artifacts[].path`
   (relative to the build directory). Any generator; Makefiles too.
-  PROPOSED for T-030 (owner to agree): the configure command (`C-c p c o`, D-035) and
+  Agreed for T-030 (owner 2026-10-09): the configure command (`C-c p c o`, D-035) and
   the debug presets write the query file into the preset's `binaryDir` (CMake's output
   directory, not the source tree D-016 keeps clean); the newest reply index is read;
   no reply refuses the session with the fix ("configure once with `C-c p c o`"); more
@@ -521,6 +523,9 @@ Budgets, measured on the owner machine (T-008 measures, numbers land here):
   first `M-.` waits 8.5 - 9.4 s as with the stock clangd. Projects under the home
   directory are not affected. `M-?` reference counts differed between runs (14, 15, 24 for
   the same name); not compared.
+- DECIDED D-057 (owner 2026-10-09, O-24 b): the budgets of this section and the
+  reference project (D-009) are measured on Arch only. Mac numbers are recorded (above)
+  but not judged against the budgets.
 Mechanisms, each PROPOSED until measured:
 - Packages byte-compiled by `make packages`; one combined autoloads file; no
   `package.el` activation at startup. Native compilation is left to Emacs's default
@@ -844,7 +849,8 @@ presets, GoogleTest runner.
   script outside any package manager; or the MacPorts clangd only
   (`emacs-cpp-clangd-program` nil), losing index navigation and header flags from the
   index on macOS.
-- O-24 (OPEN for (b), (c); (a) RESOLVED 2026-10-09 with D-053, MacPorts only; D-050):
+- O-24 (RESOLVED 2026-10-09: (a) D-053 MacPorts only, (b) D-057 Arch only, (c) D-058
+  machine at hand; D-050):
   scope of macOS support. (a) Package source: MacPorts only (the owner's Mac), or
   Homebrew too. (b) Which machine the performance budgets (section 11) and the
   reference project (D-009) are measured on: Arch only, or both. (c) Whether `make
@@ -856,7 +862,8 @@ presets, GoogleTest runner.
 - O-20 (RESOLVED 2026-10-08 with D-044): gud (`M-x pdb`, `M-x perldb`, `M-x gdb`) binds
   its map on `C-x C-a` globally when it loads, which takes dape's prefix for the session.
   Proposed: `gud-key-prefix` on a free key (`C-x M-a`, `C-x M-d` or `C-x C-y`).
-- O-12 (OPEN, owner 2026-10-08: adopt, spike S10 first; T-020 folded into the same
+- O-12 (OPEN, owner 2026-10-09: run S10 on Arch, `spikes/s10-library-index/RUN.md`;
+  owner 2026-10-08: adopt, spike S10 first; T-020 folded into the same
   clangd rebuild): S10 dry run (synthetic project): the patched clangd with the deal.II
   index answers the first `M-.` with the definition (`vector.templates.h:477`,
   `tria.cc:15874`), `M-?` 2 -> 8 and 2 -> 18, +30 MB; no clangd patch needed (the
@@ -995,6 +1002,8 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-054 | 2026-10-09 | macOS: eglot watches project files only, at most 500 | 7 | T-021 |
 | D-055 | 2026-10-09 | per-platform files: defaults only; mechanics in modules | 5 | T-024 |
 | D-056 | 2026-10-09 | debug presets read targets from CMake's file API | 9 | O-25 |
+| D-057 | 2026-10-09 | performance budgets measured on Arch only | 11 | O-24 |
+| D-058 | 2026-10-09 | make test passes on the machine at hand before a commit | 4 | O-24 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.

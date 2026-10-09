@@ -61,8 +61,9 @@ O-24 (b), (c), O-25 (file API), O-26 (watch limits); D-054 awaits confirmation.
   carries the assumptions + risks ledger.
 
 ## Tests
-- New logic ships with tests. `make test` before committing code. Docs-only commits
-  skip it. Test in the profile you ship.
+- New logic ships with tests. `make test` before committing code, on the machine at
+  hand, Arch or the Mac (D-058). Docs-only commits skip it. Test in the profile you
+  ship.
 
 ## Docs-sync
 A change that affects DESIGN, README, TASKS, spikes/README or the journal updates them in
