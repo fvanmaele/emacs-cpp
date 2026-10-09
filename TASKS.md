@@ -79,7 +79,9 @@ with `done when: ...`).
 | T-031 | done 0039 | M | platform defaults files | D-055, T-024 | debugger offered first |
 | T-032 | open | S | send the eglot watch report | D-054, O-26 | owner sends the draft |
 | T-033 | done 0042 | M | patch 0009: re-index flagged shards | D-060 | S9 run 4 unchanged |
-| T-034 | done | S | indent-guessing packages | owner | RESEARCH doc; O-28 to rule |
+| T-034 | done | S | indent-guessing packages | owner | RESEARCH doc; O-28 ruled, D-061 |
+| T-035 | open | M | RET indents by clangd | D-061 | done when to agree |
+| T-036 | open | S | send the c++-ts-mode namespace report | D-061 | owner sends the draft |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -210,13 +212,29 @@ with `done when: ...`).
   findings, each taken or not taken with a reason, and the taken ones fixed with
   tests. Done 2026-10-09 (0037): preset conditions, `$env{}` as CMake, lldb-dap by
   name, one build step; the file API instead of build.ninja is O-25.
+- T-036 (opened 2026-10-10, D-061, O-28 (e)): send
+  `docs/upstream/c-ts-mode-namespace-class-braces.md` (reproduction
+  `c_ts_mode_namespace_repro.el`) to the Emacs bug tracker (`M-x report-emacs-bug` or
+  bug-gnu-emacs@gnu.org); outward, so the owner sends it. Done when: sent, and the
+  bug number noted here and in D-061.
+- T-035 (opened 2026-10-10, D-061): RET in eglot-managed C++ buffers indents the new
+  line by clangd's on-type formatting, the line above kept as typed. Tier 2, in
+  `lisp/init-cpp.el`. PROPOSED done when (owner to agree): ERT with clangd on a toy
+  project carrying RMO's `.clang-format`: RET after a declaration in an unindented
+  namespace lands at column 0, after `public:` at 4, inside a function body at 8, and
+  the hand-aligned line above (`int  x   = 1;`) is unchanged; typing `}` is still
+  re-indented by Emacs's rules; without eglot, and after `eglot-shutdown`, RET indents
+  as before (electric indentation, newline among its characters); an error from
+  clangd's reply is shown, not swallowed; MANUAL 8 and the cheat sheet say what RET and
+  TAB follow; `make test` passes on Arch; RET on RMO (owner, `src/main_coarse.cc`) feels
+  immediate (batch: 2 - 6 ms per RET on a toy file, 2026-10-10).
 - T-034 (opened 2026-10-09, owner): research packages that guess a project's
   indentation or format style, after MANUAL 8 was applied to RMO. Done when:
   `RESEARCH_indent_guessing.md` with the candidates, their state, and what each
   would change on RMO. Done 2026-10-09: dtrt-indent guesses only step and tabs,
   whatstyle / unformat are unproven at clang-format 23; Emacs 31.1's rules miss
   namespace and class braces; clangd's on-type formatting is overridden by
-  electric indentation. Options put to the owner as O-28.
+  electric indentation. Options put to the owner as O-28; ruled 2026-10-10 (D-061).
 - T-033 (opened 2026-10-09, D-060): patch 0009 in `BackgroundIndex::loadProject`: a
   loaded shard with `HadErrors` schedules its `DependentTU` like a stale one; a log
   line names the source. Tier 2. PROPOSED done when (owner to agree): a unit test (a

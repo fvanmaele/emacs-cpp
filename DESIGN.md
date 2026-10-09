@@ -359,6 +359,17 @@ Known defects: none yet (nothing built).
 - DECIDED D-008: C++ major mode is `c++-ts-mode` on the system grammar; `.h` files open
   in `c++-ts-mode` (the owner's projects are C++, and no C grammar is installed). A
   missing grammar is a startup error, not a fallback to `c++-mode`.
+- DECIDED D-061 (O-28 (b), (e)): RET indents by the project's `.clang-format`. In a
+  `c++-ts-mode` buffer managed by eglot whose server offers on-type formatting on
+  newline (clangd does), RET takes the new line's indentation from clangd; the line
+  above stays as typed (owner 2026-10-10: clangd's reformat of it would collapse hand
+  alignment, about 900 lines in RMO). Mechanism: newline leaves electric
+  indentation's characters in those buffers, so eglot's own on-type request is not
+  undone by it; the line above is restored if clangd changed it. TAB and the other
+  electric characters (`}`, `;`, ...) keep Emacs's tree-sitter rules; buffers without
+  eglot keep electric indentation. The tree-sitter gap for namespace and class braces
+  goes upstream (`docs/upstream/c-ts-mode-namespace-class-braces.md`, T-036);
+  projects meanwhile carry the three rules in `.dir-locals.el` (MANUAL 8). Code: T-035.
 
 ## 8. Build (CMake presets)
 - DECIDED D-005: `CMakePresets.json` is the toolchain / profile mechanism; Emacs never
@@ -730,7 +741,7 @@ presets, GoogleTest runner.
   the C++ setup. Findings in; rulings O-19, O-20.
 - `RESEARCH_indent_guessing.md` (owner request 2026-10-09, T-034): packages that
   guess indentation or a `.clang-format`, measured on RMO; clangd's on-type
-  formatting through eglot. Findings in; O-28.
+  formatting through eglot. Findings in; O-28 ruled (D-061).
 - `RESEARCH_navigation_delays.md` (owner question 2026-10-09): where `M-.` on names
   spends its time on the Mac; stale "indexed with errors" shards. Findings in; O-27.
 - `RESEARCH_python_macos.md` (owner request 2026-10-09, T-025): pyright and five
@@ -850,7 +861,8 @@ presets, GoogleTest runner.
   budget (Arch 0.151 s); first `M-.` from the index 2.6 s (Arch 1.4 s). If the budgets
   bind on the Mac, startup needs work there first (antivirus and native-code loading
   are the suspects, not measured).
-- O-28 (OPEN; owner request 2026-10-09, T-034, `RESEARCH_indent_guessing.md`): `TAB`
+- O-28 (RESOLVED 2026-10-10 with D-061: (b) new line only, and (e); owner request
+  2026-10-09, T-034, `RESEARCH_indent_guessing.md`): `TAB`
   and `RET` in `c++-ts-mode` indent by Emacs's tree-sitter rules, not by the
   project's `.clang-format`, and Emacs 31.1's rules indent a `{` on its own line after
   `namespace` or `class` in every style. On RMO, re-indenting changes 7624 of about
@@ -862,7 +874,8 @@ presets, GoogleTest runner.
   rules for the owner's style in the config (namespace, class, `case`, argument
   continuation), tier 2; (d) dtrt-indent, a new dependency that guesses only step and
   tabs, which fixes none of RMO's differences; (e) report the namespace / class rule
-  gap upstream (outward, so the owner sends it). Owner to rule.
+  gap upstream (outward, so the owner sends it). Ruled 2026-10-10: (b) taking only the
+  new line's indentation from clangd (the line above as typed), and (e); T-035, T-036.
 - O-27 (RESOLVED 2026-10-09 with D-060, option (b); owner question 2026-10-09,
   `RESEARCH_navigation_delays.md`): the first `M-.` in a file after a restart waits 7 -
   13 s for clangd's parse on the Mac because the patched clangd refuses shards flagged
@@ -1064,6 +1077,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-058 | 2026-10-09 | make test passes on the machine at hand before a commit | 4 | O-24 |
 | D-059 | 2026-10-09 | patch 0008: known includer answered at once (pkgrel 6) | 7 | T-020 |
 | D-060 | 2026-10-09 | patch 0009: re-index sources whose shards had errors | 7 | O-27 |
+| D-061 | 2026-10-10 | RET: new line indented by clangd; namespace gap upstream | 7 | O-28 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
