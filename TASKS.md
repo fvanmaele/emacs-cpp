@@ -85,7 +85,7 @@ with `done when: ...`).
 | T-037 | open | S | send the c-ts-mode local style report | owner | owner sends it |
 | T-038 | done 0044 | S | indentation from plain dir-locals | D-062 | RMO data-only |
 | T-039 | open | S | c-ts-mode report: member after blank line | D-062 | owner sends it |
-| T-040 | open | M | rules: case labels, argument lines | D-065 | RMO 452 lines |
+| T-040 | done | M | rules: case labels, argument lines | D-065 | 62 lines left |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -219,7 +219,12 @@ with `done when: ...`).
 - T-040 (opened 2026-10-10, D-065): indent rules for the two gaps left on RMO after
   D-062 (452 lines re-indented): `case` labels one step in from `switch`
   (`IndentCaseLabels: true`), and arguments after a `(` that ends a line one step in
-  rather than aligned with the `(`. Tier to propose with the done when.
+  rather than aligned with the `(`. Tier 1 (rules with tests, as T-039). Done
+  2026-10-10: measured against clang-format's own output of RMO, Emacs's re-indent
+  differs on 244 -> 62 lines (case labels, argument lists via
+  `c-ts-common-list-indent-style` `simple`, constructor initializers, `requires`); test
+  `init-cpp-indent-like-clang-format` re-indents a clang-format sample from nothing to
+  the same text. RMO's `.dir-locals.el` gains `emacs-cpp-indent-case-labels`.
 - T-039 (opened 2026-10-10, owner report: `explicit ...` after `public:` typed at column
   0): the workaround is in (D-062, test `init-cpp-indent-members-after-a-blank-line`).
   Drafted 2026-10-10: `docs/upstream/c-ts-mode-member-after-blank-line.md`, reproduction

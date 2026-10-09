@@ -400,6 +400,13 @@ Known defects: none yet (nothing built).
   with the body's first child, `public:` at the class's column, because the fallback
   rule takes a class body for an initializer list (31.1 and master); members now sit
   one step in from the body's `{` line. RMO re-indent: 2955 -> 452 lines (T-039).
+  Extended 2026-10-10 (T-040, after D-065): a second safe option
+  `emacs-cpp-indent-case-labels` (default nil, as Emacs); argument lists in
+  `c-ts-common-list-indent-style` `simple` (after a `(` that ends a line one step in,
+  otherwise aligned with the first argument, as clang-format); constructor
+  initializers and `requires` clauses one step in. Against clang-format's output of
+  RMO (its `.clang-format`), Emacs's re-indent differs on 244 -> 62 lines; left: `<<`
+  chains aligned under the first `<<`, macro bodies, template and alias continuations.
 - DECIDED D-064 (owner 2026-10-10: "leave it"): clangd's "Move function body to
   out-of-line" stays offered in every header, as upstream. clangd checks for the
   header's source file only when the action is applied (`DefineOutline.cpp`: no disk
