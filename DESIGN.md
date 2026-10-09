@@ -716,6 +716,8 @@ presets, GoogleTest runner.
 ## Research program
 - `RESEARCH_other_languages.md` (owner question 2026-10-08): Python, R, Perl next to
   the C++ setup. Findings in; rulings O-19, O-20.
+- `RESEARCH_navigation_delays.md` (owner question 2026-10-09): where `M-.` on names
+  spends its time on the Mac; stale "indexed with errors" shards. Findings in; O-27.
 - `RESEARCH_python_macos.md` (owner request 2026-10-09, T-025): pyright and five
   alternatives through eglot, debugpy's start against dape's wait. First round in;
   no ruling asked yet.
@@ -833,6 +835,14 @@ presets, GoogleTest runner.
   budget (Arch 0.151 s); first `M-.` from the index 2.6 s (Arch 1.4 s). If the budgets
   bind on the Mac, startup needs work there first (antivirus and native-code loading
   are the suspects, not measured).
+- O-27 (OPEN, owner question 2026-10-09, `RESEARCH_navigation_delays.md`): the first
+  `M-.` in a file after a restart waits 7 - 13 s for clangd's parse on the Mac because
+  the patched clangd refuses shards flagged "indexed with errors"; 5 of RMO's 11
+  sources carried that flag although they compile now (indexed during an edit; clangd
+  never re-indexes for the flag alone; a header created later is no dependency).
+  Options: (a) delete the index by hand when it happens, (b) patch 0009: re-index
+  flagged sources at startup, (c) missing headers as dependencies, (d) the Emacs side
+  (`vc-refresh-state` about 70 ms per opened file). Owner to rule.
 - O-26 (RESOLVED 2026-10-09: (a) D-054 confirmed, (d) upstream report, T-032; T-029,
   revisited 2026-10-09): what D-054 should be. Revisit: the premise of a 207-watch limit
   for an Emacs started from the Dock was wrong; Emacs.app started through Launch
