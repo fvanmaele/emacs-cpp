@@ -35,8 +35,9 @@ part to jump (D-043).
 | `C-c l I` | hide / show inlay hints (parameter names, deduced types) |
 | `M-;` | comment / uncomment the region or line |
 
-`C-c l f` follows the project's `.clang-format` (LLVM style without one); `TAB`
-follows `.dir-locals.el`. Writing both from a file that has the project's style:
+`C-c l f` follows the project's `.clang-format` (LLVM style without one), and so
+does `RET` while clangd runs (the line above stays as typed, D-061); `TAB` follows
+`.dir-locals.el`. Writing both from a file that has the project's style:
 `docs/MANUAL.md` 8.
 
 ## Errors and warnings (flymake)

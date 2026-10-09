@@ -23,12 +23,70 @@
 ;; Only files of preset projects start eglot (D-005, D-019).
 (add-hook 'c++-ts-mode-hook #'emacs-cpp-presets-eglot-ensure)
 
+;; RET indents by the project's .clang-format (D-061).  Eglot already asks the
+;; server to format on newline (on-type formatting), but electric indentation runs
+;; after it and re-indents the new line by the tree-sitter rules, which do not read
+;; .clang-format.  So newline leaves `electric-indent-chars' in managed buffers, and
+;; since clangd also reformats the line above (collapsing hand alignment), that line
+;; is put back as typed.  TAB and the other electric characters keep Emacs's rules.
+
+(defvar-local emacs-cpp-ret--line-above nil
+  "Marker at the line above point and its text, saved before eglot's request.")
+
+(defun emacs-cpp-ret--server-formats-newline-p ()
+  "Non-nil when this buffer's server formats on newline, as eglot asks it to."
+  (let ((provider (eglot-server-capable :documentOnTypeFormattingProvider)))
+    (and provider
+         (or (equal (plist-get provider :firstTriggerCharacter) "\n")
+             (seq-contains-p (plist-get provider :moreTriggerCharacter) "\n")))))
+
+(defun emacs-cpp-ret--save-line-above ()
+  "After a newline, save the line it ended, before the server can change it.
+Any other insertion clears what an earlier one saved, so a failed request
+cannot leave a line to be restored later."
+  (setq emacs-cpp-ret--line-above
+        (and (eq last-command-event ?\n)
+             (save-excursion
+               (forward-line -1)
+               (cons (copy-marker (pos-bol))
+                     (buffer-substring-no-properties (pos-bol) (pos-eol)))))))
+
+(defun emacs-cpp-ret--restore-line-above ()
+  "Put back the line above as typed; keep the new line's indentation."
+  (pcase-let ((`(,start . ,text) emacs-cpp-ret--line-above))
+    (when start
+      (setq emacs-cpp-ret--line-above nil)
+      (let ((column (current-indentation)))
+        (save-excursion
+          (goto-char start)
+          (unless (equal (buffer-substring-no-properties (pos-bol) (pos-eol)) text)
+            (delete-region (pos-bol) (pos-eol))
+            (insert text)))
+        (set-marker start nil)
+        (indent-line-to column)))))
+
+(defun emacs-cpp-ret-by-server ()
+  "Let the server indent RET in this C++ buffer while eglot manages it (D-061).
+Runs from `eglot-managed-mode-hook', so also when eglot lets the buffer go."
+  (when (derived-mode-p 'c++-ts-mode)
+    (if (and (eglot-managed-p) (emacs-cpp-ret--server-formats-newline-p))
+        (progn
+          (setq-local electric-indent-chars (remq ?\n electric-indent-chars))
+          ;; Around eglot's own request (depth 0), before electric indentation (60).
+          (add-hook 'post-self-insert-hook #'emacs-cpp-ret--save-line-above -50 t)
+          (add-hook 'post-self-insert-hook #'emacs-cpp-ret--restore-line-above 50 t))
+      (unless (memq ?\n electric-indent-chars)
+        (setq-local electric-indent-chars (cons ?\n electric-indent-chars)))
+      (remove-hook 'post-self-insert-hook #'emacs-cpp-ret--save-line-above t)
+      (remove-hook 'post-self-insert-hook #'emacs-cpp-ret--restore-line-above t))))
+
 (use-package eglot
   ;; Not autoloaded by eglot; `C-c l' (below) can come before eglot has loaded.
   :commands (eglot-rename eglot-code-actions eglot-format eglot-find-implementation
              eglot-find-declaration eglot-show-call-hierarchy eglot-show-type-hierarchy
              eglot-inlay-hints-mode)
   :config
+  (add-hook 'eglot-managed-mode-hook #'emacs-cpp-ret-by-server)
   ;; Ahead of eglot's own clangd entry, which starts clangd without a database.
   (add-to-list 'eglot-server-programs
                '(c++-ts-mode . emacs-cpp-presets-clangd-contact))
