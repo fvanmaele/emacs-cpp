@@ -11,17 +11,18 @@ refactoring, diagnostics, CMake presets, debugger, git, jump-to-anything) on an 
 Linux workstation and a macOS machine (D-050). It will never be an Emacs distribution, a
 Windows config or a CLion keymap emulation (DESIGN 2).
 **Status (2026-10-09):** v0.4.1 tagged (navigation, build, debug, polish), design ruled
-through D-059. clangd stays (T-004); a locally patched clangd
-(`packaging/clangd-index-nav`, pkgrel 6 with patch 0008, selected by
+through D-060. clangd stays (T-004); a locally patched clangd
+(`packaging/clangd-index-nav`, pkgrel 7 with patches 0008, 0009, selected by
 `emacs-cpp-clangd-program`) answers navigation from its index and gives headers an
-includer's flags, also when opened first (D-026 .. D-028, D-046, D-047, D-059). Python
-rides along (D-045). macOS supported, MacPorts only (D-050, D-053): starts and tests
-there (T-021, D-054), `lldb-preset` (D-051), patched clangd from `build-macos.sh`
-(D-052); per-platform defaults files (D-055, T-031); debug targets from CMake's file
-API (D-056, T-030). Budgets bind on Arch only (D-057); `make test` on the machine at
-hand (D-058). Owner runs left: Arch make test (T-021, T-022, T-030), pkgrel 6 + S9
-(T-020), S10 (O-12), build-macos.sh to ~/opt (T-023). Open: O-12, O-26; D-054 awaits
-confirmation; T-025 round 2, T-026 research queued.
+includer's flags, also when opened first (D-026 .. D-028, D-046, D-047, D-059), and
+re-indexes sources whose shards had errors (D-060). Python rides along (D-045). macOS
+supported, MacPorts only (D-050, D-053): starts and tests there (T-021, D-054),
+`lldb-preset` (D-051), patched clangd from `build-macos.sh` (D-052); per-platform defaults
+files (D-055, T-031); debug targets from CMake's file API (D-056, T-030). Budgets bind on
+Arch only (D-057); `make test` on the machine at hand (D-058). Owner runs left: Arch make
+test (T-021, T-022, T-030), pkgrel 6 + S9 (T-020), pkgrel 7 (T-033), S10 (O-12),
+build-macos.sh to ~/opt (T-023). Open: O-12, O-26; D-054 awaits confirmation; T-025 round
+2, T-026 research queued.
 
 ## Hard rules (each with its reason)
 - Change-size ladder: tier 1 trivial = commit with Reasoning only; tier 2 feature = `done
