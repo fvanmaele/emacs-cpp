@@ -64,7 +64,11 @@ Rebuilds from `c-ts-mode-indent-style' each time, so running twice is harmless."
           ;; A constructor's `: member(...)' one step in from the declaration,
           ;; comments before it too (T-040).
           ((node-is "field_initializer_list") standalone-parent c-ts-indent-offset)
-          ((parent-is "field_initializer_list") parent-bol 0)
+          ;; Later lines: `, member(...)' and comments under the `:'; a member
+          ;; after `member(...),' aligned with the first one.
+          ((and (parent-is "field_initializer_list") (node-is ,(rx (or "," "comment"))))
+           parent-bol 0)
+          ((parent-is "field_initializer_list") (nth-sibling 0 t) 0)
           ((and (node-is "comment") (parent-is "function_definition"))
            standalone-parent c-ts-indent-offset)
           ;; A `requires' clause on its own line, one step in (T-040).
