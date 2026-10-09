@@ -23,7 +23,8 @@
   "Create FILES, an alist (NAME . CONTENT), in a temporary `root'; run BODY.
 `emacs-cpp-presets-state-file' is redirected into the temporary directory."
   (declare (indent 1))
-  `(let* ((root (file-name-as-directory (make-temp-file "emacs-cpp-presets-test" t)))
+  `(let* ((root (file-name-as-directory
+                (file-truename (make-temp-file "emacs-cpp-presets-test" t))))
           (emacs-cpp-presets-state-file (expand-file-name "state.eld" root)))
      (unwind-protect
          (progn

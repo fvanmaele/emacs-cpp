@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0034 | 2026-10-09 | T-021: the config starts on macOS | T-021 | D-050, D-054 |
 | 0033 | 2026-10-08 | v0.4.1: the tree opens only on C-c t again | v0.4.1 | D-049 |
 | 0032 | 2026-10-08 | Milestone v0.4.0: polish | v0.4 | D-038..D-048 |
 | 0031 | 2026-10-08 | Code review v0.2.0..HEAD folded in | review | D-045, D-048 |

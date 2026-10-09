@@ -31,6 +31,16 @@ The temporary home is deleted when Emacs exits."
       (load (expand-file-name "init.el" build-packages-root) nil t)
       (run-hooks 'after-init-hook))))
 
+(defun init-test--wait-managed (&optional seconds)
+  "Wait up to SECONDS (default 10) until eglot manages the current buffer.
+Return `eglot-managed-p'.  eglot's connect stops waiting at the first output of
+any process, a server's log line on stderr too, so the handshake can still be
+under way when the visit returns; the buffer is managed once it ends."
+  (let ((deadline (+ (float-time) (or seconds 10))))
+    (while (and (not (eglot-managed-p)) (< (float-time) deadline))
+      (accept-process-output nil 0.1))
+    (eglot-managed-p)))
+
 (defun init-test--stale-elc-files ()
   "Return built package files whose .elc is missing or older than the .el."
   (let (stale)
@@ -69,7 +79,8 @@ The temporary home is deleted when Emacs exits."
       (unwind-protect
           (should (eq major-mode 'cmake-mode))
         (kill-buffer)))
-    (should (string-prefix-p "/usr/share/emacs/site-lisp/" (locate-library "cmake-mode"))))
+    (should (string-prefix-p (file-name-as-directory emacs-cpp-cmake-mode-directory)
+                             (locate-library "cmake-mode"))))
   (should (eq (assoc-default "x/FindFoo.cmake" auto-mode-alist #'string-match) 'cmake-mode))
   (dolist (command '(treemacs treemacs-projectile org-journal-new-entry))
     (should (commandp command)))
@@ -114,8 +125,12 @@ without one, the default theme is."
   (should (= recentf-max-saved-items 200))
   (should (eq (keymap-lookup global-map "C-x C-r") 'consult-recent-file))
   (should (recentf-include-p (expand-file-name "src/main.cc" temporary-file-directory)))
-  (should-not (recentf-include-p (expand-file-name ".cache/treemacs-persist"
-                                                   user-emacs-directory))))
+  ;; The test's own home: the predicate needs .cache/ to exist, as it does once
+  ;; treemacs has written its state there; the owner's ~/.emacs.d may have none.
+  (let ((user-emacs-directory init-test--home))
+    (make-directory (expand-file-name ".cache" user-emacs-directory) t)
+    (should-not (recentf-include-p (expand-file-name ".cache/treemacs-persist"
+                                                     user-emacs-directory)))))
 
 (ert-deftest init-treemacs-magit-loads-with-both ()
   "T-015: treemacs-magit loads once treemacs and magit are loaded."
@@ -157,7 +172,8 @@ without one, the default theme is."
   (should (bound-and-true-p treemacs-project-follow-mode))
   ;; In a project: the first C-c t shows exactly that project (no prompt for a
   ;; root, as `treemacs' gives with an empty workspace), the second closes it.
-  (let* ((root (file-name-as-directory (make-temp-file "emacs-cpp-tree" t)))
+  (let* ((root (file-name-as-directory
+                (file-truename (make-temp-file "emacs-cpp-tree" t))))
          (file (expand-file-name "a.cc" root)))
     (unwind-protect
         (progn

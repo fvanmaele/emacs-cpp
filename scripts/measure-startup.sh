@@ -9,6 +9,9 @@
 # unmeasured start waits until native compilation of all loaded files has finished, as
 # in a used ~/.emacs.d. Never touches ~/.emacs.d. Run on an idle machine.
 set -eu
+# Decimal points, not the locale's commas, for sort -n and awk below.
+LC_ALL=C
+export LC_ALL
 RUNS=${1:-10}
 EXTRA=${2:-}
 REPO=$(cd "$(dirname "$0")/.." && pwd)
@@ -43,7 +46,12 @@ while [ "$i" -lt "$RUNS" ]; do
       nil \"$OUT\" t) (kill-emacs))"
     i=$((i + 1))
 done
-echo "load: $(cut -d' ' -f1-3 /proc/loadavg)"
+# Linux: /proc/loadavg; macOS (D-050): sysctl, as "{ 1.2 1.0 0.9 }".
+if [ -r /proc/loadavg ]; then
+    echo "load: $(cut -d' ' -f1-3 /proc/loadavg)"
+else
+    echo "load: $(sysctl -n vm.loadavg | tr -d '{}' | awk '{ print $1, $2, $3 }')"
+fi
 echo "seconds gcs gc-seconds"
 cat "$OUT"
 sort -n "$OUT" | awk '{ t[NR] = $1 } END { printf "median %.3f s, min %.3f, max %.3f\n",

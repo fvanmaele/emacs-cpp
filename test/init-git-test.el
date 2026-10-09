@@ -18,7 +18,8 @@
 
 (ert-deftest init-git-diff-hl-marks-changes-and-follows-magit ()
   (init-test--load)
-  (let* ((root (file-name-as-directory (make-temp-file "emacs-cpp-git" t)))
+  (let* ((root (file-name-as-directory
+                (file-truename (make-temp-file "emacs-cpp-git" t))))
          (default-directory root)
          (file (expand-file-name "a.cc" root))
          (process-environment (append '("GIT_AUTHOR_NAME=t" "GIT_AUTHOR_EMAIL=t@t"

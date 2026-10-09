@@ -74,7 +74,8 @@ Windows / macOS".
   path or tool is chosen per platform and a missing one stops with the fix, never a
   silent fallback. Observed before any code change (section 3): on the owner's Mac the
   config does not start (cmake-mode path, D-013) and `make test` fails 17 of 45; making
-  it start and pass is T-021. Rulings: debugger without gdb O-22 -> D-051, patched
+  it start and pass is T-021, built 2026-10-09 (0034): Emacs starts on the Mac with no
+  errors. Rulings: debugger without gdb O-22 -> D-051, patched
   clangd on macOS O-23 -> D-052, package source O-24 (a) -> D-053. Open: O-24 (b), (c).
 - DECIDED D-053 (owner 2026-10-09, O-24 a): on macOS the system tools come from
   MacPorts only; Homebrew is not supported. Paths the config names for macOS are
@@ -124,7 +125,10 @@ Observed on the owner's Mac, 2026-10-09 (D-050):
 - `make packages` builds all 28 packages and 6 manuals. `make test`: 17 of 45 fail,
   1 skipped. `init.el` stops in `init-cmake.el` (`/usr/share/emacs/site-lisp` has no
   `cmake-mode.el`); a build-script test compares `/var/...` with its true name
-  `/private/var/...`.
+  `/private/var/...`. After T-021 (0034): all pass but the gdb and patched-clangd
+  tests, which skip. Startup 0.77 - 1.23 s (3 runs, load 4; Arch: 0.15 s, D-038).
+- MacPorts CMake is 3.31.12: its `build.ninja` names the build type once, as the
+  file's `CONFIGURATION`, not as `CONFIG` in every link block as CMake 4 does (D-033).
 
 ## 4. Design principles
 1. Fail loudly: a missing package or grammar is an error at startup, never a silent
@@ -215,8 +219,9 @@ Known defects: none yet (nothing built).
   `--compile-commands-dir=<binaryDir of the active preset>`; switching the preset
   restarts the server with the new directory. Nothing is written into project trees.
   Implemented in `lisp/emacs-cpp-presets.el` (T-004): `inherits` resolved as CMake does
-  (earlier parent wins, `hidden` not inherited), the documented path macros expanded,
-  `include` and `$vendor{}` rejected as unsupported.
+  (earlier parent wins, `hidden` not inherited), the documented path macros expanded
+  (`${hostSystemName}`: Linux or Darwin, T-021), `include` and `$vendor{}` rejected
+  as unsupported.
 - DECIDED D-026 (owner 2026-10-08, after S8 PASS): the config keeps clangd and can run
   the patched clangd that answers navigation from its index (O-11):
   `emacs-cpp-clangd-program` nil = system clangd; a path = that program with
@@ -295,6 +300,14 @@ Known defects: none yet (nothing built).
   entry (in RMO `fmt/src/format.cc`, wrong include paths). S1 live check: once an
   including `.cc` is open, clangd reuses its flags and the header is clean; opened
   first, it shows errors. The patched clangd takes an includer from its index (D-028).
+- DECIDED D-054 (2026-10-09, T-021, owner to confirm): on macOS eglot watches files
+  only inside the project root (`eglot-watch-files-outside-project-root` nil) and at
+  most 500 directories (`eglot-max-file-watches`; eglot warns and adds no more).
+  Reason: macOS watches with kqueue, one file descriptor per directory; pyright asks
+  to watch Python's library and site-packages, about 2000 directories, Emacs ran out
+  at descriptor 975 and pyright exited, eglot restarting it in a loop (0034). Cost:
+  a package installed while pyright runs is seen after a restart. Arch (inotify, one
+  descriptor) keeps eglot's defaults.
 - DECIDED D-008: C++ major mode is `c++-ts-mode` on the system grammar; `.h` files open
   in `c++-ts-mode` (the owner's projects are C++, and no C grammar is installed). A
   missing grammar is a startup error, not a fallback to `c++-mode`.
@@ -313,7 +326,7 @@ Known defects: none yet (nothing built).
   submodule. Rejected alternative: `cmake-ts-mode`, needs a self-built
   `tree-sitter-cmake` for highlighting only.
   macOS (D-050): MacPorts installs it in `/opt/local/share/emacs/site-lisp`;
-  `init-cmake.el` names only the Arch directory, so startup stops there (T-021).
+  `init-cmake.el` takes the directory by platform (T-021, 0034).
 - SUPERSEDED by D-035 (2026-10-08): "PROPOSED: `projectile-enable-cmake-presets` t;
   projectile configure / compile / test commands prompt for a preset; one compilation
   buffer per project." That prompt ignores the active preset (D-017).
@@ -367,6 +380,8 @@ Known defects: none yet (nothing built).
   Reason: the owner's RMO `build/debug` was configured but not built, and the ELF
   scan of D-031 offered nothing. Not taken: CMake's file API (query file in the build
   directory plus a reconfigure).
+  The build type: the link block's `CONFIG` (CMake 4), else the file's
+  `CONFIGURATION` (CMake 3.31, MacPorts; T-021, 0034).
 - DECIDED D-037 (owner 2026-10-08, O-15): built-in `repeat-mode` is on (3 ms at start),
   so after `C-x C-a n` plain `n s o c p r f u < >` keep stepping; Emacs's own repeat
   maps (`C-x o o`, `C-x u u`) come with it. dape gives every command its repeat map;
@@ -883,6 +898,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-051 | 2026-10-09 | lldb supported in addition to gdb | 9 | O-22 |
 | D-052 | 2026-10-09 | macOS: patched clangd built by a repository script | 7 | O-23 |
 | D-053 | 2026-10-09 | macOS: system tools from MacPorts only | 2 | O-24 |
+| D-054 | 2026-10-09 | macOS: eglot watches project files only, at most 500 | 7 | T-021 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.

@@ -141,9 +141,12 @@ win over all parents, and `hidden' is not inherited.  CHAIN detects cycles."
            ("generator" (or (alist-get 'generator preset)
                             (error "emacs-cpp: ${generator} used but preset %S has none"
                                    (alist-get 'name preset))))
+           ;; CMake's CMAKE_HOST_SYSTEM_NAME (D-050).
            ("hostSystemName"
-            (if (eq system-type 'gnu/linux) "Linux"
-              (error "emacs-cpp: ${hostSystemName} only supported on GNU/Linux")))
+            (pcase system-type
+              ('gnu/linux "Linux")
+              ('darwin "Darwin")
+              (_ (error "emacs-cpp: ${hostSystemName} unknown for %s" system-type))))
            ("dollar" "$")
            ("pathListSep" path-separator)
            ("env" (or (cdr (assq (intern arg) (alist-get 'environment preset)))

@@ -89,44 +89,38 @@ make packages
 ```
 
 ## Install on macOS (MacPorts)
-macOS is supported since 2026-10-09 (D-050), but the config **does not start there
-yet**. Making it start is T-021. These steps were run on the owner's Mac (Apple
-silicon, MacPorts, Emacs 31.1) and get as far as the known blockers below.
+macOS is supported since 2026-10-09 (D-050), with system tools from MacPorts only
+(D-053). These steps were run on the owner's Mac (Apple silicon, Emacs 31.1).
 
-### What was tried
+### 1. Ports
 ```sh
 sudo port install emacs-app +nativecomp +treesitter
 sudo port install cmake ninja clang-23 tree-sitter-cpp tree-sitter-python \
     texinfo ripgrep fd pyright py314-debugpy
 sudo port select --set clang mp-clang-23   # /opt/local/bin/clangd -> clangd 23
-xcode-select --install                     # git and make
+xcode-select --install                     # git, make and the compiler
 ```
-The MacPorts Emacs lives in `/Applications/MacPorts/Emacs.app`; pass its binary when
-it is not on `PATH` as `emacs`:
+Emacs finds both tree-sitter grammars without configuration. `cmake-mode.el` comes
+from the cmake port in `/opt/local/share/emacs/site-lisp`.
+
+### 2. Clone, build, link
+As steps 2 and 3 for Arch above. The MacPorts Emacs lives in
+`/Applications/MacPorts/Emacs.app`; pass its binary when it is not on `PATH` as
+`emacs`:
 ```sh
 make packages EMACS=/Applications/MacPorts/Emacs.app/Contents/MacOS/Emacs
 ```
-Clone and symlink as in steps 2 and 3 above. With these ports, Emacs finds both
-tree-sitter grammars and `make packages` builds all packages and manuals.
+An Emacs started from the Dock does not read the shell profile, so `/opt/local/bin`
+must be on the `PATH` it sees for clangd, cmake and pyright.
 
-### Known blockers
-- **Startup stops in the CMake module.** It expects `cmake-mode.el` in
-  `/usr/share/emacs/site-lisp`; MacPorts installs it in
-  `/opt/local/share/emacs/site-lisp`. The error, wrapped here:
-  ```
-  emacs-cpp: no cmake-mode.el in /usr/share/emacs/site-lisp;
-  install the cmake package (D-013)
-  ```
-- **No gdb on Apple silicon.** `gdb-preset` (D-031) drives gdb only. An
-  `lldb-preset` next to it is decided (D-051) and is T-022; until it lands, lldb-dap is
-  reachable only through dape's own configurations.
-- **The patched clangd has no macOS build script yet.** Its PKGBUILD is Arch-only. A
-  script is decided (D-052) and is T-023; until then the manual steps in
-  `docs/CHEATSHEET.md` (macOS, item 6) apply. Leave `emacs-cpp-clangd-program` nil to
-  use the MacPorts clangd.
-- **`${hostSystemName}` in a preset is an error** outside GNU/Linux.
-- **`make test` fails 17 of 45 tests** on that machine, the first cause being the CMake
-  module above.
+### Differences from Arch
+- **eglot watches only project files** (D-054). macOS needs one file descriptor per
+  watched directory, and pyright would otherwise ask for Python's whole library.
+- **No gdb on Apple silicon.** `gdb-preset` (D-031) drives gdb only. An `lldb-preset`
+  next to it is decided (D-051) and is T-022.
+- **The patched clangd has no macOS build script yet.** A script is decided (D-052) and
+  is T-023; until then the manual steps in `docs/CHEATSHEET.md` (macOS, item 6) apply.
+  Leave `emacs-cpp-clangd-program` nil to use the MacPorts clangd.
 
 Homebrew is not supported (D-053).
 
