@@ -65,7 +65,7 @@ with `done when: ...`).
 | T-017 | done 0026 | M | breadcrumb | D-043, v0.4 | path + function in header; test |
 | T-018 | done 0030 | M | Python rides along | D-045, O-19 | mode, pyright, debugpy; tests |
 | T-019 | done 0029 | S | header first: 0006, 0007 | D-046, D-047 | S9 run 3: 0.9 s |
-| T-020 | open | S | patch 0008 (review 0031) | D-059 | built 0041; Arch + S9 left |
+| T-020 | done 0041 | S | patch 0008 (review 0031) | D-059 | S9 run 4 unchanged |
 | T-021 | open | M | config starts on macOS | D-050, D-054 | built 0034; Arch run left |
 | T-022 | open | M | lldb-preset | D-051, O-22 | built 0035; Arch run left |
 | T-023 | open | M | macOS clangd build script | D-052, O-23 | built 0036; owner run left |
@@ -78,7 +78,7 @@ with `done when: ...`).
 | T-030 | open | M | targets via CMake file API | D-056, O-25 | built 0040; Arch run left |
 | T-031 | done 0039 | M | platform defaults files | D-055, T-024 | debugger offered first |
 | T-032 | open | S | send the eglot watch report | D-054, O-26 | owner sends the draft |
-| T-033 | open | M | patch 0009: re-index flagged shards | D-060 | built 0042; Arch left |
+| T-033 | done 0042 | M | patch 0009: re-index flagged shards | D-060 | S9 run 4 unchanged |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -122,8 +122,9 @@ with `done when: ...`).
   unit test shows a known includer answered while the database is busy, pkgrel 6
   built, S9 unchanged on RMO (owner). Owner 2026-10-09: build now. Built 2026-10-09
   (0041): ClangdTests 1413 / 1413 on macOS with the new test (fails without the
-  change), PKGBUILD pkgrel 6, `build-macos.sh` builds it; left: pkgrel 6 on Arch
-  and S9 on RMO (owner, commands in 0041).
+  change), PKGBUILD pkgrel 6, `build-macos.sh` builds it. Owner 2026-10-09 went
+  straight to pkgrel 7 (0008 and 0009) on Arch; S9 run 4 on RMO: header first 10 / 10
+  from the index, 0 errors, 0.85 - 0.90 s after opening (run 3: 0.91 - 1.02 s). Done.
 - T-021 (opened 2026-10-09, D-050): make the config start and test cleanly on the
   owner's Mac (DESIGN 3 macOS observations). Known so far: `init-cmake.el` names only
   `/usr/share/emacs/site-lisp` (MacPorts: `/opt/local/share/emacs/site-lisp`);
@@ -216,8 +217,8 @@ with `done when: ...`).
   build it; on the owner's `step-1` the five flagged sources get clean shards in one
   session, and after the next restart their first `M-.` comes from the index (no
   "indexed with errors" in clangd's log); pkgrel 7 on Arch with S9 unchanged (owner).
-  Agreed 2026-10-09. Built 2026-10-09 (0042): all met on the Mac; left: pkgrel 7 on
-  Arch and S9 (owner).
+  Agreed 2026-10-09. Built 2026-10-09 (0042): all met on the Mac. pkgrel 7 installed
+  on Arch 2026-10-09 (owner), S9 run 4 unchanged (see T-020). Done.
 - T-032 (opened 2026-10-09, O-26 (d)): send
   `docs/upstream/eglot-watch-cap-partial-watches.md` to the Emacs bug tracker
   (`M-x report-emacs-bug` or bug-gnu-emacs@gnu.org); outward, so the owner sends it.
