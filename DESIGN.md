@@ -684,6 +684,9 @@ presets, GoogleTest runner.
 ## Research program
 - `RESEARCH_other_languages.md` (owner question 2026-10-08): Python, R, Perl next to
   the C++ setup. Findings in; rulings O-19, O-20.
+- `RESEARCH_python_macos.md` (owner request 2026-10-09, T-025): pyright and five
+  alternatives through eglot, debugpy's start against dape's wait. First round in;
+  no ruling asked yet.
 - `RESEARCH_file_watches_macos.md` (owner question 2026-10-09, T-029): kqueue's
   descriptor per watch, Emacs's limits on the Mac, who watches in a C++ session.
   Findings in; ruling O-26.
