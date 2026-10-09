@@ -407,6 +407,13 @@ Known defects: none yet (nothing built).
   initializers and `requires` clauses one step in. Against clang-format's output of
   RMO (its `.clang-format`), Emacs's re-indent differs on 244 -> 62 lines; left: `<<`
   chains aligned under the first `<<`, macro bodies, template and alias continuations.
+  Extended again (owner 2026-10-10, "add them"): four more safe options, each one
+  clang-format option with the same numbers, default nil / t = Emacs's behaviour:
+  `emacs-cpp-indent-access-offset` (`AccessModifierOffset`), `...-initializer-offset`
+  (`ConstructorInitializerIndentWidth`), `...-continuation-offset`
+  (`ContinuationIndentWidth`), `...-align-arguments` (`AlignAfterOpenBracket`). With
+  MANUAL 8's values, clang-format's seven built-in styles re-indent a sample to
+  clang-format's text exactly, WebKit only without nested namespaces (`Inner`).
 - DECIDED D-064 (owner 2026-10-10: "leave it"): clangd's "Move function body to
   out-of-line" stays offered in every header, as upstream. clangd checks for the
   header's source file only when the action is applied (`DefineOutline.cpp`: no disk

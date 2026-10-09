@@ -48,6 +48,72 @@ nil: at the `switch''s column, as Emacs does.  Like clang-format's
   :safe #'booleanp
   :group 'tools)
 
+(defun emacs-cpp-indent--offset-p (value)
+  "Non-nil when VALUE is nil or an integer: safe for the offset options."
+  (or (null value) (integerp value)))
+
+(defcustom emacs-cpp-indent-access-offset nil
+  "Where `public:', `private:', `protected:' go, as clang-format's
+`AccessModifierOffset': the step plus this, from the class's column (-1 with a
+step of 2 puts them one column in).  nil: at the class's column, as Emacs does.
+Meant for a project's .dir-locals.el."
+  :type '(choice (const :tag "At the class's column" nil) integer)
+  :safe #'emacs-cpp-indent--offset-p
+  :group 'tools)
+
+(defcustom emacs-cpp-indent-initializer-offset nil
+  "How far a constructor's `: member(...)' line goes in from the declaration,
+as clang-format's `ConstructorInitializerIndentWidth'.  nil: the indent step.
+Meant for a project's .dir-locals.el."
+  :type '(choice (const :tag "The indent step" nil) integer)
+  :safe #'emacs-cpp-indent--offset-p
+  :group 'tools)
+
+(defcustom emacs-cpp-indent-continuation-offset nil
+  "How far arguments go in after a `(' that ends a line, as clang-format's
+`ContinuationIndentWidth'.  nil: the indent step.  Meant for a project's
+.dir-locals.el."
+  :type '(choice (const :tag "The indent step" nil) integer)
+  :safe #'emacs-cpp-indent--offset-p
+  :group 'tools)
+
+(defcustom emacs-cpp-indent-align-arguments t
+  "Non-nil: arguments on later lines align with the first one after the `(',
+as Emacs does.  nil: they go in by `emacs-cpp-indent-continuation-offset' from
+the statement, as clang-format's `AlignAfterOpenBracket: DontAlign'.  Meant
+for a project's .dir-locals.el."
+  :type 'boolean
+  :safe #'booleanp
+  :group 'tools)
+
+;; Offsets for the rules below, read when a line is indented.
+(defun emacs-cpp-indent--access (&rest _)
+  "Offset of an access specifier from the class's column."
+  (if emacs-cpp-indent-access-offset
+      (+ c-ts-indent-offset emacs-cpp-indent-access-offset)
+    0))
+
+(defun emacs-cpp-indent--initializer (&rest _)
+  "Offset of a constructor's initializer line from the declaration."
+  (or emacs-cpp-indent-initializer-offset c-ts-indent-offset))
+
+(defun emacs-cpp-indent--continuation (&rest _)
+  "Offset of arguments after a `(' that ends a line."
+  (or emacs-cpp-indent-continuation-offset c-ts-indent-offset))
+
+(defun emacs-cpp-indent--first-argument-p (node parent &rest _)
+  "Non-nil when NODE, at the start of its line, is the first in an argument or
+parameter list: the `(' ended the line before."
+  (and (treesit-node-match-p parent (rx bos (or "argument_list" "parameter_list") eos))
+       (treesit-node-eq node (treesit-node-child parent 0 t))))
+
+(defun emacs-cpp-indent--later-argument-p (node parent &rest _)
+  "Non-nil when NODE, at the start of its line, is a later argument or parameter
+of a list, not its first and not its closing `)'."
+  (and (treesit-node-match-p parent (rx bos (or "argument_list" "parameter_list") eos))
+       (not (treesit-node-eq node (treesit-node-child parent 0 t)))
+       (not (treesit-node-match-p node (rx bos (or ")" "comment") eos)))))
+
 (defun emacs-cpp-indent--apply ()
   "Rebuild this buffer's indent rules from its (possibly local) settings.
 Rebuilds from `c-ts-mode-indent-style' each time, so running twice is harmless."
@@ -58,19 +124,26 @@ Rebuilds from `c-ts-mode-indent-style' each time, so running twice is harmless."
   (treesit-simple-indent-add-rules
    'cpp `(((parent-is "namespace_definition") standalone-parent 0)
           ((parent-is "class_specifier") standalone-parent 0)
+          ((node-is "access_specifier") parent-bol emacs-cpp-indent--access)
           ((and (parent-is "field_declaration_list")
                 (not (node-is ,(rx (or "access_specifier" "}" "preproc")))))
            parent-bol c-ts-indent-offset)
-          ;; A constructor's `: member(...)' one step in from the declaration,
-          ;; comments before it too (T-040).
-          ((node-is "field_initializer_list") standalone-parent c-ts-indent-offset)
+          (emacs-cpp-indent--first-argument-p standalone-parent
+                                              emacs-cpp-indent--continuation)
+          ,@(unless emacs-cpp-indent-align-arguments
+              '((emacs-cpp-indent--later-argument-p standalone-parent
+                                                    emacs-cpp-indent--continuation)))
+          ;; A constructor's `: member(...)' in from the declaration, comments
+          ;; before it too (T-040).
+          ((node-is "field_initializer_list") standalone-parent
+           emacs-cpp-indent--initializer)
           ;; Later lines: `, member(...)' and comments under the `:'; a member
           ;; after `member(...),' aligned with the first one.
           ((and (parent-is "field_initializer_list") (node-is ,(rx (or "," "comment"))))
            parent-bol 0)
           ((parent-is "field_initializer_list") (nth-sibling 0 t) 0)
           ((and (node-is "comment") (parent-is "function_definition"))
-           standalone-parent c-ts-indent-offset)
+           standalone-parent emacs-cpp-indent--initializer)
           ;; A `requires' clause on its own line, one step in (T-040).
           ((node-is "requires_clause") standalone-parent c-ts-indent-offset)
           ,@(when emacs-cpp-indent-case-labels
