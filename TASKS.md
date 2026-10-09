@@ -75,6 +75,7 @@ with `done when: ...`).
 | T-027 | open | S | load measurements, macOS | owner, O-24 | Mac measured 0038; Arch left |
 | T-028 | done 0037 | S | review debug and presets code | owner | 5 taken, O-25 to rule |
 | T-029 | done | M | file watches on macOS | owner, D-054 | RESEARCH doc; O-26 to rule |
+| T-030 | open | M | targets from CMake's file API | D-056, O-25 | done-when proposed |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -200,6 +201,15 @@ with `done when: ...`).
   findings, each taken or not taken with a reason, and the taken ones fixed with
   tests. Done 2026-10-09 (0037): preset conditions, `$env{}` as CMake, lldb-dap by
   name, one build step; the file API instead of build.ninja is O-25.
+- T-030 (opened 2026-10-09, D-056): replace the build.ninja reading in
+  `lisp/init-debug.el` (`emacs-cpp-debug-programs`) by CMake's file API reply, and
+  write the query file from `emacs-cpp-presets-configure-command` and the debug
+  presets. Tier 2. PROPOSED done when (owner to agree): `gdb-preset` / `lldb-preset`
+  list the same targets as before on RMO (Ninja) and on a Makefiles preset; a build
+  directory without a reply refuses the session naming `C-c p c o`, which writes the
+  query and, after configuring, makes the targets appear; the CMake 3.31 and 4
+  `build.ninja` fixtures are replaced by reply fixtures from both CMake versions;
+  the lldb and gdb session tests unchanged; make test passes on the Mac and on Arch.
 - T-029 (opened 2026-10-09, owner; D-054): research the file descriptor per watched
   directory issue on macOS and its effects on C++ work in Emacs. Open: why Emacs
   stopped at descriptor 975; which parts watch files in a C++ session (eglot for

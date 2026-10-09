@@ -411,7 +411,21 @@ Known defects: none yet (nothing built).
   scan of D-031 offered nothing. Not taken: CMake's file API (query file in the build
   directory plus a reconfigure).
   The build type: the link block's `CONFIG` (CMake 4), else the file's
-  `CONFIGURATION` (CMake 3.31, MacPorts; T-021, 0034). Reopened by O-25 (T-028).
+  `CONFIGURATION` (CMake 3.31, MacPorts; T-021, 0034). Reopened by O-25 (T-028);
+  SUPERSEDED by D-056 once T-030 lands.
+- DECIDED D-056 (owner 2026-10-09, O-25): the debug presets take the preset's
+  executable targets from CMake's file API, not from `build.ninja`. Grounded on the
+  owner's CLion build of RMO (CMake 4.3.1, 2026-10-09): the shared query
+  `<binaryDir>/.cmake/api/v1/query/codemodel-v2` (an empty file) makes every configure
+  write `reply/index-*.json`; its `codemodel-v2` object lists configurations and
+  targets, each target file has `type` (`EXECUTABLE`), `name` and `artifacts[].path`
+  (relative to the build directory). Any generator; Makefiles too.
+  PROPOSED for T-030 (owner to agree): the configure command (`C-c p c o`, D-035) and
+  the debug presets write the query file into the preset's `binaryDir` (CMake's output
+  directory, not the source tree D-016 keeps clean); the newest reply index is read;
+  no reply refuses the session with the fix ("configure once with `C-c p c o`"); more
+  than one configuration (multi-config generators) is refused until needed; the target
+  name stays the build target (`cmake --build <dir> --target <name>`).
 - DECIDED D-037 (owner 2026-10-08, O-15): built-in `repeat-mode` is on (3 ms at start),
   so after `C-x C-a n` plain `n s o c p r f u < >` keep stepping; Emacs's own repeat
   maps (`C-x o o`, `C-x u u`) come with it. dape gives every command its repeat map;
@@ -808,16 +822,16 @@ presets, GoogleTest runner.
   treemacs one per expanded directory, and errors at the limit. Options (a) cap eglot
   at 100 on macOS, (b) raise launchd's limit to 1024 (system change), (c) start Emacs
   from a terminal, in `RESEARCH_file_watches_macos.md` 5. Owner to rule.
-- O-25 (OPEN, T-028 review, 2026-10-09): read a preset's executable targets from
-  CMake's file API instead of `build.ninja` (D-033)? The `build.ninja` regular
-  expressions depend on how CMake names link rules and where it writes the build type,
-  which changed between CMake 3.31 and 4 (0034). The file API's `codemodel-v2` reply
-  is versioned JSON: every target with its `type` (EXECUTABLE), name and artifact
-  paths, for any generator (Makefiles too). It exists only after a configure with a
-  query file in `<build>/.cmake/api/v1/query/`; CLion writes one, so the owner's
-  CLion builds of RMO already have replies (checked on the Mac). D-033 rejected it for
-  the query file plus reconfigure; the configure command (`C-c p c o`, D-035) could
-  write the query first. Owner to rule.
+- O-25 (RESOLVED 2026-10-09 with D-056, owner: CMake file API): read a preset's
+  executable targets from CMake's file API instead of `build.ninja` (D-033)? The
+  `build.ninja` regular expressions depend on how CMake names link rules and where it
+  writes the build type, which changed between CMake 3.31 and 4 (0034). The file API's
+  `codemodel-v2` reply is versioned JSON: every target with its `type` (EXECUTABLE),
+  name and artifact paths, for any generator (Makefiles too). It exists only after a
+  configure with a query file in `<build>/.cmake/api/v1/query/`; CLion writes one, so
+  the owner's CLion builds of RMO already have replies (checked on the Mac). D-033
+  rejected it for the query file plus reconfigure; the configure command (`C-c p c o`,
+  D-035) could write the query first. Owner to rule.
 - O-22 (RESOLVED 2026-10-09 with D-051: lldb in addition to gdb): the C++ debugger on
   macOS. Apple silicon has no gdb, and `gdb-preset` (D-031, D-033) starts only gdb.
   Options: an `lldb-preset` doing the same with `lldb-dap` (Command Line Tools or the
@@ -980,6 +994,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-053 | 2026-10-09 | macOS: system tools from MacPorts only | 2 | O-24 |
 | D-054 | 2026-10-09 | macOS: eglot watches project files only, at most 500 | 7 | T-021 |
 | D-055 | 2026-10-09 | per-platform files: defaults only; mechanics in modules | 5 | T-024 |
+| D-056 | 2026-10-09 | debug presets read targets from CMake's file API | 9 | O-25 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
