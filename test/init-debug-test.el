@@ -348,6 +348,35 @@ into a call, out of it and over a line, then end the session."
     (should (equal (plist-get config :type)
                    (plist-get (alist-get 'lldb-dap dape-configs) :type)))))
 
+(ert-deftest init-debug-platform-default-at-c-x-c-a-d ()
+  "D-055: the platform's preset comes first while dape's history has none."
+  (init-test--load)
+  (require 'dape)
+  (should (eq emacs-cpp-debug-default-configuration
+              (if (eq system-type 'darwin) 'lldb-preset 'gdb-preset)))
+  (should (memq #'emacs-cpp-debug--offer-default dape-read-config-hook))
+  (with-temp-buffer
+    (c++-ts-mode)
+    (let ((dape-history nil)
+          (dape-command nil))
+      (emacs-cpp-debug--offer-default)
+      (should (equal dape-history
+                     (list (symbol-name emacs-cpp-debug-default-configuration))))
+      ;; Once a preset was used, the history wins.
+      (setq dape-history '("gdb-preset :args [\"5\"]" "debugpy"))
+      (emacs-cpp-debug--offer-default)
+      (should (equal dape-history '("gdb-preset :args [\"5\"]" "debugpy")))
+      ;; A project's own `dape-command' wins too.
+      (setq dape-history nil
+            dape-command '(lldb-preset))
+      (emacs-cpp-debug--offer-default)
+      (should-not dape-history)))
+  ;; Not outside C and C++ buffers.
+  (with-temp-buffer
+    (let ((dape-history nil))
+      (emacs-cpp-debug--offer-default)
+      (should-not dape-history))))
+
 (ert-deftest init-debug-lldb-dap-program-is-configurable ()
   "The option takes a path or a name; a path is used as it is (owner, 2026-10-09)."
   (init-test--load)
