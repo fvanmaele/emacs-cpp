@@ -117,8 +117,11 @@ must be on the `PATH` it sees for clangd, cmake and pyright.
 - **eglot watches only project files** (D-054). macOS needs one file descriptor per
   watched directory, and pyright would otherwise ask for Python's whole library.
 - **lldb instead of gdb.** Apple silicon has no gdb; debug with `C-x C-a d lldb-preset
-  RET` (D-051). It uses `/opt/local/libexec/llvm-23/bin/lldb-dap` from the lldb-23
-  port (`sudo port install lldb-23`); no codesigning was needed on the owner's Mac.
+  RET` (D-051). It starts `lldb-dap` from the PATH, which the lldb-23 port provides
+  once selected; no codesigning was needed on the owner's Mac.
+  ```sh
+  sudo port install lldb-23 && sudo port select --set lldb mp-lldb-23
+  ```
 - **The patched clangd comes from a script** (D-052), not from the PKGBUILD. It
   downloads the 23.1.1 sources, applies the same patches and installs to
   `~/opt/clangd-index-nav` (about 15 minutes). Then set `emacs-cpp-clangd-program`

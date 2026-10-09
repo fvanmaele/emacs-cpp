@@ -38,7 +38,7 @@
 (ert-deftest emacs-cpp-presets-visible-names-skip-hidden ()
   (emacs-cpp-presets-test--with-project
       `(("CMakePresets.json" . ,emacs-cpp-presets-test--presets))
-    (should (equal (emacs-cpp-presets-visible-names (emacs-cpp-presets-read root))
+    (should (equal (emacs-cpp-presets-visible-names root)
                    '("debug" "release")))))
 
 (ert-deftest emacs-cpp-presets-binary-dir-follows-inherits-and-macros ()
@@ -55,10 +55,68 @@
       `(("CMakePresets.json" . ,emacs-cpp-presets-test--presets)
         ("CMakeUserPresets.json" .
          "{\"version\": 6, \"configurePresets\": [{\"name\": \"mine\", \"inherits\": \"base\"}]}"))
-    (should (equal (emacs-cpp-presets-visible-names (emacs-cpp-presets-read root))
+    (should (equal (emacs-cpp-presets-visible-names root)
                    '("debug" "release" "mine")))
     (should (equal (emacs-cpp-presets-binary-dir root "mine")
                    (expand-file-name "build/mine" root)))))
+
+(defconst emacs-cpp-presets-test--conditional
+  "{\"version\": 6, \"configurePresets\": [
+     {\"name\": \"mac-only\", \"binaryDir\": \"b/m\",
+      \"condition\": {\"type\": \"equals\", \"lhs\": \"${hostSystemName}\",
+                      \"rhs\": \"Darwin\"}},
+     {\"name\": \"linux-only\", \"binaryDir\": \"b/l\",
+      \"condition\": {\"type\": \"inList\", \"string\": \"${hostSystemName}\",
+                      \"list\": [\"Linux\"]}},
+     {\"name\": \"never\", \"binaryDir\": \"b/n\", \"condition\": false},
+     {\"name\": \"inherits-never\", \"inherits\": \"never\"},
+     {\"name\": \"own-null\", \"inherits\": \"never\", \"condition\": null},
+     {\"name\": \"null-parent\", \"binaryDir\": \"b/p\", \"condition\": null},
+     {\"name\": \"skips-null\", \"inherits\": [\"null-parent\", \"never\"]},
+     {\"name\": \"composite\", \"binaryDir\": \"b/c\",
+      \"condition\": {\"type\": \"allOf\", \"conditions\": [
+        {\"type\": \"const\", \"value\": true},
+        {\"type\": \"not\", \"condition\":
+          {\"type\": \"notEquals\", \"lhs\": \"${presetName}\", \"rhs\": \"composite\"}},
+        {\"type\": \"anyOf\", \"conditions\": [false, true]}]}}]}"
+  "Presets enabled or disabled by `condition', directly and through `inherits'.")
+
+(ert-deftest emacs-cpp-presets-conditions-disable-presets ()
+  "As CMake: a false condition disables a preset and the presets inheriting it;
+a parent's null condition is not inherited, a preset's own null enables it."
+  (emacs-cpp-presets-test--with-project
+      `(("CMakePresets.json" . ,emacs-cpp-presets-test--conditional))
+    (should (equal (emacs-cpp-presets-visible-names root)
+                   (list (if (eq system-type 'darwin) "mac-only" "linux-only")
+                         "own-null" "null-parent" "composite")))
+    ;; The first enabled preset is the default; a disabled one cannot be chosen.
+    (should (equal (emacs-cpp-presets-active root)
+                   (if (eq system-type 'darwin) "mac-only" "linux-only")))
+    (let ((default-directory root))
+      (should (eql 0 (call-process "git" nil nil nil "init" "-q")))
+      (should (string-match-p
+               "no enabled, non-hidden configure preset \"never\""
+               (cadr (should-error (emacs-cpp-presets-select "never") :type 'user-error))))))
+  ;; Regular expressions are ECMAScript in CMake: refused, not guessed.
+  (emacs-cpp-presets-test--with-project
+      '(("CMakePresets.json" .
+         "{\"version\": 6, \"configurePresets\": [{\"name\": \"r\",
+            \"condition\": {\"type\": \"matches\", \"string\": \"x\", \"regex\": \"x\"}}]}"))
+    (should-error (emacs-cpp-presets-visible-names root))))
+
+(ert-deftest emacs-cpp-presets-environment-as-cmake ()
+  "$env{} takes the preset's environment, expanded; null unsets; cycles stop."
+  (emacs-cpp-presets-test--with-project
+      '(("CMakePresets.json" .
+         "{\"version\": 6, \"configurePresets\": [
+            {\"name\": \"p\", \"binaryDir\": \"out/$env{DIR}/$env{HOME}x\",
+             \"environment\": {\"DIR\": \"${presetName}-$env{KIND}\",
+                             \"KIND\": \"fast\", \"HOME\": null}},
+            {\"name\": \"c\", \"binaryDir\": \"$env{A}\",
+             \"environment\": {\"A\": \"$env{B}\", \"B\": \"$env{A}\"}}]}"))
+    (should (equal (emacs-cpp-presets-binary-dir root "p")
+                   (expand-file-name "out/p-fast/x" root)))
+    (should-error (emacs-cpp-presets-binary-dir root "c"))))
 
 (ert-deftest emacs-cpp-presets-errors-instead-of-guessing ()
   ;; No presets file at all (D-005).
