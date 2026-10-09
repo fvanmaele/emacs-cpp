@@ -367,9 +367,21 @@ DIR is the build directory relative to ROOT, as the commands below run there."
          (name (emacs-cpp-presets-active root)))
     (list root name (file-relative-name (emacs-cpp-presets-binary-dir root name) root))))
 
+(defun emacs-cpp-presets-request-codemodel (dir)
+  "Ask CMake for its file API codemodel in build directory DIR (D-056).
+Writes the shared query file, an empty `.cmake/api/v1/query/codemodel-v2';
+every configure of DIR then writes the reply the debug presets read their
+targets from.  Only inside the build directory, which CMake owns (D-016)."
+  (let ((file (expand-file-name ".cmake/api/v1/query/codemodel-v2" dir)))
+    (unless (file-exists-p file)
+      (make-directory (file-name-directory file) t)
+      (write-region "" nil file nil 'silent))))
+
 (defun emacs-cpp-presets-configure-command ()
-  "Return the command configuring the active preset, for projectile (D-035)."
-  (pcase-let ((`(,_root ,name ,_dir) (emacs-cpp-presets--current)))
+  "Return the command configuring the active preset, for projectile (D-035).
+Asks for CMake's file API codemodel first, so the configure writes it (D-056)."
+  (pcase-let ((`(,root ,name ,dir) (emacs-cpp-presets--current)))
+    (emacs-cpp-presets-request-codemodel (expand-file-name dir root))
     (concat "cmake --preset " (shell-quote-argument name))))
 
 (defun emacs-cpp-presets-compile-command ()

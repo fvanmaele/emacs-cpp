@@ -76,10 +76,12 @@ back silently. An LLVM upgrade needs a rebuild of this package.
   `compile_commands.json` from there (D-016).
 - **`set(CMAKE_CXX_EXTENSIONS OFF)`** in the project, so every compile command carries
   `-std=`. Without it eglot refuses to start (D-011, D-018).
-- **The Ninja generator** if you want `gdb-preset` or `lldb-preset` to list the
-  debuggable programs (D-033).
+- **A configure with `C-c p c o`** before `gdb-preset` or `lldb-preset` can list the
+  programs: it asks CMake's file API for its target list first (D-056). Any generator
+  works.
 
-Configure once with `cmake --preset <name>` or `C-c p c o`, then open a source file.
+Configure once with `C-c p c o` (or `cmake --preset <name>`, which serves clangd but
+not the debug presets), then open a source file.
 
 ### Updating
 Package upgrades are commits that move a submodule (D-006). After a pull:

@@ -7,7 +7,7 @@
 ;;
 ;;   C-x C-a d gdb-preset RET
 ;;
-;; asks for one of the preset's executable targets (read from build.ninja, so also
+;; asks for one of the preset's executable targets (from CMake's file API, so also
 ;; one never built, D-033), builds it with `cmake --build', and on success starts gdb
 ;; in the project root.  A failed build
 ;; starts no session.  gdb never downloads symbols (D-014); it reads every shared
@@ -89,52 +89,56 @@ lldb-preset debug a project's CMake preset (D-031, D-051)" default-directory))))
   "Return the build directory of the active preset of the project at ROOT."
   (emacs-cpp-presets-binary-dir root (emacs-cpp-presets-active root)))
 
-(defun emacs-cpp-debug--ninja-unescape (path)
-  "Return PATH from build.ninja with Ninja's `$' escapes removed."
-  (replace-regexp-in-string "\\$\\(.\\)" "\\1" path t))
+(defun emacs-cpp-debug--read-json (file)
+  "Return the JSON object in FILE as an alist (arrays as lists)."
+  (with-temp-buffer
+    (insert-file-contents file)
+    (json-parse-buffer :object-type 'alist :array-type 'list
+                       :null-object nil :false-object nil)))
+
+(defun emacs-cpp-debug--codemodel (dir)
+  "Return the file API codemodel of build directory DIR and its reply directory.
+As (CODEMODEL . REPLY-DIR), or nil when CMake wrote no codemodel there.  The
+current reply index is the one with the greatest name (CMake's file API
+documentation); any client's query produces it, CLion's too."
+  (let* ((reply (expand-file-name ".cmake/api/v1/reply" dir))
+         (indexes (and (file-directory-p reply)
+                       (directory-files reply t "\\`index-.*\\.json\\'")))
+         (index (and indexes (emacs-cpp-debug--read-json
+                              (car (last (sort indexes #'string<))))))
+         (object (seq-find (lambda (object)
+                             (and (equal (alist-get 'kind object) "codemodel")
+                                  (eql (alist-get 'major (alist-get 'version object)) 2)))
+                           (alist-get 'objects index))))
+    (when object
+      (cons (emacs-cpp-debug--read-json
+             (expand-file-name (alist-get 'jsonFile object) reply))
+            reply))))
 
 (defun emacs-cpp-debug-programs (dir)
   "Return the executable targets of build directory DIR as (TARGET . PROGRAM).
-Read from DIR's build.ninja, so targets never built are listed too (D-033);
-PROGRAM is the absolute path CMake links the target to.  File order."
-  (let ((ninja (expand-file-name "build.ninja" dir)))
-    (unless (file-readable-p ninja)
-      (user-error "emacs-cpp: no %s; configure the preset, with the Ninja generator \
-\(gdb-preset and lldb-preset read its targets, D-033)" ninja))
-    (with-temp-buffer
-      (insert-file-contents ninja)
-      ;; The build type: CMake 4 repeats it as CONFIG in each link block, CMake 3.31
-      ;; (MacPorts, D-053) only states it once, as the file's CONFIGURATION.
-      (let ((file-config (if (re-search-forward "^CONFIGURATION = \\(.*\\)$" nil t)
-                             (match-string 1)
-                           ""))
-            programs)
-        (goto-char (point-min))
-        ;; build <output>[ | <implicit outputs>]: <LANG>_EXECUTABLE_LINKER__<target>_<config>
-        (while (re-search-forward
-                (concat "^build \\(\\(?:[^ :$\n]\\|\\$.\\)+\\)"
-                        "\\(?:[^:$\n]\\|\\$.\\)*: "
-                        "[A-Za-z]+_EXECUTABLE_LINKER__\\([^ \n]+\\)")
-                nil t)
-          (let* ((output (match-string 1))
-                 (rule (match-string 2))
-                 ;; The block's CONFIG, else the file's; none without a build type
-                 ;; (rule ends in "_").
-                 (config (save-excursion
-                           (if (re-search-forward "^  CONFIG = \\(.*\\)$"
-                                                  (save-excursion
-                                                    (re-search-forward "^$" nil 'move)
-                                                    (point))
-                                                  t)
-                               (match-string 1)
-                             file-config)))
-                 (suffix (concat "_" config)))
-            (unless (string-suffix-p suffix rule)
-              (error "emacs-cpp: link rule %s in %s does not end in %s" rule ninja suffix))
-            (push (cons (string-remove-suffix suffix rule)
-                        (expand-file-name (emacs-cpp-debug--ninja-unescape output) dir))
-                  programs)))
-        (nreverse programs)))))
+Read from CMake's file API reply (D-056), so targets never built are listed
+too, for any generator; PROGRAM is the absolute path of the target's file.
+Without a reply, the query is written and the session refused: one configure
+with `C-c p c o' produces it."
+  (pcase-let ((`(,codemodel . ,reply) (emacs-cpp-debug--codemodel dir)))
+    (unless codemodel
+      (emacs-cpp-presets-request-codemodel dir)
+      (user-error "emacs-cpp: no CMake file API reply in %s; configure the preset \
+once with %s (gdb-preset and lldb-preset read its targets, D-056)"
+                  dir (substitute-command-keys "\\[projectile-configure-project]")))
+    (let ((configurations (alist-get 'configurations codemodel)))
+      (unless (length= configurations 1)
+        (user-error "emacs-cpp: %s has %d configurations (a multi-config generator); \
+not supported (D-056)" dir (length configurations)))
+      (cl-loop for entry in (alist-get 'targets (car configurations))
+               for target = (emacs-cpp-debug--read-json
+                             (expand-file-name (alist-get 'jsonFile entry) reply))
+               when (equal (alist-get 'type target) "EXECUTABLE")
+               collect (cons (alist-get 'name target)
+                             (expand-file-name
+                              (alist-get 'path (car (alist-get 'artifacts target)))
+                              dir))))))
 
 (defun emacs-cpp-debug-read-program ()
   "Ask for an executable target of the active preset; return its program path.

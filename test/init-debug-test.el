@@ -80,56 +80,45 @@ Buffers visited during BODY and dape sessions it started are killed afterwards."
   (unless (executable-find "gdb")
     (ert-skip "gdb not installed (none for Apple silicon; lldb-preset, D-051)")))
 
-(defconst init-debug-test--ninja
-  "# Link the executable main
+(defconst init-debug-test--fixtures
+  (expand-file-name "fixtures/file-api"
+                    (file-name-directory (or load-file-name buffer-file-name)))
+  "CMake file API replies of one toy project, written by CMake 3.31 (MacPorts)
+and 4.3 (CLion's): a target in a subdirectory whose OUTPUT_NAME has a space, a
+shared library, and a C program with its own RUNTIME_OUTPUT_DIRECTORY.")
 
-build main: CXX_EXECUTABLE_LINKER__main_Debug CMakeFiles/main.dir/src/main.cc.o | /usr/lib/libz.so
-  CONFIG = Debug
-  TARGET_FILE = main
+(defun init-debug-test--install-reply (version dir)
+  "Copy the file API reply of CMake VERSION into build directory DIR."
+  (let ((reply (expand-file-name ".cmake/api/v1/reply" dir)))
+    (make-directory reply t)
+    (dolist (file (directory-files (expand-file-name (concat "cmake-" version)
+                                                     init-debug-test--fixtures)
+                                   t "\\.json\\'"))
+      (copy-file file (file-name-as-directory reply)))))
 
-build sub/libs.so: CXX_SHARED_LIBRARY_LINKER__s_Debug sub/CMakeFiles/s.dir/a.cc.o
-  CONFIG = Debug
+(defun init-debug-test--write-reply (dir configurations)
+  "Write a minimal file API reply into build DIR with CONFIGURATIONS (a list)."
+  (let ((reply (expand-file-name ".cmake/api/v1/reply" dir)))
+    (make-directory reply t)
+    (write-region "{\"objects\": [{\"kind\": \"codemodel\", \"version\": {\"major\": 2,
+  \"minor\": 7}, \"jsonFile\": \"codemodel-v2-x.json\"}]}" nil
+                  (expand-file-name "index-2026-01-01T00-00-00-0000.json" reply))
+    (write-region (json-encode `((configurations . ,(vconcat configurations)))) nil
+                  (expand-file-name "codemodel-v2-x.json" reply))))
 
-build sub/be$ tool | sub/be.map: CXX_EXECUTABLE_LINKER__b_x_Debug sub/CMakeFiles/b_x.dir/a.cc.o
-  CONFIG = Debug
-
-build bin/plain: C_EXECUTABLE_LINKER__plain_ CMakeFiles/plain.dir/p.c.o
-  DEP_FILE = CMakeFiles/plain.dir/link.d
-"
-  "Link blocks as CMake 4's Ninja generator writes them: a subdirectory target whose
-OUTPUT_NAME has a space (Ninja's `$ '), a shared library, a block without CONFIG
-\(no build type).")
-
-(defconst init-debug-test--ninja-3-31
-  "# Set configuration variable for custom commands.
-
-CONFIGURATION = Debug
-
-# Link the executable toy
-
-build toy: CXX_EXECUTABLE_LINKER__my_tool_Debug CMakeFiles/my_tool.dir/src/main.cc.o
-  FLAGS = -g
-  TARGET_FILE = toy
-"
-  "A link block as CMake 3.31 (MacPorts) writes it: no CONFIG in the block, the build
-type only as the file's CONFIGURATION.")
-
-(ert-deftest init-debug-programs-are-the-executable-targets-of-build-ninja ()
+(ert-deftest init-debug-programs-are-the-executable-targets-of-the-file-api ()
+  "D-056: executables of the reply, in its order, from CMake 3.31 and 4 alike."
   (init-test--load)
-  (init-debug-test--with-project
-      `(("CMakePresets.json" . ,init-debug-test--presets)
-        ("build/debug/build.ninja" . ,init-debug-test--ninja))
+  (init-debug-test--with-project `(("CMakePresets.json" . ,init-debug-test--presets))
     (let ((dir (expand-file-name "build/debug" root)))
-      (should (equal (emacs-cpp-debug-programs dir)
-                     `(("main" . ,(expand-file-name "main" dir))
-                       ("b_x" . ,(expand-file-name "sub/be tool" dir))
-                       ("plain" . ,(expand-file-name "bin/plain" dir)))))
-      (let ((dir-3-31 (expand-file-name "build/old" root)))
-        (make-directory dir-3-31 t)
-        (write-region init-debug-test--ninja-3-31 nil
-                      (expand-file-name "build.ninja" dir-3-31))
-        (should (equal (emacs-cpp-debug-programs dir-3-31)
-                       `(("my_tool" . ,(expand-file-name "toy" dir-3-31))))))
+      (dolist (version '("3.31" "4.3"))
+        (let ((other (expand-file-name (concat "build/v" version) root)))
+          (init-debug-test--install-reply version other)
+          (should (equal (emacs-cpp-debug-programs other)
+                         `(("b_x" . ,(expand-file-name "sub/be tool" other))
+                           ("main" . ,(expand-file-name "main" other))
+                           ("plain" . ,(expand-file-name "bin/plain" other)))))))
+      (init-debug-test--install-reply "4.3" dir)
       ;; Offered by target name, the last pick as default; the program path returned.
       (let (offered default)
         (cl-letf (((symbol-function 'completing-read)
@@ -139,7 +128,7 @@ type only as the file's CONFIGURATION.")
           (let ((emacs-cpp-debug--program-history '("gone" "plain")))
             (should (equal (emacs-cpp-debug-read-program)
                            (expand-file-name "sub/be tool" dir))))
-          (should (equal offered '("main" "b_x" "plain")))
+          (should (equal offered '("b_x" "main" "plain")))
           (should (equal default "plain"))))
       ;; The build uses the target name, not the file name.
       (should (equal (emacs-cpp-debug-build-command
@@ -150,20 +139,48 @@ type only as the file's CONFIGURATION.")
 (ert-deftest init-debug-errors-instead-of-guessing ()
   (init-test--load)
   (init-debug-test--with-project `(("CMakePresets.json" . ,init-debug-test--presets))
-    ;; Not configured (or not with Ninja): no build.ninja.
-    (should-error (emacs-cpp-debug-read-program) :type 'user-error)
-    ;; Configured, but no executable target.
-    (make-directory (expand-file-name "build/debug" root) t)
-    (write-region "build sub/libs.so: CXX_SHARED_LIBRARY_LINKER__s_ a.o\n" nil
-                  (expand-file-name "build/debug/build.ninja" root))
-    (should-error (emacs-cpp-debug-read-program) :type 'user-error)
-    ;; A program no target links has nothing to build.
-    (should-error (emacs-cpp-debug-build-command root "/usr/bin/true") :type 'user-error))
+    (let ((dir (expand-file-name "build/debug" root)))
+      ;; No reply: refused naming the configure command, and the query is written.
+      (should (string-match-p
+               "configure the preset once with \\(?:C-c p c o\\|M-x projectile-configure-project\\)"
+               (cadr (should-error (emacs-cpp-debug-read-program) :type 'user-error))))
+      (should (file-exists-p (expand-file-name ".cmake/api/v1/query/codemodel-v2" dir)))
+      ;; A reply without an executable target.
+      (init-debug-test--write-reply dir '(((name . "Debug") (targets . []))))
+      (should-error (emacs-cpp-debug-read-program) :type 'user-error)
+      ;; Two configurations (a multi-config generator): not supported yet.
+      (init-debug-test--write-reply dir '(((name . "Debug") (targets . []))
+                                          ((name . "Release") (targets . []))))
+      (should (string-match-p "2 configurations"
+                              (cadr (should-error (emacs-cpp-debug-programs dir)
+                                                  :type 'user-error))))
+      ;; A program no target links has nothing to build.
+      (should-error (emacs-cpp-debug-build-command root "/usr/bin/true") :type 'user-error)))
   ;; Outside any project.
   (let ((default-directory (file-name-as-directory (make-temp-file "emacs-cpp-none" t))))
     (unwind-protect
         (should-error (emacs-cpp-debug-read-program) :type 'user-error)
       (delete-directory default-directory t))))
+
+(ert-deftest init-debug-configure-command-asks-for-the-file-api ()
+  "D-056: configured with C-c p c o's command, a preset lists its targets, also
+with the Makefiles generator; configured without it, it does not until then."
+  (init-test--load)
+  (let ((files (cons `("CMakePresets.json" . ,(replace-regexp-in-string
+                                               "Ninja" "Unix Makefiles"
+                                               init-debug-test--presets))
+                     (assoc-delete-all "CMakePresets.json"
+                                       (copy-sequence init-debug-test--files)))))
+    (init-debug-test--with-project files
+      (let ((dir (expand-file-name "build/debug" root)))
+        ;; Configured by hand, without the query: refused.
+        (should (eql 0 (call-process "cmake" nil nil nil "--preset" "debug")))
+        (should-error (emacs-cpp-debug-programs dir) :type 'user-error)
+        ;; The configure command (C-c p c o) writes the query; then targets appear.
+        (should (eql 0 (call-process-shell-command
+                        (emacs-cpp-presets-configure-command))))
+        (should (equal (emacs-cpp-debug-programs dir)
+                       `(("toy" . ,(expand-file-name "toy" dir)))))))))
 
 (ert-deftest init-debug-gud-leaves-c-x-c-a-to-dape ()
   "D-044: loading gud (M-x gdb, pdb, perldb) binds its map on C-x M-a, not C-x C-a."
@@ -263,8 +280,9 @@ type only as the file's CONFIGURATION.")
 pick the target, build it, stop at a breakpoint, show locals and a watch, step
 into a call, out of it and over a line, then end the session."
   (init-debug-test--with-project init-debug-test--files
-    (should (eql 0 (call-process "cmake" nil nil nil "--preset" "debug")))
-    ;; Configured, never built: the target exists only in build.ninja.
+    ;; As C-c p c o configures: the file API query first (D-056).
+    (should (eql 0 (call-process-shell-command (emacs-cpp-presets-configure-command))))
+    ;; Configured, never built: the target exists only in CMake's reply.
     (should-not (file-exists-p (expand-file-name "build/debug/toy" root)))
     (let ((source (find-file-noselect (expand-file-name "src/main.cc" root)))
           (init-debug-test--stops 0)
