@@ -67,6 +67,12 @@ again and over line 4, and ends the session.
   next try; idle it takes 9 s and passed 5 of 5.
 - **Not checked here:** lldb-preset on Arch (needs the owner's machine).
 
+## Arch verification (2026-10-09)
+lldb 23.1.1 with `/usr/bin/lldb-dap`: `make test` 54 / 54;
+`init-debug-lldb-preset-builds-stops-and-steps` passed 3 of 3 runs (2.3 - 3.2 s), the
+refusal test and both gdb tests pass. The session test drives `lldb-preset` the way
+`C-x C-a d` does; no interactive session was run. T-022 done.
+
 ## How to verify
 On the Mac: `make test` (the lldb session test runs; the gdb tests skip).
 Interactively: in a preset project, `C-x C-a b` on a line, `C-x C-a d lldb-preset

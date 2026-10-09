@@ -69,13 +69,13 @@ other languages (they may ride along, never drive design), not Windows, not evil
 not a CLion keymap emulation (D-004).
 SUPERSEDED by D-050 (2026-10-09): "For: one owner, one Arch Linux workstation" and "not
 Windows / macOS".
-- DECIDED D-050 (owner 2026-10-09): macOS is a supported platform next to Arch Linux.
-  A platform difference is handled like any other missing piece (principle 1): the
-  path or tool is chosen per platform and a missing one stops with the fix, never a
-  silent fallback. Observed before any code change (section 3): on the owner's Mac the
-  config does not start (cmake-mode path, D-013) and `make test` fails 17 of 45; making
-  it start and pass is T-021, built 2026-10-09 (0034): Emacs starts on the Mac with no
-  errors. Rulings: debugger without gdb O-22 -> D-051, patched
+- DECIDED D-050 (owner 2026-10-09): macOS is a supported platform next to Arch Linux. A
+  platform difference is handled like any other missing piece (principle 1): the path or
+  tool is chosen per platform and a missing one stops with the fix, never a silent
+  fallback. Observed before any code change (section 3): on the owner's Mac the config
+  does not start (cmake-mode path, D-013) and `make test` fails 17 of 45; making it start
+  and pass is T-021, built 2026-10-09 (0034): Emacs starts on the Mac with no errors; make
+  test 54 / 54 on Arch (2026-10-09). Rulings: debugger without gdb O-22 -> D-051, patched
   clangd on macOS O-23 -> D-052, package source O-24 (a) -> D-053. Open: O-24 (b), (c).
 - DECIDED D-053 (owner 2026-10-09, O-24 a): on macOS the system tools come from
   MacPorts only; Homebrew is not supported. Paths the config names for macOS are
@@ -124,11 +124,12 @@ Observed on the owner's Mac, 2026-10-09 (D-050):
   `/opt/local/libexec/llvm-23/bin`; its `lldb` binary there has an invalid code
   signature and is killed at start (lldb-dap is not affected).
 - Existing config: `~/.emacs` and a plain `~/.emacs.d/early-init.el` (not symlinks).
-- `make packages` builds all 28 packages and 6 manuals. `make test`: 17 of 45 fail,
-  1 skipped. `init.el` stops in `init-cmake.el` (`/usr/share/emacs/site-lisp` has no
+- `make packages` builds all 28 packages and 6 manuals. `make test`: 17 of 45 fail, 1
+  skipped. `init.el` stops in `init-cmake.el` (`/usr/share/emacs/site-lisp` has no
   `cmake-mode.el`); a build-script test compares `/var/...` with its true name
-  `/private/var/...`. After T-021 (0034): all pass but the gdb and patched-clangd
-  tests, which skip. Startup 0.77 - 1.23 s (3 runs, load 4; Arch: 0.15 s, D-038).
+  `/private/var/...`. After T-021 (0034): all pass but the gdb and patched-clangd tests,
+  which skip; on Arch all 54 pass (2026-10-09). Startup 0.77 - 1.23 s (3 runs, load 4;
+  Arch: 0.15 s, D-038).
 - MacPorts CMake is 3.31.12: its `build.ninja` names the build type once, as the
   file's `CONFIGURATION`, not as `CONFIG` in every link block as CMake 4 does (D-033).
 
@@ -392,22 +393,22 @@ Known defects: none yet (nothing built).
 - DECIDED D-002: dape is the debugger front-end; gdb 17 via its native DAP interpreter
   is the default adapter, lldb-dap the alternate.
   macOS (D-050): no gdb for Apple silicon; `gdb-preset` (D-031) is gdb-only (D-051).
-- DECIDED D-051 (owner 2026-10-09, O-22): lldb is supported in addition to gdb, on
-  both platforms. Built in T-022 (0035, 2026-10-09; done-when agreed with this
-  shape): an `lldb-preset` entry next to `gdb-preset` that picks the same preset
-  programs (D-033), builds them the same way and starts dape's `lldb-dap`
-  configuration; gdb stays the default on Arch (D-002), lldb is the only adapter on
-  macOS; the gdb options (D-030 lazy symbols, D-032 gdb scripts) stay gdb-only until a
-  need for an lldb counterpart shows. The program is `emacs-cpp-debug-lldb-dap-program`:
-  `lldb-dap` on `exec-path` on both platforms (Arch lldb package; MacPorts lldb-23
-  after `sudo port select --set lldb mp-lldb-23`, T-028, 0037; SUPERSEDED: "on macOS
-  `/opt/local/libexec/llvm-23/bin/lldb-dap`", a path tied to one port version); missing,
-  it refuses the session with the fix. No codesigning: MacPorts' lldb-dap launches
-  and stops a program through its own ad hoc signed debugserver, Developer Mode off
-  (checked 2026-10-09); the port's note to codesign lldb-server concerns LLDB's own
-  debug server, which LLVM documents as unneeded with the system one. Cross-check:
-  CLion on macOS defaults to its bundled LLDB and warns of issues with GDB there
-  (jetbrains.com/help/clion, "Configure CLion on macOS").
+- DECIDED D-051 (owner 2026-10-09, O-22): lldb is supported in addition to gdb, on both
+  platforms. Built in T-022 (0035, 2026-10-09; done-when agreed with this shape; session
+  test 3 / 3 on the Mac and on Arch): an `lldb-preset` entry next to `gdb-preset` that
+  picks the same preset programs (D-033), builds them the same way and starts dape's
+  `lldb-dap` configuration; gdb stays the default on Arch (D-002), lldb is the only
+  adapter on macOS; the gdb options (D-030 lazy symbols, D-032 gdb scripts) stay gdb-only
+  until a need for an lldb counterpart shows. The program is
+  `emacs-cpp-debug-lldb-dap-program`: `lldb-dap` on `exec-path` on both platforms (Arch
+  lldb package; MacPorts lldb-23 after `sudo port select --set lldb mp-lldb-23`, T-028,
+  0037; SUPERSEDED: "on macOS `/opt/local/libexec/llvm-23/bin/lldb-dap`", a path tied to
+  one port version); missing, it refuses the session with the fix. No codesigning:
+  MacPorts' lldb-dap launches and stops a program through its own ad hoc signed
+  debugserver, Developer Mode off (checked 2026-10-09); the port's note to codesign
+  lldb-server concerns LLDB's own debug server, which LLVM documents as unneeded with the
+  system one. Cross-check: CLion on macOS defaults to its bundled LLDB and warns of issues
+  with GDB there (jetbrains.com/help/clion, "Configure CLion on macOS").
 - S2 PASS (2026-10-08, RMO): dape + gdb 18.1 DAP stops at a source breakpoint, shows
   stack, variables and a watch, steps and ends cleanly; lldb-dap too. Findings for
   T-006: program path = active preset's `binaryDir` + target name; breakpoints persist
@@ -443,11 +444,11 @@ Known defects: none yet (nothing built).
   targets from CMake's file API, not from `build.ninja`. Grounded on the owner's CLion
   build of RMO (CMake 4.3.1, 2026-10-09): the shared query
   `<binaryDir>/.cmake/api/v1/query/codemodel-v2` (an empty file) makes every configure
-  write `reply/index-*.json`; its `codemodel-v2` object lists configurations and
-  targets, each target file has `type` (`EXECUTABLE`), `name` and `artifacts[].path`
-  (relative to the build directory). Any generator; Makefiles too. Agreed for T-030
-  (owner 2026-10-09; built 0040): the configure command (`C-c p c o`, D-035) and the
-  debug presets write the query file into the preset's `binaryDir` (CMake's output
+  write `reply/index-*.json`; its `codemodel-v2` object lists configurations and targets,
+  each target file has `type` (`EXECUTABLE`), `name` and `artifacts[].path` (relative to
+  the build directory). Any generator; Makefiles too. Agreed for T-030 (owner 2026-10-09;
+  built 0040; make test on the Mac and Arch): the configure command (`C-c p c o`, D-035)
+  and the debug presets write the query file into the preset's `binaryDir` (CMake's output
   directory, not the source tree D-016 keeps clean); the newest reply index is read; no
   reply refuses the session with the fix ("configure once with `C-c p c o`"); more than
   one configuration (multi-config generators) is refused until needed; the target name
