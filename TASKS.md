@@ -69,7 +69,7 @@ with `done when: ...`).
 | T-021 | open | M | config starts on macOS | D-050, D-054 | built 0034; Arch run left |
 | T-022 | open | M | lldb-preset | D-051, O-22 | built 0035; Arch run left |
 | T-023 | open | M | macOS clangd build script | D-052, O-23 | built 0036; owner run left |
-| T-024 | open | M | platform init files, defaults | owner | design first; proposed |
+| T-024 | open | M | platform defaults files | D-055 | ruled; code done-when proposed |
 | T-025 | open | M | Python tools on macOS | owner | research; proposed |
 | T-026 | open | L | setup wizard (doom doctor) | owner | research; proposed |
 | T-027 | open | S | load measurements, macOS | owner, O-24 | DESIGN 11; proposed |
@@ -160,7 +160,9 @@ with `done when: ...`).
   model (DESIGN 5: module order is the contract; one `use-package` form per package).
   PROPOSED done when (owner to agree): a DESIGN section rules between per-platform
   files and inline branches, lists every platform branch, and names how the default
-  debugger is chosen at `C-x C-a d`; code only after that ruling.
+  debugger is chosen at `C-x C-a d`; code only after that ruling. Ruled 2026-10-09
+  (D-055): separate files for defaults only, platform differences stay in the
+  modules; the code's done-when is proposed in D-055.
 - T-025 (opened 2026-10-09, owner): research functional alternatives to pyright and
   debugpy on macOS; evaluate performance and stability. Seen so far: pyright exited
   when Emacs ran out of file descriptors (fixed by D-054); the debugpy test failed

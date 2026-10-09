@@ -172,6 +172,16 @@ Observed on the owner's Mac, 2026-10-09 (D-050):
   "localhost" (which can resolve to IPv6 ::1 first); startup stops if dape's debugpy
   entries change shape. Remote files (TRAMP) cannot be debugged this way: the adapter
   would listen on the remote loopback (DESIGN 2).
+- DECIDED D-055 (owner 2026-10-09, T-024): defaults that differ by platform live in
+  one file per platform (NEW, `lisp/defaults-<platform>.el`), loaded by `init.el` for
+  `system-type` before the modules; they hold choices only, e.g. the debugger offered
+  first (Linux: gdb, macOS: lldb). Platform mechanics stay inside their modules as
+  `system-type` branches: cmake-mode's directory (D-013), eglot's watch limits
+  (D-054), lldb-dap's program (D-051), `${hostSystemName}` (D-016). PROPOSED done when
+  for the code (owner to agree): `init.el` loads the file for the running platform and
+  stops with an error on an unknown one; `C-x C-a d` in a C++ buffer offers
+  `gdb-preset` on Linux and `lldb-preset` on macOS when dape's history has no entry
+  (history still wins); tests on both platforms; make test passes.
 - DECIDED D-040 (2026-10-08, owner report "custom themes are not saved on restart"):
   `custom.el` loads last, so a setting saved with Customize wins over the config's
   default. The default theme (`modus-vivendi-tritanopia`) is loaded from
@@ -914,6 +924,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-052 | 2026-10-09 | macOS: patched clangd built by a repository script | 7 | O-23 |
 | D-053 | 2026-10-09 | macOS: system tools from MacPorts only | 2 | O-24 |
 | D-054 | 2026-10-09 | macOS: eglot watches project files only, at most 500 | 7 | T-021 |
+| D-055 | 2026-10-09 | per-platform files: defaults only; mechanics in modules | 5 | T-024 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
