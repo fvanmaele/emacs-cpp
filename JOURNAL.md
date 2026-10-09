@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0038 | 2026-10-09 | T-027: load measurements on the Mac | T-027 | O-24 |
 | 0037 | 2026-10-09 | T-028: review of the debug and presets code | T-028 | D-016, O-25 |
 | 0036 | 2026-10-09 | T-023: the patched clangd built on macOS | T-023 | D-052 |
 | 0035 | 2026-10-09 | T-022: lldb-preset next to gdb-preset | T-022 | D-051 |

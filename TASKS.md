@@ -72,7 +72,7 @@ with `done when: ...`).
 | T-024 | open | M | platform defaults files | D-055 | ruled; code done-when proposed |
 | T-025 | open | M | Python tools on macOS | owner | research; proposed |
 | T-026 | open | L | setup wizard (doom doctor) | owner | research; proposed |
-| T-027 | open | S | load measurements, macOS | owner, O-24 | DESIGN 11; proposed |
+| T-027 | open | S | load measurements, macOS | owner, O-24 | Mac measured 0038; Arch left |
 | T-028 | done 0037 | S | review debug and presets code | owner | 5 taken, O-25 to rule |
 | T-029 | done | M | file watches on macOS | owner, D-054 | RESEARCH doc; O-26 to rule |
 
@@ -185,7 +185,9 @@ with `done when: ...`).
   in DESIGN 11. First number: startup 0.77 - 1.23 s on the Mac under load 4 (0034)
   against 0.15 s on Arch (D-038). PROPOSED done when: `scripts/measure-startup.sh`
   on both machines idle (10 runs each) plus the first `M-.` and memory on RMO, the
-  numbers in DESIGN 11 per platform, and O-24 (b) put to the owner with them.
+  numbers in DESIGN 11 per platform, and O-24 (b) put to the owner with them. Mac
+  part measured 2026-10-09 (0038): startup, first `M-.` stock / patched, memory, in DESIGN
+  11; O-24 (b) has the numbers. Left: the Arch runs (owner, commands in 0038).
 - T-028 (opened 2026-10-09, owner): code review of `lisp/init-debug.el` and
   `lisp/emacs-cpp-presets.el` for simplicity and against hardcoded or brittle parsing
   (the build.ninja regular expressions, which already broke on CMake 3.31 in 0034;

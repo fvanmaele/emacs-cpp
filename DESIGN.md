@@ -484,6 +484,29 @@ Budgets, measured on the owner machine (T-008 measures, numbers land here):
   (S8), below jsonrpc's 10 s request timeout. The background index of a deal.II-sized
   tree must not starve the build (low priority). Typing lag: not measured, owner's
   observation (none reported up to v0.2.0).
+- macOS (D-050; T-027, 0038, 2026-10-09). The owner's Mac: Apple silicon, 11 cores,
+  18 GB; MacPorts Emacs 31.1; G DATA antivirus scanning in real time (80 - 150 % CPU
+  during the runs); load average 5 - 9 throughout, so no run was idle.
+  Startup (`scripts/measure-startup.sh 10`): median 0.852 s, min 0.496, max 1.424, in
+  two groups (about 0.5 - 0.6 s and 1.1 - 1.4 s, alternating); 1 garbage collection
+  each. Above the 0.5 s budget; whether the budget binds on the Mac is O-24 (b).
+  First `M-.` on `std::visit` in RMO's `main.cc` (copy of the owner's `step-1`, deal.II
+  9.7.1 from `deal.II.app`, preset `debug`, S8's protocol: session 1 builds the index,
+  session 2 starts a fresh clangd with the index on disk):
+
+  | clangd | session 1 (empty index) | session 2 (index on disk) | RSS after M-. |
+  |---|---|---|---|
+  | MacPorts 23.1.3 | 13.1 s | 8.2 s | 920 MB |
+  | patched 23.1.1 (both flags) | 10.4 s | 2.6 s | 241 MB |
+
+  The index: 4539 shards, complete about 30 - 40 s after opening (no new shard for 20 s);
+  clangd peaks at 2.6 - 3.4 GB while indexing. Arch, S8: 1.4 s from the index. The patched
+  clangd answers from the index only when the compile database and Emacs name the file the
+  same way: under `/tmp` CMake writes `/tmp/...` and Emacs visits `/private/tmp/...` (a
+  symbolic link), the shard is not found ("needs the AST: no stored index shard") and the
+  first `M-.` waits 8.5 - 9.4 s as with the stock clangd. Projects under the home
+  directory are not affected. `M-?` reference counts differed between runs (14, 15, 24 for
+  the same name); not compared.
 Mechanisms, each PROPOSED until measured:
 - Packages byte-compiled by `make packages`; one combined autoloads file; no
   `package.el` activation at startup. Native compilation is left to Emacs's default
@@ -771,6 +794,10 @@ presets, GoogleTest runner.
   errors; loading the 3950 stored shards takes 0.4 s, so the 5 s cap is not involved.
   Patch 0006 (D-046, T-019) built and tested locally; left: pkgrel 4 installed and S9
   rerun on RMO (owner).
+- O-24 (b) data (T-027, 2026-10-09): Mac startup median 0.852 s against the 0.5 s
+  budget (Arch 0.151 s); first `M-.` from the index 2.6 s (Arch 1.4 s). If the budgets
+  bind on the Mac, startup needs work there first (antivirus and native-code loading
+  are the suspects, not measured).
 - O-26 (OPEN, T-029, 2026-10-09): D-054's cap of 500 eglot watches on macOS is above
   what an Emacs started from the Dock can watch: 207 (launchd's soft limit 256 minus
   kqueue's reserve of 50), against 975 from a terminal. clangd registers no watches;
