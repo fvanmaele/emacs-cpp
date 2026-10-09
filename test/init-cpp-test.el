@@ -687,6 +687,25 @@ continuation widths, arguments aligned or not)."
                           (replace-regexp-in-string "^[ \t]+" "" sample)))
                    (cons style (cons nil sample))))))
 
+(ert-deftest init-cpp-indent-by-hand-in-steps ()
+  "D-066: `M-i' and `C-x TAB' `S-<right>' move a line by the indent step from
+.dir-locals.el (4 here), not by `tab-width' (8)."
+  (init-test--load)
+  (init-cpp-test--with-project
+      '((".dir-locals.el" . "((c++-ts-mode . ((c-ts-indent-offset . 4) (indent-tabs-mode . nil))))\n")
+        ("src/a.cc" . "int f();\n"))
+    (with-current-buffer (init-cpp-test--visit (expand-file-name "src/a.cc" root))
+      (should (eq (keymap-lookup nil "M-i") 'tab-to-tab-stop))
+      (goto-char (point-min))
+      (let (columns)
+        (dotimes (_ 3)
+          (call-interactively #'tab-to-tab-stop)
+          (push (current-column) columns))
+        (should (equal (nreverse columns) '(4 8 12))))
+      (should-not (string-match-p "\t" (buffer-string)))
+      (indent-rigidly-right-to-tab-stop (pos-bol) (pos-eol))
+      (should (= (current-indentation) 16)))))
+
 (ert-deftest init-cpp-indent-case-labels-only-when-asked ()
   "T-040: without `emacs-cpp-indent-case-labels' a label stays at the `switch''s
 column, as Emacs puts it."

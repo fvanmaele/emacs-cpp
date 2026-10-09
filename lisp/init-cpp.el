@@ -121,6 +121,9 @@ Rebuilds from `c-ts-mode-indent-style' each time, so running twice is harmless."
   ;; Arguments after a `(' that ends a line go one step in, the others align with
   ;; the first argument: clang-format's way in every style (T-040).
   (setq-local c-ts-common-list-indent-style 'simple)
+  ;; Tab stops at the indent step, so `M-i' and `C-x TAB' then `S-<right>' move a
+  ;; line by one step by hand; Emacs repeats the last interval (D-066).
+  (setq-local tab-stop-list (list c-ts-indent-offset (* 2 c-ts-indent-offset)))
   (treesit-simple-indent-add-rules
    'cpp `(((parent-is "namespace_definition") standalone-parent 0)
           ((parent-is "class_specifier") standalone-parent 0)
