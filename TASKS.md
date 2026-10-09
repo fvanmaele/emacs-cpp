@@ -75,7 +75,7 @@ with `done when: ...`).
 | T-027 | open | S | load measurements, macOS | owner, O-24 | Mac measured 0038; Arch left |
 | T-028 | done 0037 | S | review debug and presets code | owner | 5 taken, O-25 to rule |
 | T-029 | done | M | file watches on macOS | owner, D-054 | RESEARCH doc; O-26 to rule |
-| T-030 | next | M | targets from CMake's file API | D-056, O-25 | done-when agreed |
+| T-030 | open | M | targets via CMake file API | D-056, O-25 | built 0040; Arch run left |
 | T-031 | done 0039 | M | platform defaults files | D-055, T-024 | debugger offered first |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
@@ -213,7 +213,8 @@ with `done when: ...`).
   query and, after configuring, makes the targets appear; the CMake 3.31 and 4
   `build.ninja` fixtures are replaced by reply fixtures from both CMake versions;
   the lldb and gdb session tests unchanged; make test passes on the Mac and on Arch.
-  Agreed 2026-10-09.
+  Agreed 2026-10-09. Built 2026-10-09 (0040): all met on the Mac (RMO's CLion build:
+  the same 11 targets as from build.ninja); left: make test on Arch (owner).
 - T-029 (opened 2026-10-09, owner; D-054): research the file descriptor per watched
   directory issue on macOS and its effects on C++ work in Emacs. Open: why Emacs
   stopped at descriptor 975; which parts watch files in a C++ session (eglot for
