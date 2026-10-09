@@ -199,6 +199,150 @@ Arch: the package's /opt (D-027); macOS: build-macos.sh's ~/opt (D-052)."
           (should (xref-backend-references
                    'eglot (xref-backend-identifier-at-point 'eglot))))))))
 
+(defconst init-cpp-test--ret-files
+  `(("CMakeLists.txt" . "cmake_minimum_required(VERSION 3.28)
+project(toy CXX)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_EXTENSIONS OFF)
+add_executable(toy src/main.cc)
+")
+    ,(assoc "CMakePresets.json" init-cpp-test--files)
+    ;; RMO's (2026-10-09): no namespace indentation, braces on their own line for
+    ;; namespaces, classes and functions.
+    (".clang-format" . "BasedOnStyle: WebKit
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass: true
+  AfterStruct: true
+  AfterUnion: true
+  AfterEnum: true
+  AfterNamespace: true
+  AfterFunction: true
+  AfterControlStatement: Never
+  BeforeElse: true
+  BeforeCatch: false
+  SplitEmptyFunction: false
+  SplitEmptyRecord: false
+  SplitEmptyNamespace: false
+NamespaceIndentation: None
+AlignAfterOpenBracket: Align
+SortIncludes: Never
+IndentCaseLabels: true
+BreakConstructorInitializers: BeforeComma
+PackConstructorInitializers: CurrentLine
+SpaceInEmptyBraces: Never
+SpaceBeforeCpp11BracedList: false
+Cpp11BracedListStyle: true
+MaxEmptyLinesToKeep: 2
+SpacesInLineCommentPrefix:
+  Minimum: 0
+")
+    ("src/main.cc" . "namespace toy
+{
+int g();
+
+class B
+{
+public:
+    int f()
+    {
+        int  x   = 1;
+        return x;
+    }
+};
+}
+
+int main() { return toy::B().f(); }
+"))
+  "A project whose `.clang-format' and Emacs's tree-sitter rules disagree: the
+rules indent a namespace's own-line `{' and everything inside it (D-061).")
+
+(defconst init-cpp-test--ret-by-rules '(2 . "  int g();")
+  "RET after `int g();' by electric indentation: the tree-sitter rules indent the
+namespace body (Emacs's default step of 2), the line above included.")
+
+(defun init-cpp-test--ret-after (text)
+  "Press RET at the end of the line with TEXT; return (COLUMN . LINE-ABOVE).
+The buffer is reverted afterwards."
+  (goto-char (point-min))
+  (search-forward text)
+  (end-of-line)
+  (call-interactively #'newline)
+  (prog1 (cons (current-column)
+               (save-excursion
+                 (forward-line -1)
+                 (buffer-substring-no-properties (pos-bol) (pos-eol))))
+    (revert-buffer t t t)))
+
+(ert-deftest init-cpp-ret-indents-by-clangd ()
+  "D-061, T-035: in a managed buffer RET indents the new line as clangd says
+(the project's .clang-format) and keeps the line above as typed; `}' is still
+re-indented by Emacs's rules; after eglot lets the buffer go, RET is as before."
+  (init-test--load)
+  (init-cpp-test--with-project init-cpp-test--ret-files
+    (should (eql 0 (call-process "cmake" nil nil nil "--preset" "debug")))
+    (with-current-buffer (init-cpp-test--visit (expand-file-name "src/main.cc" root))
+      (should (init-test--wait-managed))
+      (should-not (memq ?\n electric-indent-chars))
+      ;; Unindented namespace body, after an access specifier, in a function body.
+      (should (equal (init-cpp-test--ret-after "int g();") '(0 . "int g();")))
+      (should (equal (init-cpp-test--ret-after "public:") '(4 . "public:")))
+      ;; clangd would make this `int x = 1;'.
+      (should (equal (init-cpp-test--ret-after "int  x   = 1;")
+                     '(8 . "        int  x   = 1;")))
+      ;; RET puts the new line at 8 (clangd); typing `}' moves it to 4 (the rules).
+      (goto-char (point-min))
+      (search-forward "return x;")
+      (end-of-line)
+      (call-interactively #'newline)
+      (should (= (current-column) 8))
+      (let ((last-command-event ?}))
+        (call-interactively #'self-insert-command))
+      (should (equal (buffer-substring-no-properties (pos-bol) (pos-eol)) "    }"))
+      (revert-buffer t t t)
+      ;; Eglot lets the buffer go: electric indentation takes RET again.
+      (eglot-shutdown (eglot-current-server))
+      (should-not (eglot-managed-p))
+      (should (memq ?\n electric-indent-chars))
+      (should-not (memq #'emacs-cpp-ret--restore-line-above post-self-insert-hook))
+      (should (equal (init-cpp-test--ret-after "int g();")
+                     init-cpp-test--ret-by-rules)))))
+
+(ert-deftest init-cpp-ret-shows-server-errors ()
+  "D-061, fail loudly: an error from the on-type request reaches the user, and
+the next insertion does not restore a line from the failed RET."
+  (init-test--load)
+  (init-cpp-test--with-project init-cpp-test--ret-files
+    (should (eql 0 (call-process "cmake" nil nil nil "--preset" "debug")))
+    (with-current-buffer (init-cpp-test--visit (expand-file-name "src/main.cc" root))
+      (should (init-test--wait-managed))
+      (goto-char (point-min))
+      (search-forward "int  x   = 1;")
+      (end-of-line)
+      (cl-letf (((symbol-function 'eglot-format)
+                 (lambda (&rest _) (signal 'jsonrpc-error '("on-type failed")))))
+        (should-error (call-interactively #'newline) :type 'jsonrpc-error))
+      (should emacs-cpp-ret--line-above)
+      (let ((before (buffer-string))
+            (offset (1- (point)))
+            (last-command-event ?a))
+        (call-interactively #'self-insert-command)
+        (should-not emacs-cpp-ret--line-above)
+        (should (equal (buffer-string)
+                       (concat (substring before 0 offset) "a"
+                               (substring before offset))))))))
+
+(ert-deftest init-cpp-ret-without-eglot ()
+  "D-061: a C++ buffer eglot does not manage keeps electric indentation on RET."
+  (init-test--load)
+  (init-cpp-test--with-project (list (assoc "src/main.cc" init-cpp-test--ret-files))
+    (let ((warning-minimum-log-level :emergency))
+      (with-current-buffer (init-cpp-test--visit (expand-file-name "src/main.cc" root))
+        (should-not (bound-and-true-p eglot--managed-mode))
+        (should (memq ?\n electric-indent-chars))
+        (should (equal (init-cpp-test--ret-after "int g();")
+                       init-cpp-test--ret-by-rules))))))
+
 (ert-deftest init-cpp-eglot-only-for-preset-projects ()
   (init-test--load)
   ;; A project without presets: no server, an echo-area note instead (D-005).
