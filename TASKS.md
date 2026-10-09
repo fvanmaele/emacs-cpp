@@ -69,6 +69,12 @@ with `done when: ...`).
 | T-021 | open | M | config starts on macOS | D-050, D-054 | built 0034; Arch run left |
 | T-022 | open | M | lldb-preset | D-051, O-22 | built 0035; Arch run left |
 | T-023 | open | M | macOS clangd build script | D-052, O-23 | built 0036; owner run left |
+| T-024 | open | M | platform init files, defaults | owner | design first; proposed |
+| T-025 | open | M | Python tools on macOS | owner | research; proposed |
+| T-026 | open | L | setup wizard (doom doctor) | owner | research; proposed |
+| T-027 | open | S | load measurements, macOS | owner, O-24 | DESIGN 11; proposed |
+| T-028 | open | S | review debug and presets code | owner | simplicity; proposed |
+| T-029 | open | M | file watches on macOS | owner, D-054 | research; proposed |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -146,6 +152,52 @@ with `done when: ...`).
   2026-10-09 (0036): a test run into scratch directories (owner's tarball, no
   download) installed a clangd with both flags, and the test passes with it; the
   failure paths stop with the reason; left: the owner's run to `~/opt`.
+- T-024 (opened 2026-10-09, owner): consider separate initialization files per
+  platform, with different defaults (Linux: gdb, macOS: lldb). Today the platform
+  differences are `system-type` branches inside the modules: cmake-mode's directory
+  (`init-cmake.el`), eglot's file watches (`init-cpp.el`, D-054), lldb-dap's path
+  (`init-debug.el`), `${hostSystemName}` (`emacs-cpp-presets.el`). Touches the load
+  model (DESIGN 5: module order is the contract; one `use-package` form per package).
+  PROPOSED done when (owner to agree): a DESIGN section rules between per-platform
+  files and inline branches, lists every platform branch, and names how the default
+  debugger is chosen at `C-x C-a d`; code only after that ruling.
+- T-025 (opened 2026-10-09, owner): research functional alternatives to pyright and
+  debugpy on macOS; evaluate performance and stability. Seen so far: pyright exited
+  when Emacs ran out of file descriptors (fixed by D-054); the debugpy test failed
+  twice under load because dape waits a fixed 3 s for the adapter (0034). Candidates
+  to check, not yet verified: basedpyright, python-lsp-server, jedi-language-server,
+  Astral's ty, Meta's pyrefly; for debugging, other DAP adapters for Python if any.
+  PROPOSED done when: `RESEARCH_python_macos.md` with, per candidate on the Mac,
+  startup, memory, `M-.` / rename / diagnostics on a toy and a real project, and
+  failures over repeated runs (idle and under load); verdicts then ruled in DESIGN.
+- T-026 (opened 2026-10-09, owner): research a setup wizard like Doom Emacs's `doom
+  doctor` / `doom install`: initialize the submodules and `make packages`, offer to
+  build the patched clangd (makepkg on Arch, `build-macos.sh` on macOS) and set
+  `emacs-cpp-clangd-program`, back up `~/.emacs` and `~/.emacs.d`, create the two
+  symlinks, and check the system tools per platform. Touches the owner's live
+  configuration (DESIGN 4 principle 5) and adds a network step (D-014).
+  PROPOSED done when: `RESEARCH_setup_wizard.md` describing what doom's commands check
+  and do, the checks this config needs on Arch and macOS, a dry-run mode, how a
+  backup is restored, and shell vs Emacs Lisp; a DESIGN ruling before any code.
+- T-027 (opened 2026-10-09, owner; O-24 b): further load measurements, macOS included
+  in DESIGN 11. First number: startup 0.77 - 1.23 s on the Mac under load 4 (0034)
+  against 0.15 s on Arch (D-038). PROPOSED done when: `scripts/measure-startup.sh`
+  on both machines idle (10 runs each) plus the first `M-.` and memory on RMO, the
+  numbers in DESIGN 11 per platform, and O-24 (b) put to the owner with them.
+- T-028 (opened 2026-10-09, owner): code review of `lisp/init-debug.el` and
+  `lisp/emacs-cpp-presets.el` for simplicity and against hardcoded or brittle parsing
+  (the build.ninja regular expressions, which already broke on CMake 3.31 in 0034;
+  the preset macro expansion; the platform paths). D-033 rejected CMake's file API
+  before; the review may reopen it. PROPOSED done when: a review journal entry with
+  findings, each taken or not taken with a reason, and the taken ones fixed with
+  tests.
+- T-029 (opened 2026-10-09, owner; D-054): research the file descriptor per watched
+  directory issue on macOS and its effects on C++ work in Emacs. Open: why Emacs
+  stopped at descriptor 975; which parts watch files in a C++ session (eglot for
+  clangd, auto-revert, treemacs, magit, diff-hl); whether a deal.II-sized tree hits
+  the limit. PROPOSED done when: `RESEARCH_file_watches_macos.md` with the mechanism
+  (kqueue, Emacs's limit), descriptor counts measured in a C++ session on RMO on the
+  Mac, and a proposal to keep or change D-054.
 - T-014: the config runs the patched clangd (D-026) installed from
   packaging/clangd-index-nav (D-027); done when (agreed 2026-10-08): the config starts
   the patched clangd with --navigation-from-index when its path is set (customize
