@@ -45,10 +45,14 @@ directly.  A listed file that does not exist refuses the session."
   :group 'tools)
 
 (defcustom emacs-cpp-debug-lldb-dap-program "lldb-dap"
-  "The lldb-dap program `lldb-preset' starts (D-051); a name is looked up on
-`exec-path'.  Arch: the lldb package.  macOS: the MacPorts lldb-23 port, which
-`sudo port select --set lldb mp-lldb-23' links as /opt/local/bin/lldb-dap."
-  :type 'string
+  "The lldb-dap program `lldb-preset' starts (D-051).
+A file name with a directory is used as it is; a bare name is looked up on
+`exec-path'.  Arch: the lldb package.  macOS: the MacPorts lldb-23 port, linked
+as /opt/local/bin/lldb-dap by `sudo port select --set lldb mp-lldb-23', or set
+this to its own file, /opt/local/bin/lldb-dap-mp-23.  Set it with
+\[customize-variable]; Customize saves it in `custom-file' (D-003)."
+  :type '(choice (const :tag "lldb-dap on exec-path" "lldb-dap")
+                 (file :tag "Program (path or name)"))
   :group 'tools)
 
 (defvar emacs-cpp-debug--program-history nil
