@@ -11,14 +11,16 @@ refactoring, diagnostics, CMake presets, debugger, git, jump-to-anything) on an 
 Linux workstation and a macOS machine (D-050). It will never be an Emacs distribution, a
 Windows config or a CLion keymap emulation (DESIGN 2).
 **Status (2026-10-09):** v0.4.1 tagged (navigation, build, debug, polish), design ruled
-through D-054. clangd stays (T-004); a locally patched clangd
+through D-055. clangd stays (T-004); a locally patched clangd
 (`packaging/clangd-index-nav`, pkgrel 5, selected by `emacs-cpp-clangd-program`) answers
 navigation from its index and gives headers an includer's flags, also when opened first
 (D-026 .. D-028, D-046, D-047). Python rides along (D-045). macOS supported since
 2026-10-09, MacPorts only (D-050, D-053): starts and tests there (T-021, D-054),
 `lldb-preset` next to `gdb-preset` (D-051, T-022), patched clangd from
-`build-macos.sh` (D-052, T-023); all three await the owner's runs. Queued: T-024 ..
-T-029. Open: T-020, O-12, O-24 (b), (c); D-054 awaits confirmation.
+`build-macos.sh` (D-052, T-023); T-021 .. T-023 await the owner's runs. T-024 ruled
+(D-055, code done-when proposed); T-028 review done (0037); T-027 Mac numbers in DESIGN
+11 (0038), Arch left; T-029 and T-025 round 1 in RESEARCH docs. Open: T-020, O-12,
+O-24 (b), (c), O-25 (file API), O-26 (watch limits); D-054 awaits confirmation.
 
 ## Hard rules (each with its reason)
 - Change-size ladder: tier 1 trivial = commit with Reasoning only; tier 2 feature = `done
