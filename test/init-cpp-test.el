@@ -458,6 +458,16 @@ sample exactly as clang-format formats it."
                   (replace-regexp-in-string "^[ \t]+" "" init-cpp-test--clang-format-sample))
                  (cons nil init-cpp-test--clang-format-sample))))
 
+(ert-deftest init-cpp-indent-initializers-after-the-colon ()
+  "T-040: with initializers in clang-format's default layout (`: a(x),' then
+`b(y)'), later ones align with the first, not with the `:'."
+  (init-test--load)
+  (should (equal (init-cpp-test--reindented
+                  "((c++-ts-mode . ((c-ts-indent-offset . 4) (indent-tabs-mode . nil)
+                  (c-ts-mode-indent-style . bsd))))\n"
+                  "struct Q\n{\nQ(int a, int b)\n: first(a),\nsecond(b)\n{\n}\nint first;\nint second;\n};\n")
+                 (cons nil "struct Q\n{\n    Q(int a, int b)\n        : first(a),\n          second(b)\n    {\n    }\n    int first;\n    int second;\n};\n"))))
+
 (ert-deftest init-cpp-indent-case-labels-only-when-asked ()
   "T-040: without `emacs-cpp-indent-case-labels' a label stays at the `switch''s
 column, as Emacs puts it."
