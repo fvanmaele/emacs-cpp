@@ -1,5 +1,8 @@
 # 0043 - T-035: RET indents the new line by clangd
 
+> **Superseded 2026-10-10 by D-065:** the code was removed the same day; RET indents by
+> Emacs's rules again and eglot no longer asks clangd to format on newline.
+
 - **Date:** 2026-10-10
 - **Commits:** the commit that adds this entry (`lisp/init-cpp.el`,
   `test/init-cpp-test.el`)

@@ -274,96 +274,58 @@ The buffer is reverted afterwards."
                  (buffer-substring-no-properties (pos-bol) (pos-eol))))
     (revert-buffer t t t)))
 
-(ert-deftest init-cpp-ret-indents-by-clangd ()
-  "D-061, T-035: in a managed buffer RET indents the new line as clangd says
-(the project's .clang-format) and keeps the line above as typed; `}' is still
-re-indented by Emacs's rules; after eglot lets the buffer go, RET is as before."
-  (init-test--load)
-  (init-cpp-test--with-project init-cpp-test--ret-files
-    (should (eql 0 (call-process "cmake" nil nil nil "--preset" "debug")))
-    (with-current-buffer (init-cpp-test--visit (expand-file-name "src/main.cc" root))
-      (should (init-test--wait-managed))
-      (should-not (memq ?\n electric-indent-chars))
-      ;; Unindented namespace body, after an access specifier, in a function body.
-      (should (equal (init-cpp-test--ret-after "int g();") '(0 . "int g();")))
-      (should (equal (init-cpp-test--ret-after "public:") '(4 . "public:")))
-      ;; clangd would make this `int x = 1;'.
-      (should (equal (init-cpp-test--ret-after "int  x   = 1;")
-                     '(8 . "        int  x   = 1;")))
-      ;; RET puts the new line at 8 (clangd); typing `}' moves it to 4 (the rules).
-      (goto-char (point-min))
-      (search-forward "return x;")
-      (end-of-line)
-      (call-interactively #'newline)
-      (should (= (current-column) 8))
-      (let ((last-command-event ?}))
-        (call-interactively #'self-insert-command))
-      (should (equal (buffer-substring-no-properties (pos-bol) (pos-eol)) "    }"))
-      (revert-buffer t t t)
-      ;; Eglot lets the buffer go: electric indentation takes RET again.
-      (eglot-shutdown (eglot-current-server))
-      (should-not (eglot-managed-p))
-      (should (memq ?\n electric-indent-chars))
-      (should-not (memq #'emacs-cpp-ret--restore-line-above post-self-insert-hook))
-      (should (equal (init-cpp-test--ret-after "int g();")
-                     init-cpp-test--ret-by-rules)))))
-
-(ert-deftest init-cpp-ret-keeps-a-line-clangd-would-split ()
-  "D-061, owner report 2026-10-10 (symbols inserted twice): when clangd's reply
-splits the line above in two (a `{' moved to its own line, two statements on
-one line), that line comes back as typed, without clangd's extra line."
+(ert-deftest init-cpp-ret-by-rules-while-eglot-manages ()
+  "D-065: in a managed buffer RET indents by Emacs's rules (here RMO's
+.dir-locals.el values), eglot does not ask clangd to format on newline, and
+the line RET ended stays as typed, also where clangd would split it."
   (init-test--load)
   (init-cpp-test--with-project
-      (cons '("src/main.cc" . "namespace toy
+      (append
+       '((".dir-locals.el" . "((c++-ts-mode . ((c-ts-indent-offset . 4)
+                  (indent-tabs-mode . nil)
+                  (c-ts-mode-indent-style . bsd)
+                  (emacs-cpp-indent-namespace-body . nil))))\n")
+         ("src/main.cc" . "namespace toy
 {
-int f() {
-int x = 1; int y = 2;
-return x + y;
-}
+int g();
+
+class B
+{
+public:
+    int f()
+    {
+        int  x   = 1;
+        int y = 2; int z = 3;
+        return x + y + z;
+    }
+
+    double value() {}
+};
 }
 
-int main() { return toy::f(); }
-")
-            (assoc-delete-all "src/main.cc" (copy-sequence init-cpp-test--ret-files)))
+int main() { return toy::B().f(); }
+"))
+       (assoc-delete-all "src/main.cc" (copy-sequence init-cpp-test--ret-files)))
     (should (eql 0 (call-process "cmake" nil nil nil "--preset" "debug")))
     (with-current-buffer (init-cpp-test--visit (expand-file-name "src/main.cc" root))
       (should (init-test--wait-managed))
+      (should-not (eglot-server-capable :documentOnTypeFormattingProvider))
+      (should (memq ?\n electric-indent-chars))
       (let ((original (buffer-string)))
-        (dolist (text '("int f() {" "int x = 1; int y = 2;"))
+        (pcase-dolist (`(,text . ,column) '(("int g();" . 0) ("public:" . 4)
+                                            ("int  x   = 1;" . 8)
+                                            ("int y = 2; int z = 3;" . 8)
+                                            ("double value() {}" . 4)))
           (goto-char (point-min))
           (search-forward text)
           (end-of-line)
           (call-interactively #'newline)
-          ;; Exactly one newline and the new line's indentation were added.
+          (should (equal (cons text (current-column)) (cons text column)))
+          ;; Only the newline and the new line's indentation were added.
           (should (equal (concat (buffer-substring-no-properties (point-min) (1- (pos-bol)))
                                  (buffer-substring-no-properties (point) (point-max)))
                          original))
-          (should (= (current-column) 4))
           (revert-buffer t t t))))))
-
-(ert-deftest init-cpp-ret-shows-server-errors ()
-  "D-061, fail loudly: an error from the on-type request reaches the user, and
-the next insertion does not restore a line from the failed RET."
-  (init-test--load)
-  (init-cpp-test--with-project init-cpp-test--ret-files
-    (should (eql 0 (call-process "cmake" nil nil nil "--preset" "debug")))
-    (with-current-buffer (init-cpp-test--visit (expand-file-name "src/main.cc" root))
-      (should (init-test--wait-managed))
-      (goto-char (point-min))
-      (search-forward "int  x   = 1;")
-      (end-of-line)
-      (cl-letf (((symbol-function 'eglot-format)
-                 (lambda (&rest _) (signal 'jsonrpc-error '("on-type failed")))))
-        (should-error (call-interactively #'newline) :type 'jsonrpc-error))
-      (should emacs-cpp-ret--line-above)
-      (let ((before (buffer-string))
-            (offset (1- (point)))
-            (last-command-event ?a))
-        (call-interactively #'self-insert-command)
-        (should-not emacs-cpp-ret--line-above)
-        (should (equal (buffer-string)
-                       (concat (substring before 0 offset) "a"
-                               (substring before offset))))))))
 
 (ert-deftest init-cpp-ret-without-eglot ()
   "D-061: a C++ buffer eglot does not manage keeps electric indentation on RET."
