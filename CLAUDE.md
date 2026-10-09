@@ -11,16 +11,17 @@ refactoring, diagnostics, CMake presets, debugger, git, jump-to-anything) on an 
 Linux workstation and a macOS machine (D-050). It will never be an Emacs distribution, a
 Windows config or a CLion keymap emulation (DESIGN 2).
 **Status (2026-10-09):** v0.4.1 tagged (navigation, build, debug, polish), design ruled
-through D-055. clangd stays (T-004); a locally patched clangd
-(`packaging/clangd-index-nav`, pkgrel 5, selected by `emacs-cpp-clangd-program`) answers
-navigation from its index and gives headers an includer's flags, also when opened first
-(D-026 .. D-028, D-046, D-047). Python rides along (D-045). macOS supported since
-2026-10-09, MacPorts only (D-050, D-053): starts and tests there (T-021, D-054),
-`lldb-preset` next to `gdb-preset` (D-051, T-022), patched clangd from
-`build-macos.sh` (D-052, T-023); T-021 .. T-023 await the owner's runs. T-024 ruled
-(D-055, code done-when proposed); T-028 review done (0037); T-027 Mac numbers in DESIGN
-11 (0038), Arch left; T-029 and T-025 round 1 in RESEARCH docs. Open: T-020, O-12,
-O-24 (b), (c), O-25 (file API), O-26 (watch limits); D-054 awaits confirmation.
+through D-059. clangd stays (T-004); a locally patched clangd
+(`packaging/clangd-index-nav`, pkgrel 6 with patch 0008, selected by
+`emacs-cpp-clangd-program`) answers navigation from its index and gives headers an
+includer's flags, also when opened first (D-026 .. D-028, D-046, D-047, D-059). Python
+rides along (D-045). macOS supported, MacPorts only (D-050, D-053): starts and tests
+there (T-021, D-054), `lldb-preset` (D-051), patched clangd from `build-macos.sh`
+(D-052); per-platform defaults files (D-055, T-031); debug targets from CMake's file
+API (D-056, T-030). Budgets bind on Arch only (D-057); `make test` on the machine at
+hand (D-058). Owner runs left: Arch make test (T-021, T-022, T-030), pkgrel 6 + S9
+(T-020), S10 (O-12), build-macos.sh to ~/opt (T-023). Open: O-12, O-26; D-054 awaits
+confirmation; T-025 round 2, T-026 research queued.
 
 ## Hard rules (each with its reason)
 - Change-size ladder: tier 1 trivial = commit with Reasoning only; tier 2 feature = `done
