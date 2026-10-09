@@ -395,6 +395,78 @@ class body starts with an access specifier."
                     code)
                    (cons nil "class R\n{\npublic:\n    int f;\n\n    explicit R(int);\n    // note\n};\n")))))
 
+(defconst init-cpp-test--clang-format-sample
+  "namespace toy
+{
+int pick(int k)
+{
+    switch (k) {
+        case 1:
+            return 10;
+        default:
+            return 0;
+    }
+}
+
+int sum(int a, int b, int c);
+
+int call()
+{
+    int r = sum(
+        1, 2, 3);
+    int s = sum(1,
+                2, 3);
+    return r + s;
+}
+
+template <typename T>
+    requires(sizeof(T) > 1)
+T twice(T x)
+{
+    return x + x;
+}
+
+class P
+{
+public:
+    P(int a, int b)
+        : m_a(a)
+        // the second member
+        , m_b(b)
+    {
+    }
+
+private:
+    int m_a;
+    int m_b;
+};
+}
+"
+  "clang-format's output with RMO's .clang-format (2026-10-10): case labels,
+arguments after a `(' that ends a line and after the first one, a requires
+clause, a constructor's initializers with a comment between them.")
+
+(ert-deftest init-cpp-indent-like-clang-format ()
+  "T-040: from no indentation at all, RMO's .dir-locals.el values re-indent the
+sample exactly as clang-format formats it."
+  (init-test--load)
+  (should (equal (init-cpp-test--reindented
+                  "((c++-ts-mode . ((c-ts-indent-offset . 4) (indent-tabs-mode . nil)
+                  (c-ts-mode-indent-style . bsd)
+                  (emacs-cpp-indent-namespace-body . nil)
+                  (emacs-cpp-indent-case-labels . t))))\n"
+                  (replace-regexp-in-string "^[ \t]+" "" init-cpp-test--clang-format-sample))
+                 (cons nil init-cpp-test--clang-format-sample))))
+
+(ert-deftest init-cpp-indent-case-labels-only-when-asked ()
+  "T-040: without `emacs-cpp-indent-case-labels' a label stays at the `switch''s
+column, as Emacs puts it."
+  (init-test--load)
+  (should (equal (init-cpp-test--reindented
+                  "((c++-ts-mode . ((c-ts-indent-offset . 4) (indent-tabs-mode . nil))))\n"
+                  "int f(int k)\n{\nswitch (k) {\ncase 1:\nreturn 1;\n}\nreturn 0;\n}\n")
+                 (cons nil "int f(int k)\n{\n    switch (k) {\n    case 1:\n        return 1;\n    }\n    return 0;\n}\n"))))
+
 (ert-deftest init-cpp-indent-braces-after-namespace-and-class ()
   "D-062: without project settings a `{' on its own line after `namespace' or
 `class' stays at the keyword's column; the namespace body is indented."

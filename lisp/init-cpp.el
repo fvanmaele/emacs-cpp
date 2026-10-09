@@ -40,16 +40,37 @@ nil: leave them at the namespace's column, like clang-format's
   :safe #'booleanp
   :group 'tools)
 
+(defcustom emacs-cpp-indent-case-labels nil
+  "Non-nil: indent `case' labels one step in from their `switch'.
+nil: at the `switch''s column, as Emacs does.  Like clang-format's
+`IndentCaseLabels'.  Meant for a project's .dir-locals.el (T-040)."
+  :type 'boolean
+  :safe #'booleanp
+  :group 'tools)
+
 (defun emacs-cpp-indent--apply ()
   "Rebuild this buffer's indent rules from its (possibly local) settings.
 Rebuilds from `c-ts-mode-indent-style' each time, so running twice is harmless."
   (c-ts-mode-set-style c-ts-mode-indent-style)
+  ;; Arguments after a `(' that ends a line go one step in, the others align with
+  ;; the first argument: clang-format's way in every style (T-040).
+  (setq-local c-ts-common-list-indent-style 'simple)
   (treesit-simple-indent-add-rules
    'cpp `(((parent-is "namespace_definition") standalone-parent 0)
           ((parent-is "class_specifier") standalone-parent 0)
           ((and (parent-is "field_declaration_list")
                 (not (node-is ,(rx (or "access_specifier" "}" "preproc")))))
            parent-bol c-ts-indent-offset)
+          ;; A constructor's `: member(...)' one step in from the declaration,
+          ;; comments before it too (T-040).
+          ((node-is "field_initializer_list") standalone-parent c-ts-indent-offset)
+          ((parent-is "field_initializer_list") parent-bol 0)
+          ((and (node-is "comment") (parent-is "function_definition"))
+           standalone-parent c-ts-indent-offset)
+          ;; A `requires' clause on its own line, one step in (T-040).
+          ((node-is "requires_clause") standalone-parent c-ts-indent-offset)
+          ,@(when emacs-cpp-indent-case-labels
+              '(((node-is "case_statement") standalone-parent c-ts-indent-offset)))
           ,@(unless emacs-cpp-indent-namespace-body
               '(((n-p-gp nil "declaration_list" "namespace_definition")
                  parent-bol 0))))))

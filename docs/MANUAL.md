@@ -233,7 +233,8 @@ Open a file that already has the project's style, then:
    ((c++-ts-mode . ((c-ts-indent-offset . 4)
                     (indent-tabs-mode . nil)
                     (c-ts-mode-indent-style . bsd)
-                    (emacs-cpp-indent-namespace-body . nil))))
+                    (emacs-cpp-indent-namespace-body . nil)
+                    (emacs-cpp-indent-case-labels . t))))
    ```
    - `c-ts-indent-offset`: the indent step (clang-format's `IndentWidth`).
    - `indent-tabs-mode`: `nil` for spaces (`UseTab: Never`); `t` for tabs, then add
@@ -243,6 +244,12 @@ Open a file that already has the project's style, then:
      step further; for `{` on the `if` line any style indents the same.
    - `emacs-cpp-indent-namespace-body`: `nil` when namespace contents are not
      indented (clang-format's `NamespaceIndentation: None`).
+   - `emacs-cpp-indent-case-labels`: `t` when `case` labels are one step in from
+     their `switch` (clang-format's `IndentCaseLabels: true`).
+
+   Arguments after a `(` that ends a line go one step in, later ones align with the
+   first, constructor initializers and `requires` clauses one step in, as
+   clang-format does them.
 
    A `{` on its own line after `namespace` or `class` stays at the keyword's column
    in every style. Both this and the style line work only through this
@@ -252,8 +259,8 @@ Open a file that already has the project's style, then:
    them first). To check, `TAB` on a few lines should leave them where they are, and
    `C-c l f` with a region should change nothing in it (the mode line shows `**`
    when the buffer changed; `C-/` undoes). Emacs's rules cover less than
-   clang-format: on RMO, `case` labels and arguments after a `(` at the end of a
-   line still move (452 lines, `RESEARCH_indent_guessing.md` 3, D-062). Format
+   clang-format: on RMO, Emacs and clang-format still differ on 62 lines (`<<`
+   chains, macros, a few template and alias continuations; T-040). Format
    the lines you edit (`C-c l f` on a region) rather than whole files: hand-aligned
    code and boost `add_options()` chains do not survive a whole-file format.
 
