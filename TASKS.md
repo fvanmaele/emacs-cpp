@@ -79,6 +79,7 @@ with `done when: ...`).
 | T-031 | done 0039 | M | platform defaults files | D-055, T-024 | debugger offered first |
 | T-032 | open | S | send the eglot watch report | D-054, O-26 | owner sends the draft |
 | T-033 | done 0042 | M | patch 0009: re-index flagged shards | D-060 | S9 run 4 unchanged |
+| T-034 | done | S | indent-guessing packages | owner | RESEARCH doc; O-28 to rule |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -209,6 +210,13 @@ with `done when: ...`).
   findings, each taken or not taken with a reason, and the taken ones fixed with
   tests. Done 2026-10-09 (0037): preset conditions, `$env{}` as CMake, lldb-dap by
   name, one build step; the file API instead of build.ninja is O-25.
+- T-034 (opened 2026-10-09, owner): research packages that guess a project's
+  indentation or format style, after MANUAL 8 was applied to RMO. Done when:
+  `RESEARCH_indent_guessing.md` with the candidates, their state, and what each
+  would change on RMO. Done 2026-10-09: dtrt-indent guesses only step and tabs,
+  whatstyle / unformat are unproven at clang-format 23; Emacs 31.1's rules miss
+  namespace and class braces; clangd's on-type formatting is overridden by
+  electric indentation. Options put to the owner as O-28.
 - T-033 (opened 2026-10-09, D-060): patch 0009 in `BackgroundIndex::loadProject`: a
   loaded shard with `HadErrors` schedules its `DependentTU` like a stale one; a log
   line names the source. Tier 2. PROPOSED done when (owner to agree): a unit test (a
