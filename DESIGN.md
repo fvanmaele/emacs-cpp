@@ -234,7 +234,11 @@ Known defects: none yet (nothing built).
   Implemented in `lisp/emacs-cpp-presets.el` (T-004): `inherits` resolved as CMake does
   (earlier parent wins, `hidden` not inherited), the documented path macros expanded
   (`${hostSystemName}`: Linux or Darwin, T-021), `include` and `$vendor{}` rejected
-  as unsupported.
+  as unsupported. T-028 (0037): a preset's `condition` is evaluated as CMake does
+  (inherited, a parent's null not; a false one leaves the preset out of the choice,
+  the default and `C-c l P`), except the regular-expression types, which are refused
+  (ECMAScript, not Emacs syntax); `$env{}` takes the preset's `environment` expanded,
+  null as unset, a cycle as an error.
 - DECIDED D-026 (owner 2026-10-08, after S8 PASS): the config keeps clangd and can run
   the patched clangd that answers navigation from its index (O-11):
   `emacs-cpp-clangd-program` nil = system clangd; a path = that program with
@@ -369,8 +373,9 @@ Known defects: none yet (nothing built).
   configuration; gdb stays the default on Arch (D-002), lldb is the only adapter on
   macOS; the gdb options (D-030 lazy symbols, D-032 gdb scripts) stay gdb-only until a
   need for an lldb counterpart shows. The program is `emacs-cpp-debug-lldb-dap-program`:
-  `lldb-dap` on `exec-path` (Arch lldb package), on macOS
-  `/opt/local/libexec/llvm-23/bin/lldb-dap` (MacPorts lldb-23, not on PATH); missing,
+  `lldb-dap` on `exec-path` on both platforms (Arch lldb package; MacPorts lldb-23
+  after `sudo port select --set lldb mp-lldb-23`, T-028, 0037; SUPERSEDED: "on macOS
+  `/opt/local/libexec/llvm-23/bin/lldb-dap`", a path tied to one port version); missing,
   it refuses the session with the fix. No codesigning: MacPorts' lldb-dap launches
   and stops a program through its own ad hoc signed debugserver, Developer Mode off
   (checked 2026-10-09); the port's note to codesign lldb-server concerns LLDB's own
@@ -406,7 +411,7 @@ Known defects: none yet (nothing built).
   scan of D-031 offered nothing. Not taken: CMake's file API (query file in the build
   directory plus a reconfigure).
   The build type: the link block's `CONFIG` (CMake 4), else the file's
-  `CONFIGURATION` (CMake 3.31, MacPorts; T-021, 0034).
+  `CONFIGURATION` (CMake 3.31, MacPorts; T-021, 0034). Reopened by O-25 (T-028).
 - DECIDED D-037 (owner 2026-10-08, O-15): built-in `repeat-mode` is on (3 ms at start),
   so after `C-x C-a n` plain `n s o c p r f u < >` keep stepping; Emacs's own repeat
   maps (`C-x o o`, `C-x u u`) come with it. dape gives every command its repeat map;
@@ -763,6 +768,16 @@ presets, GoogleTest runner.
   errors; loading the 3950 stored shards takes 0.4 s, so the 5 s cap is not involved.
   Patch 0006 (D-046, T-019) built and tested locally; left: pkgrel 4 installed and S9
   rerun on RMO (owner).
+- O-25 (OPEN, T-028 review, 2026-10-09): read a preset's executable targets from
+  CMake's file API instead of `build.ninja` (D-033)? The `build.ninja` regular
+  expressions depend on how CMake names link rules and where it writes the build type,
+  which changed between CMake 3.31 and 4 (0034). The file API's `codemodel-v2` reply
+  is versioned JSON: every target with its `type` (EXECUTABLE), name and artifact
+  paths, for any generator (Makefiles too). It exists only after a configure with a
+  query file in `<build>/.cmake/api/v1/query/`; CLion writes one, so the owner's
+  CLion builds of RMO already have replies (checked on the Mac). D-033 rejected it for
+  the query file plus reconfigure; the configure command (`C-c p c o`, D-035) could
+  write the query first. Owner to rule.
 - O-22 (RESOLVED 2026-10-09 with D-051: lldb in addition to gdb): the C++ debugger on
   macOS. Apple silicon has no gdb, and `gdb-preset` (D-031, D-033) starts only gdb.
   Options: an `lldb-preset` doing the same with `lldb-dap` (Command Line Tools or the

@@ -73,7 +73,7 @@ with `done when: ...`).
 | T-025 | open | M | Python tools on macOS | owner | research; proposed |
 | T-026 | open | L | setup wizard (doom doctor) | owner | research; proposed |
 | T-027 | open | S | load measurements, macOS | owner, O-24 | DESIGN 11; proposed |
-| T-028 | open | S | review debug and presets code | owner | simplicity; proposed |
+| T-028 | done 0037 | S | review debug and presets code | owner | 5 taken, O-25 to rule |
 | T-029 | open | M | file watches on macOS | owner, D-054 | research; proposed |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
@@ -192,7 +192,8 @@ with `done when: ...`).
   the preset macro expansion; the platform paths). D-033 rejected CMake's file API
   before; the review may reopen it. PROPOSED done when: a review journal entry with
   findings, each taken or not taken with a reason, and the taken ones fixed with
-  tests.
+  tests. Done 2026-10-09 (0037): preset conditions, `$env{}` as CMake, lldb-dap by
+  name, one build step; the file API instead of build.ninja is O-25.
 - T-029 (opened 2026-10-09, owner; D-054): research the file descriptor per watched
   directory issue on macOS and its effects on C++ work in Emacs. Open: why Emacs
   stopped at descriptor 975; which parts watch files in a C++ session (eglot for

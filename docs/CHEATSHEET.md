@@ -211,6 +211,7 @@ macOS is supported since 2026-10-09 (D-050), with tools from MacPorts only (D-05
 8. Libraries (deal.II, Boost) must be installed so that CMake finds them; that is the
    project's business, not this configuration's.
 9. Debugger: there is no gdb for Apple silicon; use `lldb-preset` (D-051). It starts
-   `/opt/local/libexec/llvm-23/bin/lldb-dap` from the lldb-23 port; another one goes
-   in `emacs-cpp-debug-lldb-dap-program`. The gdb options (lazy symbols, gdb scripts)
+   `lldb-dap` from the PATH: `sudo port select --set lldb mp-lldb-23` links the lldb-23
+   port's as `/opt/local/bin/lldb-dap`; another one goes in
+   `emacs-cpp-debug-lldb-dap-program`. The gdb options (lazy symbols, gdb scripts)
    do not apply to it.

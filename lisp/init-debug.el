@@ -44,11 +44,10 @@ directly.  A listed file that does not exist refuses the session."
   :type '(repeat file)
   :group 'tools)
 
-(defcustom emacs-cpp-debug-lldb-dap-program
-  (if (eq system-type 'darwin) "/opt/local/libexec/llvm-23/bin/lldb-dap" "lldb-dap")
-  "The lldb-dap program `lldb-preset' starts (D-051).
-A name is looked up on `exec-path' (Arch: the lldb package).  On macOS the
-default is the MacPorts lldb-23 port's, which is not on PATH (D-053)."
+(defcustom emacs-cpp-debug-lldb-dap-program "lldb-dap"
+  "The lldb-dap program `lldb-preset' starts (D-051); a name is looked up on
+`exec-path'.  Arch: the lldb package.  macOS: the MacPorts lldb-23 port, which
+`sudo port select --set lldb mp-lldb-23' links as /opt/local/bin/lldb-dap."
   :type 'string
   :group 'tools)
 
@@ -160,23 +159,18 @@ exist (D-032)" script)))
     (format "cmake --build %s --target %s" (shell-quote-argument dir)
             (shell-quote-argument target))))
 
-(defun emacs-cpp-debug--prepare (config)
-  "Return CONFIG with gdb's arguments and the build of its program (dape's `fn').
-dape calls this again after the build, so it sets these, never appends."
-  (let ((root (plist-get config 'command-cwd)))
-    (thread-first
-      config
-      (plist-put 'command-args
-                 (append (plist-get (alist-get 'gdb dape-configs) 'command-args)
-                         (emacs-cpp-debug-gdb-arguments)))
-      (plist-put 'compile
-                 (emacs-cpp-debug-build-command root (plist-get config :program))))))
-
-(defun emacs-cpp-debug--prepare-lldb (config)
-  "Return CONFIG with the build of its program (dape's `fn' for `lldb-preset')."
+(defun emacs-cpp-debug--prepare-build (config)
+  "Return CONFIG with the build of its program (dape's `fn' for `lldb-preset').
+dape calls this again after the build, so it sets the command, never appends."
   (plist-put config 'compile
              (emacs-cpp-debug-build-command (plist-get config 'command-cwd)
                                             (plist-get config :program))))
+
+(defun emacs-cpp-debug--prepare (config)
+  "Return CONFIG with gdb's arguments and the build (dape's `fn' for `gdb-preset')."
+  (plist-put (emacs-cpp-debug--prepare-build config) 'command-args
+             (append (plist-get (alist-get 'gdb dape-configs) 'command-args)
+                     (emacs-cpp-debug-gdb-arguments))))
 
 (defun emacs-cpp-debug-lldb-dap ()
   "Return the lldb-dap program to start, or refuse with the fix (D-051).
@@ -185,11 +179,12 @@ The `command' of `lldb-preset'."
     (or (if (file-name-absolute-p program)
             (and (file-executable-p program) program)
           (executable-find program))
-        (user-error "emacs-cpp: no lldb-dap at %s; install %s, or set \
+        (user-error "emacs-cpp: no lldb-dap at %s; %s, or set \
 emacs-cpp-debug-lldb-dap-program (D-051)"
                     program (if (eq system-type 'darwin)
-                                "the lldb-23 port"
-                              "the lldb package")))))
+                                "install the lldb-23 port and run `sudo port select \
+--set lldb mp-lldb-23'"
+                              "install the lldb package")))))
 
 (defun emacs-cpp-debug--preset-config (name prepare)
   "Return dape's configuration NAME with the preset parts and PREPARE as `fn'."
@@ -211,7 +206,7 @@ emacs-cpp-debug-lldb-dap-program (D-051)"
 (defun emacs-cpp-debug--lldb-preset-config ()
   "Return the `lldb-preset' configuration: dape's `lldb-dap' one plus the preset
 parts, started with `emacs-cpp-debug-lldb-dap' (D-051)."
-  (plist-put (emacs-cpp-debug--preset-config 'lldb-dap #'emacs-cpp-debug--prepare-lldb)
+  (plist-put (emacs-cpp-debug--preset-config 'lldb-dap #'emacs-cpp-debug--prepare-build)
              'command #'emacs-cpp-debug-lldb-dap))
 
 ;; gud (M-x gdb, pdb, perldb) binds its map on `gud-key-prefix' globally when it

@@ -15,10 +15,11 @@
 ;; default flags and report false errors.
 ;;
 ;; Supported preset features: configurePresets in CMakePresets.json and
-;; CMakeUserPresets.json, `inherits', and the macros ${sourceDir}, ${sourceParentDir},
+;; CMakeUserPresets.json, `inherits', `condition' (all types but the regular
+;; expression ones), and the macros ${sourceDir}, ${sourceParentDir},
 ;; ${sourceDirName}, ${presetName}, ${generator}, ${hostSystemName}, ${fileDir},
 ;; ${dollar}, ${pathListSep}, $env{NAME}, $penv{NAME}.  Anything else (`include',
-;; $vendor{...}) is an error rather than a guess.
+;; $vendor{...}, `matches') is an error rather than a guess.
 
 ;;; Code:
 
@@ -83,11 +84,17 @@ name appears twice."
         (push name seen)))
     presets))
 
-(defun emacs-cpp-presets-visible-names (presets)
-  "Return the names of the non-hidden PRESETS, in file order."
-  (cl-loop for preset in presets
-           unless (eq (alist-get 'hidden preset) t)
-           collect (alist-get 'name preset)))
+(defun emacs-cpp-presets-visible-names (root)
+  "Return the names of the configure presets of ROOT that `cmake --preset' takes.
+That is the presets neither hidden nor disabled by their `condition'
+\(inherited as in CMake), in file order."
+  (let ((presets (emacs-cpp-presets-read root)))
+    (cl-loop for preset in presets
+             for name = (alist-get 'name preset)
+             unless (or (eq (alist-get 'hidden preset) t)
+                        (not (emacs-cpp-presets--enabled-p
+                              root (emacs-cpp-presets-resolve presets name))))
+             collect name)))
 
 ;;;; Inheritance and macros
 
@@ -116,12 +123,32 @@ win over all parents, and `hidden' is not inherited.  CHAIN detects cycles."
                     (if (stringp inherits) (list inherits) inherits)))
          (merged nil))
     (dolist (parent (reverse parents))
-      (setq merged (emacs-cpp-presets--merge
-                    merged (emacs-cpp-presets-resolve presets parent (cons name chain)))))
+      (let ((resolved (emacs-cpp-presets-resolve presets parent (cons name chain))))
+        ;; A null `condition' enables its own preset but is not inherited (CMake).
+        (when (and (assq 'condition resolved) (null (alist-get 'condition resolved)))
+          (setq resolved (assq-delete-all 'condition (copy-alist resolved))))
+        (setq merged (emacs-cpp-presets--merge merged resolved))))
     (setq merged (emacs-cpp-presets--merge merged preset))
     (setf (alist-get 'hidden merged) (alist-get 'hidden preset))
     (setf (alist-get 'inherits merged nil 'remove) nil)
     merged))
+
+(defvar emacs-cpp-presets--env-chain nil
+  "Names of the preset environment variables being expanded, to stop cycles.")
+
+(defun emacs-cpp-presets--env (name root preset)
+  "Return $env{NAME} for PRESET of the project at ROOT, as CMake does.
+The preset's `environment' wins over the process environment; its values are
+expanded in turn, and a null value means unset."
+  (let ((cell (assq (intern name) (alist-get 'environment preset))))
+    (cond
+     ((null cell) (or (getenv name) ""))
+     ((null (cdr cell)) "")
+     ((member name emacs-cpp-presets--env-chain)
+      (error "emacs-cpp: preset %S: environment cycle through %s"
+             (alist-get 'name preset) name))
+     (t (let ((emacs-cpp-presets--env-chain (cons name emacs-cpp-presets--env-chain)))
+          (emacs-cpp-presets--expand (cdr cell) root preset))))))
 
 (defun emacs-cpp-presets--expand (string root preset)
   "Expand the CMake preset macros in STRING for PRESET of the project at ROOT."
@@ -149,11 +176,46 @@ win over all parents, and `hidden' is not inherited.  CHAIN detects cycles."
               (_ (error "emacs-cpp: ${hostSystemName} unknown for %s" system-type))))
            ("dollar" "$")
            ("pathListSep" path-separator)
-           ("env" (or (cdr (assq (intern arg) (alist-get 'environment preset)))
-                      (getenv arg) ""))
+           ("env" (emacs-cpp-presets--env arg root preset))
            ("penv" (or (getenv arg) ""))
            (_ (error "emacs-cpp: unsupported preset macro %s in %S" match string)))))
      string t t)))
+
+(defun emacs-cpp-presets--condition-p (condition root preset)
+  "Non-nil if the CMake preset CONDITION holds for PRESET of the project at ROOT.
+A boolean is itself; an absent or null condition holds.  The regular expression
+types (`matches', `notMatches') take ECMAScript syntax, which Emacs's regular
+expressions do not match faithfully, so they are an error rather than a guess."
+  (let ((expand (lambda (string) (emacs-cpp-presets--expand string root preset)))
+        (holds (lambda (sub) (emacs-cpp-presets--condition-p sub root preset)))
+        (field (lambda (key) (alist-get key condition))))
+    (pcase condition
+      ('nil t)
+      ('t t)
+      (:false nil)
+      ((pred consp)
+       (pcase (funcall field 'type)
+         ("const" (eq (funcall field 'value) t))
+         ("equals" (equal (funcall expand (funcall field 'lhs))
+                          (funcall expand (funcall field 'rhs))))
+         ("notEquals" (not (equal (funcall expand (funcall field 'lhs))
+                                  (funcall expand (funcall field 'rhs)))))
+         ("inList" (and (member (funcall expand (funcall field 'string))
+                                (mapcar expand (funcall field 'list)))
+                        t))
+         ("notInList" (not (member (funcall expand (funcall field 'string))
+                                   (mapcar expand (funcall field 'list)))))
+         ("anyOf" (and (cl-some holds (funcall field 'conditions)) t))
+         ("allOf" (cl-every holds (funcall field 'conditions)))
+         ("not" (not (funcall holds (funcall field 'condition))))
+         (type (error "emacs-cpp: preset %S: condition type %S is not supported"
+                      (alist-get 'name preset) type))))
+      (_ (error "emacs-cpp: preset %S: condition %S is not a boolean, null or object"
+                (alist-get 'name preset) condition)))))
+
+(defun emacs-cpp-presets--enabled-p (root preset)
+  "Non-nil if the resolved PRESET of the project at ROOT is enabled."
+  (emacs-cpp-presets--condition-p (alist-get 'condition preset) root preset))
 
 (defun emacs-cpp-presets-binary-dir (root name)
   "Return the absolute build directory of preset NAME of the project at ROOT."
@@ -185,12 +247,13 @@ win over all parents, and `hidden' is not inherited.  CHAIN detects cycles."
   "Return the active preset name of the project at ROOT.
 That is the stored choice, else the first non-hidden configure preset.  A
 stored choice that no longer exists is an error, not a silent fallback."
-  (let ((visible (emacs-cpp-presets-visible-names (emacs-cpp-presets-read root)))
+  (let ((visible (emacs-cpp-presets-visible-names root))
         (stored (alist-get (file-name-as-directory root) (emacs-cpp-presets--state)
                            nil nil #'equal)))
     (cond
      ((null visible)
-      (user-error "emacs-cpp: %s has no non-hidden configure preset" root))
+      (user-error "emacs-cpp: %s has no configure preset that is neither hidden nor \
+disabled by its condition" root))
      ((null stored) (car visible))
      ((member stored visible) stored)
      (t (user-error "emacs-cpp: stored preset %S is no longer in %s; choose one with %s"
@@ -327,13 +390,13 @@ prompt to build one target."
   "Make preset NAME active for the current project and restart its eglot server."
   (interactive
    (let* ((root (expand-file-name (project-root (project-current t))))
-          (visible (emacs-cpp-presets-visible-names (emacs-cpp-presets-read root))))
+          (visible (emacs-cpp-presets-visible-names root)))
      (list (completing-read "CMake preset: " visible nil t nil nil
                             (emacs-cpp-presets-active root)))))
   (let* ((project (project-current t))
          (root (expand-file-name (project-root project))))
-    (unless (member name (emacs-cpp-presets-visible-names (emacs-cpp-presets-read root)))
-      (user-error "emacs-cpp: no non-hidden configure preset %S in %s" name root))
+    (unless (member name (emacs-cpp-presets-visible-names root))
+      (user-error "emacs-cpp: no enabled, non-hidden configure preset %S in %s" name root))
     (emacs-cpp-presets--store root name)
     (when (fboundp 'eglot-current-server)
       (let ((server (eglot-current-server)))

@@ -342,7 +342,7 @@ into a call, out of it and over a line, then end the session."
   (init-test--load)
   (require 'dape)
   (let ((config (alist-get 'lldb-preset dape-configs)))
-    (should (eq (plist-get config 'fn) #'emacs-cpp-debug--prepare-lldb))
+    (should (eq (plist-get config 'fn) #'emacs-cpp-debug--prepare-build))
     (should (eq (plist-get config :program) #'emacs-cpp-debug-read-program))
     (should (eq (plist-get config 'command) #'emacs-cpp-debug-lldb-dap))
     (should (equal (plist-get config :type)
