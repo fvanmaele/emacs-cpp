@@ -191,6 +191,61 @@ names and deduced types.
 | `C-c l e` | errors and warnings of the project |
 | `C-c l I` | hide / show inlay hints |
 
+### A project's code style, taken from a file
+Two files in the project root decide how code looks, and they must agree:
+- `.clang-format`: what `C-c l f` produces (clangd reads it). Without one clangd
+  formats in LLVM style, so `C-c l f` rewrites the file in a style nobody chose.
+- `.dir-locals.el`: what `TAB` and `RET` indent to. Emacs indents by its own rules;
+  it does not read `.clang-format`.
+
+Open a file that already has the project's style, then:
+
+1. Note the indent step (2, 4 or 8 columns), tabs or spaces (`M-x whitespace-mode`
+   marks tabs; run it again to hide the marks), and whether the `{` of an `if` or
+   `for` stands on the `if` line or on its own line.
+2. Find the closest of clang-format's built-in styles. `M-!` runs a shell command in
+   the file's directory; replace `FILE` by the file's name:
+   ```
+   for s in LLVM GNU Google Chromium Microsoft Mozilla WebKit; do
+     printf '%-10s %s\n' $s "$(clang-format --style=$s FILE | diff FILE - | grep -c '^>')"
+   done
+   ```
+   Each number is how many lines that style would change; take the smallest.
+3. Write `.clang-format` in the project root with that style, e.g.
+   `BasedOnStyle: Microsoft`, and show what it still changes:
+   `M-! clang-format --style=file FILE | diff FILE -`. Each difference is one option to
+   add. `clang-format --style=Microsoft --dump-config` lists the options with their
+   values; https://clang.llvm.org/docs/ClangFormatStyleOptions.html explains them.
+   Repeat until the diff is empty. Example: a file with `public:` at the class's
+   column and one-line getters needs
+   ```
+   BasedOnStyle: Microsoft
+   AccessModifierOffset: -4
+   AllowShortFunctionsOnASingleLine: Inline
+   ```
+4. Write `.dir-locals.el` in the project root to match (it covers `.h` files too):
+   ```
+   ((c++-ts-mode . ((c-ts-indent-offset . 4)
+                    (indent-tabs-mode . nil)
+                    (eval . (c-ts-mode-set-style 'bsd)))))
+   ```
+   - `c-ts-indent-offset`: the indent step (clang-format's `IndentWidth`).
+   - `indent-tabs-mode`: `nil` for spaces (`UseTab: Never`); `t` for tabs, then add
+     `(tab-width . 4)` with the tab width.
+   - the `eval` line: only when `{` stands on its own line under the `if` (`bsd`).
+     Without it the style is `gnu`, which indents such a `{` one step further; for
+     `{` on the `if` line any style indents the same.
+
+   Setting `c-ts-mode-indent-style` directly in `.dir-locals.el` does nothing:
+   `c++-ts-mode` builds its indent rules before it reads the file (checked in Emacs
+   31.1, 2026-10-09). Emacs asks once whether to trust the `eval` line; `!` trusts it
+   for good (saved in `custom.el`).
+5. Files already open keep their old settings: reopen them with `C-x C-v RET`. To
+   check, `C-x h TAB` re-indents the whole file and `C-c l f` formats it: neither
+   should change anything (the mode line shows `**` when the buffer changed; `C-/`
+   undoes). Lines that `TAB` still moves are where Emacs's rules and clang-format
+   differ (long argument lists, lambdas); `C-c l f` is the one that counts.
+
 ## 9. Building
 ```
  C-c l P          C-c p c o          C-c p c c          M-g n / M-g p
