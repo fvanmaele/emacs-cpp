@@ -213,7 +213,7 @@ Observed on the owner's Mac, 2026-10-09 (D-050):
 | CMake build | `lisp/emacs-cpp-presets.el`, projectile form | PROTOTYPE | T-005 (D-035) |
 | CMake mode | `lisp/init-cmake.el` | PROTOTYPE | system cmake-mode (D-013) |
 | Python | `lisp/init-python.el` | PROTOTYPE | T-018: ts-mode, pyright, debugpy (D-045) |
-| debugger | `lisp/init-debug.el` | PROTOTYPE | `gdb-preset`, `lldb-preset` (D-031, D-051) |
+| debugger | `lisp/init-debug.el` | PROTOTYPE | gdb / lldb presets (D-031, D-051, D-056) |
 | git | `lisp/init-git.el` | KEEP | magit, treemacs-magit, diff-hl (T-015, T-016) |
 | keys | `lisp/init-keys.el` | UNVALIDATED | NEW: `C-c l` map (D-004) |
 | tests | `test/*.el`, `make test` | KEEP | 21 ERT tests after T-004 |
@@ -415,20 +415,20 @@ Known defects: none yet (nothing built).
   directory plus a reconfigure).
   The build type: the link block's `CONFIG` (CMake 4), else the file's
   `CONFIGURATION` (CMake 3.31, MacPorts; T-021, 0034). Reopened by O-25 (T-028);
-  SUPERSEDED by D-056 once T-030 lands.
-- DECIDED D-056 (owner 2026-10-09, O-25): the debug presets take the preset's
-  executable targets from CMake's file API, not from `build.ninja`. Grounded on the
-  owner's CLion build of RMO (CMake 4.3.1, 2026-10-09): the shared query
+  SUPERSEDED by D-056 (T-030, 0040): `build.ninja` is no longer read.
+- DECIDED D-056 (owner 2026-10-09, O-25): the debug presets take the preset's executable
+  targets from CMake's file API, not from `build.ninja`. Grounded on the owner's CLion
+  build of RMO (CMake 4.3.1, 2026-10-09): the shared query
   `<binaryDir>/.cmake/api/v1/query/codemodel-v2` (an empty file) makes every configure
   write `reply/index-*.json`; its `codemodel-v2` object lists configurations and
   targets, each target file has `type` (`EXECUTABLE`), `name` and `artifacts[].path`
-  (relative to the build directory). Any generator; Makefiles too.
-  Agreed for T-030 (owner 2026-10-09): the configure command (`C-c p c o`, D-035) and
-  the debug presets write the query file into the preset's `binaryDir` (CMake's output
-  directory, not the source tree D-016 keeps clean); the newest reply index is read;
-  no reply refuses the session with the fix ("configure once with `C-c p c o`"); more
-  than one configuration (multi-config generators) is refused until needed; the target
-  name stays the build target (`cmake --build <dir> --target <name>`).
+  (relative to the build directory). Any generator; Makefiles too. Agreed for T-030
+  (owner 2026-10-09; built 0040): the configure command (`C-c p c o`, D-035) and the
+  debug presets write the query file into the preset's `binaryDir` (CMake's output
+  directory, not the source tree D-016 keeps clean); the newest reply index is read; no
+  reply refuses the session with the fix ("configure once with `C-c p c o`"); more than
+  one configuration (multi-config generators) is refused until needed; the target name
+  stays the build target (`cmake --build <dir> --target <name>`).
 - DECIDED D-037 (owner 2026-10-08, O-15): built-in `repeat-mode` is on (3 ms at start),
   so after `C-x C-a n` plain `n s o c p r f u < >` keep stepping; Emacs's own repeat
   maps (`C-x o o`, `C-x u u`) come with it. dape gives every command its repeat map;

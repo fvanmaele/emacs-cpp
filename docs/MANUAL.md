@@ -42,7 +42,7 @@ name (type part of it; the list narrows as you type).
                                                                       |
       +----------------------------+----------------------------------+------+
       |                            |                                         |
- compile_commands.json      .cache/clangd/index                        build.ninja
+ compile_commands.json      .cache/clangd/index                   .cmake/api (reply)
  flags of every source      what is defined and used where             all targets
       |                            |                                         |
       +-------------+--------------+                                         |
