@@ -70,7 +70,7 @@ with `done when: ...`).
 | T-022 | open | M | lldb-preset | D-051, O-22 | built 0035; Arch run left |
 | T-023 | open | M | macOS clangd build script | D-052, O-23 | built 0036; owner run left |
 | T-024 | open | M | platform defaults files | D-055 | ruled; code done-when proposed |
-| T-025 | open | M | Python tools on macOS | owner | research; proposed |
+| T-025 | open | M | Python tools on macOS | owner | round 1 in RESEARCH doc |
 | T-026 | open | L | setup wizard (doom doctor) | owner | research; proposed |
 | T-027 | open | S | load measurements, macOS | owner, O-24 | Mac measured 0038; Arch left |
 | T-028 | done 0037 | S | review debug and presets code | owner | 5 taken, O-25 to rule |
@@ -172,6 +172,10 @@ with `done when: ...`).
   PROPOSED done when: `RESEARCH_python_macos.md` with, per candidate on the Mac,
   startup, memory, `M-.` / rename / diagnostics on a toy and a real project, and
   failures over repeated runs (idle and under load); verdicts then ruled in DESIGN.
+  Round 1 2026-10-09 in `RESEARCH_python_macos.md`: six servers on three projects
+  (no crash in 64 sessions; ty fastest but blind to user site-packages, pyrefly's
+  references limited to the open file, pylsp the only ported alternative); debugpy
+  misses dape's 3 s wait 7 of 10 times under load. Left: the items of its section 4.
 - T-026 (opened 2026-10-09, owner): research a setup wizard like Doom Emacs's `doom
   doctor` / `doom install`: initialize the submodules and `make packages`, offer to
   build the patched clangd (makepkg on Arch, `build-macos.sh` on macOS) and set
