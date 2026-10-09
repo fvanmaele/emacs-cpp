@@ -76,8 +76,8 @@ back silently. An LLVM upgrade needs a rebuild of this package.
   `compile_commands.json` from there (D-016).
 - **`set(CMAKE_CXX_EXTENSIONS OFF)`** in the project, so every compile command carries
   `-std=`. Without it eglot refuses to start (D-011, D-018).
-- **The Ninja generator** if you want `gdb-preset` to list the debuggable programs
-  (D-033).
+- **The Ninja generator** if you want `gdb-preset` or `lldb-preset` to list the
+  debuggable programs (D-033).
 
 Configure once with `cmake --preset <name>` or `C-c p c o`, then open a source file.
 
@@ -116,8 +116,9 @@ must be on the `PATH` it sees for clangd, cmake and pyright.
 ### Differences from Arch
 - **eglot watches only project files** (D-054). macOS needs one file descriptor per
   watched directory, and pyright would otherwise ask for Python's whole library.
-- **No gdb on Apple silicon.** `gdb-preset` (D-031) drives gdb only. An `lldb-preset`
-  next to it is decided (D-051) and is T-022.
+- **lldb instead of gdb.** Apple silicon has no gdb; debug with `C-x C-a d lldb-preset
+  RET` (D-051). It uses `/opt/local/libexec/llvm-23/bin/lldb-dap` from the lldb-23
+  port (`sudo port install lldb-23`); no codesigning was needed on the owner's Mac.
 - **The patched clangd has no macOS build script yet.** A script is decided (D-052) and
   is T-023; until then the manual steps in `docs/CHEATSHEET.md` (macOS, item 6) apply.
   Leave `emacs-cpp-clangd-program` nil to use the MacPorts clangd.
@@ -140,7 +141,7 @@ Load order is the contract: a module may only use modules loaded before it (DESI
 | `lisp/init-cpp.el` | `c++-ts-mode`, eglot and clangd, breadcrumb, the `C-c l` map |
 | `lisp/emacs-cpp-presets.el` | presets: active preset, clangd command, build commands |
 | `lisp/init-cmake.el` | `cmake-mode` from the system cmake package |
-| `lisp/init-debug.el` | dape, `gdb-preset`, breakpoints in the fringe |
+| `lisp/init-debug.el` | dape, `gdb-preset`, `lldb-preset`, breakpoints in the fringe |
 | `lisp/init-python.el` | `python-ts-mode`, pyright, debugpy |
 | `lisp/init-git.el` | magit, treemacs-magit, diff-hl |
 | `lisp/init-writing.el` | markdown-mode, org-journal |

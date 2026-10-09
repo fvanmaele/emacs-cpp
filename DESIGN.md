@@ -120,7 +120,9 @@ Observed on the owner's Mac, 2026-10-09 (D-050):
   texinfo 7.3, pyright, `tree-sitter-cpp` 0.23.4, `tree-sitter-python` 0.25.0; Emacs
   finds both grammars without configuration. Not installed: gdb (no port for Apple
   silicon), debugpy (`py314-debugpy` exists). `lldb-dap` comes with the Xcode Command
-  Line Tools.
+  Line Tools. Later the same day: the `lldb-23` port (23.1.3), whose lldb-dap is in
+  `/opt/local/libexec/llvm-23/bin`; its `lldb` binary there has an invalid code
+  signature and is killed at start (lldb-dap is not affected).
 - Existing config: `~/.emacs` and a plain `~/.emacs.d/early-init.el` (not symlinks).
 - `make packages` builds all 28 packages and 6 manuals. `make test`: 17 of 45 fail,
   1 skipped. `init.el` stops in `init-cmake.el` (`/usr/share/emacs/site-lisp` has no
@@ -197,7 +199,7 @@ Observed on the owner's Mac, 2026-10-09 (D-050):
 | CMake build | `lisp/emacs-cpp-presets.el`, projectile form | PROTOTYPE | T-005 (D-035) |
 | CMake mode | `lisp/init-cmake.el` | PROTOTYPE | system cmake-mode (D-013) |
 | Python | `lisp/init-python.el` | PROTOTYPE | T-018: ts-mode, pyright, debugpy (D-045) |
-| debugger | `lisp/init-debug.el` | PROTOTYPE | T-006: `gdb-preset` (D-031, D-033) |
+| debugger | `lisp/init-debug.el` | PROTOTYPE | `gdb-preset`, `lldb-preset` (D-031, D-051) |
 | git | `lisp/init-git.el` | KEEP | magit, treemacs-magit, diff-hl (T-015, T-016) |
 | keys | `lisp/init-keys.el` | UNVALIDATED | NEW: `C-c l` map (D-004) |
 | tests | `test/*.el`, `make test` | KEEP | 21 ERT tests after T-004 |
@@ -346,12 +348,20 @@ Known defects: none yet (nothing built).
   is the default adapter, lldb-dap the alternate.
   macOS (D-050): no gdb for Apple silicon; `gdb-preset` (D-031) is gdb-only (D-051).
 - DECIDED D-051 (owner 2026-10-09, O-22): lldb is supported in addition to gdb, on
-  both platforms. Built in T-022. PROPOSED for T-022 (owner to agree): an
-  `lldb-preset` entry next to `gdb-preset` that picks the same preset programs (D-033),
-  builds them the same way and starts dape's `lldb-dap` configuration; gdb stays the
-  default on Arch (D-002), lldb is the only adapter on macOS; the gdb options (D-030
-  lazy symbols, D-032 gdb scripts) stay gdb-only until a need for an lldb counterpart
-  shows.
+  both platforms. Built in T-022 (0035, 2026-10-09; done-when agreed with this
+  shape): an `lldb-preset` entry next to `gdb-preset` that picks the same preset
+  programs (D-033), builds them the same way and starts dape's `lldb-dap`
+  configuration; gdb stays the default on Arch (D-002), lldb is the only adapter on
+  macOS; the gdb options (D-030 lazy symbols, D-032 gdb scripts) stay gdb-only until a
+  need for an lldb counterpart shows. The program is `emacs-cpp-debug-lldb-dap-program`:
+  `lldb-dap` on `exec-path` (Arch lldb package), on macOS
+  `/opt/local/libexec/llvm-23/bin/lldb-dap` (MacPorts lldb-23, not on PATH); missing,
+  it refuses the session with the fix. No codesigning: MacPorts' lldb-dap launches
+  and stops a program through its own ad hoc signed debugserver, Developer Mode off
+  (checked 2026-10-09); the port's note to codesign lldb-server concerns LLDB's own
+  debug server, which LLVM documents as unneeded with the system one. Cross-check:
+  CLion on macOS defaults to its bundled LLDB and warns of issues with GDB there
+  (jetbrains.com/help/clion, "Configure CLion on macOS").
 - S2 PASS (2026-10-08, RMO): dape + gdb 18.1 DAP stops at a source breakpoint, shows
   stack, variables and a watch, steps and ends cleanly; lldb-dap too. Findings for
   T-006: program path = active preset's `binaryDir` + target name; breakpoints persist
