@@ -1,4 +1,4 @@
-;;; init-debug.el --- Debugging with dape and gdb  -*- lexical-binding: t; -*-
+;;; init-debug.el --- Debugging with dape, gdb and lldb  -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 
@@ -14,6 +14,12 @@
 ;; library's symbols at start unless `emacs-cpp-debug-lazy-symbols' is set (D-030),
 ;; and sources `emacs-cpp-debug-gdb-scripts', such as deal.II's printers (D-032).
 ;; Breakpoints are kept with dape's own `dape-breakpoint-save' and `-load'.
+;;
+;; `lldb-preset' does the same with lldb-dap (D-051): the debugger on macOS, where
+;; Apple silicon has no gdb, and an alternative on Arch.  It takes the same targets
+;; and builds them the same way; the gdb options (symbols, scripts) are gdb's only.
+;;
+;;   C-x C-a d lldb-preset RET
 ;;
 ;; In source buffers the fringe (the margin in a terminal) toggles breakpoints with a
 ;; click, as CLion's gutter does; breakpoints are drawn in the theme's error colour
@@ -38,14 +44,22 @@ directly.  A listed file that does not exist refuses the session."
   :type '(repeat file)
   :group 'tools)
 
+(defcustom emacs-cpp-debug-lldb-dap-program
+  (if (eq system-type 'darwin) "/opt/local/libexec/llvm-23/bin/lldb-dap" "lldb-dap")
+  "The lldb-dap program `lldb-preset' starts (D-051).
+A name is looked up on `exec-path' (Arch: the lldb package).  On macOS the
+default is the MacPorts lldb-23 port's, which is not on PATH (D-053)."
+  :type 'string
+  :group 'tools)
+
 (defvar emacs-cpp-debug--program-history nil
-  "Targets picked for `gdb-preset'.")
+  "Targets picked for `gdb-preset' and `lldb-preset'.")
 
 (defun emacs-cpp-debug--root ()
   "Return the current project's root, or signal that there is none."
   (let ((project (or (project-current)
-                     (user-error "emacs-cpp: %s is in no project; gdb-preset debugs \
-a project's CMake preset (D-031)" default-directory))))
+                     (user-error "emacs-cpp: %s is in no project; gdb-preset and \
+lldb-preset debug a project's CMake preset (D-031, D-051)" default-directory))))
     (expand-file-name (project-root project))))
 
 (defun emacs-cpp-debug--build-dir (root)
@@ -63,7 +77,7 @@ PROGRAM is the absolute path CMake links the target to.  File order."
   (let ((ninja (expand-file-name "build.ninja" dir)))
     (unless (file-readable-p ninja)
       (user-error "emacs-cpp: no %s; configure the preset, with the Ninja generator \
-\(gdb-preset reads its targets, D-033)" ninja))
+\(gdb-preset and lldb-preset read its targets, D-033)" ninja))
     (with-temp-buffer
       (insert-file-contents ninja)
       ;; The build type: CMake 4 repeats it as CONFIG in each link block, CMake 3.31
@@ -101,7 +115,8 @@ PROGRAM is the absolute path CMake links the target to.  File order."
 
 (defun emacs-cpp-debug-read-program ()
   "Ask for an executable target of the active preset; return its program path.
-The `:program' of `gdb-preset'; dape calls it in the project root."
+The `:program' of `gdb-preset' and `lldb-preset'; dape calls it in the project
+root."
   (let* ((root (emacs-cpp-debug--root))
          (dir (emacs-cpp-debug--build-dir root))
          (programs (emacs-cpp-debug-programs dir))
@@ -157,18 +172,47 @@ dape calls this again after the build, so it sets these, never appends."
       (plist-put 'compile
                  (emacs-cpp-debug-build-command root (plist-get config :program))))))
 
-(defun emacs-cpp-debug--gdb-preset-config ()
-  "Return the `gdb-preset' configuration: dape's `gdb' one plus the preset parts."
-  (let ((gdb (or (copy-tree (alist-get 'gdb dape-configs))
-                 (error "emacs-cpp: dape has no `gdb' configuration (D-002)"))))
-    (when (plist-get gdb 'fn)
-      (error "emacs-cpp: dape's `gdb' configuration has its own `fn'; review \
-emacs-cpp-debug--prepare against it (D-031)"))
+(defun emacs-cpp-debug--prepare-lldb (config)
+  "Return CONFIG with the build of its program (dape's `fn' for `lldb-preset')."
+  (plist-put config 'compile
+             (emacs-cpp-debug-build-command (plist-get config 'command-cwd)
+                                            (plist-get config :program))))
+
+(defun emacs-cpp-debug-lldb-dap ()
+  "Return the lldb-dap program to start, or refuse with the fix (D-051).
+The `command' of `lldb-preset'."
+  (let ((program emacs-cpp-debug-lldb-dap-program))
+    (or (if (file-name-absolute-p program)
+            (and (file-executable-p program) program)
+          (executable-find program))
+        (user-error "emacs-cpp: no lldb-dap at %s; install %s, or set \
+emacs-cpp-debug-lldb-dap-program (D-051)"
+                    program (if (eq system-type 'darwin)
+                                "the lldb-23 port"
+                              "the lldb package")))))
+
+(defun emacs-cpp-debug--preset-config (name prepare)
+  "Return dape's configuration NAME with the preset parts and PREPARE as `fn'."
+  (let ((config (or (copy-tree (alist-get name dape-configs))
+                    (error "emacs-cpp: dape has no `%s' configuration (D-002)" name))))
+    (when (plist-get config 'fn)
+      (error "emacs-cpp: dape's `%s' configuration has its own `fn'; review \
+%s against it (D-031)" name prepare))
     (thread-first
-      gdb
-      (plist-put 'fn #'emacs-cpp-debug--prepare)
+      config
+      (plist-put 'fn prepare)
       (plist-put :program #'emacs-cpp-debug-read-program)
       (plist-put :cwd #'dape-cwd))))
+
+(defun emacs-cpp-debug--gdb-preset-config ()
+  "Return the `gdb-preset' configuration: dape's `gdb' one plus the preset parts."
+  (emacs-cpp-debug--preset-config 'gdb #'emacs-cpp-debug--prepare))
+
+(defun emacs-cpp-debug--lldb-preset-config ()
+  "Return the `lldb-preset' configuration: dape's `lldb-dap' one plus the preset
+parts, started with `emacs-cpp-debug-lldb-dap' (D-051)."
+  (plist-put (emacs-cpp-debug--preset-config 'lldb-dap #'emacs-cpp-debug--prepare-lldb)
+             'command #'emacs-cpp-debug-lldb-dap))
 
 ;; gud (M-x gdb, pdb, perldb) binds its map on `gud-key-prefix' globally when it
 ;; loads; on the default C-x C-a that would take dape's keys for the session (D-044).
@@ -184,6 +228,7 @@ emacs-cpp-debug--prepare against it (D-031)"))
   :hook (c-ts-base-mode . dape-breakpoint-mode)
   :config
   (setf (alist-get 'gdb-preset dape-configs) (emacs-cpp-debug--gdb-preset-config))
+  (setf (alist-get 'lldb-preset dape-configs) (emacs-cpp-debug--lldb-preset-config))
   ;; The theme styles neither face; inheriting keeps them in the theme's colours.
   (require 'hl-line)
   (face-spec-set 'dape-breakpoint-face '((t :inherit error)))

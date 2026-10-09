@@ -258,10 +258,10 @@ type only as the file's CONFIGURATION.")
                                    60))
     (init-debug-test--top-frame)))
 
-(ert-deftest init-debug-gdb-preset-builds-stops-and-steps ()
-  (init-test--load)
-  (init-debug-test--skip-without-gdb)
-  (require 'dape)
+(defun init-debug-test--session (name)
+  "Debug the toy program with dape's configuration NAME as `C-x C-a d' does:
+pick the target, build it, stop at a breakpoint, show locals and a watch, step
+into a call, out of it and over a line, then end the session."
   (init-debug-test--with-project init-debug-test--files
     (should (eql 0 (call-process "cmake" nil nil nil "--preset" "debug")))
     ;; Configured, never built: the target exists only in build.ninja.
@@ -280,13 +280,13 @@ type only as the file's CONFIGURATION.")
         (goto-char (point-min))
         (search-forward "int result")
         (dape-breakpoint-toggle)
-        ;; As `C-x C-a d gdb-preset RET' evaluates it, the prompt answered.
+        ;; As `C-x C-a d NAME RET' evaluates it, the prompt answered.
         (cl-letf (((symbol-function 'completing-read)
                    (lambda (_prompt collection &rest _)
                      (setq offered collection)
                      "toy")))
           (setq config (let ((default-directory root))
-                         (dape--config-eval 'gdb-preset nil))))
+                         (dape--config-eval name nil))))
         (should (equal offered '("toy")))
         (should (equal (plist-get config :program)
                        (expand-file-name "build/debug/toy" root)))
@@ -317,8 +317,10 @@ type only as the file's CONFIGURATION.")
                         (lambda (body error) (setq result (or error body))))
           (should (equal (plist-get (init-debug-test--wait (lambda () result) 30) :result)
                          "42"))))
-      ;; Into the call, out of it, then over the rest of line 4.
-      (should (equal (plist-get (init-debug-test--step #'dape-step-in) :name) "twice"))
+      ;; Into the call (gdb names it "twice", lldb "twice(int)"), out of it, then
+      ;; over the rest of line 4.
+      (should (string-prefix-p "twice" (plist-get (init-debug-test--step #'dape-step-in)
+                                                  :name)))
       (should (equal (plist-get (init-debug-test--step #'dape-step-out) :name) "main"))
       (let ((frame (init-debug-test--step #'dape-next)))
         (should (equal (list (plist-get frame :name) (plist-get frame :line))
@@ -327,6 +329,50 @@ type only as the file's CONFIGURATION.")
         (dape-kill (init-debug-test--connection))
         (should (init-debug-test--wait (lambda () (null (dape--live-connections))) 30))
         (should (init-debug-test--wait (lambda () (not (process-live-p process))) 10))))))
+
+(ert-deftest init-debug-gdb-preset-builds-stops-and-steps ()
+  (init-test--load)
+  (init-debug-test--skip-without-gdb)
+  (require 'dape)
+  (init-debug-test--session 'gdb-preset))
+
+;;;; lldb (D-051)
+
+(ert-deftest init-debug-dape-gets-lldb-preset ()
+  (init-test--load)
+  (require 'dape)
+  (let ((config (alist-get 'lldb-preset dape-configs)))
+    (should (eq (plist-get config 'fn) #'emacs-cpp-debug--prepare-lldb))
+    (should (eq (plist-get config :program) #'emacs-cpp-debug-read-program))
+    (should (eq (plist-get config 'command) #'emacs-cpp-debug-lldb-dap))
+    (should (equal (plist-get config :type)
+                   (plist-get (alist-get 'lldb-dap dape-configs) :type)))))
+
+(ert-deftest init-debug-lldb-preset-refuses-without-lldb-dap ()
+  (init-test--load)
+  (require 'dape)
+  (dolist (program '("/nonexistent/lldb-dap" "emacs-cpp-no-such-lldb-dap"))
+    (let ((emacs-cpp-debug-lldb-dap-program program))
+      ;; The message names the fix.
+      (should (string-match-p
+               "emacs-cpp-debug-lldb-dap-program"
+               (cadr (should-error (emacs-cpp-debug-lldb-dap) :type 'user-error))))
+      (init-debug-test--with-project `(("CMakePresets.json" . ,init-debug-test--presets))
+        ;; `C-x C-a d lldb-preset RET': `command' is evaluated before the target
+        ;; prompt, so no target is asked for.
+        (cl-letf (((symbol-function 'completing-read)
+                   (lambda (&rest _) (error "Target asked for"))))
+          (should-error (dape--config-eval 'lldb-preset nil) :type 'user-error))
+        ;; dape's `ensure' (also what keeps it out of the suggestions).
+        (should-error (dape--config-ensure (alist-get 'lldb-preset dape-configs) t)
+                      :type 'user-error)))))
+
+(ert-deftest init-debug-lldb-preset-builds-stops-and-steps ()
+  (init-test--load)
+  (unless (ignore-errors (emacs-cpp-debug-lldb-dap))
+    (ert-skip (format "no lldb-dap at %s (D-051)" emacs-cpp-debug-lldb-dap-program)))
+  (require 'dape)
+  (init-debug-test--session 'lldb-preset))
 
 (provide 'init-debug-test)
 ;;; init-debug-test.el ends here

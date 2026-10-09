@@ -104,11 +104,12 @@ The commands show at the prompt: add `--target main` to build one target. `M-g n
 `M-g p` jump to the next / previous compiler error. An edited command is remembered
 for the project; `M-x projectile-discard-command-cache` returns to the preset's.
 
-## Debugging (dape + gdb)
+## Debugging (dape + gdb or lldb)
 | Key | Does |
 |---|---|
 | `C-x C-a b` / click the fringe | toggle a breakpoint on the line (red mark) |
 | `C-x C-a d` `gdb-preset RET` | pick a target of the active preset, build it, debug it |
+| `C-x C-a d` `lldb-preset RET` | the same with lldb (macOS; on Arch too, D-051) |
 | `C-x C-a n` `s` `o` `c` | step over / into / out / continue; then just `n` `s` `o` `c` |
 | `C-x C-a w` | watch an expression |
 | `C-x C-a i` | info buffers: stack, locals, breakpoints, threads |
@@ -226,5 +227,7 @@ macOS is supported since 2026-10-09 (D-050), with tools from MacPorts only (D-05
    ```
 8. Libraries (deal.II, Boost) must be installed so that CMake finds them; that is the
    project's business, not this configuration's.
-9. Debugger: there is no gdb for Apple silicon, so `gdb-preset` does not work. An
-   `lldb-preset` is decided (D-051, T-022).
+9. Debugger: there is no gdb for Apple silicon; use `lldb-preset` (D-051). It starts
+   `/opt/local/libexec/llvm-23/bin/lldb-dap` from the lldb-23 port; another one goes
+   in `emacs-cpp-debug-lldb-dap-program`. The gdb options (lazy symbols, gdb scripts)
+   do not apply to it.
