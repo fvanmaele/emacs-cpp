@@ -175,26 +175,31 @@ switches when you move to a file of another project (D-029). Inside the tree:
 4. Verbose clangd log, for diagnosis: `M-: (setenv "CLANGD_FLAGS" "--log=verbose")`
    before opening the project, then `M-x eglot-stderr-buffer`.
 
-## macOS (outside DESIGN 2, untested)
-DESIGN 2 scopes this configuration to one Arch Linux machine; nothing below has been
-run. Known differences:
+## macOS (MacPorts, D-050, D-053)
+macOS is supported since 2026-10-09 (D-050), with tools from MacPorts only (D-053).
+The config does not start there yet (T-021); `README.md` has the install steps and the
+known blockers. Differences from Linux:
 
-1. Emacs 31.1 with tree-sitter (and preferably native compilation), e.g. from Homebrew
-   or built from source. Meta is Option; if Option types special characters, set
+1. Emacs 31.1: the MacPorts `emacs-app` port with the `nativecomp` and `treesitter`
+   variants. Meta is Option; if Option types special characters, set
    `ns-alternate-modifier` to `meta`.
 2. Same clone, symlinks and `make packages` as above (needs git and make from the
-   Xcode command line tools).
-3. C++ grammar: there is no system package. Run
-   `M-x treesit-install-language-grammar RET cpp RET` once (Emacs 31 knows the source;
-   needs git and a C compiler). Without it the config stops at startup (D-008).
+   Xcode command line tools). The port's Emacs is
+   `/Applications/MacPorts/Emacs.app/Contents/MacOS/Emacs`; pass it as
+   `make packages EMACS=...` when `emacs` is not on the `PATH`.
+3. Grammars: the ports `tree-sitter-cpp` and `tree-sitter-python`; Emacs finds them
+   without configuration (checked 2026-10-09). Without them the config stops at
+   startup (D-008, D-045).
 4. Presets that use `${hostSystemName}` are refused: the config only expands it on
    Linux (`lisp/emacs-cpp-presets.el`). Other presets work as on Linux.
 5. Unpatched clangd: `emacs-cpp-clangd-program` nil runs `clangd` from Emacs's
-   `exec-path`. Homebrew's `llvm` is keg-only, so its `bin` must be added to the
-   `PATH` Emacs sees (an Emacs started from the Dock does not read the shell profile).
-   Pointing the variable at Homebrew's clangd is refused: it lacks the patched flags.
-6. Patched clangd: the PKGBUILD is Arch-only. A self-contained build from the same
-   release and patches (about 30 - 60 min):
+   `exec-path`. The `clang-23` port provides it once selected with
+   `sudo port select --set clang mp-clang-23`. `/opt/local/bin` must be on the `PATH`
+   Emacs sees (an Emacs started from the Dock does not read the shell profile).
+   Pointing the variable at the MacPorts clangd is refused: it lacks the patched flags.
+6. Patched clangd: the PKGBUILD is Arch-only. A build script is decided (D-052, T-023);
+   until it lands, a self-contained build from the same release and patches (about
+   30 - 60 min):
    ```
    U=https://github.com/llvm/llvm-project/releases/download/llvmorg-23.1.1
    curl -LO $U/llvm-project-23.1.1.src.tar.xz
@@ -212,14 +217,16 @@ run. Known differences:
    cp build/bin/clangd ~/opt/clangd-index-nav/bin/
    cp -R build/lib/clang ~/opt/clangd-index-nav/lib/
    ```
-   (needs `cmake` and `ninja`, e.g. from Homebrew), then set
+   (needs the `cmake` and `ninja` ports), then set
    `emacs-cpp-clangd-program` to `~/opt/clangd-index-nav/bin/clangd` (expanded path).
    clangd finds its builtin headers in `../lib/clang` next to the binary.
-7. If clangd reports standard headers (`<vector>`) as not found, let it ask Apple's
-   compiler for its include paths, e.g. in `custom.el`:
+7. Untested: if clangd reports standard headers (`<vector>`) as not found, let it ask
+   Apple's compiler for its include paths, e.g. in `custom.el`:
    ```
    (setenv "CLANGD_FLAGS"
            "--query-driver=/Library/Developer/CommandLineTools/usr/bin/*")
    ```
 8. Libraries (deal.II, Boost) must be installed so that CMake finds them; that is the
    project's business, not this configuration's.
+9. Debugger: there is no gdb for Apple silicon, so `gdb-preset` does not work. An
+   `lldb-preset` is decided (D-051, T-022).

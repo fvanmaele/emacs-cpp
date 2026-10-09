@@ -67,6 +67,8 @@ with `done when: ...`).
 | T-019 | done 0029 | S | header first: 0006, 0007 | D-046, D-047 | S9 run 3: 0.9 s |
 | T-020 | open | S | patch 0008 (review 0031) | D-046, D-047 | owner: rebuild now or later |
 | T-021 | open | M | config starts on macOS | D-050 | cmake-mode path, tests; proposed |
+| T-022 | open | M | lldb-preset | D-051, O-22 | lldb-dap next to gdb; proposed |
+| T-023 | open | M | macOS clangd build script | D-052, O-23 | CHEATSHEET item 6; proposed |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -116,8 +118,27 @@ with `done when: ...`).
   fails on `/var` vs `/private/var`; the other 14 failures not yet examined (most may
   follow from the startup stop). Tier 2. PROPOSED done when (owner to agree): Emacs
   starts on the Mac with no errors; `make test` passes there except tests that need
-  gdb or the patched clangd, which skip with a reason until O-22 / O-23 are ruled;
+  gdb or the patched clangd, which skip with a reason until T-022 / T-023 land;
   `make test` still passes on Arch.
+- T-022 (opened 2026-10-09, D-051): `lldb-preset` in `lisp/init-debug.el`, built like
+  `gdb-preset` from dape's `lldb-dap` configuration; lldb-dap from the Arch `lldb`
+  package and, on macOS, the MacPorts `lldb-23` port (D-053; its installed name not yet
+  checked). Tier 2. PROPOSED done when (owner to agree): `C-x C-a d lldb-preset RET`
+  picks a target of the active preset, builds it, stops at a breakpoint and steps, on
+  Arch and on the Mac; a missing lldb-dap refuses the session with the fix; an ERT
+  test like `init-debug-gdb-preset-builds-stops-and-steps` covers it; the gdb tests
+  are unchanged; make test passes on Arch.
+- T-023 (opened 2026-10-09, D-052): a script (NEW, proposed
+  `packaging/clangd-index-nav/build-macos.sh`) doing the steps of `docs/CHEATSHEET.md`
+  macOS item 6: download the 23.1.1 tarball into `packaging/clangd-index-nav/`
+  (git-ignored), check the PKGBUILD's sha256, apply every patch the PKGBUILD lists,
+  build clangd and the builtin headers with MacPorts cmake and ninja, check both hidden
+  flags, install to `~/opt/clangd-index-nav`. Tier 2. PROPOSED done when (owner to
+  agree): run by the owner on the Mac, it installs a clangd that lists
+  `--navigation-from-index` and `--header-flags-from-index`; a wrong checksum, a patch
+  that does not apply or a missing tool stops it with the reason;
+  `init-cpp-patched-clangd-navigates` passes on the Mac with that clangd; the steps in
+  CHEATSHEET are replaced by a pointer to the script.
 - T-014: the config runs the patched clangd (D-026) installed from
   packaging/clangd-index-nav (D-027); done when (agreed 2026-10-08): the config starts
   the patched clangd with --navigation-from-index when its path is set (customize
