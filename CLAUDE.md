@@ -22,7 +22,7 @@ files (D-055, T-031); debug targets from CMake's file API (D-056, T-030). Budget
 Arch only (D-057); `make test` on the machine at hand (D-058). Owner runs left: S10
 (O-12), build-macos.sh to ~/opt (T-023); owner sends the eglot watch report (T-032)
 and the two c-ts-mode reports (T-036, T-037). RET indents by clangd (D-061, 0043);
-owner's RMO check of it left.
+owner's RMO check of it left. C++ indentation from plain `.dir-locals.el` values (D-062).
 Open: O-12; T-025 round 2, T-026 research queued.
 
 ## Hard rules (each with its reason)

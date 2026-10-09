@@ -227,35 +227,27 @@ Open a file that already has the project's style, then:
    AccessModifierOffset: -4
    AllowShortFunctionsOnASingleLine: Inline
    ```
-4. Write `.dir-locals.el` in the project root to match (it covers `.h` files too):
+4. Write `.dir-locals.el` in the project root to match (it covers `.h` files too).
+   Plain values only; Emacs applies them without asking:
    ```
    ((c++-ts-mode . ((c-ts-indent-offset . 4)
                     (indent-tabs-mode . nil)
-                    (eval . (c-ts-mode-set-style 'bsd)))))
+                    (c-ts-mode-indent-style . bsd)
+                    (emacs-cpp-indent-namespace-body . nil))))
    ```
    - `c-ts-indent-offset`: the indent step (clang-format's `IndentWidth`).
    - `indent-tabs-mode`: `nil` for spaces (`UseTab: Never`); `t` for tabs, then add
      `(tab-width . 4)` with the tab width.
-   - the `eval` line: only when `{` stands on its own line under the `if` (`bsd`).
-     Without it the style is `gnu`, which indents such a `{` one step further; for
-     `{` on the `if` line any style indents the same.
-   - when `{` stands on its own line after `namespace` or `class`, or namespace
-     contents are not indented: every style of Emacs 31.1 indents those, so the
-     `eval` line also needs three rules (`progn` runs both):
-     ```
-     (eval . (progn
-               (c-ts-mode-set-style 'bsd)
-               (treesit-simple-indent-add-rules
-                'cpp '(((parent-is "namespace_definition") standalone-parent 0)
-                       ((parent-is "class_specifier") standalone-parent 0)
-                       ((n-p-gp nil "declaration_list" "namespace_definition")
-                        parent-bol 0)))))
-     ```
+   - `c-ts-mode-indent-style`: `bsd` when the `{` of an `if` stands on its own line
+     under the `if`. Leave it out for the default `gnu`, which indents such a `{` one
+     step further; for `{` on the `if` line any style indents the same.
+   - `emacs-cpp-indent-namespace-body`: `nil` when namespace contents are not
+     indented (clang-format's `NamespaceIndentation: None`).
 
-   Setting `c-ts-mode-indent-style` directly in `.dir-locals.el` does nothing:
-   `c++-ts-mode` builds its indent rules before it reads the file (checked in Emacs
-   31.1, 2026-10-09). Emacs asks once whether to trust the `eval` line; `!` trusts it
-   for good (saved in `custom.el`).
+   A `{` on its own line after `namespace` or `class` stays at the keyword's column
+   in every style. Both this and the style line work only through this
+   configuration (D-062): Emacs 31.1 itself indents such a `{`, and ignores a style
+   set in `.dir-locals.el`; reports for both are drafted for upstream (T-036, T-037).
 5. Files already open keep their old settings: reopen them with `C-x C-v RET` (save
    them first). To check, `TAB` on a few lines should leave them where they are, and
    `C-c l f` with a region should change nothing in it (the mode line shows `**`

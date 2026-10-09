@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0044 | 2026-10-10 | T-038: C++ indentation from plain dir-locals | T-038 | D-062 |
 | 0043 | 2026-10-10 | T-035: RET indents the new line by clangd | T-035 | D-061 |
 | 0042 | 2026-10-09 | T-033: patch 0009, re-index flagged shards | T-033 | D-060 |
 | 0041 | 2026-10-09 | T-020: patch 0008, a known includer at once | T-020 | D-059 |
