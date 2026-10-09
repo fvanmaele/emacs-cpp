@@ -1,0 +1,112 @@
+From 0edc09f72784468f9800fd9bb5181c496d55bf2b Mon Sep 17 00:00:00 2001
+From: Ferdinand Vanmaele <ferdinand-joseph.vanmaele@uni-a.de>
+Date: Fri, 9 Oct 2026 20:12:56 +0200
+Subject: [PATCH] [clangd] Reindex sources whose stored shards were indexed
+ with errors
+
+At startup the background index reindexed only stale shards, those whose
+file content differs from disk. A shard indexed while the code did not
+compile keeps its HadErrors flag even after the errors are gone, when no
+file of its include graph changed: a header that did not exist then is not
+in the graph, and a fixed header reindexes only one of its includers. Such
+a shard may lack symbols and references, and clangd's index-first
+navigation (patch 0001, 0004) refuses it, so the first go-to-definition in
+the file waited for the parse after every restart.
+
+loadProject now also schedules the TU of every loaded shard flagged with
+errors, as it does for stale ones; a vlog line names it. A source that
+compiles now gets a clean shard; one that still has errors is reindexed and
+stays flagged (update() keeps the old shard then).
+
+RMO on macOS (deal.II, 11 sources, 5 flagged although they compile): one
+session rewrote the five shards; after a restart their first
+go-to-definition took 5 ms - 2.7 s instead of 7.4 - 12.6 s.
+ClangdTests 1414/1414 on macOS (new: BackgroundIndexTest.
+ReindexesShardsIndexedWithErrors; without the change the shard stays
+flagged and the created header is not in its graph).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ clang-tools-extra/clangd/index/Background.cpp | 11 +++++-
+ .../clangd/unittests/BackgroundIndexTests.cpp | 39 +++++++++++++++++++
+ 2 files changed, 48 insertions(+), 2 deletions(-)
+
+diff --git a/clang-tools-extra/clangd/index/Background.cpp b/clang-tools-extra/clangd/index/Background.cpp
+index 2d47afb..f07abf7 100644
+--- a/clang-tools-extra/clangd/index/Background.cpp
++++ b/clang-tools-extra/clangd/index/Background.cpp
+@@ -467,12 +467,19 @@ BackgroundIndex::loadProject(std::vector<std::string> MainFiles) {
+   auto FS = TFS.view(/*CWD=*/std::nullopt);
+   llvm::DenseSet<PathRef> TUsToIndex;
+   // We'll accept data from stale shards, but ensure the files get reindexed
+-  // soon.
++  // soon. Shards indexed with errors are reindexed too: the errors may be
++  // gone without any file in the shard's include graph changing (a header
++  // that did not exist then is not in it, a fixed header reindexes only one
++  // of its includers), and a flagged shard may lack symbols and references.
+   for (auto &LS : Result) {
+-    if (!shardIsStale(LS, FS.get()))
++    bool Stale = shardIsStale(LS, FS.get());
++    if (!Stale && !LS.HadErrors)
+       continue;
+     PathRef TUForFile = LS.DependentTU;
+     assert(!TUForFile.empty() && "File without a TU!");
++    if (!Stale)
++      vlog("Reindexing {0}: the shard of {1} was indexed with errors",
++           TUForFile, LS.AbsolutePath);
+ 
+     // FIXME: Currently, we simply schedule indexing on a TU whenever any of
+     // its dependencies needs re-indexing. We might do it smarter by figuring
+diff --git a/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp b/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp
+index 25d5abd..4a33dd9 100644
+--- a/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp
++++ b/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp
+@@ -1168,6 +1168,45 @@ TEST_F(BackgroundIndexTest, UncompilableFiles) {
+   }
+ }
+ 
++TEST_F(BackgroundIndexTest, ReindexesShardsIndexedWithErrors) {
++  // A source indexed while a header it includes did not exist yet: its shard
++  // is flagged with errors. Creating the header makes no shard stale (a file
++  // that was missing is not in the include graph), yet the next session must
++  // reindex the source, so that its shard is clean once it compiles.
++  MockFS FS;
++  llvm::StringMap<std::string> Storage;
++  size_t CacheHits = 0;
++  MemoryShardStorage MSS(Storage, CacheHits);
++  FS.Files[testPath("A.cc")] = "#include \"B.h\"\nint main() { return b(); }";
++  tooling::CompileCommand Cmd;
++  Cmd.Filename = testPath("A.cc");
++  Cmd.Directory = testRoot();
++  Cmd.CommandLine = {"clang++", testPath("A.cc")};
++  {
++    OverlayCDB CDB(/*Base=*/nullptr);
++    BackgroundIndex Idx(FS, CDB, [&](llvm::StringRef) { return &MSS; },
++                        /*Opts=*/{});
++    CDB.setCompileCommand(testPath("A.cc"), Cmd);
++    ASSERT_TRUE(Idx.blockUntilIdleForTest());
++  }
++  EXPECT_THAT(
++      MSS.loadShard(testPath("A.cc"))->Sources->lookup("unittest:///A.cc"),
++      hadErrors());
++
++  FS.Files[testPath("B.h")] = "int b();";
++  {
++    OverlayCDB CDB(/*Base=*/nullptr);
++    BackgroundIndex Idx(FS, CDB, [&](llvm::StringRef) { return &MSS; },
++                        /*Opts=*/{});
++    CDB.setCompileCommand(testPath("A.cc"), Cmd);
++    ASSERT_TRUE(Idx.blockUntilIdleForTest());
++  }
++  auto Shard = MSS.loadShard(testPath("A.cc"));
++  EXPECT_THAT(Shard->Sources->lookup("unittest:///A.cc"), Not(hadErrors()));
++  EXPECT_THAT(Shard->Sources->keys(),
++              UnorderedElementsAre("unittest:///A.cc", "unittest:///B.h"));
++}
++
+ TEST_F(BackgroundIndexTest, CmdLineHash) {
+   MockFS FS;
+   llvm::StringMap<std::string> Storage;
+-- 
+2.56.0
+
