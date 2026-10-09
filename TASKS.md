@@ -78,6 +78,7 @@ with `done when: ...`).
 | T-030 | open | M | targets via CMake file API | D-056, O-25 | built 0040; Arch run left |
 | T-031 | done 0039 | M | platform defaults files | D-055, T-024 | debugger offered first |
 | T-032 | open | S | send the eglot watch report | D-054, O-26 | owner sends the draft |
+| T-033 | open | M | patch 0009: re-index flagged shards | D-060 | done-when proposed |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -206,6 +207,15 @@ with `done when: ...`).
   findings, each taken or not taken with a reason, and the taken ones fixed with
   tests. Done 2026-10-09 (0037): preset conditions, `$env{}` as CMake, lldb-dap by
   name, one build step; the file API instead of build.ninja is O-25.
+- T-033 (opened 2026-10-09, D-060): patch 0009 in `BackgroundIndex::loadProject`: a
+  loaded shard with `HadErrors` schedules its `DependentTU` like a stale one; a log
+  line names the source. Tier 2. PROPOSED done when (owner to agree): a unit test (a
+  source indexed while an included header is missing; the header created; a new
+  index re-indexes the source and its shard is clean) fails without the change and
+  passes with it; ClangdTests pass on macOS; PKGBUILD pkgrel 7 and `build-macos.sh`
+  build it; on the owner's `step-1` the five flagged sources get clean shards in one
+  session, and after the next restart their first `M-.` comes from the index (no
+  "indexed with errors" in clangd's log); pkgrel 7 on Arch with S9 unchanged (owner).
 - T-032 (opened 2026-10-09, O-26 (d)): send
   `docs/upstream/eglot-watch-cap-partial-watches.md` to the Emacs bug tracker
   (`M-x report-emacs-bug` or bug-gnu-emacs@gnu.org); outward, so the owner sends it.
