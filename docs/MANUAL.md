@@ -193,6 +193,76 @@ names and deduced types.
 | `C-c l e` | errors and warnings of the project |
 | `C-c l I` | hide / show inlay hints |
 
+### Indentation settings for a project
+`TAB`, `RET` and the electric characters (`}`, `;`, ...) indent by Emacs's rules,
+set per project in `.dir-locals.el` in the project root (D-062, D-065). It applies
+to every `.cc` and `.h` file below it, takes plain values only, and Emacs applies them
+without asking. Files already open keep their old settings until reopened
+(`C-x C-v RET`).
+
+```
+((c++-ts-mode . ((c-ts-indent-offset . 2)
+                 (indent-tabs-mode . nil)
+                 (emacs-cpp-indent-namespace-body . nil)
+                 (emacs-cpp-indent-case-labels . t))))
+```
+
+| Setting | Values (default first) | clang-format option |
+|---|---|---|
+| `c-ts-indent-offset` | 2, or any step | `IndentWidth` |
+| `indent-tabs-mode` | `t` (tabs where possible), `nil` (spaces) | `UseTab` (`Never` = `nil`) |
+| `tab-width` | 8, or any width | `TabWidth` (only with tabs) |
+| `c-ts-mode-indent-style` | `gnu`, `bsd`, `k&r`, `linux` | `BreakBeforeBraces` (below) |
+| `emacs-cpp-indent-namespace-body` | `t`, `nil` | `NamespaceIndentation` (`All` / `None`) |
+| `emacs-cpp-indent-case-labels` | `nil`, `t` | `IndentCaseLabels` |
+
+`c-ts-mode-indent-style` matters only for a `{` on its own line after `if`, `for`,
+`while`: `gnu` indents it one step (clang-format's `GNU` style), `bsd` keeps it at the
+`if`'s column (`Allman`, `Microsoft`). `k&r` and `linux` indent like `gnu` except
+labels. A `{` on the `if` line indents the same in every style.
+
+Always done in C++ buffers, whatever the settings:
+- a `{` on its own line after `namespace`, `class` or `struct` stays at the keyword's
+  column; class members are one step in, also after a blank line; `public:` and the
+  other access specifiers at the class's column;
+- arguments after a `(` that ends its line go one step in; arguments after the first
+  on the `(` line align with the first;
+- a constructor's `: member(...)` goes one step in; later initializers align with the
+  first, or stay under the `:` when the lines start with `,`;
+- a `requires` clause on its own line goes one step in.
+
+Settings for clang-format's built-in styles, each checked 2026-10-10: a sample
+(namespaces, `switch`, an `if` / `else`, long argument lists, a template with
+`requires`, classes with initializers) formatted by clang-format 23.1.1 in that style,
+stripped of all indentation, and re-indented by Emacs with these settings:
+
+| Style | `c-ts-indent-offset` | `c-ts-mode-indent-style` | `...-namespace-body` | `...-case-labels` | Still differs |
+|---|---|---|---|---|---|
+| LLVM | 2 | `gnu` | `nil` | `nil` | initializer line (a) |
+| Google | 2 | `gnu` | `nil` | `t` | (a), access specifiers (b) |
+| Chromium | 2 | `gnu` | `nil` | `t` | (a), (b) |
+| Mozilla | 2 | `gnu` | `nil` | `t` | nothing |
+| WebKit | 4 | `gnu` | `nil` | `nil` | nested namespaces (c) |
+| Microsoft | 4 | `bsd` | `nil` | `nil` | (b) |
+| GNU | 2 | `gnu` | `nil` | `nil` | (a) |
+
+All with `(indent-tabs-mode . nil)`. A project with its own `.clang-format` starts
+from the style it names in `BasedOnStyle` and adjusts for the options it changes; RMO
+(WebKit with own-line braces and indented case labels) uses `bsd`, 4, `nil`, `t`.
+
+What the settings cannot express:
+- (a) a continuation or initializer width different from the indent step: LLVM,
+  Google, Chromium and GNU indent `: member(...)` by 4 with a step of 2
+  (`ConstructorInitializerIndentWidth`); Emacs uses the step;
+- (b) access specifiers off the class's column: Google and Chromium put `public:` one
+  column in, Microsoft two (`AccessModifierOffset`);
+- (c) `NamespaceIndentation: Inner` (WebKit: only nested namespaces indented);
+- `<<` chains aligned under the first `<<`, macro bodies, and lines inside code
+  tree-sitter cannot parse.
+
+Where `TAB` and clang-format differ, `C-c l f` on the lines (a region) gives
+clang-format's result.
+
 ### A project's code style, taken from a file
 Two files in the project root decide how code looks, and they must agree:
 - `.clang-format`: what `C-c l f` produces (clangd reads it). Without one clangd
@@ -227,8 +297,8 @@ Open a file that already has the project's style, then:
    AccessModifierOffset: -4
    AllowShortFunctionsOnASingleLine: Inline
    ```
-4. Write `.dir-locals.el` in the project root to match (it covers `.h` files too).
-   Plain values only; Emacs applies them without asking:
+4. Write `.dir-locals.el` in the project root to match (settings: "Indentation
+   settings for a project" above). RMO's:
    ```
    ((c++-ts-mode . ((c-ts-indent-offset . 4)
                     (indent-tabs-mode . nil)
