@@ -196,29 +196,12 @@ macOS is supported since 2026-10-09 (D-050), with tools from MacPorts only (D-05
    `sudo port select --set clang mp-clang-23`. `/opt/local/bin` must be on the `PATH`
    Emacs sees (an Emacs started from the Dock does not read the shell profile).
    Pointing the variable at the MacPorts clangd is refused: it lacks the patched flags.
-6. Patched clangd: the PKGBUILD is Arch-only. A build script is decided (D-052, T-023);
-   until it lands, a self-contained build from the same release and patches (about
-   30 - 60 min):
-   ```
-   U=https://github.com/llvm/llvm-project/releases/download/llvmorg-23.1.1
-   curl -LO $U/llvm-project-23.1.1.src.tar.xz
-   shasum -a 256 llvm-project-23.1.1.src.tar.xz   # ebe9be46fe8756d5...7888ee6, see PKGBUILD
-   tar xf llvm-project-23.1.1.src.tar.xz && cd llvm-project-23.1.1.src
-   for p in ~/source/repos/emacs-cpp/packaging/clangd-index-nav/000*.patch; do
-     patch -Np1 -i "$p"; done
-   cmake -S llvm -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
-     -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra" -DLLVM_TARGETS_TO_BUILD=host \
-     -DLLVM_INCLUDE_TESTS=OFF -DCLANG_INCLUDE_TESTS=OFF -DLLVM_INCLUDE_BENCHMARKS=OFF \
-     -DCLANGD_ENABLE_REMOTE=OFF
-   cmake --build build --target clangd clang-resource-headers
-   build/bin/clangd --help-hidden | grep -e navigation-from-index -e header-flags-from-index
-   mkdir -p ~/opt/clangd-index-nav/bin ~/opt/clangd-index-nav/lib
-   cp build/bin/clangd ~/opt/clangd-index-nav/bin/
-   cp -R build/lib/clang ~/opt/clangd-index-nav/lib/
-   ```
-   (needs the `cmake` and `ninja` ports), then set
-   `emacs-cpp-clangd-program` to `~/opt/clangd-index-nav/bin/clangd` (expanded path).
-   clangd finds its builtin headers in `../lib/clang` next to the binary.
+6. Patched clangd (D-052): `packaging/clangd-index-nav/build-macos.sh` builds the same
+   release with the same patches as the Arch package, checks them against the
+   PKGBUILD, and installs to `~/opt/clangd-index-nav` (about 15 min on the owner's
+   Mac; `--help` lists the options). Then set `emacs-cpp-clangd-program` to
+   `~/opt/clangd-index-nav/bin/clangd` (expanded path). clangd finds its builtin
+   headers in `../lib/clang` next to the binary.
 7. Untested: if clangd reports standard headers (`<vector>`) as not found, let it ask
    Apple's compiler for its include paths, e.g. in `custom.el`:
    ```

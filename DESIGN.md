@@ -189,6 +189,7 @@ Observed on the owner's Mac, 2026-10-09 (D-050):
 | early init | `early-init.el` | KEEP | T-002, owner-confirmed |
 | init | `init.el` | KEEP | T-002, replaces `~/.emacs` (D-003) |
 | packages | `lib/<repo>/` submodules | KEEP | 28 repositories after T-017 (section 12) |
+| clangd, macOS | `packaging/clangd-index-nav/build-macos.sh` | PROTOTYPE | T-023, D-052 |
 | package build | `scripts/build-packages.el` | KEEP | T-002, `make packages` |
 | theme | `lisp/init-ui.el` | KEEP | T-002 |
 | writing | `lisp/init-writing.el` | KEEP | T-002: markdown, org-journal |
@@ -244,6 +245,10 @@ Known defects: none yet (nothing built).
   `~/opt/clangd-index-nav`, a directory outside the repository. Self-contained, not
   built against the system LLVM as D-027: MacPorts' `llvm-23` is 23.1.3, not 23.1.1.
   Extends D-014: the script downloads the tarball, only when the owner runs it.
+  Built in T-023 (0036, 2026-10-09): `packaging/clangd-index-nav/build-macos.sh` reads
+  version, patches and checksums from the PKGBUILD; `--tarball` uses a downloaded
+  file. Test run on the Mac: 14 min wall, 3.3 GB build tree; the clangd links
+  MacPorts' libedit, zlib and zstd.
 - DECIDED D-047 (owner 2026-10-08, T-019, S9 run 2): patch 0007 (llvm-clangd cb118e30f,
   pkgrel 5): the wait of D-028 / D-046 ends as soon as the includers are recorded
   (right after the stored shards are read), not when the whole load returns. On RMO
