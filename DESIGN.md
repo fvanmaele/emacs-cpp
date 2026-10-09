@@ -331,15 +331,19 @@ Known defects: none yet (nothing built).
   entry (in RMO `fmt/src/format.cc`, wrong include paths). S1 live check: once an
   including `.cc` is open, clangd reuses its flags and the header is clean; opened
   first, it shows errors. The patched clangd takes an includer from its index (D-028).
-- DECIDED D-054 (2026-10-09, T-021, owner to confirm; limits questioned by O-26): on
+- DECIDED D-054 (2026-10-09, T-021; confirmed by the owner 2026-10-09, O-26 (a)): on
   macOS eglot watches files only inside the project root
   (`eglot-watch-files-outside-project-root` nil) and at most 500 directories
-  (`eglot-max-file-watches`). Reason: macOS watches with
-  kqueue, one file descriptor per directory; pyright asks to watch Python's library and
-  site-packages, about 2000 directories, Emacs refused watches at 975 and pyright
-  exited, eglot restarting it in a loop (0034). Cost: a package installed while pyright
-  runs is seen after a restart. Arch (inotify, one descriptor) keeps eglot's defaults.
-  At the cap eglot fails the server's whole watch request and pyright exits (O-26).
+  (`eglot-max-file-watches`). Reason: macOS watches with kqueue, one file descriptor per
+  directory; pyright asks to watch Python's library and site-packages, about 2000
+  directories, Emacs refused watches at 975 and pyright exited, eglot restarting it in a
+  loop (0034). Cost: a package installed while pyright runs is seen after a restart.
+  Arch (inotify, one descriptor) keeps eglot's defaults. At the cap eglot fails the
+  server's whole watch request and pyright exits (O-26). pyright registers its project
+  three times at start before dropping two, so the cap of 500 holds Python projects up
+  to about 160 directories (measured: 150 run, 400 exit); the owner's have one. An
+  upstream report asks eglot to keep partial watches and to share watches among
+  registrations (`docs/upstream/eglot-watch-cap-partial-watches.md`, O-26 (d), T-032).
 - DECIDED D-008: C++ major mode is `c++-ts-mode` on the system grammar; `.h` files open
   in `c++-ts-mode` (the owner's projects are C++, and no C grammar is installed). A
   missing grammar is a startup error, not a fallback to `c++-mode`.
@@ -829,17 +833,17 @@ presets, GoogleTest runner.
   budget (Arch 0.151 s); first `M-.` from the index 2.6 s (Arch 1.4 s). If the budgets
   bind on the Mac, startup needs work there first (antivirus and native-code loading
   are the suspects, not measured).
-- O-26 (OPEN, T-029, revisited 2026-10-09): what D-054 should be. Revisit: the premise
-  of a 207-watch limit for an Emacs started from the Dock was wrong; Emacs.app started
-  through Launch Services holds 975 watches, as a terminal start does
-  (`RESEARCH_file_watches_macos.md` 1). New: at eglot's cap eglot fails the whole watch
-  request and pyright exits, measured with D-054 on a 600-directory project; "project
-  files only" is what keeps pyright up at all (with the library watched it exits on any
-  project); without eglot's watches pyright does not see changes made outside Emacs
-  (research 5). Options (research 6): (a) keep D-054 (projects up to about 500
-  directories), (b) raise the cap to about 800, (c) offer no watching on macOS (never
-  exits, silently stale), (d) ask eglot upstream to keep partial watches at the cap,
-  with (a) or (b). Owner to rule.
+- O-26 (RESOLVED 2026-10-09: (a) D-054 confirmed, (d) upstream report, T-032; T-029,
+  revisited 2026-10-09): what D-054 should be. Revisit: the premise of a 207-watch limit
+  for an Emacs started from the Dock was wrong; Emacs.app started through Launch
+  Services holds 975 watches, as a terminal start does (`RESEARCH_file_watches_macos.md`
+  1). New: at eglot's cap eglot fails the whole watch request and pyright exits,
+  measured with D-054 on a 600-directory project; "project files only" is what keeps
+  pyright up at all (with the library watched it exits on any project); without eglot's
+  watches pyright does not see changes made outside Emacs (research 5). Options
+  (research 6): (a) keep D-054 (projects up to about 500 directories), (b) raise the cap
+  to about 800, (c) offer no watching on macOS (never exits, silently stale), (d) ask
+  eglot upstream to keep partial watches at the cap, with (a) or (b). Owner to rule.
 - O-25 (RESOLVED 2026-10-09 with D-056, owner: CMake file API): read a preset's
   executable targets from CMake's file API instead of `build.ninja` (D-033)? The
   `build.ninja` regular expressions depend on how CMake names link rules and where it

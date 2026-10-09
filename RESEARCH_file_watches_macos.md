@@ -97,14 +97,22 @@ project root saw the change in every run.
 So "project files only" is what keeps pyright running at all on the Mac; without
 eglot's watches pyright does not watch by itself and goes stale silently.
 
+pyright registers `workspace/didChangeWatchedFiles` three times at start (three ids;
+the later two add the library roots) and unregisters the first two afterwards; eglot
+watches every directory once per registration. With D-054 (cap 500, project only):
+50 directories 153 watch calls, 150 directories 453 (running), 400 directories exit
+at the cap. Without a cap the Mac refuses at 975, i.e. near 325 directories. Measured
+2026-10-09 by counting `file-notify-add-watch` and `eglot--watch-globs` calls.
+
 Method note: batch Emacs (`emacs --batch`) delivers no file notification events (a
 control watch saw 0 events while `accept-process-output` and `sit-for` ran), so such
 tests need a command loop; the descriptor counts of section 2 are unaffected.
 
 ## 6. Options for D-054 (for the owner; not a verdict)
-- (a) Keep D-054 as it is: works for Python projects up to about 500 directories
-  (the owner's so far: one directory); above that pyright exits, after eglot's
-  warning.
+- (a) Keep D-054 as it is: works for Python projects up to about 160 directories
+  (the three registrations above; first stated as 500, corrected after the owner's
+  ruling; the owner's projects so far: one directory); above that pyright exits,
+  after eglot's warning.
 - (b) Raise the cap towards the real limit, e.g. 800: larger projects; leaves about
   175 watches for auto-revert and treemacs before they poll or fail.
 - (c) Offer no file watching on macOS: pyright never exits, but misses every change
@@ -114,3 +122,6 @@ tests need a command loop; the descriptor counts of section 2 are unaffected.
   function. Combinable with (a) or (b).
 - Withdrawn: lowering the cap for a 207 limit, and raising launchd's limit; the 207
   case does not occur (section 1).
+
+Ruled 2026-10-09: (a) + (d); D-054 confirmed; the report is
+`docs/upstream/eglot-watch-cap-partial-watches.md` with `eglot_watch_cap_repro.sh`.

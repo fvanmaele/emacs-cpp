@@ -44,9 +44,11 @@
         ;; clangd, so M-. keeps working inside them (D-019).
         eglot-extend-to-xref t)
   ;; macOS watches files with kqueue, one file descriptor per directory, and Emacs
-  ;; ran out at 975: pyright asks to watch Python's library and site-packages,
-  ;; about 2000 directories, then exits.  Watch only the project, and stop with
-  ;; eglot's warning well before the limit (D-054).
+  ;; refuses watches beyond 975: pyright asks to watch Python's library and
+  ;; site-packages, about 2000 directories, and exits when the request fails.
+  ;; Watch only the project, and cap the watches well below 975 (D-054).  At the
+  ;; cap eglot also fails the request (pyright then exits too); pyright registers
+  ;; three times, so this holds projects up to about 160 directories (O-26).
   (when (eq system-type 'darwin)
     (setq eglot-watch-files-outside-project-root nil
           eglot-max-file-watches 500)))
