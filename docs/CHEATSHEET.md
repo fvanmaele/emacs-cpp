@@ -212,6 +212,7 @@ macOS is supported since 2026-10-09 (D-050), with tools from MacPorts only (D-05
    project's business, not this configuration's.
 9. Debugger: there is no gdb for Apple silicon; use `lldb-preset` (D-051). It starts
    `lldb-dap` from the PATH: `sudo port select --set lldb mp-lldb-23` links the lldb-23
-   port's as `/opt/local/bin/lldb-dap`; another one goes in
-   `emacs-cpp-debug-lldb-dap-program`. The gdb options (lazy symbols, gdb scripts)
+   port's as `/opt/local/bin/lldb-dap`. Or set the program, a path or a name:
+   `M-x customize-variable RET emacs-cpp-debug-lldb-dap-program`, e.g.
+   `/opt/local/bin/lldb-dap-mp-23`, then "Save for future sessions". The gdb options (lazy symbols, gdb scripts)
    do not apply to it.

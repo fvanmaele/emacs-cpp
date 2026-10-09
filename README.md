@@ -122,6 +122,9 @@ must be on the `PATH` it sees for clangd, cmake and pyright.
   ```sh
   sudo port install lldb-23 && sudo port select --set lldb mp-lldb-23
   ```
+  Without `port select`, set the program instead: `M-x customize-variable RET
+  emacs-cpp-debug-lldb-dap-program`, value `/opt/local/bin/lldb-dap-mp-23`, "Save for
+  future sessions" (it goes to `custom.el`). Any path or name works, on Arch too.
 - **The patched clangd comes from a script** (D-052), not from the PKGBUILD. It
   downloads the 23.1.1 sources, applies the same patches and installs to
   `~/opt/clangd-index-nav` (about 15 minutes). Then set `emacs-cpp-clangd-program`
