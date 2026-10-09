@@ -365,7 +365,8 @@ Known defects: none yet (nothing built).
 - DECIDED D-008: C++ major mode is `c++-ts-mode` on the system grammar; `.h` files open
   in `c++-ts-mode` (the owner's projects are C++, and no C grammar is installed). A
   missing grammar is a startup error, not a fallback to `c++-mode`.
-- DECIDED D-061 (O-28 (b), (e)): RET indents by the project's `.clang-format`. In a
+- SUPERSEDED by D-065 (2026-10-10; (e) stands): D-061 (O-28 (b), (e)): RET indents by
+  the project's `.clang-format`. In a
   `c++-ts-mode` buffer managed by eglot whose server offers on-type formatting on
   newline (clangd does), RET takes the new line's indentation from clangd; the line
   above stays as typed (owner 2026-10-10: clangd's reformat of it would collapse hand
@@ -378,6 +379,15 @@ Known defects: none yet (nothing built).
   projects meanwhile carry the three rules in `.dir-locals.el` (MANUAL 8; superseded
   2026-10-10 by D-062: the config carries them). Code: T-035 (0043). A second report
   (owner 2026-10-10, T-037): a local `c-ts-mode-indent-style` is set but not applied.
+- DECIDED D-065 (owner 2026-10-10, superseding D-061 (b)): RET indents by Emacs's
+  rules (electric indentation with D-062's rules), not by clangd; eglot ignores the
+  server's on-type formatting (`eglot-ignored-server-capabilities`), so clangd is not
+  asked on newline and changes no text. Why: clangd's on-type reply also reformats the
+  line RET ended (hand alignment collapsed, `double value() {}` split in two), and
+  taking only part of it duplicated text (owner report 2026-10-10, fixed in 5592b4e);
+  with D-062 the rules place RET's line as `.clang-format` would in RMO's cases (0 / 4 /
+  8, batch 2026-10-10), need no server and no round trip. Left: `case` labels and
+  arguments after an open `(` (T-040). `C-c l f` stays for exact `.clang-format`.
 - DECIDED D-062 (owner 2026-10-10): a project's `.dir-locals.el` sets C++
   indentation with plain values, no `eval`. The config works around both upstream
   gaps until Emacs fixes them: after a buffer's local variables are read it rebuilds
@@ -887,7 +897,8 @@ presets, GoogleTest runner.
   budget (Arch 0.151 s); first `M-.` from the index 2.6 s (Arch 1.4 s). If the budgets
   bind on the Mac, startup needs work there first (antivirus and native-code loading
   are the suspects, not measured).
-- O-28 (RESOLVED 2026-10-10 with D-061: (b) new line only, and (e); owner request
+- O-28 (RESOLVED 2026-10-10 with D-061: (b) new line only, and (e); (b) superseded
+  by D-065 the same day; owner request
   2026-10-09, T-034, `RESEARCH_indent_guessing.md`): `TAB`
   and `RET` in `c++-ts-mode` indent by Emacs's tree-sitter rules, not by the
   project's `.clang-format`, and Emacs 31.1's rules indent a `{` on its own line after
@@ -1107,6 +1118,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-062 | 2026-10-10 | C++ indentation from plain .dir-locals.el values | 7 | owner |
 | D-063 | 2026-10-10 | line numbers in code, text and configuration buffers | 5 | owner |
 | D-064 | 2026-10-10 | clangd's out-of-line action left as upstream offers it | 7 | owner |
+| D-065 | 2026-10-10 | RET by Emacs's rules; clangd on-type format ignored | 7 | owner |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.

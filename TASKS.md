@@ -80,11 +80,12 @@ with `done when: ...`).
 | T-032 | open | S | send the eglot watch report | D-054, O-26 | owner sends the draft |
 | T-033 | done 0042 | M | patch 0009: re-index flagged shards | D-060 | S9 run 4 unchanged |
 | T-034 | done | S | indent-guessing packages | owner | RESEARCH doc; O-28 ruled, D-061 |
-| T-035 | done 0043 | M | RET indents by clangd | D-061 | owner's RMO check left |
+| T-035 | done 0043 | M | RET indents by clangd | D-061 | superseded by D-065 |
 | T-036 | open | S | send the c++-ts-mode namespace report | D-061 | owner sends the draft |
 | T-037 | open | S | send the c-ts-mode local style report | owner | owner sends it |
 | T-038 | done 0044 | S | indentation from plain dir-locals | D-062 | RMO data-only |
 | T-039 | open | S | c-ts-mode report: member after blank line | D-062 | owner sends it |
+| T-040 | open | M | rules: case labels, argument lines | D-065 | RMO 452 lines |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -215,6 +216,10 @@ with `done when: ...`).
   findings, each taken or not taken with a reason, and the taken ones fixed with
   tests. Done 2026-10-09 (0037): preset conditions, `$env{}` as CMake, lldb-dap by
   name, one build step; the file API instead of build.ninja is O-25.
+- T-040 (opened 2026-10-10, D-065): indent rules for the two gaps left on RMO after
+  D-062 (452 lines re-indented): `case` labels one step in from `switch`
+  (`IndentCaseLabels: true`), and arguments after a `(` that ends a line one step in
+  rather than aligned with the `(`. Tier to propose with the done when.
 - T-039 (opened 2026-10-10, owner report: `explicit ...` after `public:` typed at column
   0): the workaround is in (D-062, test `init-cpp-indent-members-after-a-blank-line`).
   Drafted 2026-10-10: `docs/upstream/c-ts-mode-member-after-blank-line.md`, reproduction
@@ -249,7 +254,7 @@ with `done when: ...`).
   clangd's reply is shown, not swallowed; MANUAL 8 and the cheat sheet say what RET and
   TAB follow; `make test` passes on Arch; RET on RMO (owner, `src/main_coarse.cc`) feels
   immediate (batch: 2 - 6 ms per RET on a toy file, 2026-10-10). Built 2026-10-10
-  (0043): all met but the owner's RMO check.
+  (0043): all met but the owner's RMO check. Superseded 2026-10-10 by D-065.
 - T-034 (opened 2026-10-09, owner): research packages that guess a project's
   indentation or format style, after MANUAL 8 was applied to RMO. Done when:
   `RESEARCH_indent_guessing.md` with the candidates, their state, and what each
