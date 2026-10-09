@@ -91,15 +91,18 @@ cannot leave a line to be restored later."
                      (buffer-substring-no-properties (pos-bol) (pos-eol)))))))
 
 (defun emacs-cpp-ret--restore-line-above ()
-  "Put back the line above as typed; keep the new line's indentation."
+  "Put back the line above as typed; keep the new line's indentation.
+clangd may have split that line (a `{' moved to its own line), so everything
+from its start up to the new line is replaced, not only its first line."
   (pcase-let ((`(,start . ,text) emacs-cpp-ret--line-above))
     (when start
       (setq emacs-cpp-ret--line-above nil)
-      (let ((column (current-indentation)))
-        (save-excursion
-          (goto-char start)
-          (unless (equal (buffer-substring-no-properties (pos-bol) (pos-eol)) text)
-            (delete-region (pos-bol) (pos-eol))
+      (let ((column (current-indentation))
+            (end (1- (pos-bol))))
+        (unless (equal (buffer-substring-no-properties start end) text)
+          (save-excursion
+            (delete-region start end)
+            (goto-char start)
             (insert text)))
         (set-marker start nil)
         (indent-line-to column)))))
