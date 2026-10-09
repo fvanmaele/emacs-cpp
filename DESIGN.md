@@ -62,10 +62,20 @@ fifteen direct packages and under ~600 lines of own Lisp." Refuted if v0.3 needs
 Rows marked (R) need a short RESEARCH note before a verdict is claimed in README.
 
 ## 2. Place in the ecosystem, non-goals
-For: one owner, one Arch Linux workstation, C++ projects built with CMake presets.
+For: one owner, an Arch Linux workstation and a macOS machine (D-050), C++ projects
+built with CMake presets.
 Not: an Emacs distribution (no Doom / Spacemacs layer), not a general-purpose config for
-other languages (they may ride along, never drive design), not Windows / macOS, not evil
-keys, not a CLion keymap emulation (D-004).
+other languages (they may ride along, never drive design), not Windows, not evil keys,
+not a CLion keymap emulation (D-004).
+SUPERSEDED by D-050 (2026-10-09): "For: one owner, one Arch Linux workstation" and "not
+Windows / macOS".
+- DECIDED D-050 (owner 2026-10-09): macOS is a supported platform next to Arch Linux.
+  A platform difference is handled like any other missing piece (principle 1): the
+  path or tool is chosen per platform and a missing one stops with the fix, never a
+  silent fallback. Observed before any code change (section 3): on the owner's Mac the
+  config does not start (cmake-mode path, D-013) and `make test` fails 17 of 45; making
+  it start and pass is T-021. Open: debugger without gdb (O-22), patched clangd on macOS
+  (O-23), package source and which machine the budgets are measured on (O-24).
 Complexity budget principle: prefer a built-in over a package, a package over own Lisp,
 and own Lisp only for glue the owner touches daily.
 
@@ -97,6 +107,22 @@ Observed on the owner machine, 2026-10-07:
   of heavily templated translation units). Every translation unit of the reference
   project already pulls in deal.II headers, so per-file preamble cost matters even there.
 
+Observed on the owner's Mac, 2026-10-09 (D-050):
+- macOS (Darwin 27), Apple silicon (arm64). System tools from MacPorts (`/opt/local`).
+- Emacs 31.1 from the `emacs-app` port (variants nativecomp, rsvg, treesitter), in
+  `/Applications/MacPorts/Emacs.app`; `/usr/local/bin/emacs` is a shell wrapper for it.
+- Ports: clang 20, 21 and 23 (23.1.3; `clang_select` points `clangd` at 21.1.8), cmake
+  3.31.12 (ships `/opt/local/share/emacs/site-lisp/cmake-mode.el`), ninja, ripgrep, fd,
+  texinfo 7.3, pyright, `tree-sitter-cpp` 0.23.4, `tree-sitter-python` 0.25.0; Emacs
+  finds both grammars without configuration. Not installed: gdb (no port for Apple
+  silicon), debugpy (`py314-debugpy` exists). `lldb-dap` comes with the Xcode Command
+  Line Tools.
+- Existing config: `~/.emacs` and a plain `~/.emacs.d/early-init.el` (not symlinks).
+- `make packages` builds all 28 packages and 6 manuals. `make test`: 17 of 45 fail,
+  1 skipped. `init.el` stops in `init-cmake.el` (`/usr/share/emacs/site-lisp` has no
+  `cmake-mode.el`); a build-script test compares `/var/...` with its true name
+  `/private/var/...`.
+
 ## 4. Design principles
 1. Fail loudly: a missing package or grammar is an error at startup, never a silent
    fallback; no `ignore-errors` / `with-demoted-errors` around config. Reason: a config
@@ -125,9 +151,10 @@ Observed on the owner machine, 2026-10-07:
 - DECIDED D-045 (owner 2026-10-08, O-19): Python rides along with mode, language server
   and debugger (T-018): `python-ts-mode` (system grammar `tree-sitter-python`), pyright
   through eglot in project files, debugpy through dape's own config; all from the Arch
-  repositories, no submodule. R and Perl: not configured (built-in modes only, as
-  before). Built in T-018: pyright is named in `eglot-server-programs` (eglot would
-  otherwise take pylsp or basedpyright first if installed later); a Python project is
+  repositories (on macOS the ports of section 3, D-050), no submodule. R and Perl: not
+  configured (built-in modes only, as before). Built in T-018: pyright is named in
+  `eglot-server-programs` (eglot would otherwise take pylsp or basedpyright first if
+  installed later); a Python project is
   what projectile finds (git root first, else `pyproject.toml`, `setup.py` and its other
   markers), as for C++ (SUPERSEDED, code review 0031: "for Python buffers only,
   `pyproject.toml` and `setup.py` also mark a project root, buffer-local" - the
@@ -198,6 +225,7 @@ Known defects: none yet (nothing built).
   commits as patches, four since pkgrel 2; standalone build against the system LLVM) to
   `/opt/clangd-index-nav`, depending on `llvm-libs` and `clang` = 23.1.1 exactly, so
   an LLVM upgrade is visible to pacman and needs a rebuild of the package.
+  Arch only; macOS: O-23 (D-050).
 - DECIDED D-047 (owner 2026-10-08, T-019, S9 run 2): patch 0007 (llvm-clangd cb118e30f,
   pkgrel 5): the wait of D-028 / D-046 ends as soon as the includers are recorded
   (right after the stored shards are read), not when the whole load returns. On RMO
@@ -273,6 +301,8 @@ Known defects: none yet (nothing built).
   (`/usr/share/emacs/site-lisp`), version-matched to the installed CMake; no grammar, no
   submodule. Rejected alternative: `cmake-ts-mode`, needs a self-built
   `tree-sitter-cmake` for highlighting only.
+  macOS (D-050): MacPorts installs it in `/opt/local/share/emacs/site-lisp`;
+  `init-cmake.el` names only the Arch directory, so startup stops there (T-021).
 - SUPERSEDED by D-035 (2026-10-08): "PROPOSED: `projectile-enable-cmake-presets` t;
   projectile configure / compile / test commands prompt for a preset; one compilation
   buffer per project." That prompt ignores the active preset (D-017).
@@ -290,6 +320,7 @@ Known defects: none yet (nothing built).
 ## 9. Debugger (dape)
 - DECIDED D-002: dape is the debugger front-end; gdb 17 via its native DAP interpreter
   is the default adapter, lldb-dap the alternate.
+  macOS (D-050): no gdb for Apple silicon; `gdb-preset` (D-031) is gdb-only (O-22).
 - S2 PASS (2026-10-08, RMO): dape + gdb 18.1 DAP stops at a source breakpoint, shows
   stack, variables and a watch, steps and ends cleanly; lldb-dap too. Findings for
   T-006: program path = active preset's `binaryDir` + target name; breakpoints persist
@@ -561,6 +592,7 @@ presets, GoogleTest runner.
 | header opened first after a restart gets guessed flags | S9 (PASS) | owner | - |
 | deal.II sources index unused or too costly on RMO | S10 | owner | O-12 |
 | own package build glue mis-orders compilation | none (tests) | - | v0.1 |
+| config fails on macOS (paths, tools, tests) | none (`make test`) | owner | D-050 |
 | clangd too slow / too large on deal.II scale | S1 numbers | owner | v0.1 |
 
 ## Research program
@@ -673,6 +705,20 @@ presets, GoogleTest runner.
   errors; loading the 3950 stored shards takes 0.4 s, so the 5 s cap is not involved.
   Patch 0006 (D-046, T-019) built and tested locally; left: pkgrel 4 installed and S9
   rerun on RMO (owner).
+- O-22 (OPEN, D-050, 2026-10-09): the C++ debugger on macOS. Apple silicon has no gdb,
+  and `gdb-preset` (D-031, D-033) starts only gdb. Options: an `lldb-preset` doing the
+  same with `lldb-dap` (Command Line Tools or the `lldb-23` port); dape's own
+  `lldb-dap` configuration by hand, no preset program picker; or no C++ debugging on
+  macOS. D-032 (gdb scripts) and D-030 (symbol loading) have no lldb counterpart yet.
+- O-23 (OPEN, D-050, 2026-10-09): the patched clangd (D-026 .. D-028, D-046, D-047) on
+  macOS. Its PKGBUILD is Arch-only (makepkg, pacman's `llvm-libs` / `clang`). Options:
+  a local MacPorts portfile against `llvm-23`; a build script outside any package
+  manager; or the MacPorts clangd only (`emacs-cpp-clangd-program` nil), losing index
+  navigation and header flags from the index on macOS.
+- O-24 (OPEN, D-050, 2026-10-09): scope of macOS support. (a) Package source: MacPorts
+  only (the owner's Mac), or Homebrew too. (b) Which machine the performance budgets
+  (section 11) and the reference project (D-009) are measured on: Arch only, or both.
+  (c) Whether `make test` must pass on both before every commit.
 - O-19 (RESOLVED 2026-10-08 with D-045): which of Python, R and Perl ride along, and
   how far: mode only, plus a language server, plus a debugger
   (`RESEARCH_other_languages.md` 3). Python needs only Arch packages; Perl's server is
@@ -812,6 +858,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-047 | 2026-10-08 | patch 0007: header wait ends once includers are known | 7 | T-019 |
 | D-048 | 2026-10-08 | tree opens with the first project file (option) | 10 | owner |
 | D-049 | 2026-10-08 | tree opens only on `C-c t` again (D-048 withdrawn) | 10 | owner |
+| D-050 | 2026-10-09 | macOS supported next to Arch Linux | 2 | owner |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.

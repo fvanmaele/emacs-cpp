@@ -1,16 +1,17 @@
 # emacs-cpp
 
 An Emacs 31 configuration that gives one owner a CLion-like C++ environment on an Arch
-Linux workstation: navigation, refactoring and diagnostics through eglot and clangd,
-builds from CMake presets, debugging through dape and gdb, git through magit, and
-jump-to-anything through vertico and consult. Python rides along (D-045).
+Linux workstation and a macOS machine (D-050): navigation, refactoring and diagnostics
+through eglot and clangd, builds from CMake presets, debugging through dape and gdb,
+git through magit, and jump-to-anything through vertico and consult. Python rides
+along (D-045).
 
-It is not an Emacs distribution, not a multi-OS configuration and not a CLion keymap
+It is not an Emacs distribution, not a Windows configuration and not a CLion keymap
 emulation (DESIGN 2). This file never claims more than `DESIGN.md` backs; the feature
 list with its gaps against CLion is DESIGN 1. Everyday use is `docs/MANUAL.md`, every
 key is in `docs/CHEATSHEET.md`.
 
-## Install on Arch Linux (supported)
+## Install on Arch Linux
 
 ### 1. System packages
 ```sh
@@ -87,10 +88,10 @@ git submodule update --init
 make packages
 ```
 
-## macOS (not supported)
-macOS is a non-goal (DESIGN 2). On the owner's Mac (Apple silicon, MacPorts, Emacs
-31.1) on 2026-10-09, the config **does not start as shipped**. The steps below get as
-far as the known blockers; they are a record, not a promise.
+## Install on macOS (MacPorts)
+macOS is supported since 2026-10-09 (D-050), but the config **does not start there
+yet**. Making it start is T-021. These steps were run on the owner's Mac (Apple
+silicon, MacPorts, Emacs 31.1) and get as far as the known blockers below.
 
 ### What was tried
 ```sh
@@ -117,14 +118,15 @@ tree-sitter grammars and `make packages` builds all packages and manuals.
   install the cmake package (D-013)
   ```
 - **No gdb on Apple silicon.** `gdb-preset` (D-031) drives gdb only; lldb-dap is
-  reachable only through dape's own configurations.
+  reachable only through dape's own configurations. Open question O-22.
 - **The patched clangd is Arch-only.** Its PKGBUILD needs makepkg and the Arch LLVM
-  packages; leave `emacs-cpp-clangd-program` nil to use the MacPorts clangd.
+  packages; leave `emacs-cpp-clangd-program` nil to use the MacPorts clangd. Open
+  question O-23.
 - **`${hostSystemName}` in a preset is an error** outside GNU/Linux.
 - **`make test` fails 17 of 45 tests** on that machine, the first cause being the CMake
   module above.
 
-Homebrew was not tried.
+Homebrew was not tried; whether it is supported is open question O-24.
 
 ## Repository layout
 
