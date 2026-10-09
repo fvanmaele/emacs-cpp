@@ -226,6 +226,9 @@ with `done when: ...`).
   (kqueue, Emacs's limit), descriptor counts measured in a C++ session on RMO on the
   Mac, and a proposal to keep or change D-054. Done 2026-10-09:
   `RESEARCH_file_watches_macos.md`; options for D-054 put to the owner as O-26.
+  Revisited 2026-10-09 (owner): the Dock-start limit of 207 was wrong (975, real
+  Launch Services start); at eglot's cap pyright exits; pyright does not watch by
+  itself; O-26 options revised.
 - T-014: the config runs the patched clangd (D-026) installed from
   packaging/clangd-index-nav (D-027); done when (agreed 2026-10-08): the config starts
   the patched clangd with --navigation-from-index when its path is set (customize
