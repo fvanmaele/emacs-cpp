@@ -59,14 +59,33 @@ lines: 172 ms; `fmt/format.h`, 4407 lines: 145 ms): `vc-refresh-state` on
 DESIGN 11 on the antivirus), `c++-ts-mode` setup 48 - 88 ms; every mode-hook function
 of this config under 2 ms (breadcrumb, dape's breakpoint mode, eglot's activation).
 
-## 4. Options (for the owner; not a verdict)
+## 4. What heals a flag by itself (checked in clangd 23.1.1, owner questions)
+- Inside a session clangd never re-runs the background indexer for an edit: a save
+  only re-parses open files (`onDocumentDidSave`), file events are ignored
+  (`onFileEvent`: "Do nothing for now"); new work is queued only when compile commands
+  change (`CDB.watch` -> `enqueue`). Open files are answered from the in-memory index
+  meanwhile, so the flag matters at the first M-. after the next restart.
+- At the next start a source is re-indexed if its own content changed (its digest), or
+  if it is the one `DependentTU` chosen for a header whose content changed. So:
+  editing the flagged source itself heals its flag at the next start; fixing the
+  header that broke it heals only one of the sources including it; creating a missing
+  header heals none. Here the five flagged sources were untouched; their errors came
+  from headers being edited or not existing yet.
+- One clangd serves the whole project; eglot stops it when the last buffer of the
+  project closes (`eglot-autoshutdown` t, T-004) and on a preset switch. The per-file
+  restarts in section 2 came from the measurement closing each file before the next.
+
+## 5. Options (for the owner; not a verdict)
 - (a) Now, by hand: delete the index (or the flagged shards) and let clangd rebuild it
   (about a minute for RMO); the fast path then works for every source that compiles.
   Recurs whenever indexing happens during an edit that breaks the build.
 - (b) Patch 0009 for the local clangd: at startup also re-index sources whose own shard
-  has `HadErrors` (low priority, background). Cost: a source that really does not
-  compile is re-indexed at every start. Candidate for an upstream report as well
-  (flags survive fixes).
+  has `HadErrors` (low priority, background). It re-runs the indexer; it does not
+  trust flagged shards. A source that compiles now gets a clean shard and the fast
+  path back; one that still has errors gets a flagged shard again (clangd writes it
+  only if the content changed or the errors are gone), and the fast path keeps
+  refusing it, so answers stay correct (from the parse). Cost: indexing CPU for each
+  still-broken source at every start. Candidate for an upstream report as well.
 - (c) Record missing headers as dependencies so their creation makes shards stale
   (deeper change in clangd's include graph; not proposed first).
 - (d) Emacs side: `vc-refresh-state` on every visit costs about 70 ms here; diff-hl
