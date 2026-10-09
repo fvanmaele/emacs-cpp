@@ -27,7 +27,10 @@
 ;; Emacs 31.1's `c++-ts-mode', both reported upstream: a local
 ;; `c-ts-mode-indent-style' is set but not applied, because the mode builds its
 ;; rules before local variables are read (T-037); and a `{' on its own line after
-;; `namespace' or `class' is indented in every style (T-036).
+;; `namespace' or `class' is indented in every style (T-036).  A third: after a
+;; blank line, a class member is aligned with the first thing in the class body,
+;; which is `public:' at the class's column when the class starts with one; the
+;; fallback rule takes a class body for an initializer list (T-039).
 
 (defcustom emacs-cpp-indent-namespace-body t
   "Non-nil: indent the contents of a namespace one step, as Emacs does.
@@ -44,6 +47,9 @@ Rebuilds from `c-ts-mode-indent-style' each time, so running twice is harmless."
   (treesit-simple-indent-add-rules
    'cpp `(((parent-is "namespace_definition") standalone-parent 0)
           ((parent-is "class_specifier") standalone-parent 0)
+          ((and (parent-is "field_declaration_list")
+                (not (node-is ,(rx (or "access_specifier" "}" "preproc")))))
+           parent-bol c-ts-indent-offset)
           ,@(unless emacs-cpp-indent-namespace-body
               '(((n-p-gp nil "declaration_list" "namespace_definition")
                  parent-bol 0))))))

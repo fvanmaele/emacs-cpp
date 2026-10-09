@@ -387,6 +387,19 @@ public:
 }
 "))))
 
+(ert-deftest init-cpp-indent-members-after-a-blank-line ()
+  "D-062, T-039: a member after a blank line stays one step in, also when the
+class body starts with an access specifier."
+  (init-test--load)
+  (let ((code "class R\n{\npublic:\nint f;\n\nexplicit R(int);\n// note\n};\n"))
+    (should (equal (init-cpp-test--reindented nil code)
+                   (cons nil "class R\n{\npublic:\n  int f;\n\n  explicit R(int);\n  // note\n};\n")))
+    (should (equal (init-cpp-test--reindented
+                    "((c++-ts-mode . ((c-ts-indent-offset . 4) (indent-tabs-mode . nil)
+                  (c-ts-mode-indent-style . bsd))))\n"
+                    code)
+                   (cons nil "class R\n{\npublic:\n    int f;\n\n    explicit R(int);\n    // note\n};\n")))))
+
 (ert-deftest init-cpp-indent-braces-after-namespace-and-class ()
   "D-062: without project settings a `{' on its own line after `namespace' or
 `class' stays at the keyword's column; the namespace body is indented."
