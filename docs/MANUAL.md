@@ -22,6 +22,8 @@ name (type part of it; the list narrows as you type).
 | minibuffer: prompts, completion lists, messages                    |
 +--------------------------------------------------------------------+
   header line:  file within the project, then the function at point
+  line numbers: left of the text in files of code, text and configuration;
+                not in the tree or in tool buffers (magit, compilation, help)
   left fringe:  B breakpoint (red), > line the debugger stopped at
   right fringe: lines changed since the last commit (green / blue / red)
 ```
@@ -193,13 +195,11 @@ names and deduced types.
 
 ### A project's code style, taken from a file
 Two files in the project root decide how code looks, and they must agree:
-- `.clang-format`: what `C-c l f` produces, and where `RET` puts the new line once
-  clangd runs (clangd reads it; the line `RET` ended stays as you typed it, D-061).
-  Without one clangd formats in LLVM style, so `C-c l f` rewrites the file in a style
-  nobody chose.
-- `.dir-locals.el`: what `TAB` indents to, and the line after typing `}`, `;` and
-  the like; `RET` too in files without clangd. Emacs indents by its own rules; it
-  does not read `.clang-format`.
+- `.clang-format`: what `C-c l f` produces (clangd reads it). Without one clangd
+  formats in LLVM style, so `C-c l f` rewrites the file in a style nobody chose.
+- `.dir-locals.el`: what `TAB` and `RET` indent to, and the line after typing `}`,
+  `;` and the like. Emacs indents by its own rules (D-065); it does not read
+  `.clang-format`, and changes nothing on a line but its indentation.
 
 Open a file that already has the project's style, then:
 
@@ -252,8 +252,8 @@ Open a file that already has the project's style, then:
    them first). To check, `TAB` on a few lines should leave them where they are, and
    `C-c l f` with a region should change nothing in it (the mode line shows `**`
    when the buffer changed; `C-/` undoes). Emacs's rules cover less than
-   clang-format: on RMO, `case` labels, arguments after a `(` at the end of a line
-   and some template classes still move (`RESEARCH_indent_guessing.md` 3). Format
+   clang-format: on RMO, `case` labels and arguments after a `(` at the end of a
+   line still move (452 lines, `RESEARCH_indent_guessing.md` 3, D-062). Format
    the lines you edit (`C-c l f` on a region) rather than whole files: hand-aligned
    code and boost `add_options()` chains do not survive a whole-file format.
 

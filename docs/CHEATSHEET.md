@@ -35,9 +35,8 @@ part to jump (D-043).
 | `C-c l I` | hide / show inlay hints (parameter names, deduced types) |
 | `M-;` | comment / uncomment the region or line |
 
-`C-c l f` follows the project's `.clang-format` (LLVM style without one), and so
-does `RET` while clangd runs (the line above stays as typed, D-061); `TAB` follows
-`.dir-locals.el`. Writing both from a file that has the project's style:
+`C-c l f` follows the project's `.clang-format` (LLVM style without one); `TAB` and
+`RET` follow `.dir-locals.el` (Emacs's rules, D-065). Writing both from a file that has the project's style:
 `docs/MANUAL.md` 8.
 
 ## Errors and warnings (flymake)
@@ -84,6 +83,9 @@ In any list: words separated by space match in any order (`vec tria` finds
 | prefix then `C-h` | list what a prefix (e.g. `C-c p`) offers |
 | `C-h i` | manuals: Emacs, magit, embark, orderless, dash, with-editor |
 | `C-x C-r` | open a recently visited file (`C-x b` lists them too) |
+
+Line numbers show in code, text and configuration buffers, not in the tree or tool
+buffers (D-063); `M-x display-line-numbers-mode` hides / shows them in one buffer.
 
 Theme: `M-x customize-themes`, pick one, "Save Theme Settings"; it stays after a
 restart. Without a saved choice the theme is `modus-vivendi-tritanopia`.
