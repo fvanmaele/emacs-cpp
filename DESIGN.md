@@ -321,14 +321,14 @@ Known defects: none yet (nothing built).
   entry (in RMO `fmt/src/format.cc`, wrong include paths). S1 live check: once an
   including `.cc` is open, clangd reuses its flags and the header is clean; opened
   first, it shows errors. The patched clangd takes an includer from its index (D-028).
-- DECIDED D-054 (2026-10-09, T-021, owner to confirm): on macOS eglot watches files
-  only inside the project root (`eglot-watch-files-outside-project-root` nil) and at
-  most 500 directories (`eglot-max-file-watches`; eglot warns and adds no more).
-  Reason: macOS watches with kqueue, one file descriptor per directory; pyright asks
-  to watch Python's library and site-packages, about 2000 directories, Emacs ran out
-  at descriptor 975 and pyright exited, eglot restarting it in a loop (0034). Cost:
-  a package installed while pyright runs is seen after a restart. Arch (inotify, one
-  descriptor) keeps eglot's defaults.
+- DECIDED D-054 (2026-10-09, T-021, owner to confirm; limits questioned by O-26): on
+  macOS eglot watches files only inside the project root
+  (`eglot-watch-files-outside-project-root` nil) and at most 500 directories
+  (`eglot-max-file-watches`; eglot warns and adds no more). Reason: macOS watches with
+  kqueue, one file descriptor per directory; pyright asks to watch Python's library and
+  site-packages, about 2000 directories, Emacs ran out at descriptor 975 and pyright
+  exited, eglot restarting it in a loop (0034). Cost: a package installed while pyright
+  runs is seen after a restart. Arch (inotify, one descriptor) keeps eglot's defaults.
 - DECIDED D-008: C++ major mode is `c++-ts-mode` on the system grammar; `.h` files open
   in `c++-ts-mode` (the owner's projects are C++, and no C grammar is installed). A
   missing grammar is a startup error, not a fallback to `c++-mode`.
@@ -661,6 +661,9 @@ presets, GoogleTest runner.
 ## Research program
 - `RESEARCH_other_languages.md` (owner question 2026-10-08): Python, R, Perl next to
   the C++ setup. Findings in; rulings O-19, O-20.
+- `RESEARCH_file_watches_macos.md` (owner question 2026-10-09, T-029): kqueue's
+  descriptor per watch, Emacs's limits on the Mac, who watches in a C++ session.
+  Findings in; ruling O-26.
 - `RESEARCH_keys_build_debug_ui.md` (owner questions 2026-10-08): key hints, building
   from any buffer, breakpoint indicators. Findings in; rulings O-16, O-17, O-18.
 - `RESEARCH_refactoring.md`: which CLion refactorings clangd code actions cover in
@@ -768,6 +771,13 @@ presets, GoogleTest runner.
   errors; loading the 3950 stored shards takes 0.4 s, so the 5 s cap is not involved.
   Patch 0006 (D-046, T-019) built and tested locally; left: pkgrel 4 installed and S9
   rerun on RMO (owner).
+- O-26 (OPEN, T-029, 2026-10-09): D-054's cap of 500 eglot watches on macOS is above
+  what an Emacs started from the Dock can watch: 207 (launchd's soft limit 256 minus
+  kqueue's reserve of 50), against 975 from a terminal. clangd registers no watches;
+  auto-revert takes one per open tracked file and falls back to polling at the limit;
+  treemacs one per expanded directory, and errors at the limit. Options (a) cap eglot
+  at 100 on macOS, (b) raise launchd's limit to 1024 (system change), (c) start Emacs
+  from a terminal, in `RESEARCH_file_watches_macos.md` 5. Owner to rule.
 - O-25 (OPEN, T-028 review, 2026-10-09): read a preset's executable targets from
   CMake's file API instead of `build.ninja` (D-033)? The `build.ninja` regular
   expressions depend on how CMake names link rules and where it writes the build type,
