@@ -47,7 +47,8 @@ library type, and one clang-tidy finding (`0' for a null pointer).")
 Every buffer visited under ROOT or reached from it is killed afterwards, and
 any eglot server shut down."
   (declare (indent 1))
-  `(let* ((root (file-name-as-directory (make-temp-file "emacs-cpp-toy" t)))
+  `(let* ((root (file-name-as-directory
+                (file-truename (make-temp-file "emacs-cpp-toy" t))))
           (default-directory root)
           (emacs-cpp-presets-state-file (expand-file-name "state.eld" root))
           (buffers-before (buffer-list)))
@@ -98,7 +99,7 @@ any eglot server shut down."
       (with-current-buffer main
         (should (eq major-mode 'c++-ts-mode))
         ;; Started by the hook, with the preset's build directory (D-016).
-        (should (eglot-managed-p))
+        (should (init-test--wait-managed))
         (should (equal (process-command (jsonrpc--process (eglot-current-server)))
                        (list "clangd" (concat "--compile-commands-dir="
                                               (expand-file-name "build/debug" root))))))
@@ -109,7 +110,8 @@ any eglot server shut down."
       ;; ... and into a library header, which joins the same server (D-019).
       (let* ((library-file (init-cpp-test--definition-file main "vector<int>"))
              (library (init-cpp-test--visit library-file)))
-        (should (string-prefix-p "/usr/" library-file))
+        ;; Outside the project: /usr/include on Arch, the SDK on macOS.
+        (should-not (file-in-directory-p library-file root))
         (with-current-buffer library
           (should (eglot-managed-p))
           (should (eq (eglot-current-server)
@@ -174,7 +176,7 @@ and the function at point."
       (let* ((emacs-cpp-clangd-program program)
              (main (init-cpp-test--visit (expand-file-name "src/main.cc" root))))
         (with-current-buffer main
-          (should (eglot-managed-p))
+          (should (init-test--wait-managed))
           (should (equal (process-command (jsonrpc--process (eglot-current-server)))
                          (list program
                                (concat "--compile-commands-dir="

@@ -66,7 +66,7 @@ with `done when: ...`).
 | T-018 | done 0030 | M | Python rides along | D-045, O-19 | mode, pyright, debugpy; tests |
 | T-019 | done 0029 | S | header first: 0006, 0007 | D-046, D-047 | S9 run 3: 0.9 s |
 | T-020 | open | S | patch 0008 (review 0031) | D-046, D-047 | owner: rebuild now or later |
-| T-021 | open | M | config starts on macOS | D-050 | cmake-mode path, tests; proposed |
+| T-021 | open | M | config starts on macOS | D-050, D-054 | built 0034; Arch run left |
 | T-022 | open | M | lldb-preset | D-051, O-22 | lldb-dap next to gdb; proposed |
 | T-023 | open | M | macOS clangd build script | D-052, O-23 | CHEATSHEET item 6; proposed |
 
@@ -119,7 +119,9 @@ with `done when: ...`).
   follow from the startup stop). Tier 2. PROPOSED done when (owner to agree): Emacs
   starts on the Mac with no errors; `make test` passes there except tests that need
   gdb or the patched clangd, which skip with a reason until T-022 / T-023 land;
-  `make test` still passes on Arch.
+  `make test` still passes on Arch. Agreed 2026-10-09. Built 2026-10-09 (0034): the
+  Mac part is met (startup clean, the gdb tests skip, the rest pass); left: `make
+  test` on Arch (owner).
 - T-022 (opened 2026-10-09, D-051): `lldb-preset` in `lisp/init-debug.el`, built like
   `gdb-preset` from dape's `lldb-dap` configuration; lldb-dap from the Arch `lldb`
   package and, on macOS, the MacPorts `lldb-23` port (D-053; its installed name not yet

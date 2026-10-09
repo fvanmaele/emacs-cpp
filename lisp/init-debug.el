@@ -66,7 +66,13 @@ PROGRAM is the absolute path CMake links the target to.  File order."
 \(gdb-preset reads its targets, D-033)" ninja))
     (with-temp-buffer
       (insert-file-contents ninja)
-      (let (programs)
+      ;; The build type: CMake 4 repeats it as CONFIG in each link block, CMake 3.31
+      ;; (MacPorts, D-053) only states it once, as the file's CONFIGURATION.
+      (let ((file-config (if (re-search-forward "^CONFIGURATION = \\(.*\\)$" nil t)
+                             (match-string 1)
+                           ""))
+            programs)
+        (goto-char (point-min))
         ;; build <output>[ | <implicit outputs>]: <LANG>_EXECUTABLE_LINKER__<target>_<config>
         (while (re-search-forward
                 (concat "^build \\(\\(?:[^ :$\n]\\|\\$.\\)+\\)"
@@ -75,7 +81,8 @@ PROGRAM is the absolute path CMake links the target to.  File order."
                 nil t)
           (let* ((output (match-string 1))
                  (rule (match-string 2))
-                 ;; The block's CONFIG; none without a build type (rule ends in "_").
+                 ;; The block's CONFIG, else the file's; none without a build type
+                 ;; (rule ends in "_").
                  (config (save-excursion
                            (if (re-search-forward "^  CONFIG = \\(.*\\)$"
                                                   (save-excursion
@@ -83,7 +90,7 @@ PROGRAM is the absolute path CMake links the target to.  File order."
                                                     (point))
                                                   t)
                                (match-string 1)
-                             "")))
+                             file-config)))
                  (suffix (concat "_" config)))
             (unless (string-suffix-p suffix rule)
               (error "emacs-cpp: link rule %s in %s does not end in %s" rule ninja suffix))

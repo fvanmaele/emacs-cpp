@@ -177,8 +177,7 @@ switches when you move to a file of another project (D-029). Inside the tree:
 
 ## macOS (MacPorts, D-050, D-053)
 macOS is supported since 2026-10-09 (D-050), with tools from MacPorts only (D-053).
-The config does not start there yet (T-021); `README.md` has the install steps and the
-known blockers. Differences from Linux:
+`README.md` has the install steps. Differences from Linux:
 
 1. Emacs 31.1: the MacPorts `emacs-app` port with the `nativecomp` and `treesitter`
    variants. Meta is Option; if Option types special characters, set
@@ -190,8 +189,7 @@ known blockers. Differences from Linux:
 3. Grammars: the ports `tree-sitter-cpp` and `tree-sitter-python`; Emacs finds them
    without configuration (checked 2026-10-09). Without them the config stops at
    startup (D-008, D-045).
-4. Presets that use `${hostSystemName}` are refused: the config only expands it on
-   Linux (`lisp/emacs-cpp-presets.el`). Other presets work as on Linux.
+4. `${hostSystemName}` in presets expands to `Darwin`, as in CMake.
 5. Unpatched clangd: `emacs-cpp-clangd-program` nil runs `clangd` from Emacs's
    `exec-path`. The `clang-23` port provides it once selected with
    `sudo port select --set clang mp-clang-23`. `/opt/local/bin` must be on the `PATH`

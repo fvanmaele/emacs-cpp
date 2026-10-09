@@ -17,7 +17,8 @@
   "Write FILES (alist NAME . CONTENT) into a temporary `root', `git init' if GIT,
 run BODY, then shut down eglot servers and kill the buffers it visited."
   (declare (indent 2))
-  `(let* ((root (file-name-as-directory (make-temp-file "emacs-cpp-py" t)))
+  `(let* ((root (file-name-as-directory
+                (file-truename (make-temp-file "emacs-cpp-py" t))))
           (default-directory root)
           (buffers-before (buffer-list)))
      (unwind-protect
@@ -54,7 +55,7 @@ run BODY, then shut down eglot servers and kill the buffers it visited."
           (eglot-confirm-server-edits nil))
       (with-current-buffer use
         (should (eq major-mode 'python-ts-mode))
-        (should (eglot-managed-p))
+        (should (init-test--wait-managed))
         (should (equal (car (process-command (jsonrpc--process (eglot-current-server))))
                        "pyright-langserver"))
         ;; M-. on the use reaches the definition in a.py.
@@ -81,7 +82,7 @@ run BODY, then shut down eglot servers and kill the buffers it visited."
                                     init-python-test--files)
       nil
     (with-current-buffer (init-python-test--visit (expand-file-name "a.py" root))
-      (should (eglot-managed-p))
+      (should (init-test--wait-managed))
       (should (equal (directory-file-name (project-root (project-current)))
                      (directory-file-name root)))))
   ;; A loose file: no project, no server.
