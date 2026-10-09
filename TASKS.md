@@ -66,8 +66,8 @@ with `done when: ...`).
 | T-018 | done 0030 | M | Python rides along | D-045, O-19 | mode, pyright, debugpy; tests |
 | T-019 | done 0029 | S | header first: 0006, 0007 | D-046, D-047 | S9 run 3: 0.9 s |
 | T-020 | done 0041 | S | patch 0008 (review 0031) | D-059 | S9 run 4 unchanged |
-| T-021 | open | M | config starts on macOS | D-050, D-054 | built 0034; Arch run left |
-| T-022 | open | M | lldb-preset | D-051, O-22 | built 0035; Arch run left |
+| T-021 | done 0034 | M | config starts on macOS | D-050, D-054 | Arch make test 54 / 54 |
+| T-022 | done 0035 | M | lldb-preset | D-051, O-22 | Arch session test 3 / 3 |
 | T-023 | open | M | macOS clangd build script | D-052, O-23 | built 0036; owner run left |
 | T-024 | open | M | platform defaults files | D-055 | ruled; code done-when proposed |
 | T-025 | open | M | Python tools on macOS | owner | round 1 in RESEARCH doc |
@@ -75,7 +75,7 @@ with `done when: ...`).
 | T-027 | open | S | load measurements, macOS | owner, O-24 | Mac measured 0038; Arch left |
 | T-028 | done 0037 | S | review debug and presets code | owner | 5 taken, O-25 to rule |
 | T-029 | done | M | file watches on macOS | owner, D-054 | RESEARCH doc; O-26 to rule |
-| T-030 | open | M | targets via CMake file API | D-056, O-25 | built 0040; Arch run left |
+| T-030 | done 0040 | M | targets via CMake file API | D-056, O-25 | Arch make test ok |
 | T-031 | done 0039 | M | platform defaults files | D-055, T-024 | debugger offered first |
 | T-032 | open | S | send the eglot watch report | D-054, O-26 | owner sends the draft |
 | T-033 | done 0042 | M | patch 0009: re-index flagged shards | D-060 | S9 run 4 unchanged |
@@ -134,8 +134,8 @@ with `done when: ...`).
   starts on the Mac with no errors; `make test` passes there except tests that need
   gdb or the patched clangd, which skip with a reason until T-022 / T-023 land;
   `make test` still passes on Arch. Agreed 2026-10-09. Built 2026-10-09 (0034): the
-  Mac part is met (startup clean, the gdb tests skip, the rest pass); left: `make
-  test` on Arch (owner).
+  Mac part is met (startup clean, the gdb tests skip, the rest pass). Arch
+  2026-10-09: `make packages && make test` 54 / 54, none skipped. Done.
 - T-022 (opened 2026-10-09, D-051): `lldb-preset` in `lisp/init-debug.el`, built like
   `gdb-preset` from dape's `lldb-dap` configuration; lldb-dap from the Arch `lldb`
   package and, on macOS, the MacPorts `lldb-23` port (D-053; its installed name not yet
@@ -144,8 +144,9 @@ with `done when: ...`).
   Arch and on the Mac; a missing lldb-dap refuses the session with the fix; an ERT
   test like `init-debug-gdb-preset-builds-stops-and-steps` covers it; the gdb tests
   are unchanged; make test passes on Arch. Agreed 2026-10-09. Built 2026-10-09
-  (0035): on the Mac the session test passes (3 of 3 runs) and the refusal test;
-  left: the same on Arch with the lldb package (owner).
+  (0035): on the Mac the session test passes (3 of 3 runs) and the refusal test.
+  Arch 2026-10-09 (lldb 23.1.1, `/usr/bin/lldb-dap`): make test 54 / 54, the session
+  test 3 of 3 runs, the refusal and gdb tests pass. Done.
 - T-023 (opened 2026-10-09, D-052): a script (NEW, proposed
   `packaging/clangd-index-nav/build-macos.sh`) doing the steps of `docs/CHEATSHEET.md`
   macOS item 6: download the 23.1.1 tarball into `packaging/clangd-index-nav/`
@@ -235,7 +236,8 @@ with `done when: ...`).
   `build.ninja` fixtures are replaced by reply fixtures from both CMake versions;
   the lldb and gdb session tests unchanged; make test passes on the Mac and on Arch.
   Agreed 2026-10-09. Built 2026-10-09 (0040): all met on the Mac (RMO's CLion build:
-  the same 11 targets as from build.ninja); left: make test on Arch (owner).
+  the same 11 targets as from build.ninja). Arch 2026-10-09 (CMake 4.4.4): make
+  test 54 / 54. Done.
 - T-029 (opened 2026-10-09, owner; D-054): research the file descriptor per watched
   directory issue on macOS and its effects on C++ work in Emacs. Open: why Emacs
   stopped at descriptor 975; which parts watch files in a C++ session (eglot for

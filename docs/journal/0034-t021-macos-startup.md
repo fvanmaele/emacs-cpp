@@ -87,6 +87,10 @@ Six causes, found one after another:
 - **Risk:** startup on the Mac measured 0.77 - 1.23 s against 0.15 s on Arch, on a
   busy machine (load 4). Which machine the budgets bind is open (O-24 b).
 
+## Arch verification (2026-10-09)
+`make packages && make test` on Arch: 54 / 54, none skipped (the gdb and the
+patched-clangd tests run there). T-021 done.
+
 ## How to verify
 On the Mac: `make packages && make test` (gdb tests skip; the patched-clangd test
 skips unless `~/opt/clangd-index-nav/bin/clangd` exists).

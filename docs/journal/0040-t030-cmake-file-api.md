@@ -62,6 +62,10 @@ programs, with the same paths, as the old `build.ninja` reading did.
 - **Not supported:** multi-config generators (two configurations in the reply);
   refused with a message.
 
+## Arch verification (2026-10-09)
+CMake 4.4.4: `make test` 54 / 54, including the file API tests and the gdb and lldb
+session tests. T-030 done.
+
 ## How to verify
 `make test` (the new and changed tests in `test/init-debug-test.el`). Interactively:
 `C-c p c o` in a preset project, then `C-x C-a d lldb-preset RET` (Mac) or
