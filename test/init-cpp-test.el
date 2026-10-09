@@ -160,9 +160,12 @@ and the function at point."
         (should (string-match-p "answer\\'" header))))))
 
 (defun init-cpp-test--patched-clangd ()
-  "The patched clangd to test (D-026), or nil when it is not installed."
+  "The patched clangd to test (D-026), or nil when it is not installed.
+Arch: the package's /opt (D-027); macOS: build-macos.sh's ~/opt (D-052)."
   (let ((program (or (getenv "EMACS_CPP_PATCHED_CLANGD")
-                     "/opt/clangd-index-nav/bin/clangd")))
+                     (if (eq system-type 'darwin)
+                         (expand-file-name "~/opt/clangd-index-nav/bin/clangd")
+                       "/opt/clangd-index-nav/bin/clangd"))))
     (and (file-executable-p program) program)))
 
 (ert-deftest init-cpp-patched-clangd-navigates ()
