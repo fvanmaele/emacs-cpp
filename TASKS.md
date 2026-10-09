@@ -65,7 +65,7 @@ with `done when: ...`).
 | T-017 | done 0026 | M | breadcrumb | D-043, v0.4 | path + function in header; test |
 | T-018 | done 0030 | M | Python rides along | D-045, O-19 | mode, pyright, debugpy; tests |
 | T-019 | done 0029 | S | header first: 0006, 0007 | D-046, D-047 | S9 run 3: 0.9 s |
-| T-020 | open | S | patch 0008 (review 0031) | D-046, D-047 | owner: rebuild now or later |
+| T-020 | next | S | patch 0008 (review 0031) | D-046, D-047 | owner 2026-10-09: now |
 | T-021 | open | M | config starts on macOS | D-050, D-054 | built 0034; Arch run left |
 | T-022 | open | M | lldb-preset | D-051, O-22 | built 0035; Arch run left |
 | T-023 | open | M | macOS clangd build script | D-052, O-23 | built 0036; owner run left |
@@ -75,7 +75,8 @@ with `done when: ...`).
 | T-027 | open | S | load measurements, macOS | owner, O-24 | Mac measured 0038; Arch left |
 | T-028 | done 0037 | S | review debug and presets code | owner | 5 taken, O-25 to rule |
 | T-029 | done | M | file watches on macOS | owner, D-054 | RESEARCH doc; O-26 to rule |
-| T-030 | open | M | targets from CMake's file API | D-056, O-25 | done-when proposed |
+| T-030 | next | M | targets from CMake's file API | D-056, O-25 | done-when agreed |
+| T-031 | next | M | platform defaults files | D-055, T-024 | done-when agreed |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -201,6 +202,8 @@ with `done when: ...`).
   findings, each taken or not taken with a reason, and the taken ones fixed with
   tests. Done 2026-10-09 (0037): preset conditions, `$env{}` as CMake, lldb-dap by
   name, one build step; the file API instead of build.ninja is O-25.
+- T-031 (opened 2026-10-09, D-055): the per-platform defaults files; done when as
+  written in D-055 (agreed 2026-10-09).
 - T-030 (opened 2026-10-09, D-056): replace the build.ninja reading in
   `lisp/init-debug.el` (`emacs-cpp-debug-programs`) by CMake's file API reply, and
   write the query file from `emacs-cpp-presets-configure-command` and the debug
@@ -210,6 +213,7 @@ with `done when: ...`).
   query and, after configuring, makes the targets appear; the CMake 3.31 and 4
   `build.ninja` fixtures are replaced by reply fixtures from both CMake versions;
   the lldb and gdb session tests unchanged; make test passes on the Mac and on Arch.
+  Agreed 2026-10-09.
 - T-029 (opened 2026-10-09, owner; D-054): research the file descriptor per watched
   directory issue on macOS and its effects on C++ work in Emacs. Open: why Emacs
   stopped at descriptor 975; which parts watch files in a C++ session (eglot for
