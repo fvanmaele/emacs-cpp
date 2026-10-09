@@ -348,6 +348,25 @@ into a call, out of it and over a line, then end the session."
     (should (equal (plist-get config :type)
                    (plist-get (alist-get 'lldb-dap dape-configs) :type)))))
 
+(ert-deftest init-debug-lldb-dap-program-is-configurable ()
+  "The option takes a path or a name; a path is used as it is (owner, 2026-10-09)."
+  (init-test--load)
+  (let* ((dir (file-name-as-directory (file-truename (make-temp-file "lldb-dap" t))))
+         (program (expand-file-name "my-lldb-dap" dir)))
+    (unwind-protect
+        (progn
+          (write-region "#!/bin/sh\n" nil program)
+          (set-file-modes program #o755)
+          (let ((emacs-cpp-debug-lldb-dap-program program))
+            (should (equal (emacs-cpp-debug-lldb-dap) program)))
+          ;; A bare name is looked up on exec-path.
+          (let ((emacs-cpp-debug-lldb-dap-program "my-lldb-dap")
+                (exec-path (cons dir exec-path)))
+            (should (equal (emacs-cpp-debug-lldb-dap) program))))
+      (delete-directory dir t)))
+  ;; Customize offers a file chooser for it.
+  (should (assq 'file (cdr (get 'emacs-cpp-debug-lldb-dap-program 'custom-type)))))
+
 (ert-deftest init-debug-lldb-preset-refuses-without-lldb-dap ()
   (init-test--load)
   (require 'dape)
