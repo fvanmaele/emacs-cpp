@@ -23,6 +23,39 @@
 ;; Only files of preset projects start eglot (D-005, D-019).
 (add-hook 'c++-ts-mode-hook #'emacs-cpp-presets-eglot-ensure)
 
+;; Indentation by data in .dir-locals.el (D-062), working around two gaps of
+;; Emacs 31.1's `c++-ts-mode', both reported upstream: a local
+;; `c-ts-mode-indent-style' is set but not applied, because the mode builds its
+;; rules before local variables are read (T-037); and a `{' on its own line after
+;; `namespace' or `class' is indented in every style (T-036).
+
+(defcustom emacs-cpp-indent-namespace-body t
+  "Non-nil: indent the contents of a namespace one step, as Emacs does.
+nil: leave them at the namespace's column, like clang-format's
+`NamespaceIndentation: None'.  Meant for a project's .dir-locals.el (D-062)."
+  :type 'boolean
+  :safe #'booleanp
+  :group 'tools)
+
+(defun emacs-cpp-indent--apply ()
+  "Rebuild this buffer's indent rules from its (possibly local) settings.
+Rebuilds from `c-ts-mode-indent-style' each time, so running twice is harmless."
+  (c-ts-mode-set-style c-ts-mode-indent-style)
+  (treesit-simple-indent-add-rules
+   'cpp `(((parent-is "namespace_definition") standalone-parent 0)
+          ((parent-is "class_specifier") standalone-parent 0)
+          ,@(unless emacs-cpp-indent-namespace-body
+              '(((n-p-gp nil "declaration_list" "namespace_definition")
+                 parent-bol 0))))))
+
+(defun emacs-cpp-indent-setup ()
+  "Apply the indent rules now and again once local variables are in (D-062).
+Mode hooks run before a visited file's local variables are read."
+  (emacs-cpp-indent--apply)
+  (add-hook 'hack-local-variables-hook #'emacs-cpp-indent--apply nil t))
+
+(add-hook 'c++-ts-mode-hook #'emacs-cpp-indent-setup)
+
 ;; RET indents by the project's .clang-format (D-061).  Eglot already asks the
 ;; server to format on newline (on-type formatting), but electric indentation runs
 ;; after it and re-indents the new line by the tree-sitter rules, which do not read

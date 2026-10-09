@@ -369,9 +369,17 @@ Known defects: none yet (nothing built).
   electric characters (`}`, `;`, ...) keep Emacs's tree-sitter rules; buffers without
   eglot keep electric indentation. The tree-sitter gap for namespace and class braces
   goes upstream (`docs/upstream/c-ts-mode-namespace-class-braces.md`, T-036);
-  projects meanwhile carry the three rules in `.dir-locals.el` (MANUAL 8). Code: T-035
-  (0043). A second report (owner 2026-10-10, T-037): a local `c-ts-mode-indent-style`
-  is set but not applied, hence the `eval` in MANUAL 8.
+  projects meanwhile carry the three rules in `.dir-locals.el` (MANUAL 8; superseded
+  2026-10-10 by D-062: the config carries them). Code: T-035 (0043). A second report
+  (owner 2026-10-10, T-037): a local `c-ts-mode-indent-style` is set but not applied.
+- DECIDED D-062 (owner 2026-10-10): a project's `.dir-locals.el` sets C++
+  indentation with plain values, no `eval`. The config works around both upstream
+  gaps until Emacs fixes them: after a buffer's local variables are read it rebuilds
+  the indent rules from `c-ts-mode-indent-style` (T-037), adds the rules that keep a
+  `{` on its own line after `namespace` or `class` at the keyword's column, in every
+  C++ buffer (T-036), and, with the new safe option
+  `emacs-cpp-indent-namespace-body` nil, leaves namespace contents unindented. Drop
+  each workaround when the Emacs in use carries the fix. Code: T-038 (0044).
 
 ## 8. Build (CMake presets)
 - DECIDED D-005: `CMakePresets.json` is the toolchain / profile mechanism; Emacs never
@@ -1080,6 +1088,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-059 | 2026-10-09 | patch 0008: known includer answered at once (pkgrel 6) | 7 | T-020 |
 | D-060 | 2026-10-09 | patch 0009: re-index sources whose shards had errors | 7 | O-27 |
 | D-061 | 2026-10-10 | RET: new line indented by clangd; namespace gap upstream | 7 | O-28 |
+| D-062 | 2026-10-10 | C++ indentation from plain .dir-locals.el values | 7 | owner |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.

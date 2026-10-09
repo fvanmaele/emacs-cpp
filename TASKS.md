@@ -83,6 +83,7 @@ with `done when: ...`).
 | T-035 | done 0043 | M | RET indents by clangd | D-061 | owner's RMO check left |
 | T-036 | open | S | send the c++-ts-mode namespace report | D-061 | owner sends the draft |
 | T-037 | open | S | send the c-ts-mode local style report | owner | owner sends it |
+| T-038 | done 0044 | S | indentation from plain dir-locals | D-062 | RMO data-only |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -213,6 +214,12 @@ with `done when: ...`).
   findings, each taken or not taken with a reason, and the taken ones fixed with
   tests. Done 2026-10-09 (0037): preset conditions, `$env{}` as CMake, lldb-dap by
   name, one build step; the file API instead of build.ninja is O-25.
+- T-038 (opened 2026-10-10, owner: "update dir-locals.el, preferably without
+  executable code"; D-062): tier 2 in `lisp/init-cpp.el`. Done when (agreed
+  2026-10-10): ERT shows a dir-local `bsd` applies, the brace rule holds, the option
+  flattens namespaces with no prompt; the RMO re-indent count stays at 2955 with data
+  only; MANUAL 8 drops the `eval`; `make test` passes. Done 2026-10-10 (0044); RMO's
+  `.dir-locals.el` now data only (uncommitted there, the owner's to commit).
 - T-037 (opened 2026-10-10, owner): send
   `docs/upstream/c-ts-mode-local-indent-style.md` (reproduction
   `c_ts_mode_local_style_repro.el`): `c-ts-mode-indent-style` from `.dir-locals.el` or
