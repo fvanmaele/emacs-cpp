@@ -195,6 +195,12 @@ Observed on the owner's Mac, 2026-10-09 (D-050):
   state files under `~/.emacs.d/.cache/` left out. `C-x b` (consult) lists recent
   files below the buffers, `C-x C-r` is `consult-recent-file` (instead of
   `find-file-read-only`), `C-c p e` the project's. Startup unchanged (0.151 s).
+- DECIDED D-066 (owner question 2026-10-10: advancing indentation by hand by the
+  configured step): in C++ buffers `tab-stop-list` follows `c-ts-indent-offset`
+  (stops at one and two steps; Emacs repeats the interval), so `M-i`
+  (`tab-to-tab-stop`) and `C-x TAB` then `S-<right>` move by the project's step from
+  `.dir-locals.el`; before, they moved by `tab-width` (8). `tab-width` itself is
+  left alone: it is how existing tab characters are shown.
 - DECIDED D-063 (owner 2026-10-10: "global-display-line-numbers-mode, but without
   buffers like treemacs"): line numbers in buffers whose mode derives from
   `prog-mode`, `text-mode` or `conf-mode`, from their hooks. Not the global mode: in
@@ -1133,6 +1139,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-063 | 2026-10-10 | line numbers in code, text and configuration buffers | 5 | owner |
 | D-064 | 2026-10-10 | clangd's out-of-line action left as upstream offers it | 7 | owner |
 | D-065 | 2026-10-10 | RET by Emacs's rules; clangd on-type format ignored | 7 | owner |
+| D-066 | 2026-10-10 | tab stops at the C++ indent step (M-i, C-x TAB) | 5 | owner |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
