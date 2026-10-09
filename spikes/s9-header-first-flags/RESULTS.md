@@ -76,3 +76,20 @@ Raw output: `results-run3.log`. Same copy, index session 3950 shards after 45.0 
   1.48 - 1.56 s), and a header opened after the source 0.39 - 0.44 s (run 2: about
   1 s).
 - T-019's done-when holds: 10 / 10 from the index, 0 errors, all under 1.5 s.
+
+## Run 4 (2026-10-09 22:27, pkgrel 7 with patches 0008 and 0009, load 0.98 / 0.71 / 0.35)
+Raw output: `results-run4.log`. Same copy, index session 3950 shards after 41.0 s.
+
+| opened first | runs | command from | errors | open -> decision | load end -> decision |
+|---|---|---|---|---|---|
+| header | 10 | index (`lumping.cc`) | 0 | 849 - 895 ms | -7 .. -4 ms |
+| source | 10 | index (`lumping.cc`) | 0 | 383 - 409 ms (header) | -5 ms |
+
+- Unchanged from run 3, as T-020 and T-033 require: 10 / 10 header-first sessions
+  take the includer's command, 0 errors, the decision with the end of the shard load.
+  The shard load itself: 375 - 412 ms (run 3: 0.39 - 0.46 s).
+- Header first 0.85 - 0.90 s (run 3: 0.91 - 1.02 s), on a machine idle this time
+  (run 3: 5-minute load 2.3); not attributed to 0008, whose early answer needs an
+  includer already known, which a header opened first after a restart never has.
+- S9 does not exercise 0009: the runner keeps only the header's decision and the load
+  lines, so whether a flagged shard was re-indexed is not in this log (0042 covers it).

@@ -275,12 +275,13 @@ Known defects: none yet (nothing built).
   Unconditional (also helps `M-?`, whose cross-file results come from the same shards).
   Built in T-033 (0042, pkgrel 7): on RMO (Mac) one session rewrote the five flagged
   shards; after a restart their first `M-.` took 5 ms - 2.7 s instead of 7.4 - 12.6 s;
-  ClangdTests 1414 / 1414.
+  ClangdTests 1414 / 1414. pkgrel 7 on Arch, S9 run 4 unchanged (owner 2026-10-09).
 - DECIDED D-059 (owner 2026-10-09, T-020, review 0031): patch 0008, pkgrel 6:
   `includerOf` answers a known includer at once, before waiting for the compile
   database; only an unknown header waits as D-046 / D-047 require. The load counter's
   increment and decrement are a pair of functions side by side. ClangdTests 1413 /
-  1413 on macOS with a new test that fails without the change (0041). Not taken from
+  1413 on macOS with a new test that fails without the change (0041); S9 run 4 on Arch
+  (pkgrel 7) unchanged: header first 10 / 10 from the index, 0.85 - 0.90 s. Not taken from
   the T-020 text: "no stall for headers that have no includer"; skipping that wait
   would bring back the header-opened-first guess of O-21.
 - DECIDED D-047 (owner 2026-10-08, T-019, S9 run 2): patch 0007 (llvm-clangd cb118e30f,
