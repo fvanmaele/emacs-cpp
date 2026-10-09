@@ -91,3 +91,7 @@ of this config under 2 ms (breadcrumb, dape's breakpoint mode, eglot's activatio
 - (d) Emacs side: `vc-refresh-state` on every visit costs about 70 ms here; diff-hl
   (D-042) relies on VC state, so dropping it is not free. Not proposed without a
   measurement in a GUI session.
+
+Ruled 2026-10-09: (b), D-060, built as patch 0009 (T-033, 0042). Result on the same
+project: the five flagged sources answered their first `M-.` after a restart in 5 ms
+- 2.7 s (was 7.4 - 12.6 s); two sources that still do not compile stay flagged.

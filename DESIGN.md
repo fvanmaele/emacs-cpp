@@ -273,7 +273,9 @@ Known defects: none yet (nothing built).
   the index-first path of D-026 answers it again. A flagged shard is never trusted; a
   source that still has errors stays flagged and is answered from the parse.
   Unconditional (also helps `M-?`, whose cross-file results come from the same shards).
-  Built in T-033.
+  Built in T-033 (0042, pkgrel 7): on RMO (Mac) one session rewrote the five flagged
+  shards; after a restart their first `M-.` took 5 ms - 2.7 s instead of 7.4 - 12.6 s;
+  ClangdTests 1414 / 1414.
 - DECIDED D-059 (owner 2026-10-09, T-020, review 0031): patch 0008, pkgrel 6:
   `includerOf` answers a known includer at once, before waiting for the compile
   database; only an unknown header waits as D-046 / D-047 require. The load counter's

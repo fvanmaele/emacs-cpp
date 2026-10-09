@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0042 | 2026-10-09 | T-033: patch 0009, re-index flagged shards | T-033 | D-060 |
 | 0041 | 2026-10-09 | T-020: patch 0008, a known includer at once | T-020 | D-059 |
 | 0040 | 2026-10-09 | T-030: debug targets from CMake's file API | T-030 | D-056 |
 | 0039 | 2026-10-09 | T-031: platform defaults files | T-031 | D-055 |
