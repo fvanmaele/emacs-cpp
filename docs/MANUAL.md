@@ -254,8 +254,8 @@ Open a file that already has the project's style, then:
    them first). To check, `TAB` on a few lines should leave them where they are, and
    `C-c l f` with a region should change nothing in it (the mode line shows `**`
    when the buffer changed; `C-/` undoes). Emacs's rules cover less than
-   clang-format: on RMO, `case` labels, arguments after a `(` at the end of a line
-   and some template classes still move (`RESEARCH_indent_guessing.md` 3). Format
+   clang-format: on RMO, `case` labels and arguments after a `(` at the end of a
+   line still move (452 lines, `RESEARCH_indent_guessing.md` 3, D-062). Format
    the lines you edit (`C-c l f` on a region) rather than whole files: hand-aligned
    code and boost `add_options()` chains do not survive a whole-file format.
 

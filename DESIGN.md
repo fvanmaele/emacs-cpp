@@ -385,7 +385,11 @@ Known defects: none yet (nothing built).
   `{` on its own line after `namespace` or `class` at the keyword's column, in every
   C++ buffer (T-036), and, with the new safe option
   `emacs-cpp-indent-namespace-body` nil, leaves namespace contents unindented. Drop
-  each workaround when the Emacs in use carries the fix. Code: T-038 (0044).
+  each workaround when the Emacs in use carries the fix. Code: T-038 (0044). Third
+  workaround (owner report 2026-10-10): a class member after a blank line is aligned
+  with the body's first child, `public:` at the class's column, because the fallback
+  rule takes a class body for an initializer list (31.1 and master); members now sit
+  one step in from the body's `{` line. RMO re-indent: 2955 -> 452 lines (T-039).
 
 ## 8. Build (CMake presets)
 - DECIDED D-005: `CMakePresets.json` is the toolchain / profile mechanism; Emacs never

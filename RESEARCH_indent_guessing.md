@@ -75,7 +75,9 @@ is indented one step, and everything inside follows; the rule list names
 ```
 Of the 2955 left, seen in samples: `case` labels at the column of `switch` (RMO indents
 them), arguments after a `(` at the end of a line aligned to the `(` instead of one step
-in, and members of some template classes at the class's column.
+in, and members of some template classes at the class's column (cause found
+2026-10-10: a member after a blank line in a body that starts with `public:`, T-039;
+with D-062's rules 452 lines are left).
 
 ## 4. clangd already indents on RET (on-type formatting)
 clangd 23.1.1 (both builds) announces `documentOnTypeFormattingProvider` with trigger
