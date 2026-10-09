@@ -74,7 +74,7 @@ with `done when: ...`).
 | T-026 | open | L | setup wizard (doom doctor) | owner | research; proposed |
 | T-027 | open | S | load measurements, macOS | owner, O-24 | DESIGN 11; proposed |
 | T-028 | done 0037 | S | review debug and presets code | owner | 5 taken, O-25 to rule |
-| T-029 | open | M | file watches on macOS | owner, D-054 | research; proposed |
+| T-029 | done | M | file watches on macOS | owner, D-054 | RESEARCH doc; O-26 to rule |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -200,7 +200,8 @@ with `done when: ...`).
   clangd, auto-revert, treemacs, magit, diff-hl); whether a deal.II-sized tree hits
   the limit. PROPOSED done when: `RESEARCH_file_watches_macos.md` with the mechanism
   (kqueue, Emacs's limit), descriptor counts measured in a C++ session on RMO on the
-  Mac, and a proposal to keep or change D-054.
+  Mac, and a proposal to keep or change D-054. Done 2026-10-09:
+  `RESEARCH_file_watches_macos.md`; options for D-054 put to the owner as O-26.
 - T-014: the config runs the patched clangd (D-026) installed from
   packaging/clangd-index-nav (D-027); done when (agreed 2026-10-08): the config starts
   the patched clangd with --navigation-from-index when its path is set (customize
