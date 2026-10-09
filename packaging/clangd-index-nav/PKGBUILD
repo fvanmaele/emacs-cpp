@@ -4,14 +4,15 @@
 # yet (hidden flag --navigation-from-index; RESEARCH_clangd_index_navigation.md, S8),
 # and headers compiled with the command of an includer the index knows (hidden flag
 # --header-flags-from-index; O-5), also when the header is the first file opened
-# (patch 0006, O-21, S9), without waiting for the index rebuild (patch 0007).
+# (patch 0006, O-21, S9), without waiting for the index rebuild (patch 0007), and a
+# known includer answered at once (patch 0008, T-020).
 # Built against the system LLVM 23.1.1 and installed to /opt, next to (not instead
 # of) the clang package's clangd.  Patches: `git format-patch 6e2cc8df7..HEAD` in
 # ~/source/repos/llvm-clangd.
 
 pkgname=clangd-index-nav
 pkgver=23.1.1
-pkgrel=5
+pkgrel=6
 pkgdesc="clangd $pkgver answering navigation from its index before parsing (emacs-cpp patches)"
 arch=(x86_64)
 url="https://github.com/llvm/llvm-project"
@@ -28,7 +29,8 @@ source=("https://github.com/llvm/llvm-project/releases/download/llvmorg-$pkgver/
         0004-clangd-Index-navigation-include-lines-and-log-why-th.patch
         0005-clangd-Compile-headers-with-the-command-of-an-includ.patch
         0006-clangd-Header-flags-from-the-index-wait-for-the-proj.patch
-        0007-clangd-Header-flags-from-the-index-stop-waiting-once.patch)
+        0007-clangd-Header-flags-from-the-index-stop-waiting-once.patch
+        0008-clangd-Header-flags-from-the-index-answer-a-known-in.patch)
 sha256sums=('ebe9be46fe8756d58c5b198ffad0fa2a766257add81a4dc52179bfacc7888ee6'
             'a8c5acda8b7e43611f22297cb9ba6f95e62c464a6ac78f8027c267973d4702bb'
             '3b3cce804554ab484a2f5396f28cb87f66b87ad4ccd4d6e8e65f4bc7e89feab1'
@@ -36,7 +38,8 @@ sha256sums=('ebe9be46fe8756d58c5b198ffad0fa2a766257add81a4dc52179bfacc7888ee6'
             'e7f1f654d1855f1931fe2c6098207d33b6bc25042645ffb3775fd68cfdaffe04'
             'd5f1eb92789917b9b389ac40ce768e0ad8de3c08f93badaac427b18234cf25b5'
             '6743669f1489a3e5706caa0f8cf0e189790bf8639f077acd9bc3cb34c4524bd6'
-            'cad497f49407fb8b641306ac67449ec6071e855a169789fc2a98257b7abfeb03')
+            'cad497f49407fb8b641306ac67449ec6071e855a169789fc2a98257b7abfeb03'
+            'df591dec53884b9f6447027d394ccc94053e92a134d02bf7adde0d6b6c9d4191')
 
 prepare() {
   cd llvm-project-$pkgver.src

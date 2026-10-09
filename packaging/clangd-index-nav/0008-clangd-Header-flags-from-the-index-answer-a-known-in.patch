@@ -1,0 +1,211 @@
+From 69246cd47c63589a96dceb2c94b99504db3bec1a Mon Sep 17 00:00:00 2001
+From: Ferdinand Vanmaele <ferdinand-joseph.vanmaele@uni-a.de>
+Date: Fri, 9 Oct 2026 17:28:51 +0200
+Subject: [PATCH] [clangd] Header flags from the index: answer a known includer
+ at once
+
+BackgroundIndex::includerOf first waited for the compile database to
+become idle (blockUntilIdle), then for stored shards to load, and only
+then looked the header up. A header whose includer was already known
+still waited for the database, which stalls while its broadcast thread
+announces another project, up to the 5 s bound.
+
+includerOf now looks the header up first and returns a known includer at
+once; only an unknown header waits as before (patch 0006: the project may
+not be handed over yet). The load counter's increment (enqueue) and
+decrement (loadProject) are now projectLoadStarted / projectLoadFinished,
+defined side by side. The doc comment of includerOf is wrapped at 80
+columns again.
+
+ClangdTests 1413/1413 on macOS (new: BackgroundIndexTest.
+IncluderOfKnownHeaderDoesNotWaitForTheDatabase; without the change it
+fails, the known includer answered after the full 5 s).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ clang-tools-extra/clangd/index/Background.cpp | 34 ++++++++++---
+ clang-tools-extra/clangd/index/Background.h   | 19 +++----
+ .../clangd/unittests/BackgroundIndexTests.cpp | 51 +++++++++++++++++++
+ 3 files changed, 88 insertions(+), 16 deletions(-)
+
+diff --git a/clang-tools-extra/clangd/index/Background.cpp b/clang-tools-extra/clangd/index/Background.cpp
+index 356ab55..2d47afb 100644
+--- a/clang-tools-extra/clangd/index/Background.cpp
++++ b/clang-tools-extra/clangd/index/Background.cpp
+@@ -195,6 +195,14 @@ void BackgroundIndex::recordIncluders(
+ std::optional<std::string>
+ BackgroundIndex::includerOf(PathRef Header,
+                             std::chrono::steady_clock::duration Wait) {
++  {
++    // A known includer is the answer; waiting for the compile database below
++    // would only stall while its broadcast thread announces another project.
++    std::lock_guard<std::mutex> Lock(IncludersMu);
++    auto It = Includers.find(Header);
++    if (It != Includers.end())
++      return It->getValue();
++  }
+   auto Until = std::chrono::steady_clock::now() + Wait;
+   // The compile database hands a newly found project to the index on its own
+   // thread (enqueue() then counts the load). A header that asks before that
+@@ -202,7 +210,8 @@ BackgroundIndex::includerOf(PathRef Header,
+   // Not under IncludersMu: an announcement calls enqueue().
+   CDB.blockUntilIdle(Deadline(Until));
+   std::unique_lock<std::mutex> Lock(IncludersMu);
+-  IncludersChanged.wait_until(Lock, Until, [&] { return ProjectsLoading == 0; });
++  IncludersChanged.wait_until(Lock, Until,
++                              [&] { return ProjectsLoading == 0; });
+   auto It = Includers.find(Header);
+   if (It == Includers.end())
+     return std::nullopt;
+@@ -381,6 +390,21 @@ llvm::Error BackgroundIndex::index(tooling::CompileCommand Cmd) {
+   return llvm::Error::success();
+ }
+ 
++// A shard load is counted from enqueue() until loadProject() has recorded the
++// includers it finds; includerOf() waits while any load is counted.
++void BackgroundIndex::projectLoadStarted() {
++  std::lock_guard<std::mutex> Lock(IncludersMu);
++  ++ProjectsLoading;
++}
++
++void BackgroundIndex::projectLoadFinished() {
++  {
++    std::lock_guard<std::mutex> Lock(IncludersMu);
++    --ProjectsLoading;
++  }
++  IncludersChanged.notify_all();
++}
++
+ // Restores shards for \p MainFiles from index storage. Then checks staleness of
+ // those shards and returns a list of TUs that needs to be indexed to update
+ // staleness.
+@@ -406,12 +430,8 @@ BackgroundIndex::loadProject(std::vector<std::string> MainFiles) {
+     recordIncluders(HeaderAndTU);
+     // The includers are known now: release includerOf() here, not after the
+     // symbols are merged and the index is rebuilt below (about 0.6 s on a
+-    // deal.II-sized project). Counted up in enqueue().
+-    {
+-      std::lock_guard<std::mutex> Lock(IncludersMu);
+-      --ProjectsLoading;
+-    }
+-    IncludersChanged.notify_all();
++    // deal.II-sized project).
++    projectLoadFinished();
+   }
+   size_t LoadedShards = 0;
+   {
+diff --git a/clang-tools-extra/clangd/index/Background.h b/clang-tools-extra/clangd/index/Background.h
+index 1aec58d..360fef2 100644
+--- a/clang-tools-extra/clangd/index/Background.h
++++ b/clang-tools-extra/clangd/index/Background.h
+@@ -161,20 +161,18 @@ public:
+   // The indexing happens in a background thread, so the symbols will be
+   // available sometime later.
+   void enqueue(const std::vector<std::string> &ChangedFiles) {
+-    {
+-      std::lock_guard<std::mutex> Lock(IncludersMu);
+-      ++ProjectsLoading;
+-    }
++    projectLoadStarted();
+     Queue.push(changedFilesTask(ChangedFiles));
+   }
+ 
+   /// A source file that includes \p Header, directly or through other
+   /// headers: the translation unit whose indexing produced the header's stored
+   /// shard (recorded when the shards are loaded at startup), or one indexed in
+-  /// this session. Waits up to \p Wait in total: first for the compile
+-  /// database to hand over the projects it has found (blockUntilIdle), then
+-  /// for their stored shards to be read (not for the index built from them). std::nullopt if no source file is known
+-  /// to include \p Header.
++  /// this session. A known includer is returned at once. Otherwise waits up to
++  /// \p Wait in total: first for the compile database to hand over the
++  /// projects it has found (blockUntilIdle), then for their stored shards to
++  /// be read (not for the index built from them). std::nullopt if no source
++  /// file is known to include \p Header.
+   std::optional<std::string>
+   includerOf(PathRef Header, std::chrono::steady_clock::duration Wait);
+ 
+@@ -233,7 +231,8 @@ private:
+   // Header -> a translation unit that includes it (see includerOf).
+   llvm::StringMap<std::string> Includers;
+   // Number of enqueued shard loads (changedFilesTask) whose includers are not
+-  // recorded yet; loadProject() counts down once they are.
++  // recorded yet: counted by projectLoadStarted() in enqueue() and
++  // projectLoadFinished() in loadProject(), the two defined side by side.
+   unsigned ProjectsLoading = 0;
+   std::mutex IncludersMu;
+   std::condition_variable IncludersChanged;
+@@ -243,6 +242,8 @@ private:
+   BackgroundIndexStorage::Factory IndexStorageFactory;
+   // Tries to load shards for the MainFiles and their dependencies.
+   std::vector<std::string> loadProject(std::vector<std::string> MainFiles);
++  void projectLoadStarted();
++  void projectLoadFinished();
+ 
+   BackgroundQueue::Task
+   changedFilesTask(const std::vector<std::string> &ChangedFiles);
+diff --git a/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp b/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp
+index 3e5bdf4..25d5abd 100644
+--- a/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp
++++ b/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp
+@@ -883,6 +883,57 @@ TEST_F(BackgroundIndexTest, IncluderOfHeaderAskedBeforeTheProjectArrives) {
+   ASSERT_TRUE(Idx.blockUntilIdleForTest());
+ }
+ 
++// A compile database whose broadcast thread is busy, e.g. announcing another
++// project: while Busy, blockUntilIdle() returns only at its deadline.
++class BusyCDB : public OverlayCDB {
++public:
++  BusyCDB() : OverlayCDB(/*Base=*/nullptr) {}
++  bool blockUntilIdle(Deadline D) const override {
++    if (!Busy)
++      return OverlayCDB::blockUntilIdle(D);
++    std::mutex Mu;
++    std::condition_variable CV;
++    std::unique_lock<std::mutex> Lock(Mu);
++    return clangd::wait(Lock, CV, D, [] { return false; });
++  }
++  std::atomic<bool> Busy{false};
++};
++
++TEST_F(BackgroundIndexTest, IncluderOfKnownHeaderDoesNotWaitForTheDatabase) {
++  // A header whose includer is known is answered at once, also while the
++  // compile database is busy; only an unknown header waits for it.
++  MockFS FS;
++  FS.Files[testPath("root/inc/b.h")] = "int b();";
++  FS.Files[testPath("root/inc/unused.h")] = "int u();";
++  std::string MainPath = testPath("root/src/A.cc");
++  FS.Files[MainPath] = "#include <b.h>\nint main() { return b(); }";
++  llvm::StringMap<std::string> Storage;
++  size_t CacheHits = 0;
++  MemoryShardStorage MSS(Storage, CacheHits);
++  tooling::CompileCommand Cmd;
++  Cmd.Filename = MainPath;
++  Cmd.Directory = testPath("root");
++  Cmd.CommandLine = {"clang++", "-I" + testPath("root/inc"), MainPath};
++  BusyCDB CDB;
++  BackgroundIndex Idx(FS, CDB, [&](llvm::StringRef) { return &MSS; },
++                      /*Opts=*/{});
++  CDB.setCompileCommand(MainPath, Cmd);
++  ASSERT_TRUE(Idx.blockUntilIdleForTest());
++
++  CDB.Busy = true;
++  auto Start = std::chrono::steady_clock::now();
++  EXPECT_EQ(Idx.includerOf(testPath("root/inc/b.h"), std::chrono::seconds(5)),
++            MainPath);
++  EXPECT_LT(std::chrono::steady_clock::now() - Start, std::chrono::seconds(1));
++  // An unknown header still waits for the database, up to its bound.
++  Start = std::chrono::steady_clock::now();
++  EXPECT_FALSE(Idx.includerOf(testPath("root/inc/unused.h"),
++                              std::chrono::milliseconds(300)));
++  EXPECT_GE(std::chrono::steady_clock::now() - Start,
++            std::chrono::milliseconds(300));
++  CDB.Busy = false;
++}
++
+ TEST_F(BackgroundIndexTest, ShardStorageLoad) {
+   MockFS FS;
+   FS.Files[testPath("root/A.h")] = R"cpp(
+-- 
+2.56.0
+

@@ -266,6 +266,13 @@ Known defects: none yet (nothing built).
   version, patches and checksums from the PKGBUILD; `--tarball` uses a downloaded
   file. Test run on the Mac: 14 min wall, 3.3 GB build tree; the clangd links
   MacPorts' libedit, zlib and zstd.
+- DECIDED D-059 (owner 2026-10-09, T-020, review 0031): patch 0008, pkgrel 6:
+  `includerOf` answers a known includer at once, before waiting for the compile
+  database; only an unknown header waits as D-046 / D-047 require. The load counter's
+  increment and decrement are a pair of functions side by side. ClangdTests 1413 /
+  1413 on macOS with a new test that fails without the change (0041). Not taken from
+  the T-020 text: "no stall for headers that have no includer"; skipping that wait
+  would bring back the header-opened-first guess of O-21.
 - DECIDED D-047 (owner 2026-10-08, T-019, S9 run 2): patch 0007 (llvm-clangd cb118e30f,
   pkgrel 5): the wait of D-028 / D-046 ends as soon as the includers are recorded
   (right after the stored shards are read), not when the whole load returns. On RMO
@@ -1005,6 +1012,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-056 | 2026-10-09 | debug presets read targets from CMake's file API | 9 | O-25 |
 | D-057 | 2026-10-09 | performance budgets measured on Arch only | 11 | O-24 |
 | D-058 | 2026-10-09 | make test passes on the machine at hand before a commit | 4 | O-24 |
+| D-059 | 2026-10-09 | patch 0008: known includer answered at once (pkgrel 6) | 7 | T-020 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.

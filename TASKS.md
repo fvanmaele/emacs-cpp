@@ -65,7 +65,7 @@ with `done when: ...`).
 | T-017 | done 0026 | M | breadcrumb | D-043, v0.4 | path + function in header; test |
 | T-018 | done 0030 | M | Python rides along | D-045, O-19 | mode, pyright, debugpy; tests |
 | T-019 | done 0029 | S | header first: 0006, 0007 | D-046, D-047 | S9 run 3: 0.9 s |
-| T-020 | next | S | patch 0008 (review 0031) | D-046, D-047 | owner 2026-10-09: now |
+| T-020 | open | S | patch 0008 (review 0031) | D-059 | built 0041; Arch + S9 left |
 | T-021 | open | M | config starts on macOS | D-050, D-054 | built 0034; Arch run left |
 | T-022 | open | M | lldb-preset | D-051, O-22 | built 0035; Arch run left |
 | T-023 | open | M | macOS clangd build script | D-052, O-23 | built 0036; owner run left |
@@ -118,7 +118,10 @@ with `done when: ...`).
   have no includer); the load counter's increment and decrement paired in one place;
   the long doc comment of 0007 wrapped at 80 columns. Done when: ClangdTests pass, a
   unit test shows a known includer answered while the database is busy, pkgrel 6
-  built, S9 unchanged on RMO (owner).
+  built, S9 unchanged on RMO (owner). Owner 2026-10-09: build now. Built 2026-10-09
+  (0041): ClangdTests 1413 / 1413 on macOS with the new test (fails without the
+  change), PKGBUILD pkgrel 6, `build-macos.sh` builds it; left: pkgrel 6 on Arch
+  and S9 on RMO (owner, commands in 0041).
 - T-021 (opened 2026-10-09, D-050): make the config start and test cleanly on the
   owner's Mac (DESIGN 3 macOS observations). Known so far: `init-cmake.el` names only
   `/usr/share/emacs/site-lisp` (MacPorts: `/opt/local/share/emacs/site-lisp`);
