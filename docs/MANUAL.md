@@ -210,7 +210,8 @@ names and deduced types.
 ```
 After the first step key (`C-x C-a n`), plain `n` `s` `o` `c` keep going. Program
 arguments: `gdb-preset :args ["--levels" "5"]` at the `C-x C-a d` prompt; the prompt
-starts with your last input.
+starts with your last input. `lldb-preset` does the same with lldb: on macOS, where
+there is no gdb, use it in place of `gdb-preset`.
 
 Python files work the same way with pyright (navigation, rename, `C-c l` keys);
 `C-x C-a d debugpy RET` debugs the current file.

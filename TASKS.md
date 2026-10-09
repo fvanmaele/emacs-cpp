@@ -67,7 +67,7 @@ with `done when: ...`).
 | T-019 | done 0029 | S | header first: 0006, 0007 | D-046, D-047 | S9 run 3: 0.9 s |
 | T-020 | open | S | patch 0008 (review 0031) | D-046, D-047 | owner: rebuild now or later |
 | T-021 | open | M | config starts on macOS | D-050, D-054 | built 0034; Arch run left |
-| T-022 | open | M | lldb-preset | D-051, O-22 | lldb-dap next to gdb; proposed |
+| T-022 | open | M | lldb-preset | D-051, O-22 | built 0035; Arch run left |
 | T-023 | open | M | macOS clangd build script | D-052, O-23 | CHEATSHEET item 6; proposed |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
@@ -129,7 +129,9 @@ with `done when: ...`).
   picks a target of the active preset, builds it, stops at a breakpoint and steps, on
   Arch and on the Mac; a missing lldb-dap refuses the session with the fix; an ERT
   test like `init-debug-gdb-preset-builds-stops-and-steps` covers it; the gdb tests
-  are unchanged; make test passes on Arch.
+  are unchanged; make test passes on Arch. Agreed 2026-10-09. Built 2026-10-09
+  (0035): on the Mac the session test passes (3 of 3 runs) and the refusal test;
+  left: the same on Arch with the lldb package (owner).
 - T-023 (opened 2026-10-09, D-052): a script (NEW, proposed
   `packaging/clangd-index-nav/build-macos.sh`) doing the steps of `docs/CHEATSHEET.md`
   macOS item 6: download the 23.1.1 tarball into `packaging/clangd-index-nav/`
