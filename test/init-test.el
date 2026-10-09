@@ -206,6 +206,10 @@ without one, the default theme is."
           (switch-to-buffer (find-file-noselect file))
           (emacs-cpp-treemacs-toggle)
           (should (treemacs-get-local-window))
+          ;; Line numbers in the file, not in the tree (D-063).
+          (should (buffer-local-value 'display-line-numbers-mode (get-file-buffer file)))
+          (with-current-buffer (window-buffer (treemacs-get-local-window))
+            (should-not display-line-numbers-mode))
           (should (equal (mapcar #'treemacs-project->path
                                  (treemacs-workspace->projects
                                   (treemacs-current-workspace)))
@@ -214,6 +218,24 @@ without one, the default theme is."
           (should-not (treemacs-get-local-window)))
       (when-let* ((buffer (get-file-buffer file))) (kill-buffer buffer))
       (delete-directory root t))))
+
+(ert-deftest init-line-numbers-in-editing-buffers-only ()
+  "D-063: line numbers in code, text and configuration buffers, not in tool
+buffers."
+  (init-test--load)
+  (dolist (mode '(c++-ts-mode python-ts-mode emacs-lisp-mode markdown-mode
+                  text-mode conf-unix-mode))
+    (with-temp-buffer
+      (funcall mode)
+      (should (equal (cons mode display-line-numbers-mode) (cons mode t)))))
+  (dolist (mode '(special-mode help-mode compilation-mode))
+    (with-temp-buffer
+      (funcall mode)
+      (should (equal (cons mode display-line-numbers-mode) (cons mode nil)))))
+  ;; Not run here, so asked by derivation: magit's buffers are special buffers.
+  (require 'magit)
+  (should-not (provided-mode-derived-p 'magit-status-mode 'prog-mode 'text-mode
+                                       'conf-mode)))
 
 (ert-deftest init-treemacs-opens-only-on-c-c-t ()
   "D-049: visiting a project file does not open the tree; only C-c t does."

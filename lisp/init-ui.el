@@ -27,6 +27,13 @@
 (use-package which-key
   :hook (after-init . which-key-mode))
 
+;; Built in: line numbers where code or text is edited (modes derived from
+;; `prog-mode', `text-mode', `conf-mode': C++, CMake, Python, Markdown, ...), not in
+;; tool buffers such as treemacs, magit or *compilation* (D-063).  Emacs 31.1's
+;; `global-display-line-numbers-mode' turns on in every buffer but the minibuffer.
+(use-package display-line-numbers
+  :hook ((prog-mode text-mode conf-mode) . display-line-numbers-mode))
+
 (defconst emacs-cpp-info-directory (expand-file-name "lib/info" emacs-cpp-root)
   "Info manuals of the vendored packages, built by `make packages' (D-039).")
 

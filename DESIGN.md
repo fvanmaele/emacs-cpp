@@ -195,6 +195,12 @@ Observed on the owner's Mac, 2026-10-09 (D-050):
   state files under `~/.emacs.d/.cache/` left out. `C-x b` (consult) lists recent
   files below the buffers, `C-x C-r` is `consult-recent-file` (instead of
   `find-file-read-only`), `C-c p e` the project's. Startup unchanged (0.151 s).
+- DECIDED D-063 (owner 2026-10-10: "global-display-line-numbers-mode, but without
+  buffers like treemacs"): line numbers in buffers whose mode derives from
+  `prog-mode`, `text-mode` or `conf-mode`, from their hooks. Not the global mode: in
+  Emacs 31.1 it turns on in every buffer but the minibuffer, with no exemption list,
+  so leaving out treemacs, magit, `*compilation*`, help and dape's buffers would need
+  a list grown with every package; the three hooks give the same set the other way.
 
 ## 6. Architecture
 | block | location | tag | notes |
@@ -1089,6 +1095,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-060 | 2026-10-09 | patch 0009: re-index sources whose shards had errors | 7 | O-27 |
 | D-061 | 2026-10-10 | RET: new line indented by clangd; namespace gap upstream | 7 | O-28 |
 | D-062 | 2026-10-10 | C++ indentation from plain .dir-locals.el values | 7 | owner |
+| D-063 | 2026-10-10 | line numbers in code, text and configuration buffers | 5 | owner |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
