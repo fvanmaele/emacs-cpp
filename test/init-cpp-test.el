@@ -343,6 +343,58 @@ the next insertion does not restore a line from the failed RET."
         (should (equal (init-cpp-test--ret-after "int g();")
                        init-cpp-test--ret-by-rules))))))
 
+(defun init-cpp-test--reindented (dir-locals code)
+  "Visit CODE in a project with DIR-LOCALS (nil: none) and re-indent it.
+Return (PROMPTED . TEXT): whether Emacs asked to trust a local variable, and
+the re-indented text."
+  (let ((prompted nil))
+    (init-cpp-test--with-project
+        (append (and dir-locals (list (cons ".dir-locals.el" dir-locals)))
+                (list (cons "src/a.cc" code)))
+      (let ((warning-minimum-log-level :emergency))
+        (cl-letf (((symbol-function 'hack-local-variables-confirm)
+                   (lambda (&rest _) (setq prompted t) nil)))
+          (with-current-buffer (init-cpp-test--visit (expand-file-name "src/a.cc" root))
+            (indent-region (point-min) (point-max))
+            (cons prompted (buffer-string))))))))
+
+(ert-deftest init-cpp-indent-from-dir-locals-data ()
+  "D-062, T-038: style, offset and flat namespaces come from plain values in
+.dir-locals.el, without a trust prompt."
+  (init-test--load)
+  (should (equal (init-cpp-test--reindented
+                  "((c++-ts-mode . ((c-ts-indent-offset . 4)
+                  (indent-tabs-mode . nil)
+                  (c-ts-mode-indent-style . bsd)
+                  (emacs-cpp-indent-namespace-body . nil))))\n"
+                  "namespace toy\n{\nint g();\nclass B\n{\npublic:\nint f(int x)\n{
+if (x)\n{\nreturn 1;\n}\nreturn 0;\n}\n};\n}\n")
+                 (cons nil "namespace toy
+{
+int g();
+class B
+{
+public:
+    int f(int x)
+    {
+        if (x)
+        {
+            return 1;
+        }
+        return 0;
+    }
+};
+}
+"))))
+
+(ert-deftest init-cpp-indent-braces-after-namespace-and-class ()
+  "D-062: without project settings a `{' on its own line after `namespace' or
+`class' stays at the keyword's column; the namespace body is indented."
+  (init-test--load)
+  (should (equal (init-cpp-test--reindented
+                  nil "namespace toy\n{\nclass B\n{\nint y;\n};\n}\n")
+                 (cons nil "namespace toy\n{\n  class B\n  {\n    int y;\n  };\n}\n"))))
+
 (ert-deftest init-cpp-eglot-only-for-preset-projects ()
   (init-test--load)
   ;; A project without presets: no server, an echo-area note instead (D-005).
