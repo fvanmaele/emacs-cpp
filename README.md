@@ -83,6 +83,76 @@ back silently. An LLVM upgrade needs a rebuild of this package.
 Configure once with `C-c p c o` (or `cmake --preset <name>`, which serves clangd but
 not the debug presets), then open a source file.
 
+#### Writing a CMakePresets.json
+Presets file version 6 needs CMake 3.25 or newer (Arch and MacPorts ship newer).
+
+1. **Create `CMakePresets.json` in the project root** (the directory with `.git`),
+   one configure preset per build. This one gives a `debug` and a `release` build
+   in `build/debug` and `build/release`:
+   ```json
+   {
+     "version": 6,
+     "configurePresets": [
+       {
+         "name": "debug",
+         "generator": "Ninja",
+         "binaryDir": "${sourceDir}/build/${presetName}",
+         "cacheVariables": {
+           "CMAKE_BUILD_TYPE": "Debug",
+           "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+           "CMAKE_CXX_EXTENSIONS": "OFF"
+         }
+       },
+       {
+         "name": "release",
+         "inherits": "debug",
+         "cacheVariables": { "CMAKE_BUILD_TYPE": "Release" }
+       }
+     ]
+   }
+   ```
+   `CMAKE_EXPORT_COMPILE_COMMANDS` writes the database clangd reads, and
+   `CMAKE_CXX_EXTENSIONS` OFF puts `-std=` into it; the second may instead be set in
+   `CMakeLists.txt`, as long as nothing sets it ON. Ninja is not required.
+2. **Put paths of one machine into `CMakeUserPresets.json`** next to it, and keep
+   that file out of git. A preset there can inherit from one in `CMakePresets.json`,
+   for example where deal.II is installed:
+   ```json
+   {
+     "version": 6,
+     "configurePresets": [
+       {
+         "name": "debug-dealii",
+         "inherits": "debug",
+         "cacheVariables": {
+           "deal.II_DIR": "/path/to/lib/cmake/deal.II"
+         }
+       }
+     ]
+   }
+   ```
+   With `deal.II.app` on the owner's Mac the path is
+   `/Applications/deal.II.app/Contents/Resources/Libraries/lib/cmake/deal.II`.
+   Presets for one platform can also stay in `CMakePresets.json` with a `condition`,
+   e.g. `{"type": "equals", "lhs": "${hostSystemName}", "rhs": "Darwin"}`; a preset
+   whose condition is false is not offered.
+3. **Ignore the build output:** add `build/` and `CMakeUserPresets.json` to
+   `.gitignore`.
+4. **Check the presets:** `cmake --list-presets` lists them.
+5. **Choose and configure in Emacs.** The active preset is the first non-hidden one
+   in `CMakePresets.json` (`debug` here), even though `cmake --list-presets` shows
+   user presets first. `C-c l P` picks another, for example `debug-dealii`, and
+   remembers it for the project. `C-c p c o` configures the active preset.
+6. **Verify the database:** every entry must carry `-std=`, or eglot refuses to start
+   and names the fix.
+   ```sh
+   grep -c -- '-std=' build/debug/compile_commands.json
+   ```
+   Then open a source file; eglot starts clangd with that build directory.
+
+Not supported, and refused with an error rather than guessed: the presets file's
+`include` field, `$vendor{}` macros, and the `matches` / `notMatches` condition types.
+
 ### Updating
 Package upgrades are commits that move a submodule (D-006). After a pull:
 ```sh
