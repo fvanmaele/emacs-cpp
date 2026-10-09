@@ -74,8 +74,11 @@ Windows / macOS".
   path or tool is chosen per platform and a missing one stops with the fix, never a
   silent fallback. Observed before any code change (section 3): on the owner's Mac the
   config does not start (cmake-mode path, D-013) and `make test` fails 17 of 45; making
-  it start and pass is T-021. Open: debugger without gdb (O-22), patched clangd on macOS
-  (O-23), package source and which machine the budgets are measured on (O-24).
+  it start and pass is T-021. Rulings: debugger without gdb O-22 -> D-051, patched
+  clangd on macOS O-23 -> D-052, package source O-24 (a) -> D-053. Open: O-24 (b), (c).
+- DECIDED D-053 (owner 2026-10-09, O-24 a): on macOS the system tools come from
+  MacPorts only; Homebrew is not supported. Paths the config names for macOS are
+  MacPorts paths (`/opt/local`).
 Complexity budget principle: prefer a built-in over a package, a package over own Lisp,
 and own Lisp only for glue the owner touches daily.
 
@@ -225,7 +228,15 @@ Known defects: none yet (nothing built).
   commits as patches, four since pkgrel 2; standalone build against the system LLVM) to
   `/opt/clangd-index-nav`, depending on `llvm-libs` and `clang` = 23.1.1 exactly, so
   an LLVM upgrade is visible to pacman and needs a rebuild of the package.
-  Arch only; macOS: O-23 (D-050).
+  Arch only; on macOS D-052.
+- DECIDED D-052 (owner 2026-10-09, O-23): on macOS the patched clangd is built by a
+  script in the repository (NEW, T-023) that follows the self-contained build in
+  `docs/CHEATSHEET.md` (macOS item 6): the 23.1.1 release tarball, checked against the
+  PKGBUILD's sha256; the same patches; clang and clang-tools-extra built with CMake and
+  Ninja from MacPorts (D-053); clangd and its builtin headers installed to
+  `~/opt/clangd-index-nav`, a directory outside the repository. Self-contained, not
+  built against the system LLVM as D-027: MacPorts' `llvm-23` is 23.1.3, not 23.1.1.
+  Extends D-014: the script downloads the tarball, only when the owner runs it.
 - DECIDED D-047 (owner 2026-10-08, T-019, S9 run 2): patch 0007 (llvm-clangd cb118e30f,
   pkgrel 5): the wait of D-028 / D-046 ends as soon as the includers are recorded
   (right after the stored shards are read), not when the whole load returns. On RMO
@@ -320,7 +331,14 @@ Known defects: none yet (nothing built).
 ## 9. Debugger (dape)
 - DECIDED D-002: dape is the debugger front-end; gdb 17 via its native DAP interpreter
   is the default adapter, lldb-dap the alternate.
-  macOS (D-050): no gdb for Apple silicon; `gdb-preset` (D-031) is gdb-only (O-22).
+  macOS (D-050): no gdb for Apple silicon; `gdb-preset` (D-031) is gdb-only (D-051).
+- DECIDED D-051 (owner 2026-10-09, O-22): lldb is supported in addition to gdb, on
+  both platforms. Built in T-022. PROPOSED for T-022 (owner to agree): an
+  `lldb-preset` entry next to `gdb-preset` that picks the same preset programs (D-033),
+  builds them the same way and starts dape's `lldb-dap` configuration; gdb stays the
+  default on Arch (D-002), lldb is the only adapter on macOS; the gdb options (D-030
+  lazy symbols, D-032 gdb scripts) stay gdb-only until a need for an lldb counterpart
+  shows.
 - S2 PASS (2026-10-08, RMO): dape + gdb 18.1 DAP stops at a source breakpoint, shows
   stack, variables and a watch, steps and ends cleanly; lldb-dap too. Findings for
   T-006: program path = active preset's `binaryDir` + target name; breakpoints persist
@@ -705,20 +723,23 @@ presets, GoogleTest runner.
   errors; loading the 3950 stored shards takes 0.4 s, so the 5 s cap is not involved.
   Patch 0006 (D-046, T-019) built and tested locally; left: pkgrel 4 installed and S9
   rerun on RMO (owner).
-- O-22 (OPEN, D-050, 2026-10-09): the C++ debugger on macOS. Apple silicon has no gdb,
-  and `gdb-preset` (D-031, D-033) starts only gdb. Options: an `lldb-preset` doing the
-  same with `lldb-dap` (Command Line Tools or the `lldb-23` port); dape's own
-  `lldb-dap` configuration by hand, no preset program picker; or no C++ debugging on
-  macOS. D-032 (gdb scripts) and D-030 (symbol loading) have no lldb counterpart yet.
-- O-23 (OPEN, D-050, 2026-10-09): the patched clangd (D-026 .. D-028, D-046, D-047) on
-  macOS. Its PKGBUILD is Arch-only (makepkg, pacman's `llvm-libs` / `clang`). Options:
-  a local MacPorts portfile against `llvm-23`; a build script outside any package
-  manager; or the MacPorts clangd only (`emacs-cpp-clangd-program` nil), losing index
-  navigation and header flags from the index on macOS.
-- O-24 (OPEN, D-050, 2026-10-09): scope of macOS support. (a) Package source: MacPorts
-  only (the owner's Mac), or Homebrew too. (b) Which machine the performance budgets
-  (section 11) and the reference project (D-009) are measured on: Arch only, or both.
-  (c) Whether `make test` must pass on both before every commit.
+- O-22 (RESOLVED 2026-10-09 with D-051: lldb in addition to gdb): the C++ debugger on
+  macOS. Apple silicon has no gdb, and `gdb-preset` (D-031, D-033) starts only gdb.
+  Options: an `lldb-preset` doing the same with `lldb-dap` (Command Line Tools or the
+  `lldb-23` port); dape's own `lldb-dap` configuration by hand, no preset program
+  picker; or no C++ debugging on macOS. D-032 (gdb scripts) and D-030 (symbol loading)
+  have no lldb counterpart yet.
+- O-23 (RESOLVED 2026-10-09 with D-052: a build script): the patched clangd (D-026 ..
+  D-028, D-046, D-047) on macOS. Its PKGBUILD is Arch-only (makepkg, pacman's
+  `llvm-libs` / `clang`). Options: a local MacPorts portfile against `llvm-23`; a build
+  script outside any package manager; or the MacPorts clangd only
+  (`emacs-cpp-clangd-program` nil), losing index navigation and header flags from the
+  index on macOS.
+- O-24 (OPEN for (b), (c); (a) RESOLVED 2026-10-09 with D-053, MacPorts only; D-050):
+  scope of macOS support. (a) Package source: MacPorts only (the owner's Mac), or
+  Homebrew too. (b) Which machine the performance budgets (section 11) and the
+  reference project (D-009) are measured on: Arch only, or both. (c) Whether `make
+  test` must pass on both before every commit.
 - O-19 (RESOLVED 2026-10-08 with D-045): which of Python, R and Perl ride along, and
   how far: mode only, plus a language server, plus a debugger
   (`RESEARCH_other_languages.md` 3). Python needs only Arch packages; Perl's server is
@@ -859,6 +880,9 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-048 | 2026-10-08 | tree opens with the first project file (option) | 10 | owner |
 | D-049 | 2026-10-08 | tree opens only on `C-c t` again (D-048 withdrawn) | 10 | owner |
 | D-050 | 2026-10-09 | macOS supported next to Arch Linux | 2 | owner |
+| D-051 | 2026-10-09 | lldb supported in addition to gdb | 9 | O-22 |
+| D-052 | 2026-10-09 | macOS: patched clangd built by a repository script | 7 | O-23 |
+| D-053 | 2026-10-09 | macOS: system tools from MacPorts only | 2 | O-24 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.

@@ -99,7 +99,7 @@ sudo port install emacs-app +nativecomp +treesitter
 sudo port install cmake ninja clang-23 tree-sitter-cpp tree-sitter-python \
     texinfo ripgrep fd pyright py314-debugpy
 sudo port select --set clang mp-clang-23   # /opt/local/bin/clangd -> clangd 23
-xcode-select --install                     # lldb-dap from the Command Line Tools
+xcode-select --install                     # git and make
 ```
 The MacPorts Emacs lives in `/Applications/MacPorts/Emacs.app`; pass its binary when
 it is not on `PATH` as `emacs`:
@@ -117,16 +117,18 @@ tree-sitter grammars and `make packages` builds all packages and manuals.
   emacs-cpp: no cmake-mode.el in /usr/share/emacs/site-lisp;
   install the cmake package (D-013)
   ```
-- **No gdb on Apple silicon.** `gdb-preset` (D-031) drives gdb only; lldb-dap is
-  reachable only through dape's own configurations. Open question O-22.
-- **The patched clangd is Arch-only.** Its PKGBUILD needs makepkg and the Arch LLVM
-  packages; leave `emacs-cpp-clangd-program` nil to use the MacPorts clangd. Open
-  question O-23.
+- **No gdb on Apple silicon.** `gdb-preset` (D-031) drives gdb only. An
+  `lldb-preset` next to it is decided (D-051) and is T-022; until it lands, lldb-dap is
+  reachable only through dape's own configurations.
+- **The patched clangd has no macOS build script yet.** Its PKGBUILD is Arch-only. A
+  script is decided (D-052) and is T-023; until then the manual steps in
+  `docs/CHEATSHEET.md` (macOS, item 6) apply. Leave `emacs-cpp-clangd-program` nil to
+  use the MacPorts clangd.
 - **`${hostSystemName}` in a preset is an error** outside GNU/Linux.
 - **`make test` fails 17 of 45 tests** on that machine, the first cause being the CMake
   module above.
 
-Homebrew was not tried; whether it is supported is open question O-24.
+Homebrew is not supported (D-053).
 
 ## Repository layout
 
