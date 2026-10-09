@@ -308,6 +308,39 @@ re-indented by Emacs's rules; after eglot lets the buffer go, RET is as before."
       (should (equal (init-cpp-test--ret-after "int g();")
                      init-cpp-test--ret-by-rules)))))
 
+(ert-deftest init-cpp-ret-keeps-a-line-clangd-would-split ()
+  "D-061, owner report 2026-10-10 (symbols inserted twice): when clangd's reply
+splits the line above in two (a `{' moved to its own line, two statements on
+one line), that line comes back as typed, without clangd's extra line."
+  (init-test--load)
+  (init-cpp-test--with-project
+      (cons '("src/main.cc" . "namespace toy
+{
+int f() {
+int x = 1; int y = 2;
+return x + y;
+}
+}
+
+int main() { return toy::f(); }
+")
+            (assoc-delete-all "src/main.cc" (copy-sequence init-cpp-test--ret-files)))
+    (should (eql 0 (call-process "cmake" nil nil nil "--preset" "debug")))
+    (with-current-buffer (init-cpp-test--visit (expand-file-name "src/main.cc" root))
+      (should (init-test--wait-managed))
+      (let ((original (buffer-string)))
+        (dolist (text '("int f() {" "int x = 1; int y = 2;"))
+          (goto-char (point-min))
+          (search-forward text)
+          (end-of-line)
+          (call-interactively #'newline)
+          ;; Exactly one newline and the new line's indentation were added.
+          (should (equal (concat (buffer-substring-no-properties (point-min) (1- (pos-bol)))
+                                 (buffer-substring-no-properties (point) (point-max)))
+                         original))
+          (should (= (current-column) 4))
+          (revert-buffer t t t))))))
+
 (ert-deftest init-cpp-ret-shows-server-errors ()
   "D-061, fail loudly: an error from the on-type request reaches the user, and
 the next insertion does not restore a line from the failed RET."

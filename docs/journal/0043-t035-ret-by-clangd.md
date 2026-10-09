@@ -65,7 +65,13 @@ eglot (no presets, or Python) behave as before.
   D-061.
 - **Assumed:** clangd's edits on newline touch only the line above and the new line,
   and do not join or split lines. **Would break if:** an edit removes the line break
-  above the saved marker; the restore would then rewrite the wrong text. Not seen.
+  above the saved marker; the restore would then rewrite the wrong text. **Broke
+  2026-10-10 (owner report "symbols are copied/inserted", `double value() {}` RET):**
+  clangd splits the line above (`{` to its own line per `AfterFunction`, two
+  statements on one line), and the restore replaced only its first line, leaving
+  clangd's second (`{}`, `int y = 2;` twice). Fixed the same day: everything from the
+  saved line's start up to the new line is replaced; test
+  `init-cpp-ret-keeps-a-line-clangd-would-split`.
 - **Risk:** a failed request leaves the newline inserted and the line above as clangd
   left it (nothing changed yet, since the request failed); the error shows, and the
   next keystroke clears the saved line (tested).
