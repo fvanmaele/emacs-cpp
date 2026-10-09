@@ -215,6 +215,14 @@ without asking. Files already open keep their old settings until reopened
 | `c-ts-mode-indent-style` | `gnu`, `bsd`, `k&r`, `linux` | `BreakBeforeBraces` (below) |
 | `emacs-cpp-indent-namespace-body` | `t`, `nil` | `NamespaceIndentation` (`All` / `None`) |
 | `emacs-cpp-indent-case-labels` | `nil`, `t` | `IndentCaseLabels` |
+| `emacs-cpp-indent-access-offset` | `nil` (class's column), integer | `AccessModifierOffset` |
+| `emacs-cpp-indent-initializer-offset` | `nil` (the step), integer | `ConstructorInitializerIndentWidth` |
+| `emacs-cpp-indent-continuation-offset` | `nil` (the step), integer | `ContinuationIndentWidth` |
+| `emacs-cpp-indent-align-arguments` | `t`, `nil` | `AlignAfterOpenBracket` (`DontAlign` = `nil`) |
+
+The numbers mean what they mean in `.clang-format`, so they can be copied from it:
+`AccessModifierOffset: -1` with a step of 2 puts `public:` one column in from the
+class.
 
 `c-ts-mode-indent-style` matters only for a `{` on its own line after `if`, `for`,
 `while`: `gnu` indents it one step (clang-format's `GNU` style), `bsd` keeps it at the
@@ -223,40 +231,42 @@ labels. A `{` on the `if` line indents the same in every style.
 
 Always done in C++ buffers, whatever the settings:
 - a `{` on its own line after `namespace`, `class` or `struct` stays at the keyword's
-  column; class members are one step in, also after a blank line; `public:` and the
-  other access specifiers at the class's column;
-- arguments after a `(` that ends its line go one step in; arguments after the first
-  on the `(` line align with the first;
-- a constructor's `: member(...)` goes one step in; later initializers align with the
-  first, or stay under the `:` when the lines start with `,`;
+  column; class members are one step in, also after a blank line;
+- arguments after a `(` that ends its line go in by the continuation offset;
+  arguments after the first on the `(` line align with the first (unless
+  `emacs-cpp-indent-align-arguments` is `nil`);
+- a constructor's `: member(...)` goes in by the initializer offset; later
+  initializers align with the first, or stay under the `:` when the lines start with
+  `,`;
 - a `requires` clause on its own line goes one step in.
 
-Settings for clang-format's built-in styles, each checked 2026-10-10: a sample
-(namespaces, `switch`, an `if` / `else`, long argument lists, a template with
-`requires`, classes with initializers) formatted by clang-format 23.1.1 in that style,
-stripped of all indentation, and re-indented by Emacs with these settings:
+Settings for clang-format's built-in styles, all with `(indent-tabs-mode . nil)`
+(`...` stands for `emacs-cpp-indent`):
 
-| Style | `c-ts-indent-offset` | `c-ts-mode-indent-style` | `...-namespace-body` | `...-case-labels` | Still differs |
-|---|---|---|---|---|---|
-| LLVM | 2 | `gnu` | `nil` | `nil` | initializer line (a) |
-| Google | 2 | `gnu` | `nil` | `t` | (a), access specifiers (b) |
-| Chromium | 2 | `gnu` | `nil` | `t` | (a), (b) |
-| Mozilla | 2 | `gnu` | `nil` | `t` | nothing |
-| WebKit | 4 | `gnu` | `nil` | `nil` | nested namespaces (c) |
-| Microsoft | 4 | `bsd` | `nil` | `nil` | (b) |
-| GNU | 2 | `gnu` | `nil` | `nil` | (a) |
+| Setting | LLVM | Google | Chromium | Mozilla | WebKit | Microsoft | GNU |
+|---|---|---|---|---|---|---|---|
+| `c-ts-indent-offset` | 2 | 2 | 2 | 2 | 4 | 4 | 2 |
+| `c-ts-mode-indent-style` | `gnu` | `gnu` | `gnu` | `gnu` | `gnu` | `bsd` | `gnu` |
+| `...-namespace-body` | `nil` | `nil` | `nil` | `nil` | `nil` | `nil` | `nil` |
+| `...-case-labels` | `nil` | `t` | `t` | `t` | `nil` | `nil` | `nil` |
+| `...-access-offset` | -2 | -1 | -1 | -2 | -4 | -2 | -2 |
+| `...-initializer-offset` | 4 | 4 | 4 | 2 | 4 | 4 | 4 |
+| `...-continuation-offset` | 4 | 4 | 4 | 2 | 4 | 4 | 4 |
+| `...-align-arguments` | `t` | `t` | `t` | `t` | `nil` | `t` | `t` |
 
-All with `(indent-tabs-mode . nil)`. A project with its own `.clang-format` starts
-from the style it names in `BasedOnStyle` and adjusts for the options it changes; RMO
-(WebKit with own-line braces and indented case labels) uses `bsd`, 4, `nil`, `t`.
+Each column was checked 2026-10-10: a sample (namespaces, `switch`, an `if` / `else`,
+long argument lists broken after the `(` and after the first argument, a template with
+`requires`, classes with access specifiers and initializers) formatted by clang-format
+23.1.1 in that style, stripped of all indentation, and re-indented by Emacs with the
+column's values gives clang-format's text back exactly; WebKit only without nested
+namespaces (below). The test `init-cpp-indent-like-clang-format-styles` keeps LLVM,
+Google and WebKit that way. A project with its own `.clang-format` starts from the
+column of its `BasedOnStyle` and copies the options it changes; RMO (WebKit with
+own-line braces, aligned arguments and indented case labels) uses offset 4, `bsd`,
+namespace body `nil`, case labels `t`, and the defaults for the rest.
 
 What the settings cannot express:
-- (a) a continuation or initializer width different from the indent step: LLVM,
-  Google, Chromium and GNU indent `: member(...)` by 4 with a step of 2
-  (`ConstructorInitializerIndentWidth`); Emacs uses the step;
-- (b) access specifiers off the class's column: Google and Chromium put `public:` one
-  column in, Microsoft two (`AccessModifierOffset`);
-- (c) `NamespaceIndentation: Inner` (WebKit: only nested namespaces indented);
+- `NamespaceIndentation: Inner` (WebKit: only nested namespaces indented);
 - `<<` chains aligned under the first `<<`, macro bodies, and lines inside code
   tree-sitter cannot parse.
 

@@ -468,6 +468,225 @@ sample exactly as clang-format formats it."
                   "struct Q\n{\nQ(int a, int b)\n: first(a),\nsecond(b)\n{\n}\nint first;\nint second;\n};\n")
                  (cons nil "struct Q\n{\n    Q(int a, int b)\n        : first(a),\n          second(b)\n    {\n    }\n    int first;\n    int second;\n};\n"))))
 
+(defconst init-cpp-test--style-samples
+  (list (list "LLVM" "(c-ts-indent-offset . 2) (emacs-cpp-indent-namespace-body . nil)
+                (emacs-cpp-indent-access-offset . -2) (emacs-cpp-indent-initializer-offset . 4)
+                (emacs-cpp-indent-continuation-offset . 4)"
+              "namespace toy {
+namespace inner {
+int pick(int k) {
+  switch (k) {
+  case 1:
+    return 10;
+  default:
+    return 0;
+  }
+}
+int sum(int a, int b, int c);
+int call() {
+  int r = sum(1, 2, 3);
+  int s = sum(1, 2, 3);
+  if (r > s) {
+    return r;
+  } else {
+    return s;
+  }
+}
+template <typename T>
+  requires(sizeof(T) > 1)
+T twice(T x) {
+  return x + x;
+}
+class P {
+public:
+  P(int a, int b) : m_a(a), m_b(b) {}
+  int get() const;
+
+  int other() const;
+
+private:
+  int m_a;
+  int m_b;
+};
+} // namespace inner
+} // namespace toy
+int long_function_name(int first_argument_with_a_long_name,
+                       int second_argument_with_a_long_name,
+                       int third_argument);
+int user() {
+  int value = long_function_name(first_value_with_quite_a_long_name,
+                                 second_value_with_quite_a_long_name, 3);
+  return value;
+}
+class Q {
+public:
+  Q(int first_member_initial_value, int second_member_initial_value)
+      : first_member_with_long_name(first_member_initial_value),
+        second_member_with_long_name(second_member_initial_value) {}
+
+private:
+  int first_member_with_long_name;
+  int second_member_with_long_name;
+};
+int g() {
+  auto result = some_namespace::some_long_function_name(
+      first_argument_long_name, second_argument_long_name);
+  return result;
+}
+")
+        (list "Google" "(c-ts-indent-offset . 2) (emacs-cpp-indent-namespace-body . nil)
+                (emacs-cpp-indent-case-labels . t) (emacs-cpp-indent-access-offset . -1)
+                (emacs-cpp-indent-initializer-offset . 4)
+                (emacs-cpp-indent-continuation-offset . 4)"
+              "namespace toy {
+namespace inner {
+int pick(int k) {
+  switch (k) {
+    case 1:
+      return 10;
+    default:
+      return 0;
+  }
+}
+int sum(int a, int b, int c);
+int call() {
+  int r = sum(1, 2, 3);
+  int s = sum(1, 2, 3);
+  if (r > s) {
+    return r;
+  } else {
+    return s;
+  }
+}
+template <typename T>
+  requires(sizeof(T) > 1)
+T twice(T x) {
+  return x + x;
+}
+class P {
+ public:
+  P(int a, int b) : m_a(a), m_b(b) {}
+  int get() const;
+
+  int other() const;
+
+ private:
+  int m_a;
+  int m_b;
+};
+}  // namespace inner
+}  // namespace toy
+int long_function_name(int first_argument_with_a_long_name,
+                       int second_argument_with_a_long_name,
+                       int third_argument);
+int user() {
+  int value = long_function_name(first_value_with_quite_a_long_name,
+                                 second_value_with_quite_a_long_name, 3);
+  return value;
+}
+class Q {
+ public:
+  Q(int first_member_initial_value, int second_member_initial_value)
+      : first_member_with_long_name(first_member_initial_value),
+        second_member_with_long_name(second_member_initial_value) {}
+
+ private:
+  int first_member_with_long_name;
+  int second_member_with_long_name;
+};
+int g() {
+  auto result = some_namespace::some_long_function_name(
+      first_argument_long_name, second_argument_long_name);
+  return result;
+}
+")
+        (list "WebKit" "(c-ts-indent-offset . 4) (emacs-cpp-indent-namespace-body . nil)
+                (emacs-cpp-indent-align-arguments . nil)"
+              "namespace toy {
+int pick(int k)
+{
+    switch (k) {
+    case 1:
+        return 10;
+    default:
+        return 0;
+    }
+}
+int sum(int a, int b, int c);
+int call()
+{
+    int r = sum(
+        1, 2, 3);
+    int s = sum(1,
+        2, 3);
+    if (r > s) {
+        return r;
+    } else {
+        return s;
+    }
+}
+template <typename T>
+    requires(sizeof(T) > 1)
+T twice(T x)
+{
+    return x + x;
+}
+class P {
+public:
+    P(int a, int b)
+        : m_a(a)
+        , m_b(b)
+    {
+    }
+    int get() const;
+
+    int other() const;
+
+private:
+    int m_a;
+    int m_b;
+};
+}
+int long_function_name(int first_argument_with_a_long_name, int second_argument_with_a_long_name, int third_argument);
+int user()
+{
+    int value = long_function_name(first_value_with_quite_a_long_name, second_value_with_quite_a_long_name, 3);
+    return value;
+}
+class Q {
+public:
+    Q(int first_member_initial_value, int second_member_initial_value)
+        : first_member_with_long_name(first_member_initial_value)
+        , second_member_with_long_name(second_member_initial_value)
+    {
+    }
+
+private:
+    int first_member_with_long_name;
+    int second_member_with_long_name;
+};
+int g()
+{
+    auto result = some_namespace::some_long_function_name(first_argument_long_name, second_argument_long_name);
+    return result;
+}
+"))
+  "For three of clang-format's built-in styles: the .dir-locals.el values of
+MANUAL 8 and a sample as clang-format 23.1.1 formats it in that style
+(2026-10-10).")
+
+(ert-deftest init-cpp-indent-like-clang-format-styles ()
+  "MANUAL 8: with a style's values, Emacs re-indents that style's sample from no
+indentation to exactly clang-format's text (access specifiers, initializer and
+continuation widths, arguments aligned or not)."
+  (init-test--load)
+  (pcase-dolist (`(,style ,locals ,sample) init-cpp-test--style-samples)
+    (should (equal (cons style
+                         (init-cpp-test--reindented
+                          (format "((c++-ts-mode . ((indent-tabs-mode . nil) %s)))\n" locals)
+                          (replace-regexp-in-string "^[ \t]+" "" sample)))
+                   (cons style (cons nil sample))))))
+
 (ert-deftest init-cpp-indent-case-labels-only-when-asked ()
   "T-040: without `emacs-cpp-indent-case-labels' a label stays at the `switch''s
 column, as Emacs puts it."
