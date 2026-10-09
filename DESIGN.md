@@ -390,6 +390,12 @@ Known defects: none yet (nothing built).
   with the body's first child, `public:` at the class's column, because the fallback
   rule takes a class body for an initializer list (31.1 and master); members now sit
   one step in from the body's `{` line. RMO re-indent: 2955 -> 452 lines (T-039).
+- DECIDED D-064 (owner 2026-10-10: "leave it"): clangd's "Move function body to
+  out-of-line" stays offered in every header, as upstream. clangd checks for the
+  header's source file only when the action is applied (`DefineOutline.cpp`: no disk
+  access in `prepare`), so on a header without a source it fails with "Couldn't find
+  a suitable implementation file." (owner report, RMO). That error is accurate; no
+  patch 0010 to hide the action.
 
 ## 8. Build (CMake presets)
 - DECIDED D-005: `CMakePresets.json` is the toolchain / profile mechanism; Emacs never
@@ -1100,6 +1106,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-061 | 2026-10-10 | RET: new line indented by clangd; namespace gap upstream | 7 | O-28 |
 | D-062 | 2026-10-10 | C++ indentation from plain .dir-locals.el values | 7 | owner |
 | D-063 | 2026-10-10 | line numbers in code, text and configuration buffers | 5 | owner |
+| D-064 | 2026-10-10 | clangd's out-of-line action left as upstream offers it | 7 | owner |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
