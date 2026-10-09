@@ -85,6 +85,9 @@ In any list: words separated by space match in any order (`vec tria` finds
 | `C-h i` | manuals: Emacs, magit, embark, orderless, dash, with-editor |
 | `C-x C-r` | open a recently visited file (`C-x b` lists them too) |
 
+Line numbers show in code, text and configuration buffers, not in the tree or tool
+buffers (D-063); `M-x display-line-numbers-mode` hides / shows them in one buffer.
+
 Theme: `M-x customize-themes`, pick one, "Save Theme Settings"; it stays after a
 restart. Without a saved choice the theme is `modus-vivendi-tritanopia`.
 

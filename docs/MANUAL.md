@@ -22,6 +22,8 @@ name (type part of it; the list narrows as you type).
 | minibuffer: prompts, completion lists, messages                    |
 +--------------------------------------------------------------------+
   header line:  file within the project, then the function at point
+  line numbers: left of the text in files of code, text and configuration;
+                not in the tree or in tool buffers (magit, compilation, help)
   left fringe:  B breakpoint (red), > line the debugger stopped at
   right fringe: lines changed since the last commit (green / blue / red)
 ```
