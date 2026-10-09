@@ -68,7 +68,7 @@ with `done when: ...`).
 | T-020 | open | S | patch 0008 (review 0031) | D-046, D-047 | owner: rebuild now or later |
 | T-021 | open | M | config starts on macOS | D-050, D-054 | built 0034; Arch run left |
 | T-022 | open | M | lldb-preset | D-051, O-22 | built 0035; Arch run left |
-| T-023 | open | M | macOS clangd build script | D-052, O-23 | CHEATSHEET item 6; proposed |
+| T-023 | open | M | macOS clangd build script | D-052, O-23 | built 0036; owner run left |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -142,7 +142,10 @@ with `done when: ...`).
   `--navigation-from-index` and `--header-flags-from-index`; a wrong checksum, a patch
   that does not apply or a missing tool stops it with the reason;
   `init-cpp-patched-clangd-navigates` passes on the Mac with that clangd; the steps in
-  CHEATSHEET are replaced by a pointer to the script.
+  CHEATSHEET are replaced by a pointer to the script. Agreed 2026-10-09. Built
+  2026-10-09 (0036): a test run into scratch directories (owner's tarball, no
+  download) installed a clangd with both flags, and the test passes with it; the
+  failure paths stop with the reason; left: the owner's run to `~/opt`.
 - T-014: the config runs the patched clangd (D-026) installed from
   packaging/clangd-index-nav (D-027); done when (agreed 2026-10-08): the config starts
   the patched clangd with --navigation-from-index when its path is set (customize

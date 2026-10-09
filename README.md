@@ -119,9 +119,13 @@ must be on the `PATH` it sees for clangd, cmake and pyright.
 - **lldb instead of gdb.** Apple silicon has no gdb; debug with `C-x C-a d lldb-preset
   RET` (D-051). It uses `/opt/local/libexec/llvm-23/bin/lldb-dap` from the lldb-23
   port (`sudo port install lldb-23`); no codesigning was needed on the owner's Mac.
-- **The patched clangd has no macOS build script yet.** A script is decided (D-052) and
-  is T-023; until then the manual steps in `docs/CHEATSHEET.md` (macOS, item 6) apply.
-  Leave `emacs-cpp-clangd-program` nil to use the MacPorts clangd.
+- **The patched clangd comes from a script** (D-052), not from the PKGBUILD. It
+  downloads the 23.1.1 sources, applies the same patches and installs to
+  `~/opt/clangd-index-nav` (about 15 minutes). Then set `emacs-cpp-clangd-program`
+  to `~/opt/clangd-index-nav/bin/clangd` (expanded path). Nil uses the MacPorts clangd.
+  ```sh
+  packaging/clangd-index-nav/build-macos.sh   # --help lists the options
+  ```
 
 Homebrew is not supported (D-053).
 
@@ -161,7 +165,7 @@ history and caches.
 | `scripts/check-standard.sh` | docs consistency (`make check`) |
 | `scripts/measure-startup.sh` | startup time measurement (DESIGN 11) |
 | `test/*-test.el` | ERT tests, one file per module |
-| `packaging/clangd-index-nav/` | PKGBUILD and patches of the patched clangd |
+| `packaging/clangd-index-nav/` | patched clangd: patches, PKGBUILD, `build-macos.sh` |
 | `spikes/` | throwaway prototypes with PASS / FAIL verdicts, listed in their README |
 
 ### Documents
