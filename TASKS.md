@@ -74,7 +74,7 @@ with `done when: ...`).
 | T-026 | open | L | setup wizard (doom doctor) | owner | research; proposed |
 | T-027 | open | S | load measurements, macOS | owner, O-24 | Mac measured 0038; Arch left |
 | T-028 | done 0037 | S | review debug and presets code | owner | 5 taken, O-25 to rule |
-| T-029 | done | M | file watches on macOS | owner, D-054 | RESEARCH doc; O-26 to rule |
+| T-029 | done | M | file watches on macOS | owner, D-054 | RESEARCH doc; O-26 ruled |
 | T-030 | done 0040 | M | targets via CMake file API | D-056, O-25 | Arch make test ok |
 | T-031 | done 0039 | M | platform defaults files | D-055, T-024 | debugger offered first |
 | T-032 | open | S | send the eglot watch report | D-054, O-26 | owner sends the draft |

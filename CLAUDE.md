@@ -20,8 +20,8 @@ supported, MacPorts only (D-050, D-053): starts and tests there (T-021, D-054),
 `lldb-preset` (D-051), patched clangd from `build-macos.sh` (D-052); per-platform defaults
 files (D-055, T-031); debug targets from CMake's file API (D-056, T-030). Budgets bind on
 Arch only (D-057); `make test` on the machine at hand (D-058). Owner runs left: S10
-(O-12), build-macos.sh to ~/opt (T-023). Open: O-12, O-26; D-054 awaits confirmation;
-T-025 round 2, T-026 research queued.
+(O-12), build-macos.sh to ~/opt (T-023); owner sends the eglot watch report (T-032).
+Open: O-12; T-025 round 2, T-026 research queued.
 
 ## Hard rules (each with its reason)
 - Change-size ladder: tier 1 trivial = commit with Reasoning only; tier 2 feature = `done
