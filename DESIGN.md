@@ -266,6 +266,14 @@ Known defects: none yet (nothing built).
   version, patches and checksums from the PKGBUILD; `--tarball` uses a downloaded
   file. Test run on the Mac: 14 min wall, 3.3 GB build tree; the clangd links
   MacPorts' libedit, zlib and zstd.
+- DECIDED D-060 (owner 2026-10-09, O-27 (b)): patch 0009 for the local clangd: at
+  startup the background index also re-indexes the sources whose stored shards carry
+  `HadErrors` (through each flagged shard's `DependentTU`, as for stale shards), so a
+  source indexed while the code did not compile gets a clean shard once it compiles, and
+  the index-first path of D-026 answers it again. A flagged shard is never trusted; a
+  source that still has errors stays flagged and is answered from the parse.
+  Unconditional (also helps `M-?`, whose cross-file results come from the same shards).
+  Built in T-033.
 - DECIDED D-059 (owner 2026-10-09, T-020, review 0031): patch 0008, pkgrel 6:
   `includerOf` answers a known includer at once, before waiting for the compile
   database; only an unknown header waits as D-046 / D-047 require. The load counter's
@@ -835,17 +843,17 @@ presets, GoogleTest runner.
   budget (Arch 0.151 s); first `M-.` from the index 2.6 s (Arch 1.4 s). If the budgets
   bind on the Mac, startup needs work there first (antivirus and native-code loading
   are the suspects, not measured).
-- O-27 (OPEN, owner question 2026-10-09, `RESEARCH_navigation_delays.md`): the first
-  `M-.` in a file after a restart waits 7 - 13 s for clangd's parse on the Mac because
-  the patched clangd refuses shards flagged "indexed with errors"; 5 of RMO's 11 sources
-  carried that flag although they compile now (indexed during an edit). A flag heals at
-  the next start only if the flagged source itself changed; a fixed header heals one
-  includer, a header created later none; clangd re-indexes nothing for an edit during a
-  session (research 4). Options: (a) delete the index by hand when it happens, (b) patch
-  0009: re-run the indexer on flagged sources at startup (no flagged shard is trusted; a
-  still-broken source stays flagged and answered from the parse), (c) missing headers as
-  dependencies, (d) the Emacs side (`vc-refresh-state` about 70 ms per opened file).
-  Owner to rule.
+- O-27 (RESOLVED 2026-10-09 with D-060, option (b); owner question 2026-10-09,
+  `RESEARCH_navigation_delays.md`): the first `M-.` in a file after a restart waits 7 -
+  13 s for clangd's parse on the Mac because the patched clangd refuses shards flagged
+  "indexed with errors"; 5 of RMO's 11 sources carried that flag although they compile
+  now (indexed during an edit). A flag heals at the next start only if the flagged
+  source itself changed; a fixed header heals one includer, a header created later none;
+  clangd re-indexes nothing for an edit during a session (research 4). Options: (a)
+  delete the index by hand when it happens, (b) patch 0009: re-run the indexer on
+  flagged sources at startup (no flagged shard is trusted; a still-broken source stays
+  flagged and answered from the parse), (c) missing headers as dependencies, (d) the
+  Emacs side (`vc-refresh-state` about 70 ms per opened file). Owner to rule.
 - O-26 (RESOLVED 2026-10-09: (a) D-054 confirmed, (d) upstream report, T-032; T-029,
   revisited 2026-10-09): what D-054 should be. Revisit: the premise of a 207-watch limit
   for an Emacs started from the Dock was wrong; Emacs.app started through Launch
@@ -1035,6 +1043,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-057 | 2026-10-09 | performance budgets measured on Arch only | 11 | O-24 |
 | D-058 | 2026-10-09 | make test passes on the machine at hand before a commit | 4 | O-24 |
 | D-059 | 2026-10-09 | patch 0008: known includer answered at once (pkgrel 6) | 7 | T-020 |
+| D-060 | 2026-10-09 | patch 0009: re-index sources whose shards had errors | 7 | O-27 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
