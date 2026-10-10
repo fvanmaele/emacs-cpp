@@ -2,7 +2,9 @@
 
 Draft for https://github.com/Alexander-Miller/treemacs/issues. Not sent; the owner
 sends it (D-067, T-041). Checked 2026-10-10: master's
-`treemacs--tear-down-project-follow-mode` is unchanged from 2ab5a3c.
+`treemacs--tear-down-project-follow-mode` is unchanged from 2ab5a3c. The fix below is
+applied locally as `patches/treemacs/0001-...` (D-069) until upstream takes it; drop the
+patch and its `.gitmodules` line when the pin moves past the fix.
 
 ---
 

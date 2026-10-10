@@ -35,14 +35,19 @@ temporary directory /var/... is one for /private/var/...."
                   "submodule.dash.build-exclude a.el"
                   "submodule.dash.build-exclude b.el"
                   "submodule.magit.info docs/magit.texi"
-                  "submodule.magit.info docs/magit-section.texi"))))
+                  "submodule.magit.info docs/magit-section.texi"
+                  "submodule.dash.patch patches/dash/0001-a.patch"
+                  "submodule.dash.patch patches/dash/0002-b.patch"))))
     (should (equal (mapcar (lambda (s) (plist-get s :name)) specs) '("magit" "dash")))
     (should (equal (plist-get (nth 0 specs) :load-path) '("lisp")))
     (should (equal (plist-get (nth 1 specs) :load-path) '(".")))
     (should (equal (plist-get (nth 1 specs) :build-exclude) '("a.el" "b.el")))
     (should (equal (plist-get (nth 0 specs) :info)
                    '("docs/magit.texi" "docs/magit-section.texi")))
-    (should-not (plist-get (nth 1 specs) :info))))
+    (should-not (plist-get (nth 1 specs) :info))
+    (should (equal (plist-get (nth 1 specs) :patch)
+                   '("patches/dash/0001-a.patch" "patches/dash/0002-b.patch")))
+    (should-not (plist-get (nth 0 specs) :patch))))
 
 (ert-deftest build-packages-parse-handles-dotted-names ()
   (let ((specs (build-packages-parse-config-lines
@@ -156,6 +161,65 @@ Hello.
       (should-error (build-packages-write-info
                      root (list spec (list :name "q" :path "lib/q" :info '("doc/toy.texi")))
                      dir)))))
+
+(defun build-packages-test--git (dir &rest args)
+  "Run git ARGS in DIR; fail the test unless it succeeds."
+  (with-temp-buffer
+    (unless (eql 0 (apply #'call-process "git" nil t nil "-C" dir args))
+      (error "git %s: %s" (string-join args " ") (buffer-string)))))
+
+(ert-deftest build-packages-patches-apply-once-and-fail-loudly ()
+  "D-069: listed patches are applied in order, also a second time; a patch
+that no longer fits, a missing one and an unlisted one stop the build."
+  (build-packages-test--with-tree '("lib/p/p.el")
+    (let* ((dir (expand-file-name "lib/p" root))
+           (file (expand-file-name "p.el" dir))
+           (spec (list :name "p" :path "lib/p"
+                       :patch '("patches/p/0001-one.patch" "patches/p/0002-two.patch"))))
+      ;; A pinned package: one commit, then two patches made against it.
+      (write-region "(defun p () 1)\n" nil file)
+      (build-packages-test--git dir "init" "-q")
+      (build-packages-test--git dir "add" "p.el")
+      (build-packages-test--git dir "-c" "user.name=t" "-c" "user.email=t@t"
+                                "commit" "-q" "-m" "pin")
+      (make-directory (expand-file-name "patches/p" root) t)
+      (dolist (step '(("(defun p () 2)\n" . "0001-one.patch")
+                      ("(defun p () 3)\n" . "0002-two.patch")))
+        (with-temp-buffer
+          (write-region (car step) nil file)
+          (call-process "git" nil t nil "-C" dir "diff")
+          (write-region nil nil (expand-file-name (cdr step) (expand-file-name "patches/p" root))))
+        (build-packages-test--git dir "add" "p.el")
+        (build-packages-test--git dir "-c" "user.name=t" "-c" "user.email=t@t"
+                                  "commit" "-q" "-m" (cdr step)))
+      (build-packages-test--git dir "reset" "-q" "--hard" "HEAD~2")
+      (should (equal (build-packages-apply-patches root (list spec)) 2))
+      (should (equal (with-temp-buffer (insert-file-contents file) (buffer-string))
+                     "(defun p () 3)\n"))
+      ;; A second `make packages': the same result, no error.
+      (should (equal (build-packages-apply-patches root (list spec)) 2))
+      (should (equal (with-temp-buffer (insert-file-contents file) (buffer-string))
+                     "(defun p () 3)\n"))
+      ;; The pin moved under the patches: they no longer apply, and git leaves
+      ;; the file as it was.
+      (build-packages-test--git dir "checkout" "-q" "--" "p.el")
+      (write-region "(defun p () 9)\n" nil file)
+      (should-error (build-packages-apply-patches root (list spec)))
+      (should (equal (with-temp-buffer (insert-file-contents file) (buffer-string))
+                     "(defun p () 9)\n"))
+      (build-packages-test--git dir "checkout" "-q" "--" "p.el")
+      ;; Listed but missing; present but not listed.
+      (should-error (build-packages-apply-patches
+                     root (list (plist-put (copy-sequence spec) :patch
+                                           '("patches/p/0001-one.patch"
+                                             "patches/p/0002-two.patch"
+                                             "patches/p/0003-gone.patch")))))
+      (should-error (build-packages-apply-patches
+                     root (list (plist-put (copy-sequence spec) :patch
+                                           '("patches/p/0001-one.patch")))))
+      ;; Neither error touched the files.
+      (should (equal (with-temp-buffer (insert-file-contents file) (buffer-string))
+                     "(defun p () 1)\n")))))
 
 (provide 'build-packages-test)
 ;;; build-packages-test.el ends here

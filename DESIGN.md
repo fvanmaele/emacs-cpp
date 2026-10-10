@@ -581,8 +581,9 @@ Known defects: none yet (nothing built).
   treemacs's own `treemacs-follow-mode` (on by default in treemacs) expand to and mark
   the selected buffer's file. Set with `customize-variable`, they apply at once, also
   with the tree loaded. treemacs (2ab5a3c, also master) signals an error when the
-  project follow mode turns off with no follow pending; the config gives it an unstarted
-  timer to cancel (T-041 reports it).
+  project follow mode turns off with no follow pending; the config gave it an unstarted
+  timer to cancel (superseded the same day by D-069: patches/treemacs/0001 fixes it;
+  T-041 reports it upstream).
 - DECIDED D-049 (owner 2026-10-08): the tree opens only on `C-c t`, as before D-048;
   the automatic opening and its option `emacs-cpp-tree-open-automatically` are removed.
 - SUPERSEDED by D-049 (2026-10-08): D-048 (owner 2026-10-08): the tree opens by itself,
@@ -753,6 +754,20 @@ Mechanisms, each PROPOSED until measured:
   manual or a makeinfo error stops the build; makeinfo warnings pass. Not built
   (owner): projectile (AsciiDoc only; a pandoc conversion worked, 21 chapters, links
   between pages lost) and the Org READMEs (vertico, consult, corfu, ...).
+- DECIDED D-069 (owner 2026-10-10, "patch files in the repo"): a fix to a vendored
+  package that upstream has not taken yet is a patch file, `git format-patch` against
+  the pin, in `patches/<submodule>/NNNN-*.patch`, listed in order with the repeatable
+  `.gitmodules` key `patch` (relative to the repository root). `make packages` applies
+  each submodule's series before compiling: a series already in (a second run) is first
+  taken out whole, in reverse, then applied whole; `git apply` changes nothing unless
+  every patch fits, so a series that no longer applies (a pin bump, a hand edit) stops
+  the build with git's message. A listed patch that is missing and a patch file no
+  `patch` line lists are build errors. A patched submodule shows "modified content" in
+  `git status`, on purpose (no `ignore = dirty`, which would hide hand edits too).
+  Rejected: a commit in the submodule (on no remote, a fresh clone breaks), a fork
+  (network, upkeep; reconsider for many long-lived changes), and Lisp workarounds
+  beyond a line or two (they lean on the package's internals). First patch:
+  treemacs 0001, T-041, replacing D-067's stand-in timer.
 - REJECTED: borg (the tool this layout imitates). It assumes the package repository is
   the Emacs directory itself, which contradicts D-003; reconsider if own glue grows past
   about 100 lines. Measured after T-002: `scripts/build-packages.el` has 183 lines of
@@ -1166,6 +1181,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-066 | 2026-10-10 | tab stops at the C++ indent step (M-i, C-x TAB) | 5 | owner |
 | D-067 | 2026-10-10 | options to turn off the tree's project, file following | 10 | owner |
 | D-068 | 2026-10-10 | warning for a C++ source missing from the database | 7 | owner |
+| D-069 | 2026-10-10 | fixes to vendored packages as patch files in the repo | 12 | owner |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
