@@ -105,7 +105,7 @@ name (type part of it; the list narrows as you type).
 | `C-h k` | what does this key do? |
 | `C-x C-c` | quit Emacs (asks about unsaved files) |
 
-After a prefix key (`C-x`, `C-c p`, `C-c l`, `C-x C-a`) wait a second: a popup lists
+After a prefix key (`C-x`, `C-c p`, `C-c l`, `C-x C-a`) wait 3 seconds: a popup lists
 the keys that can follow.
 
 ## 4. Moving and editing
