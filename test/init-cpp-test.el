@@ -159,6 +159,32 @@ and the function at point."
         (should (string-match-p "src/answer\\.cc" header))
         (should (string-match-p "answer\\'" header))))))
 
+(ert-deftest init-cpp-warns-once-for-a-source-not-in-the-database ()
+  "D-068: a source CMakeLists.txt does not build gets one warning per session;
+clangd still manages it.  Listed sources and headers get none."
+  (init-test--load)
+  (init-cpp-test--with-project
+      (cons '("src/stray.cc" . "int stray() { return 1; }\n") init-cpp-test--files)
+    (should (eql 0 (call-process "cmake" nil nil nil "--preset" "debug")))
+    (let ((emacs-cpp-presets--warned-sources nil)
+          warnings)
+      (cl-letf (((symbol-function 'display-warning)
+                 (lambda (type message &optional level _buffer)
+                   (push (list type level message) warnings))))
+        (dolist (file '("src/main.cc" "include/toy/answer.h" "src/stray.cc"))
+          (with-current-buffer (init-cpp-test--visit (expand-file-name file root))
+            (should (init-test--wait-managed))))
+        (should (equal (length warnings) 1))
+        (pcase-let ((`(,type ,level ,message) (car warnings)))
+          (should (equal (list type level) '(emacs-cpp :warning)))
+          (should (string-match-p "stray\\.cc is not in .*compile_commands\\.json"
+                                  message)))
+        ;; Visited again in the same session: no second warning.
+        (kill-buffer (get-file-buffer (expand-file-name "src/stray.cc" root)))
+        (with-current-buffer (init-cpp-test--visit (expand-file-name "src/stray.cc" root))
+          (should (init-test--wait-managed)))
+        (should (equal (length warnings) 1))))))
+
 (defun init-cpp-test--patched-clangd ()
   "The patched clangd to test (D-026), or nil when it is not installed.
 Arch: the package's /opt (D-027); macOS: build-macos.sh's ~/opt (D-052)."

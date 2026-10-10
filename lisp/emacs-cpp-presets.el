@@ -12,7 +12,8 @@
 ;; switches it and remembers the choice per project in `emacs-cpp-presets-state-file'
 ;; (outside the project).  eglot is refused, loudly, when the presets cannot be read,
 ;; the database is missing or empty, or a compile command lacks -std (D-011, D-018):
-;; clangd would otherwise fall back to default flags and report false errors.
+;; clangd would otherwise fall back to default flags and report false errors.  A
+;; source file the database does not list gets a warning; clangd keeps running (D-068).
 ;;
 ;; Supported preset features: configurePresets in CMakePresets.json and
 ;; CMakeUserPresets.json, `inherits', `condition' (all types but the regular
@@ -295,6 +296,86 @@ any sources?  Fix CMakeLists.txt and reconfigure (D-011)" file))
 set CMAKE_CXX_EXTENSIONS OFF and reconfigure (D-011)"
                   (length missing) (length entries) file
                   (alist-get 'file (car missing))))))
+
+;;;; Sources missing from the database (D-068)
+
+(defconst emacs-cpp-presets--source-regexp
+  "\\.\\(?:cc\\|cpp\\|cxx\\|c\\+\\+\\|C\\)\\'"
+  "File names of C++ sources, which a database lists; headers it does not.
+Matched case-sensitively: `.C' is C++, `.c' is not.")
+
+(defvar emacs-cpp-presets--database-files nil
+  "Cache of (DATABASE MODTIME . TABLE), TABLE holding the true names of the
+files DATABASE lists.")
+
+(defvar emacs-cpp-presets--warned-sources nil
+  "Sources already warned about in this session, by true name.")
+
+(defun emacs-cpp-presets--database-files (database)
+  "Return a hash table of the true names of the files DATABASE lists.
+Read again only when DATABASE changes on disk.  Only directories are resolved:
+a source file that is itself a link is listed under its own name."
+  (let ((modtime (file-attribute-modification-time (file-attributes database)))
+        (cached emacs-cpp-presets--database-files))
+    (if (and cached (equal (car cached) database) (equal (cadr cached) modtime))
+        (cddr cached)
+      (let ((table (make-hash-table :test #'equal))
+            ;; True names per directory, not per file: a database has many
+            ;; files in few directories, and `file-truename' is the cost.
+            (directories (make-hash-table :test #'equal)))
+        (dolist (entry (emacs-cpp-presets--read-json
+                        database :object-type 'alist :array-type 'list))
+          (let* ((file (expand-file-name (alist-get 'file entry)
+                                         (alist-get 'directory entry)))
+                 (directory (file-name-directory file)))
+            (puthash (concat (or (gethash directory directories)
+                                 (puthash directory (file-truename directory)
+                                          directories))
+                             (file-name-nondirectory file))
+                     t table)))
+        (setq emacs-cpp-presets--database-files (cons database (cons modtime table)))
+        table))))
+
+(defun emacs-cpp-presets-source-missing-p (file database)
+  "Non-nil if FILE, an existing C++ source, is not listed in DATABASE.
+clangd then guesses the file's flags from a listed neighbour.  Headers and
+files not yet saved are never missing: a database lists no headers, and a new
+file comes before its line in CMakeLists.txt."
+  (and (let ((case-fold-search nil))
+         (string-match-p emacs-cpp-presets--source-regexp file))
+       (file-exists-p file)
+       (not (gethash (concat (file-truename (file-name-directory file))
+                             (file-name-nondirectory file))
+                     (emacs-cpp-presets--database-files database)))))
+
+(defun emacs-cpp-presets-warn-if-not-in-database ()
+  "Warn, once per session, when eglot manages a source its database lacks.
+For `eglot-managed-mode-hook'; clangd keeps running for the project (D-068).
+An error here (a database being rewritten) is shown, not signalled, so that
+eglot still finishes setting up the buffer."
+  (condition-case err
+      (emacs-cpp-presets--warn-if-not-in-database)
+    (error (display-warning 'emacs-cpp (error-message-string err) :error))))
+
+(defun emacs-cpp-presets--warn-if-not-in-database ()
+  "Body of `emacs-cpp-presets-warn-if-not-in-database'."
+  (when-let* (((eglot-managed-p))
+              (file buffer-file-name)
+              (project (project-current))
+              (root (expand-file-name (project-root project)))
+              ((file-exists-p (expand-file-name "CMakePresets.json" root)))
+              (name (emacs-cpp-presets-active root))
+              (database (expand-file-name
+                         "compile_commands.json"
+                         (emacs-cpp-presets-binary-dir root name)))
+              ((not (member (file-truename file) emacs-cpp-presets--warned-sources)))
+              ((emacs-cpp-presets-source-missing-p file database)))
+    (push (file-truename file) emacs-cpp-presets--warned-sources)
+    (display-warning
+     'emacs-cpp
+     (format "%s is not in %s, so clangd guesses its flags from a neighbouring file.  \
+Add it to CMakeLists.txt, then configure (C-c p c o) (D-068)" file database)
+     :warning)))
 
 (defun emacs-cpp-presets--refuse (format &rest args)
   "Show FORMAT with ARGS as an error-level warning, then signal it.

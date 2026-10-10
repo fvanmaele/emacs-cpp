@@ -174,6 +174,8 @@ Mode hooks run before a visited file's local variables are read."
   ;; then also rewrites the line just ended (hand alignment collapsed, `{' moved
   ;; to its own line) (D-065, superseding D-061).
   (add-to-list 'eglot-ignored-server-capabilities :documentOnTypeFormattingProvider)
+  ;; A source missing from the preset's database gets a warning, not silence (D-068).
+  (add-hook 'eglot-managed-mode-hook #'emacs-cpp-presets-warn-if-not-in-database)
   ;; Ahead of eglot's own clangd entry, which starts clangd without a database.
   (add-to-list 'eglot-server-programs
                '(c++-ts-mode . emacs-cpp-presets-clangd-contact))
