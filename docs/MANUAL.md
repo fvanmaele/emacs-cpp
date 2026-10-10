@@ -193,6 +193,24 @@ names and deduced types.
 | `C-c l e` | errors and warnings of the project |
 | `C-c l I` | hide / show inlay hints |
 
+### Renaming a namespace
+`C-c l r` renames functions, classes, variables and the like, but not a namespace:
+clangd refuses ("Cannot rename symbol: symbol is not a supported kind"), by design,
+as it refuses macros and overloaded operators. `M-?` on a namespace does not help
+either: clangd lists its uses but not the `namespace name { ... }` lines in other
+files. Rename it as text, seeing every place first (checked 2026-10-10):
+
+1. `M-s r` and `\bgpe\b` (the old name as a whole word): ripgrep lists every hit.
+2. `C-.` then `E`: the list goes into a buffer; `e` there makes it editable.
+3. `M-%` old name `RET` new name `RET`: `y` / `n` at each hit, `!` for all the rest.
+4. `C-c C-c` writes the edits into the files' buffers; `C-x s` saves them.
+
+Whole-word search also finds the name in `#include <rmo/gpe/...>` paths (`/` ends a
+word): answer `n` there unless the directory is renamed too, or search for
+`\bgpe::|namespace gpe\b` instead. `} // namespace gpe` comments are found as well.
+`C-c p r` (replace in the whole project) does the same one hit at a time, without the
+list.
+
 ### Indentation settings for a project
 `TAB`, `RET` and the electric characters (`}`, `;`, ...) indent by Emacs's rules,
 set per project in `.dir-locals.el` in the project root (D-062, D-065). It applies
