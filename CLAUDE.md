@@ -10,8 +10,8 @@ An Emacs 31 configuration giving the owner a CLion-like C++ environment (navigat
 refactoring, diagnostics, CMake presets, debugger, git, jump-to-anything) on an Arch
 Linux workstation and a macOS machine (D-050). It will never be an Emacs distribution, a
 Windows config or a CLion keymap emulation (DESIGN 2).
-**Status (2026-10-09):** v0.4.1 tagged (navigation, build, debug, polish), design ruled
-through D-060. clangd stays (T-004); a locally patched clangd
+**Status (2026-10-10):** v0.4.1 tagged (navigation, build, debug, polish), design ruled
+through D-072. clangd stays (T-004); a locally patched clangd
 (`packaging/clangd-index-nav`, pkgrel 7 with patches 0008, 0009, selected by
 `emacs-cpp-clangd-program`) answers navigation from its index and gives headers an
 includer's flags, also when opened first (D-026 .. D-028, D-046, D-047, D-059), and
@@ -23,7 +23,11 @@ Arch only (D-057); `make test` on the machine at hand (D-058). Owner runs left: 
 (O-12), build-macos.sh to ~/opt (T-023); owner sends the eglot watch report (T-032)
 and the three c-ts-mode reports (T-036, T-037, T-039). RET and TAB indent by Emacs's
 rules (D-065, superseding D-061), from plain `.dir-locals.el` values (D-062).
-`# %%` cells in Python and R, ESS for R (D-072, 0047); owner's RMO check left.
+Tree follow options, not into library files (D-067, D-070); eglot refused loudly on
+any preset or database error (D-018), a warning for a source missing from the
+database (D-068); fixes to vendored packages as patch files (D-069). which-key after
+3 s (D-071). `# %%` cells in Python and R, ESS for R (D-072, 0047); owner's RMO check
+left.
 Open: O-12; T-025 round 2, T-026 research queued.
 
 ## Hard rules (each with its reason)

@@ -255,6 +255,8 @@ with `done when: ...`).
   other full runs), right after D-068's hook was added; the hook returns at once in a
   project without CMakePresets.json. The condition was not captured. Done when: the
   next failure's condition is recorded here and explained, or 20 full runs pass.
+  Arch, 2026-10-10 (all of D-067 .. D-072 in): 20 of 20 full runs pass, 75 tests each;
+  left open, since the failure was on the Mac: 20 full runs there close it.
 - T-042 (opened 2026-10-10, D-068): done when (agreed 2026-10-10): opening an existing
   C++ source that the active preset's database does not list shows one warning per
   session naming the file and the fix, clangd still manages it; listed sources,
