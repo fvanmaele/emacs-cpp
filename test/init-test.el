@@ -311,6 +311,12 @@ buffers."
     (with-temp-buffer
       (funcall mode)
       (should (equal (cons mode display-line-numbers-mode) (cons mode nil)))))
+  ;; D-073: the column's width comes from the whole buffer, not the window.
+  (with-temp-buffer
+    (insert (make-string 1500 ?\n))
+    (c++-ts-mode)
+    (should (equal display-line-numbers-width 4))
+    (should display-line-numbers-grow-only))
   ;; Not run here, so asked by derivation: magit's buffers are special buffers.
   (require 'magit)
   (should-not (provided-mode-derived-p 'magit-status-mode 'prog-mode 'text-mode

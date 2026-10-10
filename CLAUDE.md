@@ -11,7 +11,7 @@ refactoring, diagnostics, CMake presets, debugger, git, jump-to-anything) on an 
 Linux workstation and a macOS machine (D-050). It will never be an Emacs distribution, a
 Windows config or a CLion keymap emulation (DESIGN 2).
 **Status (2026-10-10):** v0.4.1 tagged (navigation, build, debug, polish), design ruled
-through D-072. clangd stays (T-004); a locally patched clangd
+through D-073. clangd stays (T-004); a locally patched clangd
 (`packaging/clangd-index-nav`, pkgrel 7 with patches 0008, 0009, selected by
 `emacs-cpp-clangd-program`) answers navigation from its index and gives headers an
 includer's flags, also when opened first (D-026 .. D-028, D-046, D-047, D-059), and

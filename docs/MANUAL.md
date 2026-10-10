@@ -24,6 +24,7 @@ name (type part of it; the list narrows as you type).
   header line:  file within the project, then the function at point
   line numbers: left of the text in files of code, text and configuration;
                 not in the tree or in tool buffers (magit, compilation, help)
+                (as wide as the file's last line number; scrolling keeps it)
   left fringe:  B breakpoint (red), > line the debugger stopped at
   right fringe: lines changed since the last commit (green / blue / red)
 ```

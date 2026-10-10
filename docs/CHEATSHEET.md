@@ -88,6 +88,7 @@ In any list: words separated by space match in any order (`vec tria` finds
 
 Line numbers show in code, text and configuration buffers, not in the tree or tool
 buffers (D-063); `M-x display-line-numbers-mode` hides / shows them in one buffer.
+The column keeps its width while you scroll (D-073).
 
 Theme: `M-x customize-themes`, pick one, "Save Theme Settings"; it stays after a
 restart. Without a saved choice the theme is `modus-vivendi-tritanopia`.
