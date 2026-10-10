@@ -68,6 +68,7 @@ under way when the visit returns; the buffer is managed once it ends."
   (should (memq 'modus-vivendi-tritanopia custom-enabled-themes))
   (should (bound-and-true-p projectile-mode))
   (should (bound-and-true-p which-key-mode))   ; D-034
+  (should (= which-key-idle-delay 3.0))        ; D-071
   (should (bound-and-true-p repeat-mode))      ; D-037
   (should (eq (keymap-lookup projectile-mode-map "C-c p") 'projectile-command-map))
   (should (eq (keymap-lookup global-map "C-x g") 'magit-status))
