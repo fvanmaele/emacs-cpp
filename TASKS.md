@@ -91,6 +91,7 @@ with `done when: ...`).
 | T-043 | open | S | pyright test failed once | none | capture the condition |
 | T-044 | done 0046 | M | patch files for submodules | D-069 | treemacs 0001 first |
 | T-045 | done | M | cells, notebooks, Quarto (Python, R) | owner | RESEARCH; O-29 |
+| T-046 | open | M | Python and R cells, ESS | D-072 | done when to agree |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -221,12 +222,25 @@ with `done when: ...`).
   findings, each taken or not taken with a reason, and the taken ones fixed with
   tests. Done 2026-10-09 (0037): preset conditions, `$env{}` as CMake, lldb-dap by
   name, one build step; the file API instead of build.ninja is O-25.
+- T-046 (opened 2026-10-10, D-072): code-cells and ESS as submodules, configured. Tier
+  2. PROPOSED done when (owner to agree): `lib/code-cells` (b99013b) and `lib/ess`
+  (v25.01.0, `load-path = lisp`, `info = doc/ess.texi`) are submodules and `make
+  packages` builds them without errors; `.R` files open in `ess-r-mode`, no eglot for R;
+  in `python-ts-mode` and `ess-r-mode` buffers `code-cells-mode` is on: `C-c C-c` runs
+  the cell at point in the buffer's REPL (`run-python` or R, started if needed, R in the
+  project root without a question), `M-n` / `M-p` move between cells, `C-c % s` runs and
+  steps, Python's send-buffer stays on a key; ERT: Python and R cells share state (cell
+  2 sees cell 1's variable; R tests skipped with a message where R is missing), the
+  keys, `ess-r-mode` for `.R`, R's start directory; `make test` passes on Arch; MANUAL,
+  cheat sheet, README (R from pacman `r` / MacPorts `R`), DESIGN 12 updated; startup
+  median on Arch within D-057's budget; owner: an RMO R script and a plotting script
+  with `# %%` cells run cell by cell.
 - T-045 (opened 2026-10-10, owner): research cell modes for Python and R, notebooks,
   Quarto and other options. Done when: `RESEARCH_notebooks_cells.md` with the
   candidates, what is built in, what was checked by hand, and the external tools per
   machine. Done 2026-10-10: code-cells with `run-python` and with ESS verified, org-babel
   Python and R verified (an R session needs ESS loaded first); Jupyter, EIN and Quarto
-  not checked; options put to the owner as O-29.
+  not checked; options put to the owner as O-29; ruled 2026-10-10 (D-072).
 - T-044 (opened 2026-10-10, D-069): done when (agreed 2026-10-10): a repeatable
   `.gitmodules` key `patch` (repository-relative); `make packages` applies each series
   before compiling, a second run is safe, a patch that does not apply stops the build
