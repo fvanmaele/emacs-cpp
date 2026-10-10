@@ -252,6 +252,51 @@ options turn either off and on, also after treemacs is loaded."
   (should treemacs-project-follow-mode)
   (should-not treemacs-follow-mode))
 
+(ert-deftest init-treemacs-stays-out-of-library-files ()
+  "D-070: the tree follows to another git project, not to a library file whose
+directory projectile takes for a project (a Makefile), nor to a loose file."
+  (init-test--load)
+  (defvar treemacs-persist-file)
+  (defvar treemacs-last-error-persist-file)
+  (setq treemacs-persist-file (expand-file-name "treemacs-persist" init-test--home)
+        treemacs-last-error-persist-file
+        (expand-file-name "treemacs-persist-at-last-error" init-test--home))
+  (require 'treemacs)
+  (let* ((top (file-name-as-directory (file-truename (make-temp-file "emacs-cpp-follow" t))))
+         (shown (lambda ()
+                  (mapcar #'treemacs-project->path
+                          (treemacs-workspace->projects (treemacs-current-workspace)))))
+         (visit (lambda (file)
+                  (switch-to-buffer (find-file-noselect (expand-file-name file top)))
+                  ;; The follow runs on an idle timer, which batch never fires.
+                  (treemacs--do-follow-project)))
+         buffers)
+    (unwind-protect
+        (progn
+          (dolist (file '("a/.git/HEAD" "a/a.cc" "b/.git/HEAD" "b/b.cc"
+                          "lib/Makefile" "lib/include/l.h" "loose/x.h"))
+            (let ((abs (expand-file-name file top)))
+              (make-directory (file-name-directory abs) t)
+              (write-region "" nil abs)))
+          (funcall visit "a/a.cc")
+          (emacs-cpp-treemacs-toggle)
+          (should (equal (funcall shown) (list (expand-file-name "a" top))))
+          (with-current-buffer (find-file-noselect (expand-file-name "lib/include/l.h" top))
+            ;; projectile, for C-c p, does take it for a project.
+            (should (equal (projectile-project-root) (expand-file-name "lib/" top))))
+          (funcall visit "lib/include/l.h")
+          (should (equal (funcall shown) (list (expand-file-name "a" top))))
+          (funcall visit "loose/x.h")
+          (should (equal (funcall shown) (list (expand-file-name "a" top))))
+          (funcall visit "b/b.cc")
+          (should (equal (funcall shown) (list (expand-file-name "b" top)))))
+      (when (treemacs-get-local-window) (delete-window (treemacs-get-local-window)))
+      (dolist (buffer (buffer-list))
+        (when (and (buffer-file-name buffer)
+                   (file-in-directory-p (buffer-file-name buffer) top))
+          (kill-buffer buffer)))
+      (delete-directory top t))))
+
 (ert-deftest init-line-numbers-in-editing-buffers-only ()
   "D-063: line numbers in code, text and configuration buffers, not in tool
 buffers."
