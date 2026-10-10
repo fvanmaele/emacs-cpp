@@ -202,6 +202,33 @@ are refused with an error-level warning naming the file, not only logged."
                            (list label type level)))
             (should (string-match-p (regexp-quote expected) message))))))))
 
+(ert-deftest emacs-cpp-presets-source-missing-from-database ()
+  "D-068: an existing source the database does not list is missing; a header,
+a file not yet saved and a listed source are not; a changed database is re-read."
+  (emacs-cpp-presets-test--with-project
+      '(("src/a.cc" . "int a;\n") ("src/b.cpp" . "int b;\n") ("src/c.h" . "int c;\n")
+        ("src/d.c" . "int d;\n"))
+    (let ((database (expand-file-name "compile_commands.json" root))
+          (emacs-cpp-presets--database-files nil))
+      (write-region (format "[{\"directory\": \"%s\", \"file\": \"src/a.cc\",
+                              \"command\": \"c++ -std=c++20 -c src/a.cc\"}]" root)
+                    nil database)
+      (should-not (emacs-cpp-presets-source-missing-p
+                   (expand-file-name "src/a.cc" root) database))
+      (should (emacs-cpp-presets-source-missing-p
+               (expand-file-name "src/b.cpp" root) database))
+      (dolist (file '("src/c.h" "src/new.cc" "src/d.c"))
+        (should-not (emacs-cpp-presets-source-missing-p
+                     (expand-file-name file root) database)))
+      ;; b.cpp added to CMakeLists.txt and configured: listed from now on.
+      (write-region (format "[{\"directory\": \"%s\", \"file\": \"%s\",
+                              \"command\": \"c++ -std=c++20 -c b.cpp\"}]"
+                            root (expand-file-name "src/b.cpp" root))
+                    nil database)
+      (set-file-times database (time-add nil 10))
+      (should-not (emacs-cpp-presets-source-missing-p
+                   (expand-file-name "src/b.cpp" root) database)))))
+
 (defun emacs-cpp-presets-test--fake-clangd (dir name help)
   "Write an executable NAME in DIR whose --help-hidden prints HELP."
   (let ((file (expand-file-name name dir)))

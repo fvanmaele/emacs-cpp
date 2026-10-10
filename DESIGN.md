@@ -345,6 +345,15 @@ Known defects: none yet (nothing built).
   CMake is still writing), and for an empty database (`[]`), with which clangd started
   on its fallback flags for every file. Fallback flags were not slower (5.0 s against
   6.8 s, `clangd --check`, one file); the cost is false errors.
+- DECIDED D-068 (owner 2026-10-10, after the D-018 probe): a C++ source (`.cc`,
+  `.cpp`, `.cxx`, `.c++`, `.C`) that exists on disk but is missing from the active
+  preset's `compile_commands.json` gets a `*Warnings*` popup when eglot starts
+  managing it, once per file per session, naming the file and the fix (add it to
+  CMakeLists.txt, configure with `C-c p c o`). clangd keeps running: it guesses the
+  file's flags from a listed neighbour, which may be wrong. Refusing would stop clangd
+  for the whole project over one file. Not for headers (a database lists none), files
+  not yet saved (a new file comes before its CMakeLists.txt line) or files outside a
+  preset project. The database is read again only when it changes on disk.
 - Background (S1, O-1): how clangd finds `compile_commands.json` when presets build into
   `build/<preset>/`; clangd only searches parent directories and their `build/` subdir.
   Candidates: (B) project `.clangd` with `CompileFlags: CompilationDatabase:`, (C)
@@ -1156,6 +1165,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-065 | 2026-10-10 | RET by Emacs's rules; clangd on-type format ignored | 7 | owner |
 | D-066 | 2026-10-10 | tab stops at the C++ indent step (M-i, C-x TAB) | 5 | owner |
 | D-067 | 2026-10-10 | options to turn off the tree's project, file following | 10 | owner |
+| D-068 | 2026-10-10 | warning for a C++ source missing from the database | 7 | owner |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.

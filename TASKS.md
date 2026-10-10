@@ -87,6 +87,8 @@ with `done when: ...`).
 | T-039 | open | S | c-ts-mode report: member after blank line | D-062 | owner sends it |
 | T-040 | done | M | rules: case labels, argument lines | D-065 | 62 lines left |
 | T-041 | open | S | send the treemacs follow-mode-off report | D-067 | owner sends it |
+| T-042 | done 0045 | S | warn on a source not in the database | D-068 | probe gap, fixed |
+| T-043 | open | S | pyright test failed once | none | capture the condition |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -217,6 +219,15 @@ with `done when: ...`).
   findings, each taken or not taken with a reason, and the taken ones fixed with
   tests. Done 2026-10-09 (0037): preset conditions, `$env{}` as CMake, lldb-dap by
   name, one build step; the file API instead of build.ninja is O-25.
+- T-043 (opened 2026-10-10): `init-python-pyright-navigates-and-renames` failed once in
+  six runs on the Mac (one full `make test`; it passed three times alone and in the
+  other full runs), right after D-068's hook was added; the hook returns at once in a
+  project without CMakePresets.json. The condition was not captured. Done when: the
+  next failure's condition is recorded here and explained, or 20 full runs pass.
+- T-042 (opened 2026-10-10, D-068): done when (agreed 2026-10-10): opening an existing
+  C++ source that the active preset's database does not list shows one warning per
+  session naming the file and the fix, clangd still manages it; listed sources,
+  headers and files not yet saved get none; `make test` passes. Done: 0045.
 - T-041 (opened 2026-10-10, D-067): turning `treemacs-project-follow-mode` off signals
   `(wrong-type-argument timerp nil)` (unchecked `cancel-timer`); worked around in
   `emacs-cpp-tree--apply-follow`, test `init-treemacs-follow-options`. Drafted:
