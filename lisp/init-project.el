@@ -41,13 +41,8 @@ treemacs does by default.  nil (the default): it stays where you left it (D-067)
   :group 'tools)
 
 (defun emacs-cpp-tree--apply-follow ()
-  "Turn treemacs's two follow modes on or off as the options say (D-067)."
-  ;; Turning the project follow mode off cancels its idle timer unchecked, and the
-  ;; timer is nil between follows (treemacs 2ab5a3c, T-041); a timer never started
-  ;; stands in, its cancelling harmless.
-  (defvar treemacs--project-follow-timer)
-  (unless (or emacs-cpp-tree-follow-project treemacs--project-follow-timer)
-    (setq treemacs--project-follow-timer (timer-create)))
+  "Turn treemacs's two follow modes on or off as the options say (D-067).
+Turning the project follow mode off needs patches/treemacs/0001 (T-041, D-069)."
   (treemacs-project-follow-mode (if emacs-cpp-tree-follow-project 1 -1))
   (treemacs-follow-mode (if emacs-cpp-tree-follow-file 1 -1)))
 

@@ -13,6 +13,7 @@
 	build-exclude = src/extra/treemacs-mu4e.el
 	build-exclude = src/extra/treemacs-perspective.el
 	build-exclude = src/extra/treemacs-persp.el
+	patch = patches/treemacs/0001-Don-t-cancel-a-missing-timer-when-project-follow-mod.patch
 [submodule "dash"]
 	path = lib/dash
 	url = https://github.com/magnars/dash.el

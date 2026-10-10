@@ -18,10 +18,15 @@
 ;;                          package that is not vendored); repeatable
 ;;   info = FILE            Texinfo manual built with makeinfo into lib/info/,
 ;;                          relative to the submodule; repeatable
+;;   patch = FILE           patch applied to the submodule's files before compiling,
+;;                          relative to the repository root, by convention
+;;                          patches/<submodule>/NNNN-*.patch from `git format-patch'
+;;                          against the pin; repeatable, applied in order (D-069)
 ;;
-;; Anything wrong (unknown key, missing directory or manual, stale exclude, compile
-;; error, makeinfo missing or failing) stops the build with an error (DESIGN 4,
-;; principle 1).
+;; Anything wrong (unknown key, missing directory or manual, stale exclude, a patch
+;; missing, unlisted or no longer applying, compile error, makeinfo missing or
+;; failing) stops the build with an error (DESIGN 4, principle 1).  Patches already
+;; applied (a second `make packages') are taken out and applied again.
 
 ;;; Code:
 
@@ -35,7 +40,7 @@
   "Root of the emacs-cpp repository (the parent of scripts/).")
 
 (defconst build-packages-known-keys
-  '("path" "url" "branch" "ignore" "load-path" "build-exclude" "info")
+  '("path" "url" "branch" "ignore" "load-path" "build-exclude" "info" "patch")
   "Keys allowed in a .gitmodules submodule section.")
 
 (defconst build-packages-default-excludes
@@ -46,7 +51,7 @@
 
 (defun build-packages-parse-config-lines (lines)
   "Parse LINES of `git config --get-regexp ^submodule\\.' output into specs.
-Each spec is a plist (:name :path :load-path :build-exclude :info), in .gitmodules
+Each spec is a plist (:name :path :load-path :build-exclude :info :patch), in .gitmodules
 order.  Signal an error for an unknown key or a submodule without a path."
   (let (specs)
     (dolist (line lines)
@@ -73,7 +78,8 @@ order.  Signal an error for an unknown key or a submodule without a path."
                               '("."))
                :build-exclude (reverse
                                (alist-get "build-exclude" keys nil nil #'equal))
-               :info (reverse (alist-get "info" keys nil nil #'equal)))))
+               :info (reverse (alist-get "info" keys nil nil #'equal))
+               :patch (reverse (alist-get "patch" keys nil nil #'equal)))))
      (reverse specs))))
 
 (defun build-packages-read-specs (root)
@@ -248,6 +254,53 @@ Return the number of manuals."
         (build-packages--run "install-info" (concat "--info-dir=" dir) info)))
     (length files)))
 
+;;;; Patches (D-069)
+
+(defconst build-packages-patches-dir "patches"
+  "Directory of the patch files, relative to the repository root.")
+
+(defun build-packages-patch-files (root spec)
+  "Return the absolute patch files SPEC lists under ROOT, in order.
+Signal an error for one that does not exist."
+  (mapcar
+   (lambda (file)
+     (let ((abs (expand-file-name file root)))
+       (unless (file-exists-p abs)
+         (error "build-packages: patch %s of %s does not exist" file (plist-get spec :name)))
+       abs))
+   (plist-get spec :patch)))
+
+(defun build-packages-check-unlisted-patches (root specs)
+  "Signal an error for a patch file under patches/ that no spec in SPECS lists.
+A forgotten `patch' line would otherwise leave the patch silently unapplied."
+  (let ((dir (expand-file-name build-packages-patches-dir root))
+        (listed (cl-loop for spec in specs append (build-packages-patch-files root spec))))
+    (when (file-directory-p dir)
+      (let ((unlisted (cl-remove-if (lambda (file) (member file listed))
+                                    (directory-files-recursively dir "\\.patch\\'"))))
+        (when unlisted
+          (error "build-packages: patch file(s) no .gitmodules `patch' line lists:\n  %s"
+                 (string-join unlisted "\n  ")))))))
+
+(defun build-packages-apply-patches (root specs)
+  "Apply the patches of SPECS to their submodules under ROOT; return how many.
+Each submodule's series is first taken back out, whole and in reverse order, if
+it is in (a second `make packages'), then applied whole.  `git apply' changes
+nothing unless every patch fits, and `--check' does not chain patches that touch
+the same lines, hence the real reverse.  A series that does not apply, after a
+pin bump or on a submodule edited by hand, stops the build with git's message."
+  (build-packages-check-unlisted-patches root specs)
+  (let ((count 0))
+    (dolist (spec specs)
+      (let ((dir (expand-file-name (plist-get spec :path) root))
+            (patches (build-packages-patch-files root spec)))
+        (when patches
+          (apply #'call-process "git" nil nil nil "-C" dir "apply" "--reverse"
+                 (reverse patches))
+          (apply #'build-packages--run "git" "-C" dir "apply" patches)
+          (setq count (+ count (length patches))))))
+    count))
+
 ;;;; Compilation
 
 (defun build-packages-compile (root specs)
@@ -272,7 +325,8 @@ Signal an error listing every file that failed."
 (defun build-packages-build (root)
   "Build all packages of the repository at ROOT."
   (let* ((specs (build-packages-read-specs root))
-         (lib (expand-file-name "lib" root)))
+         (lib (expand-file-name "lib" root))
+         (patches (build-packages-apply-patches root specs)))
     ;; Dependencies must be loadable while their dependents compile.
     (setq load-path (append (cl-loop for spec in specs
                                      append (build-packages-load-path-dirs root spec))
@@ -280,8 +334,9 @@ Signal an error listing every file that failed."
     (let ((count (build-packages-compile root specs)))
       (build-packages-write-load-path root specs (expand-file-name "load-path.el" lib))
       (build-packages-write-autoloads root specs (expand-file-name "autoloads.el" lib))
-      (message "build-packages: %d packages, %d files compiled, %d manuals"
-               (length specs) count
+      (message "build-packages: %d packages, %d patches in force, %d files compiled, \
+%d manuals"
+               (length specs) patches count
                (build-packages-write-info root specs (expand-file-name "info" lib))))))
 
 (defun build-packages-batch ()

@@ -89,6 +89,7 @@ with `done when: ...`).
 | T-041 | open | S | send the treemacs follow-mode-off report | D-067 | owner sends it |
 | T-042 | done 0045 | S | warn on a source not in the database | D-068 | probe gap, fixed |
 | T-043 | open | S | pyright test failed once | none | capture the condition |
+| T-044 | done 0046 | M | patch files for submodules | D-069 | treemacs 0001 first |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -219,6 +220,14 @@ with `done when: ...`).
   findings, each taken or not taken with a reason, and the taken ones fixed with
   tests. Done 2026-10-09 (0037): preset conditions, `$env{}` as CMake, lldb-dap by
   name, one build step; the file API instead of build.ninja is O-25.
+- T-044 (opened 2026-10-10, D-069): done when (agreed 2026-10-10): a repeatable
+  `.gitmodules` key `patch` (repository-relative); `make packages` applies each series
+  before compiling, a second run is safe, a patch that does not apply stops the build
+  naming submodule, patch and git's message; a missing listed patch and an unlisted
+  file under `patches/<name>/` are errors; T-041's fix moves into
+  `patches/treemacs/0001` and the Lisp workaround goes, `init-treemacs-follow-options`
+  still passes; tests in `test/build-packages-test.el` fail on the old code; DESIGN 12,
+  README, journal. Done: 0046.
 - T-043 (opened 2026-10-10): `init-python-pyright-navigates-and-renames` failed once in
   six runs on the Mac (one full `make test`; it passed three times alone and in the
   other full runs), right after D-068's hook was added; the hook returns at once in a
@@ -230,7 +239,8 @@ with `done when: ...`).
   headers and files not yet saved get none; `make test` passes. Done: 0045.
 - T-041 (opened 2026-10-10, D-067): turning `treemacs-project-follow-mode` off signals
   `(wrong-type-argument timerp nil)` (unchecked `cancel-timer`); worked around in
-  `emacs-cpp-tree--apply-follow`, test `init-treemacs-follow-options`. Drafted:
+  `emacs-cpp-tree--apply-follow`, test `init-treemacs-follow-options`; since D-069 the
+  fix is `patches/treemacs/0001-...` (the upstream draft's fix) instead. Drafted:
   `docs/upstream/treemacs-project-follow-mode-off.md`; outward, so the owner sends it.
   Done when: sent, issue number noted here.
 - T-040 (opened 2026-10-10, D-065): indent rules for the two gaps left on RMO after
