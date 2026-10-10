@@ -219,6 +219,36 @@ without one, the default theme is."
       (when-let* ((buffer (get-file-buffer file))) (kill-buffer buffer))
       (delete-directory root t))))
 
+;; Each option is set through its :set function, as `customize-variable' and
+;; custom.el's `custom-set-variables' do.
+(ert-deftest init-treemacs-follow-options ()
+  "D-067: two options turn the tree's project and file following off and on,
+also after treemacs is loaded."
+  (init-test--load)
+  (defvar treemacs-persist-file)
+  (defvar treemacs-last-error-persist-file)
+  (setq treemacs-persist-file (expand-file-name "treemacs-persist" init-test--home)
+        treemacs-last-error-persist-file
+        (expand-file-name "treemacs-persist-at-last-error" init-test--home))
+  (require 'treemacs)
+  (should (eq (default-value 'emacs-cpp-tree-follow-project) t))
+  (should (eq (default-value 'emacs-cpp-tree-follow-file) t))
+  (should (bound-and-true-p treemacs-follow-mode))
+  (unwind-protect
+      (progn
+        (funcall (get 'emacs-cpp-tree-follow-project 'custom-set)
+                 'emacs-cpp-tree-follow-project nil)
+        (should-not treemacs-project-follow-mode)
+        (should treemacs-follow-mode)
+        (funcall (get 'emacs-cpp-tree-follow-file 'custom-set)
+                 'emacs-cpp-tree-follow-file nil)
+        (should-not treemacs-follow-mode)
+        (should-not treemacs-project-follow-mode))
+    (dolist (option '(emacs-cpp-tree-follow-project emacs-cpp-tree-follow-file))
+      (funcall (get option 'custom-set) option t)))
+  (should treemacs-project-follow-mode)
+  (should treemacs-follow-mode))
+
 (ert-deftest init-line-numbers-in-editing-buffers-only ()
   "D-063: line numbers in code, text and configuration buffers, not in tool
 buffers."
