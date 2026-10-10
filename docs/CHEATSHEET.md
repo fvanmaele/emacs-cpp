@@ -159,9 +159,10 @@ changed, red deleted), after each save and each magit action (D-042).
 
 ## Project tree (treemacs)
 `C-c t` opens / closes the tree. It shows only the project of the buffer you are in and
-switches when you move to a file of another project (D-029). To stop that, or the
-tree moving to the current file: `M-x customize-variable` `emacs-cpp-tree-follow-project`
-/ `emacs-cpp-tree-follow-file` = nil (D-067). Inside the tree:
+switches when you move to a file of another project (D-029); it does not move to the
+file you are in. `M-x customize-variable`: `emacs-cpp-tree-follow-project` nil keeps
+one project, `emacs-cpp-tree-follow-file` t moves to the current file (D-067). Inside
+the tree:
 
 | Key | Does |
 |---|---|

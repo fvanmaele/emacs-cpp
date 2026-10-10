@@ -560,13 +560,14 @@ Known defects: none yet (nothing built).
   (`treemacs` alone asks for a root while the workspace is empty). `C-x t t` stays
   Emacs's tab-bar key.
 - DECIDED D-067 (owner 2026-10-10: "option to disable auto-follow in treemacs"; two
-  options, both on by default): `emacs-cpp-tree-follow-project` nil keeps the tree on
-  the project `C-c t` opened it with (D-029's follow off); `emacs-cpp-tree-follow-file`
-  nil stops treemacs's own `treemacs-follow-mode` (on by default in treemacs) from
-  expanding to and marking the selected buffer's file. Set with `customize-variable`,
-  they apply at once, also with the tree loaded. treemacs (2ab5a3c, also master)
-  signals an error when the project follow mode turns off with no follow pending; the
-  config gives it an unstarted timer to cancel (T-041 reports it).
+  options; then "turn off file follow, keep project follow"):
+  `emacs-cpp-tree-follow-project` (default t) nil keeps the tree on the project `C-c t`
+  opened it with (D-029's follow off); `emacs-cpp-tree-follow-file` (default nil) t lets
+  treemacs's own `treemacs-follow-mode` (on by default in treemacs) expand to and mark
+  the selected buffer's file. Set with `customize-variable`, they apply at once, also
+  with the tree loaded. treemacs (2ab5a3c, also master) signals an error when the
+  project follow mode turns off with no follow pending; the config gives it an unstarted
+  timer to cancel (T-041 reports it).
 - DECIDED D-049 (owner 2026-10-08): the tree opens only on `C-c t`, as before D-048;
   the automatic opening and its option `emacs-cpp-tree-open-automatically` are removed.
 - SUPERSEDED by D-049 (2026-10-08): D-048 (owner 2026-10-08): the tree opens by itself,
