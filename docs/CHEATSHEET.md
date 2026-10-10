@@ -88,6 +88,7 @@ In any list: words separated by space match in any order (`vec tria` finds
 
 Line numbers show in code, text and configuration buffers, not in the tree or tool
 buffers (D-063); `M-x display-line-numbers-mode` hides / shows them in one buffer.
+The column keeps its width while you scroll (D-073).
 
 Theme: `M-x customize-themes`, pick one, "Save Theme Settings"; it stays after a
 restart. Without a saved choice the theme is `modus-vivendi-tritanopia`.
@@ -145,6 +146,19 @@ The line the program stopped at is highlighted. Options: `emacs-cpp-debug-lazy-s
 `setup.py`) pyright starts, and `M-.`, `M-?`, `C-c l r` and the other `C-c l` keys work
 as for C++. `C-x C-a d debugpy RET` debugs the current file (`debugpy-module`: the
 current directory as a module).
+
+## Cells: Python and R (D-072)
+A line `# %%` (optionally with a title) starts a cell, as in jupytext, VS Code and
+Spyder. `.R` files open in ESS's `ess-r-mode`; R starts in the project root.
+
+| Key | Does |
+|---|---|
+| `C-c C-c` | run the cell at point (starts the Python shell or R if needed) |
+| `M-n` / `M-p` | next / previous cell |
+| `C-c % s` | run the cell, go to the next |
+| `C-c % b` | run the whole buffer |
+| `C-c % a` / `C-c % @` | run the cells above / select the cell |
+| `C-c C-r` / `C-c C-z` | run the selection / go to the shell (Python and R; R's: back) |
 
 ## Git (magit)
 | Key | Does |

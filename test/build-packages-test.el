@@ -221,5 +221,24 @@ that no longer fits, a missing one and an unlisted one stop the build."
       (should (equal (with-temp-buffer (insert-file-contents file) (buffer-string))
                      "(defun p () 1)\n")))))
 
+;; ESS's doc/ess.texi has `@include ../VERSION', a path from its own directory.
+(ert-deftest build-packages-info-includes-relative-to-the-manual ()
+  "D-072: a manual's @include is found relative to the manual, not to the root."
+  (build-packages-test--with-tree '("lib/p/VERSION" "lib/p/doc/toy.texi")
+    (write-region "@set TOYVER 1.2\n" nil (expand-file-name "lib/p/VERSION" root))
+    (write-region (replace-regexp-in-string
+                   "Hello\\." "@include ../VERSION\nVersion @value{TOYVER}."
+                   build-packages-test--texi t t)
+                  nil (expand-file-name "lib/p/doc/toy.texi" root))
+    (let ((dir (expand-file-name "lib/info" root))
+          (default-directory root))
+      (should (= (build-packages-write-info
+                  root (list (list :name "p" :path "lib/p" :info '("doc/toy.texi"))) dir)
+                 1))
+      (should (string-match-p "Version 1\\.2"
+                              (with-temp-buffer
+                                (insert-file-contents (expand-file-name "toy.info" dir))
+                                (buffer-string)))))))
+
 (provide 'build-packages-test)
 ;;; build-packages-test.el ends here

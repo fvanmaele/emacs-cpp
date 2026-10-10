@@ -33,8 +33,14 @@
 ;; `prog-mode', `text-mode', `conf-mode': C++, CMake, Python, Markdown, ...), not in
 ;; tool buffers such as treemacs, magit or *compilation* (D-063).  Emacs 31.1's
 ;; `global-display-line-numbers-mode' turns on in every buffer but the minibuffer.
+;; The column is as wide as the buffer's last line number needs when the mode turns
+;; on and never narrows; by default it fit the lines in the window, so scrolling past
+;; line 99 or 999 widened it and shifted the text (D-073).
 (use-package display-line-numbers
-  :hook ((prog-mode text-mode conf-mode) . display-line-numbers-mode))
+  :hook ((prog-mode text-mode conf-mode) . display-line-numbers-mode)
+  :custom
+  (display-line-numbers-width-start t)
+  (display-line-numbers-grow-only t))
 
 (defconst emacs-cpp-info-directory (expand-file-name "lib/info" emacs-cpp-root)
   "Info manuals of the vendored packages, built by `make packages' (D-039).")
