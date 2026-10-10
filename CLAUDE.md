@@ -23,7 +23,7 @@ Arch only (D-057); `make test` on the machine at hand (D-058). Owner runs left: 
 (O-12), build-macos.sh to ~/opt (T-023); owner sends the eglot watch report (T-032)
 and the three c-ts-mode reports (T-036, T-037, T-039). RET and TAB indent by Emacs's
 rules (D-065, superseding D-061), from plain `.dir-locals.el` values (D-062).
-Open: O-12, O-29 (cells / notebooks); T-025 round 2, T-026 research queued.
+Open: O-12; T-046 (cells, ESS, D-072) to agree; T-025 round 2, T-026 research queued.
 
 ## Hard rules (each with its reason)
 - Change-size ladder: tier 1 trivial = commit with Reasoning only; tier 2 feature = `done

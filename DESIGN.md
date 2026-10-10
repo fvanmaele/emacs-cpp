@@ -759,6 +759,14 @@ Mechanisms, each PROPOSED until measured:
   (generated per package directory so files are named by bare library name, as
   package.el does). `init.el` loads both and stops with "run make packages" if absent;
   `make test` fails if any `.elc` is missing or older than its `.el`.
+- DECIDED D-072 (owner 2026-10-10, O-29 (a), (b)): `# %%` cells in Python and R
+  scripts with code-cells (GNU ELPA, pinned b99013b = 0.5, no tags), and ESS as R's
+  mode and process (pinned v25.01.0, its newest release tag per D-006; manual
+  `doc/ess.texi`). Two submodules, network fetch at clone (D-014). Owner choices:
+  `C-c C-c` runs the cell at point, `M-n` / `M-p` move between cells (code-cells'
+  suggestion; Python's send-buffer moves), R starts in the project root without a
+  question. No eglot for R (no R language server packaged). R from pacman `r` on
+  Arch, MacPorts `R` on the Mac (D-053). Code: T-046.
 - SUPERSEDED by D-039 (2026-10-08): "Known gap: package Info manuals (magit,
   projectile) are not built; T-010."
 - DECIDED D-039 (owner 2026-10-08, T-010): `make packages` builds the Texinfo manuals
@@ -851,7 +859,7 @@ presets, GoogleTest runner.
   the C++ setup. Findings in; rulings O-19, O-20.
 - `RESEARCH_notebooks_cells.md` (owner request 2026-10-10, T-045): `# %%` cells for
   Python and R (code-cells, ESS), org-babel, Jupyter kernels, `.ipynb`, Quarto.
-  Findings in; O-29.
+  Findings in; O-29 ruled (D-072).
 - `RESEARCH_indent_guessing.md` (owner request 2026-10-09, T-034): packages that
   guess indentation or a `.clang-format`, measured on RMO; clangd's on-type
   formatting through eglot. Findings in; O-28 ruled (D-061).
@@ -974,7 +982,8 @@ presets, GoogleTest runner.
   budget (Arch 0.151 s); first `M-.` from the index 2.6 s (Arch 1.4 s). If the budgets
   bind on the Mac, startup needs work there first (antivirus and native-code loading
   are the suspects, not measured).
-- O-29 (OPEN; owner request 2026-10-10, T-045, `RESEARCH_notebooks_cells.md`): how to
+- O-29 (RESOLVED 2026-10-10 with D-072: (a) and (b); owner request 2026-10-10, T-045,
+  `RESEARCH_notebooks_cells.md`): how to
   run Python and R code in pieces. Options: (a) `# %%` cells in plain scripts with
   code-cells (GNU ELPA, one file, verified with `run-python`); (b) the same for R, plus
   ESS as R's mode and process (verified; R has no mode today, D-045); (c) notebooks as
@@ -983,7 +992,7 @@ presets, GoogleTest runner.
   (`zmq` native module, Jupyter install; not checked); (e) Quarto through quarto-mode
   and polymode (quarto CLI packaged neither on Arch nor in MacPorts: conflicts with
   D-053); (f) `.ipynb` editing: EIN is sunset, jupytext not ported for the Mac's
-  Python. Each package is a new submodule and a D-nnn (D-006). Owner to rule.
+  Python. Each package is a new submodule and a D-nnn (D-006). Ruled: (a), (b).
 - O-28 (RESOLVED 2026-10-10 with D-061: (b) new line only, and (e); (b) superseded
   by D-065 the same day; owner request
   2026-10-09, T-034, `RESEARCH_indent_guessing.md`): `TAB`
@@ -1212,6 +1221,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-069 | 2026-10-10 | fixes to vendored packages as patch files in the repo | 12 | owner |
 | D-070 | 2026-10-10 | tree follows only to version-controlled projects | 10 | owner |
 | D-071 | 2026-10-10 | which-key popup after 3 s instead of 1 s | 10 | owner |
+| D-072 | 2026-10-10 | `# %%` cells (code-cells), ESS for R | 12 | O-29 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
