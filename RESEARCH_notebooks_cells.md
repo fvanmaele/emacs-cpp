@@ -21,17 +21,22 @@ Python plotting scripts (`staging/*.py`), none with cell markers.
 - **`compat`** is built in, so packages requiring `(compat "29.1")` load as they are.
 
 ## 2. Candidates
-| Package | What | Source, version | Last push | Needs |
-|---|---|---|---|---|
-| code-cells | `# %%` cells in any script; eval a cell in the mode's REPL | GNU ELPA 0.5 | 2025-06-08 | compat (built in) |
-| ESS | R mode, R process, eval line / region / function, help | MELPA / NonGNU, 26.05.0 | 2026-09-28 | Emacs 25.1 |
-| emacs-jupyter | Jupyter kernels: REPL, `ob-jupyter` org blocks, rich output | MELPA, 1.0 | 2026-08-13 | `zmq` native module, websocket, simple-httpd, Jupyter |
-| EIN | edit and run `.ipynb` against a Jupyter server | MELPA | 2025-12-12 | Jupyter server |
-| quarto-mode | `.qmd` editing via polymode, `quarto-preview` | MELPA | 2024-01-05 | polymode, poly-markdown, markdown-mode, request, quarto CLI |
-| polymode + poly-R | several modes in one buffer (R Markdown) | MELPA | 2026-05-05 / 2025-05-02 | |
-| drepl | REPL protocol over comint; IPython shell with completion | GNU ELPA | 2026-07-15 | IPython |
-| comint-mime | images, HTML, LaTeX in `run-python` / IPython / `M-x shell` | GNU ELPA | 2024-11-16 | IPython recommended |
-| jupytext | `.ipynb` <-> `# %%` script conversion (command line) | PyPI | | Python |
+| Package | What | Source, version, last push |
+|---|---|---|
+| code-cells | `# %%` cells, eval in the mode's REPL | GNU ELPA 0.5, 2025-06-08 |
+| ESS | R mode and process, eval, help | MELPA, NonGNU; 26.05.0, 2026-09-28 |
+| emacs-jupyter | Jupyter kernels: REPL, `ob-jupyter`, rich output | MELPA 1.0, 2026-08-13 |
+| EIN | edit and run `.ipynb` against a Jupyter server | MELPA, 2025-12-12 |
+| quarto-mode | `.qmd` via polymode, `quarto-preview` | MELPA, 2024-01-05 |
+| polymode, poly-R | several modes in one buffer (Rmd) | MELPA, 2026-05 / 2025-05 |
+| drepl | REPL protocol over comint; IPython shell | GNU ELPA, 2026-07-15 |
+| comint-mime | images, HTML, LaTeX in `run-python` and `M-x shell` | GNU ELPA, 2024-11-16 |
+| jupytext | `.ipynb` <-> `# %%` script (command line) | PyPI |
+
+Needs: code-cells `compat` (built in); ESS Emacs 25.1; emacs-jupyter the `zmq` native
+module, websocket, simple-httpd and Jupyter; EIN a Jupyter server; quarto-mode
+polymode, poly-markdown, markdown-mode, request and the quarto CLI; drepl and
+comint-mime IPython (recommended for comint-mime).
 
 - **code-cells** (220 KB, one file) recognises `# %%` (jupytext's percent format, also
   VS Code and Spyder) and `# In[n]:`. `code-cells-eval` sends the cell to the REPL its
@@ -57,13 +62,14 @@ Python plotting scripts (`staging/*.py`), none with cell markers.
 ## 3. Checked by hand (batch, 2026-10-10)
 | Check | Result |
 |---|---|
-| code-cells 0.5 in `python-ts-mode`, `run-python`, eval cell 1 then cell 2 | cell 2 printed `cell2 14.142` using cell 1's `math` and `x` |
-| code-cells + ESS (`ess-r-mode`), R 4.6.1, the ESS entry added | cell 2 printed `cell2 14.142` using cell 1's `x` |
+| code-cells 0.5, `python-ts-mode`, cells 1, 2 | cell 2 printed 14.142 from cell 1's `x` |
+| code-cells + ESS (`ess-r-mode`), R 4.6.1 | cell 2 printed 14.142 from cell 1's `x` |
 | org-babel Python `:session` | shared state, result inline |
 | org-babel R, no session | ran through `Rscript`, result inline |
-| org-babel R `:session`, ESS on the load path but not loaded | error "Don't know how to make a let-bound variable an alias: ess-directory-function" |
+| org-babel R `:session`, ESS not yet loaded | alias error on `ess-directory-function` (a) |
 | the same, ESS loaded first | ran, result inline |
 
+(a) "Don't know how to make a let-bound variable an alias: ess-directory-function".
 The last two rows matter for a config that loads ESS lazily: the first R session block
 before any R buffer was opened fails until ESS is loaded.
 
