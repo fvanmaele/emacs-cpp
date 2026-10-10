@@ -146,6 +146,19 @@ The line the program stopped at is highlighted. Options: `emacs-cpp-debug-lazy-s
 as for C++. `C-x C-a d debugpy RET` debugs the current file (`debugpy-module`: the
 current directory as a module).
 
+## Cells: Python and R (D-072)
+A line `# %%` (optionally with a title) starts a cell, as in jupytext, VS Code and
+Spyder. `.R` files open in ESS's `ess-r-mode`; R starts in the project root.
+
+| Key | Does |
+|---|---|
+| `C-c C-c` | run the cell at point (starts the Python shell or R if needed) |
+| `M-n` / `M-p` | next / previous cell |
+| `C-c % s` | run the cell, go to the next |
+| `C-c % b` | run the whole buffer |
+| `C-c % a` / `C-c % @` | run the cells above / select the cell |
+| `C-c C-r` / `C-c C-z` | run the selection / go to the shell (Python and R; R's: back) |
+
 ## Git (magit)
 | Key | Does |
 |---|---|

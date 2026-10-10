@@ -214,7 +214,7 @@ Observed on the owner's Mac, 2026-10-09 (D-050):
 | early init | `early-init.el` | KEEP | T-002, owner-confirmed |
 | platform defaults | `lisp/defaults-<platform>.el` | PROTOTYPE | T-031 (D-055) |
 | init | `init.el` | KEEP | T-002, replaces `~/.emacs` (D-003) |
-| packages | `lib/<repo>/` submodules | KEEP | 28 repositories after T-017 (section 12) |
+| packages | `lib/<repo>/` submodules | KEEP | 30 repositories after T-046 (section 12) |
 | clangd, macOS | `packaging/clangd-index-nav/build-macos.sh` | PROTOTYPE | T-023, D-052 |
 | package build | `scripts/build-packages.el` | KEEP | T-002, `make packages` |
 | theme | `lisp/init-ui.el` | KEEP | T-002 |
@@ -226,6 +226,8 @@ Observed on the owner's Mac, 2026-10-09 (D-050):
 | CMake build | `lisp/emacs-cpp-presets.el`, projectile form | PROTOTYPE | T-005 (D-035) |
 | CMake mode | `lisp/init-cmake.el` | PROTOTYPE | system cmake-mode (D-013) |
 | Python | `lisp/init-python.el` | PROTOTYPE | T-018: ts-mode, pyright, debugpy (D-045) |
+| R | `lisp/init-r.el` | PROTOTYPE | T-046: ESS, no eglot (D-072) |
+| cells | `lisp/init-cells.el` | PROTOTYPE | T-046: code-cells, Python and R (D-072) |
 | debugger | `lisp/init-debug.el` | PROTOTYPE | gdb / lldb presets (D-031, D-051, D-056) |
 | git | `lisp/init-git.el` | KEEP | magit, treemacs-magit, diff-hl (T-015, T-016) |
 | keys | `lisp/init-keys.el` | UNVALIDATED | NEW: `C-c l` map (D-004) |
@@ -766,7 +768,12 @@ Mechanisms, each PROPOSED until measured:
   `C-c C-c` runs the cell at point, `M-n` / `M-p` move between cells (code-cells'
   suggestion; Python's send-buffer moves), R starts in the project root without a
   question. No eglot for R (no R language server packaged). R from pacman `r` on
-  Arch, MacPorts `R` on the Mac (D-053). Code: T-046.
+  Arch, MacPorts `R` on the Mac (D-053). Code: T-046 (0047). Built: R's start in the
+  project root is ESS's own default (`project-current`), the config only stops the
+  question; ESS's lintr flymake is off (lintr is CRAN-only, as the language server);
+  ESS reads its directory from where its autoloads are loaded, so `lisp/init-r.el`
+  names it (our autoloads are one file in `lib/`); `make packages` runs makeinfo from
+  a manual's directory, for ESS's `@include ../VERSION`.
 - SUPERSEDED by D-039 (2026-10-08): "Known gap: package Info manuals (magit,
   projectile) are not built; T-010."
 - DECIDED D-039 (owner 2026-10-08, T-010): `make packages` builds the Texinfo manuals
@@ -805,7 +812,8 @@ Mechanisms, each PROPOSED until measured:
   network calls at startup.
 - Package set (Q-3 accepted 2026-10-07; dependencies from the 2026-09-14 archive
   snapshot). Built into Emacs 31 and not vendored: eglot, jsonrpc, project, flymake,
-  transient, compat, seq, cl-lib, org, which-key. Vendored, 28 repositories (26 to T-016):
+  transient, compat, seq, cl-lib, org, which-key. Vendored, 30 repositories (26 to T-016,
+  28 to T-045; code-cells and ESS by T-046, D-072):
   - completion: vertico, orderless, marginalia, consult, embark (holds embark-consult),
     corfu, cape (vendored by T-003); consult-eglot v0.5.0 (T-004).
   - IDE: dape (vendored 0.27.1 for S2, owner consent 2026-10-08; its `use-package`
