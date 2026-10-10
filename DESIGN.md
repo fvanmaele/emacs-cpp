@@ -584,6 +584,16 @@ Known defects: none yet (nothing built).
   project follow mode turns off with no follow pending; the config gave it an unstarted
   timer to cancel (superseded the same day by D-069: patches/treemacs/0001 fixes it;
   T-041 reports it upstream).
+- DECIDED D-070 (owner 2026-10-10: "treemacs changes to the deal.II tree after `M-.`";
+  "C-c p should remain functional without .git or .projectile"): the tree follows only
+  to a project under version control or with a `.projectile` file. A library header
+  reached with `M-.` leaves it where it is: projectile also takes a directory with a
+  marker file (`Makefile`, `meson.build`, `TAGS`, ...) for a project, and deal.II's
+  macOS install (`/Applications/deal.II.app/Contents/Resources/`) has a `Makefile`;
+  without any project treemacs would show the file's directory. `C-c p` and `C-c t`
+  keep projectile's full rules, so `C-c t` still opens a Makefile-only project; the
+  tree just does not follow into one from another project. Built as an advice on
+  treemacs's `treemacs--do-follow-project` (internal, D-069's one-line allowance).
 - DECIDED D-049 (owner 2026-10-08): the tree opens only on `C-c t`, as before D-048;
   the automatic opening and its option `emacs-cpp-tree-open-automatically` are removed.
 - SUPERSEDED by D-049 (2026-10-08): D-048 (owner 2026-10-08): the tree opens by itself,
@@ -1182,6 +1192,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-067 | 2026-10-10 | options to turn off the tree's project, file following | 10 | owner |
 | D-068 | 2026-10-10 | warning for a C++ source missing from the database | 7 | owner |
 | D-069 | 2026-10-10 | fixes to vendored packages as patch files in the repo | 12 | owner |
+| D-070 | 2026-10-10 | tree follows only to version-controlled projects | 10 | owner |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
