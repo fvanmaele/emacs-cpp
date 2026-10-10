@@ -566,8 +566,13 @@ Known defects: none yet (nothing built).
   src/); inlay hints are on by default (eglot 31), `I` hides them.
 - DECIDED D-034 (owner 2026-10-08, O-16): built-in `which-key-mode` is on: after any
   prefix (`C-c p`, `C-x C-a`, `C-c l`) its keys appear once you pause 1 s
-  (`which-key-idle-delay` default); `C-h` after a prefix still searches them (embark);
+  (`which-key-idle-delay` default; 3 s since D-071); `C-h` after a prefix still
+  searches them (embark);
   projectile's own menu stays on `C-c p m`. Turning it on costs about 11 ms at start.
+- DECIDED D-071 (owner 2026-10-10): `which-key-idle-delay` 3 s instead of 1 s. ESC is
+  the Meta prefix, so pressing it (e.g. to cancel) brought up the list of every `M-`
+  command after 1 s. Chosen over hiding the list after ESC only, making ESC cancel in
+  graphical frames, or a list only on `C-h`. Applies to every prefix.
 - DECIDED D-029 (owner 2026-10-08): `C-c t` toggles the project tree; treemacs runs
   `treemacs-project-follow-mode`, so the tree shows only the project of the selected
   buffer (projectile's, via treemacs-projectile) and follows it. Not opened at startup
@@ -1193,6 +1198,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-068 | 2026-10-10 | warning for a C++ source missing from the database | 7 | owner |
 | D-069 | 2026-10-10 | fixes to vendored packages as patch files in the repo | 12 | owner |
 | D-070 | 2026-10-10 | tree follows only to version-controlled projects | 10 | owner |
+| D-071 | 2026-10-10 | which-key popup after 3 s instead of 1 s | 10 | owner |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.

@@ -22,10 +22,12 @@
 (use-package repeat
   :hook (after-init . repeat-mode))
 
-;; Built in: after a prefix such as `C-c p', its keys appear once you pause
-;; (`which-key-idle-delay', 1 s) (D-034).  `C-h' after a prefix still searches them.
+;; Built in: after a prefix such as `C-c p', its keys appear once you pause 3 s
+;; (D-034, D-071: 1 s brought the list up after every ESC).  `C-h' after a prefix
+;; still searches them.
 (use-package which-key
-  :hook (after-init . which-key-mode))
+  :hook (after-init . which-key-mode)
+  :custom (which-key-idle-delay 3.0))
 
 ;; Built in: line numbers where code or text is edited (modes derived from
 ;; `prog-mode', `text-mode', `conf-mode': C++, CMake, Python, Markdown, ...), not in

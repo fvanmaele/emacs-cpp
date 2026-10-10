@@ -92,7 +92,7 @@ buffers (D-063); `M-x display-line-numbers-mode` hides / shows them in one buffe
 Theme: `M-x customize-themes`, pick one, "Save Theme Settings"; it stays after a
 restart. Without a saved choice the theme is `modus-vivendi-tritanopia`.
 
-After any prefix (`C-c p`, `C-x C-a`, `C-c l`), wait a second: which-key shows the keys
+After any prefix (`C-c p`, `C-x C-a`, `C-c l`), wait 3 seconds: which-key shows the keys
 that can follow (D-034). `C-h` in that popup pages through them.
 
 ## Projects, CMake presets, building
