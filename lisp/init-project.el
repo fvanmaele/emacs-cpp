@@ -4,7 +4,8 @@
 
 ;; projectile and treemacs, carried over from the retired ~/.emacs (DESIGN 12).
 ;; `C-c t' toggles the tree; it shows only the current buffer's project and follows
-;; it to other projects (D-029).  It opens only on `C-c t' (D-049).
+;; it to other projects (D-029).  It opens only on `C-c t' (D-049).  Two options turn
+;; the following off (D-067).
 
 ;;; Code:
 
@@ -23,6 +24,39 @@
    :compile #'emacs-cpp-presets-compile-command
    :test #'emacs-cpp-presets-test-command))
 
+(defcustom emacs-cpp-tree-follow-project t
+  "Non-nil: the tree switches to the project of the selected buffer (D-029).
+nil: it keeps the project `C-c t' opened it with (D-067)."
+  :type 'boolean
+  :initialize #'custom-initialize-default
+  :set #'emacs-cpp-tree--set-follow
+  :group 'tools)
+
+(defcustom emacs-cpp-tree-follow-file t
+  "Non-nil: the tree expands to and marks the selected buffer's file, as
+treemacs does by default.  nil: it stays where you left it (D-067)."
+  :type 'boolean
+  :initialize #'custom-initialize-default
+  :set #'emacs-cpp-tree--set-follow
+  :group 'tools)
+
+(defun emacs-cpp-tree--apply-follow ()
+  "Turn treemacs's two follow modes on or off as the options say (D-067)."
+  ;; Turning the project follow mode off cancels its idle timer unchecked, and the
+  ;; timer is nil between follows (treemacs 2ab5a3c, T-041); a timer never started
+  ;; stands in, its cancelling harmless.
+  (defvar treemacs--project-follow-timer)
+  (unless (or emacs-cpp-tree-follow-project treemacs--project-follow-timer)
+    (setq treemacs--project-follow-timer (timer-create)))
+  (treemacs-project-follow-mode (if emacs-cpp-tree-follow-project 1 -1))
+  (treemacs-follow-mode (if emacs-cpp-tree-follow-file 1 -1)))
+
+(defun emacs-cpp-tree--set-follow (symbol value)
+  "Set SYMBOL to VALUE; once treemacs is loaded, apply it at once."
+  (set-default-toplevel-value symbol value)
+  (when (featurep 'treemacs)
+    (emacs-cpp-tree--apply-follow)))
+
 (defun emacs-cpp-treemacs-toggle ()
   "Close the tree if it is visible, else show the current project in it (D-029).
 `treemacs' itself asks for a project root while its workspace is empty."
@@ -35,7 +69,7 @@
   :bind ("C-c t" . emacs-cpp-treemacs-toggle)
   :commands treemacs-get-local-window
   :config
-  (treemacs-project-follow-mode))
+  (emacs-cpp-tree--apply-follow))
 
 ;; Lets treemacs add and follow projectile projects; loaded once both are loaded.
 ;; With `use-package-always-defer' an :after form alone never loads (it did not,

@@ -86,6 +86,7 @@ with `done when: ...`).
 | T-038 | done 0044 | S | indentation from plain dir-locals | D-062 | RMO data-only |
 | T-039 | open | S | c-ts-mode report: member after blank line | D-062 | owner sends it |
 | T-040 | done | M | rules: case labels, argument lines | D-065 | 62 lines left |
+| T-041 | open | S | send the treemacs follow-mode-off report | D-067 | owner sends it |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -216,6 +217,11 @@ with `done when: ...`).
   findings, each taken or not taken with a reason, and the taken ones fixed with
   tests. Done 2026-10-09 (0037): preset conditions, `$env{}` as CMake, lldb-dap by
   name, one build step; the file API instead of build.ninja is O-25.
+- T-041 (opened 2026-10-10, D-067): turning `treemacs-project-follow-mode` off signals
+  `(wrong-type-argument timerp nil)` (unchecked `cancel-timer`); worked around in
+  `emacs-cpp-tree--apply-follow`, test `init-treemacs-follow-options`. Drafted:
+  `docs/upstream/treemacs-project-follow-mode-off.md`; outward, so the owner sends it.
+  Done when: sent, issue number noted here.
 - T-040 (opened 2026-10-10, D-065): indent rules for the two gaps left on RMO after
   D-062 (452 lines re-indented): `case` labels one step in from `switch`
   (`IndentCaseLabels: true`), and arguments after a `(` that ends a line one step in

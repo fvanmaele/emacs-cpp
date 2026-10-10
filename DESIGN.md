@@ -559,6 +559,14 @@ Known defects: none yet (nothing built).
   (in force again with D-049). `C-c t` opens with the current project directly
   (`treemacs` alone asks for a root while the workspace is empty). `C-x t t` stays
   Emacs's tab-bar key.
+- DECIDED D-067 (owner 2026-10-10: "option to disable auto-follow in treemacs"; two
+  options, both on by default): `emacs-cpp-tree-follow-project` nil keeps the tree on
+  the project `C-c t` opened it with (D-029's follow off); `emacs-cpp-tree-follow-file`
+  nil stops treemacs's own `treemacs-follow-mode` (on by default in treemacs) from
+  expanding to and marking the selected buffer's file. Set with `customize-variable`,
+  they apply at once, also with the tree loaded. treemacs (2ab5a3c, also master)
+  signals an error when the project follow mode turns off with no follow pending; the
+  config gives it an unstarted timer to cancel (T-041 reports it).
 - DECIDED D-049 (owner 2026-10-08): the tree opens only on `C-c t`, as before D-048;
   the automatic opening and its option `emacs-cpp-tree-open-automatically` are removed.
 - SUPERSEDED by D-049 (2026-10-08): D-048 (owner 2026-10-08): the tree opens by itself,
@@ -1140,6 +1148,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-064 | 2026-10-10 | clangd's out-of-line action left as upstream offers it | 7 | owner |
 | D-065 | 2026-10-10 | RET by Emacs's rules; clangd on-type format ignored | 7 | owner |
 | D-066 | 2026-10-10 | tab stops at the C++ indent step (M-i, C-x TAB) | 5 | owner |
+| D-067 | 2026-10-10 | options to turn off the tree's project, file following | 10 | owner |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
