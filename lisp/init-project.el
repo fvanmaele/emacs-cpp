@@ -32,9 +32,9 @@ nil: it keeps the project `C-c t' opened it with (D-067)."
   :set #'emacs-cpp-tree--set-follow
   :group 'tools)
 
-(defcustom emacs-cpp-tree-follow-file t
+(defcustom emacs-cpp-tree-follow-file nil
   "Non-nil: the tree expands to and marks the selected buffer's file, as
-treemacs does by default.  nil: it stays where you left it (D-067)."
+treemacs does by default.  nil (the default): it stays where you left it (D-067)."
   :type 'boolean
   :initialize #'custom-initialize-default
   :set #'emacs-cpp-tree--set-follow
