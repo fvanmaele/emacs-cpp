@@ -90,6 +90,7 @@ with `done when: ...`).
 | T-042 | done 0045 | S | warn on a source not in the database | D-068 | probe gap, fixed |
 | T-043 | open | S | pyright test failed once | none | capture the condition |
 | T-044 | done 0046 | M | patch files for submodules | D-069 | treemacs 0001 first |
+| T-045 | done | M | cells, notebooks, Quarto (Python, R) | owner | RESEARCH; O-29 |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -220,6 +221,12 @@ with `done when: ...`).
   findings, each taken or not taken with a reason, and the taken ones fixed with
   tests. Done 2026-10-09 (0037): preset conditions, `$env{}` as CMake, lldb-dap by
   name, one build step; the file API instead of build.ninja is O-25.
+- T-045 (opened 2026-10-10, owner): research cell modes for Python and R, notebooks,
+  Quarto and other options. Done when: `RESEARCH_notebooks_cells.md` with the
+  candidates, what is built in, what was checked by hand, and the external tools per
+  machine. Done 2026-10-10: code-cells with `run-python` and with ESS verified, org-babel
+  Python and R verified (an R session needs ESS loaded first); Jupyter, EIN and Quarto
+  not checked; options put to the owner as O-29.
 - T-044 (opened 2026-10-10, D-069): done when (agreed 2026-10-10): a repeatable
   `.gitmodules` key `patch` (repository-relative); `make packages` applies each series
   before compiling, a second run is safe, a patch that does not apply stops the build
