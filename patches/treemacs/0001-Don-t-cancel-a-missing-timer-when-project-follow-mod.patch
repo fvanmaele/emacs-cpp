@@ -1,0 +1,31 @@
+From 9d707fced02e78358ba7d97586001cd459dcfd29 Mon Sep 17 00:00:00 2001
+From: Ferdinand Vanmaele <ferdinand-joseph.vanmaele@uni-a.de>
+Date: Sat, 10 Oct 2026 11:32:48 +0200
+Subject: [PATCH] Don't cancel a missing timer when project follow mode turns
+ off
+
+treemacs--tear-down-project-follow-mode called cancel-timer on
+treemacs--project-follow-timer unchecked; the debounce sets it back to
+nil after every follow, so turning the mode off signalled
+(wrong-type-argument timerp nil).  Guard it as the setup function does.
+---
+ src/elisp/treemacs-project-follow-mode.el | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/elisp/treemacs-project-follow-mode.el b/src/elisp/treemacs-project-follow-mode.el
+index fe85766..7224698 100644
+--- a/src/elisp/treemacs-project-follow-mode.el
++++ b/src/elisp/treemacs-project-follow-mode.el
+@@ -86,7 +86,8 @@ window."
+ 
+ (defun treemacs--tear-down-project-follow-mode ()
+   "Remove the hooks added by `treemacs--setup-project-follow-mode'."
+-  (cancel-timer treemacs--project-follow-timer)
++  (when treemacs--project-follow-timer (cancel-timer treemacs--project-follow-timer))
++  (setf treemacs--project-follow-timer nil)
+   (remove-hook 'window-buffer-change-functions #'treemacs--follow-project)
+   (remove-hook 'window-selection-change-functions #'treemacs--follow-project)
+   (remove-hook 'treemacs-post-buffer-init-hook #'treemacs--follow-project-after-buffer-init))
+-- 
+2.56.0
+
