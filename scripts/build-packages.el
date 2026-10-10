@@ -249,8 +249,11 @@ Return the number of manuals."
     (make-directory dir t)
     (dolist (texi files)
       (let ((info (expand-file-name (concat (file-name-base texi) ".info") dir)))
-        ;; Warnings (upstream style) pass; only a failure stops the build.
-        (build-packages--run "makeinfo" "--no-split" "-o" info texi)
+        ;; Warnings (upstream style) pass; only a failure stops the build.  Run from
+        ;; the manual's directory: an @include such as ESS's `../VERSION' is relative
+        ;; to it (D-072).
+        (let ((default-directory (file-name-directory (expand-file-name texi))))
+          (build-packages--run "makeinfo" "--no-split" "-o" info texi))
         (build-packages--run "install-info" (concat "--info-dir=" dir) info)))
     (length files)))
 

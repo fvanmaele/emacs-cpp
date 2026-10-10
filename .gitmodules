@@ -133,3 +133,13 @@
 	path = lib/breadcrumb
 	url = https://github.com/joaotavora/breadcrumb
 	ignore = untracked
+[submodule "code-cells"]
+	path = lib/code-cells
+	url = https://github.com/astoff/code-cells.el
+	ignore = untracked
+[submodule "ess"]
+	path = lib/ess
+	url = https://github.com/emacs-ess/ESS
+	ignore = untracked
+	load-path = lisp
+	info = doc/ess.texi
