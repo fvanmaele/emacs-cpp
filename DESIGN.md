@@ -207,6 +207,12 @@ Observed on the owner's Mac, 2026-10-09 (D-050):
   Emacs 31.1 it turns on in every buffer but the minibuffer, with no exemption list,
   so leaving out treemacs, magit, `*compilation*`, help and dape's buffers would need
   a list grown with every package; the three hooks give the same set the other way.
+- DECIDED D-073 (owner 2026-10-10: "when scrolling a file with line numbers, the line
+  number bar width changes"): the line number column is as wide as the buffer's last
+  line number needs when `display-line-numbers-mode` turns on
+  (`display-line-numbers-width-start` t) and never narrows
+  (`display-line-numbers-grow-only` t). Emacs's default sizes it for the lines in the
+  window, so scrolling from line 99 to 100 widened it and shifted the text sideways.
 
 ## 6. Architecture
 | block | location | tag | notes |
@@ -1230,6 +1236,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-070 | 2026-10-10 | tree follows only to version-controlled projects | 10 | owner |
 | D-071 | 2026-10-10 | which-key popup after 3 s instead of 1 s | 10 | owner |
 | D-072 | 2026-10-10 | `# %%` cells (code-cells), ESS for R | 12 | O-29 |
+| D-073 | 2026-10-10 | line number column keeps its width while scrolling | 5 | owner |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
