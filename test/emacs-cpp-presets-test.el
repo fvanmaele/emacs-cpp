@@ -153,9 +153,13 @@ a parent's null condition is not inherited, a preset's own null enables it."
   (emacs-cpp-presets-test--with-project
       '(("ok.json" . "[{\"file\": \"a.cc\", \"command\": \"c++ -std=c++20 -c a.cc\"},
                       {\"file\": \"b.cc\", \"arguments\": [\"c++\", \"-std=gnu++20\", \"b.cc\"]}]")
-        ("bad.json" . "[{\"file\": \"a.cc\", \"command\": \"c++ -c a.cc\"}]"))
+        ("bad.json" . "[{\"file\": \"a.cc\", \"command\": \"c++ -c a.cc\"}]")
+        ("empty.json" . "[]"))
     (should-not (emacs-cpp-presets-check-database (expand-file-name "ok.json" root)))
     (should-error (emacs-cpp-presets-check-database (expand-file-name "bad.json" root))
+                  :type 'user-error)
+    ;; No entries: every file would get clangd's fallback flags.
+    (should-error (emacs-cpp-presets-check-database (expand-file-name "empty.json" root))
                   :type 'user-error)))
 
 (ert-deftest emacs-cpp-presets-clangd-contact ()
@@ -171,6 +175,32 @@ a parent's null condition is not inherited, a preset's own null enables it."
       (should (equal (emacs-cpp-presets-clangd-contact nil project)
                      (list "clangd" (concat "--compile-commands-dir="
                                             (expand-file-name "build/debug" root))))))))
+
+(ert-deftest emacs-cpp-presets-clangd-contact-refuses-every-mistake-loudly ()
+  "D-018: unreadable presets, a database still being written and an empty one
+are refused with an error-level warning naming the file, not only logged."
+  (dolist (case '(("presets" "{\"version\": 6, \"configurePresets\": ["
+                   "[{\"file\": \"a.cc\", \"command\": \"c++ -std=c++20 -c a.cc\"}]"
+                   "CMakePresets.json is not valid JSON")
+                  ("truncated" nil "[{\"directory\":"
+                   "compile_commands.json is not valid JSON")
+                  ("empty" nil "[]" "compile_commands.json lists no compile commands")))
+    (pcase-let ((`(,label ,presets ,database ,expected) case))
+      (emacs-cpp-presets-test--with-project
+          `(("CMakePresets.json" . ,(or presets emacs-cpp-presets-test--presets))
+            ("build/debug/compile_commands.json" . ,database))
+        (let ((project (cons 'transient root))
+              warnings)
+          (cl-letf (((symbol-function 'display-warning)
+                     (lambda (type message &optional level _buffer)
+                       (push (list type level message) warnings))))
+            (should-error (emacs-cpp-presets-clangd-contact nil project)
+                          :type 'user-error))
+          (should (equal (list label 1) (list label (length warnings))))
+          (pcase-let ((`(,type ,level ,message) (car warnings)))
+            (should (equal (list label 'emacs-cpp :error)
+                           (list label type level)))
+            (should (string-match-p (regexp-quote expected) message))))))))
 
 (defun emacs-cpp-presets-test--fake-clangd (dir name help)
   "Write an executable NAME in DIR whose --help-hidden prints HELP."

@@ -339,6 +339,12 @@ Known defects: none yet (nothing built).
   active preset's `compile_commands.json` is missing (`cmake --preset <name>`) or an
   entry lacks `-std=` (D-011). Before T-004, eglot started a bare clangd: 21 false
   errors and no `M-.` in RMO (owner, 2026-10-07; reproduced by a negative control).
+  Extended 2026-10-10 (owner, after a probe of seven broken projects): the same
+  warning for every error on the way to clangd's command, which eglot showed as one
+  echo-area line only (a mistyped preset file, a preset without `binaryDir`, a database
+  CMake is still writing), and for an empty database (`[]`), with which clangd started
+  on its fallback flags for every file. Fallback flags were not slower (5.0 s against
+  6.8 s, `clangd --check`, one file); the cost is false errors.
 - Background (S1, O-1): how clangd finds `compile_commands.json` when presets build into
   `build/<preset>/`; clangd only searches parent directories and their `build/` subdir.
   Candidates: (B) project `.clangd` with `CompileFlags: CompilationDatabase:`, (C)

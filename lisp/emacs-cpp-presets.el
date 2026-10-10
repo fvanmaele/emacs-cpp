@@ -10,9 +10,9 @@
 ;;
 ;; The default preset is the first non-hidden configure preset; `emacs-cpp-presets-select'
 ;; switches it and remembers the choice per project in `emacs-cpp-presets-state-file'
-;; (outside the project).  eglot is refused, loudly, when the database is missing or a
-;; compile command lacks -std (D-011, D-018): clangd would otherwise fall back to
-;; default flags and report false errors.
+;; (outside the project).  eglot is refused, loudly, when the presets cannot be read,
+;; the database is missing or empty, or a compile command lacks -std (D-011, D-018):
+;; clangd would otherwise fall back to default flags and report false errors.
 ;;
 ;; Supported preset features: configurePresets in CMakePresets.json and
 ;; CMakeUserPresets.json, `inherits', `condition' (all types but the regular
@@ -55,13 +55,24 @@ them, otherwise eglot is refused rather than started without them."
 
 ;;;; Reading presets
 
+(defun emacs-cpp-presets--read-json (file &rest args)
+  "Return the JSON in FILE, parsed with ARGS for `json-parse-buffer'.
+Invalid JSON is an error naming FILE (a preset file mistyped, a database CMake
+is still writing)."
+  (with-temp-buffer
+    (insert-file-contents file)
+    (condition-case err
+        (apply #'json-parse-buffer args)
+      (json-error
+       (user-error "emacs-cpp: %s is not valid JSON (%s)"
+                   file (error-message-string err))))))
+
 (defun emacs-cpp-presets--read-file (file)
   "Return the configure presets of FILE as a list of alists, or nil if absent."
   (when (file-exists-p file)
-    (let ((json (with-temp-buffer
-                  (insert-file-contents file)
-                  (json-parse-buffer :object-type 'alist :array-type 'list
-                                     :null-object nil :false-object :false))))
+    (let ((json (emacs-cpp-presets--read-json
+                 file :object-type 'alist :array-type 'list
+                 :null-object nil :false-object :false)))
       (when (alist-get 'include json)
         (error "emacs-cpp: %s uses `include', which is not supported yet" file))
       (alist-get 'configurePresets json))))
@@ -263,10 +274,10 @@ disabled by its condition" root))
 ;;;; clangd
 
 (defun emacs-cpp-presets-check-database (file)
-  "Signal an error unless every compile command in FILE carries -std= (D-011)."
-  (let* ((entries (with-temp-buffer
-                    (insert-file-contents file)
-                    (json-parse-buffer :object-type 'alist :array-type 'list)))
+  "Signal an error unless FILE lists compile commands, each with -std= (D-011).
+An empty database would leave clangd on its fallback flags for every file."
+  (let* ((entries (emacs-cpp-presets--read-json
+                   file :object-type 'alist :array-type 'list))
          (missing (cl-remove-if
                    (lambda (entry)
                      (let ((command (alist-get 'command entry))
@@ -276,6 +287,9 @@ disabled by its condition" root))
                          (cl-some (lambda (arg) (string-prefix-p "-std=" arg))
                                   arguments))))
                    entries)))
+    (unless entries
+      (user-error "emacs-cpp: %s lists no compile commands; does the preset build \
+any sources?  Fix CMakeLists.txt and reconfigure (D-011)" file))
     (when missing
       (user-error "emacs-cpp: %d of %d compile commands in %s lack -std= (e.g. %s); \
 set CMAKE_CXX_EXTENSIONS OFF and reconfigure (D-011)"
@@ -284,8 +298,8 @@ set CMAKE_CXX_EXTENSIONS OFF and reconfigure (D-011)"
 
 (defun emacs-cpp-presets--refuse (format &rest args)
   "Show FORMAT with ARGS as an error-level warning, then signal it.
-eglot only logs errors from a contact function, so the warning makes the
-refusal visible (D-018)."
+eglot only shows errors from a contact function as one echo-area line, so the
+warning makes the refusal visible (D-018)."
   (let ((message (apply #'format format args)))
     (display-warning 'emacs-cpp message :error)
     (user-error "%s" message)))
@@ -315,31 +329,37 @@ Asked once per program file version."
     (cond
      ((null program) (list "clangd"))
      ((not (file-executable-p program))
-      (emacs-cpp-presets--refuse
+      (user-error
        "emacs-cpp: emacs-cpp-clangd-program %s is not executable; install \
 packaging/clangd-index-nav or set it to nil (D-026)" program))
      ((emacs-cpp-presets--missing-flags program)
-      (emacs-cpp-presets--refuse
+      (user-error
        "emacs-cpp: %s lacks %s; it is not the current patched clangd, rebuild \
 packaging/clangd-index-nav (D-026)"
        program (string-join (emacs-cpp-presets--missing-flags program) " ")))
      (t (cons program emacs-cpp-presets--patched-flags)))))
 
-(defun emacs-cpp-presets-clangd-contact (_interactive project)
-  "Return the clangd command for PROJECT, for `eglot-server-programs'."
+(defun emacs-cpp-presets--clangd-command (project)
+  "Return the clangd command for PROJECT, or signal why there is none."
   (let* ((root (expand-file-name (project-root project)))
          (name (emacs-cpp-presets-active root))
          (dir (emacs-cpp-presets-binary-dir root name))
          (database (expand-file-name "compile_commands.json" dir)))
     (unless (file-exists-p database)
-      (emacs-cpp-presets--refuse
+      (user-error
        "emacs-cpp: no %s for preset %S; run `cmake --preset %s' in %s, then M-x eglot"
        database name name root))
-    (condition-case err
-        (emacs-cpp-presets-check-database database)
-      (user-error (emacs-cpp-presets--refuse "%s" (error-message-string err))))
+    (emacs-cpp-presets-check-database database)
     (let ((command (emacs-cpp-presets--clangd-program)))
       `(,(car command) ,(concat "--compile-commands-dir=" dir) ,@(cdr command)))))
+
+(defun emacs-cpp-presets-clangd-contact (_interactive project)
+  "Return the clangd command for PROJECT, for `eglot-server-programs'.
+Every error on the way, a missing database as much as a mistyped preset file,
+is refused with an error-level warning (D-018)."
+  (condition-case err
+      (emacs-cpp-presets--clangd-command project)
+    (error (emacs-cpp-presets--refuse "%s" (error-message-string err)))))
 
 ;;;; Starting eglot
 
