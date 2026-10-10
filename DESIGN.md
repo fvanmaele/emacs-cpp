@@ -849,6 +849,9 @@ presets, GoogleTest runner.
 ## Research program
 - `RESEARCH_other_languages.md` (owner question 2026-10-08): Python, R, Perl next to
   the C++ setup. Findings in; rulings O-19, O-20.
+- `RESEARCH_notebooks_cells.md` (owner request 2026-10-10, T-045): `# %%` cells for
+  Python and R (code-cells, ESS), org-babel, Jupyter kernels, `.ipynb`, Quarto.
+  Findings in; O-29.
 - `RESEARCH_indent_guessing.md` (owner request 2026-10-09, T-034): packages that
   guess indentation or a `.clang-format`, measured on RMO; clangd's on-type
   formatting through eglot. Findings in; O-28 ruled (D-061).
@@ -971,6 +974,16 @@ presets, GoogleTest runner.
   budget (Arch 0.151 s); first `M-.` from the index 2.6 s (Arch 1.4 s). If the budgets
   bind on the Mac, startup needs work there first (antivirus and native-code loading
   are the suspects, not measured).
+- O-29 (OPEN; owner request 2026-10-10, T-045, `RESEARCH_notebooks_cells.md`): how to
+  run Python and R code in pieces. Options: (a) `# %%` cells in plain scripts with
+  code-cells (GNU ELPA, one file, verified with `run-python`); (b) the same for R, plus
+  ESS as R's mode and process (verified; R has no mode today, D-045); (c) notebooks as
+  org files with org-babel (built in; Python sessions verified; R sessions need ESS,
+  loaded before the first session block); (d) Jupyter kernels through emacs-jupyter
+  (`zmq` native module, Jupyter install; not checked); (e) Quarto through quarto-mode
+  and polymode (quarto CLI packaged neither on Arch nor in MacPorts: conflicts with
+  D-053); (f) `.ipynb` editing: EIN is sunset, jupytext not ported for the Mac's
+  Python. Each package is a new submodule and a D-nnn (D-006). Owner to rule.
 - O-28 (RESOLVED 2026-10-10 with D-061: (b) new line only, and (e); (b) superseded
   by D-065 the same day; owner request
   2026-10-09, T-034, `RESEARCH_indent_guessing.md`): `TAB`
