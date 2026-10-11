@@ -3,8 +3,8 @@
 An Emacs 31 configuration that gives one owner a CLion-like C++ environment on an Arch
 Linux workstation and a macOS machine (D-050): navigation, refactoring and diagnostics
 through eglot and clangd, builds from CMake presets, debugging through dape and gdb,
-git through magit, and jump-to-anything through vertico and consult. Python rides
-along (D-045).
+git through magit, and jump-to-anything through vertico and consult (one prompt on
+`M-o`, D-074). Python rides along (D-045).
 
 It is not an Emacs distribution, not a Windows configuration and not a CLion keymap
 emulation (DESIGN 2). This file never claims more than `DESIGN.md` backs; the feature
