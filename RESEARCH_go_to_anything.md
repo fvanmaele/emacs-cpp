@@ -1,11 +1,12 @@
 # RESEARCH - one "go to anything" prompt (T-047)
 
-Findings only; verdicts go to DESIGN (O-30). Owner request 2026-10-11: a "go to
-anything" key in Emacs that works like CLion's (the owner calls it `M-M`): symbols,
-project files, bookmarks and more from one prompt. Arch, Emacs 31.1, 2026-10-11.
-Package facts from the vendored sources at their pins (consult 3.10, consult-eglot
-v0.5.0, projectile, embark 1.2); CLion facts from JetBrains' help pages (CLion 2026.2);
-one hands-on check in `emacs -Q --batch` with a script in a scratch directory.
+Findings only; verdicts go to DESIGN (O-30 -> D-074; the key: O-31). Owner request
+2026-10-11: a "go to anything" key in Emacs that works like CLion's (the owner calls it
+`M-M`): symbols, project files, bookmarks and more from one prompt. Arch, Emacs 31.1,
+2026-10-11. Package facts from the vendored sources at their pins (consult 3.10,
+consult-eglot v0.5.0, projectile, embark 1.2); CLion facts from JetBrains' help pages
+(CLion 2026.2); one hands-on check in `emacs -Q --batch` with a script in a scratch
+directory.
 
 Starting point: DESIGN 1, row "Search everywhere": "Gap: no single combined popup."
 
@@ -96,6 +97,40 @@ symbols from clangd, and commands.
   `M-m` itself stays.
 - On the Mac `M-M` is Option-Shift-m with Option as Meta; not checked there.
 
+Other keys (owner request 2026-10-11, with D-074). Checked 2026-10-11: `init.el`
+loaded in batch, each key looked up in the global map and in the maps of the modes
+the config uses (C++, Python, ESS and its REPL, org, markdown, dired, compilation,
+magit, treemacs, code-cells, eglot, projectile, corfu, diff-hl); the Mac's own
+bindings read from `term/ns-win.el` (Emacs 31.1). Emacs's conventions (elisp manual,
+"Key Binding Conventions"): `C-c` plus a letter, and `<f5>` to `<f9>` without
+modifiers, are the only keys reserved for users; no package may bind them.
+
+| Key | Bound now | Terminal | Mac | Notes |
+|---|---|---|---|---|
+| `M-M` | no mode | yes (ESC M) | Option-Shift-m | `M-m` stays |
+| `M-o` | no mode | yes | Option-o | one chord, no Shift |
+| `C-c j` / `g` / `s` / `SPC` | no mode | yes | yes | two keys; letters reserved |
+| `<f5>` .. `<f9>` | no mode | yes | Fn on laptop keys | one key; reserved |
+| `C-S-n` | no mode | no | Ctrl-Shift-n | CLion's Linux "Go to file" |
+| `s-O` (Cmd-Shift-O) | no mode | no | yes | Arch: Super is the WM's |
+| `M-g a`, `M-g SPC` | no mode | yes | yes | in the `M-g` jump prefix |
+| `C-,`, `C-'` | org | - | - | org cycles agenda files |
+| `C-x C-b` | `list-buffers` | yes | yes | replaces a default |
+| `C-x b` | `consult-buffer` | yes | yes | option (a), section 3 |
+
+- `C-c SPC` is not a letter: by the conventions it falls to minor modes, not users.
+- `<f5>` .. `<f9>`: CLion steps the debugger with F7 / F8 / F9; dape uses its own
+  prefix (D-004), so they are free, but they are the natural keys if debugger keys
+  ever move there.
+- `C-S-n` and `s-O` exist only in graphical frames; a terminal cannot send them.
+  `s-O`'s Mac neighbours are taken (`s-o` open file, `s-p` print, `s-t` fonts);
+  CLion's macOS keymap uses Cmd-Shift-O for files (not checked against its page).
+- Double Shift outside Emacs: a key remapper can turn a double tap of Shift into a
+  key Emacs binds (for example `<f9>`). Arch packages keyd 2.6.0 and xcape 1.2
+  (xcape: X11 only, a single tap); Karabiner-Elements on the Mac does double taps
+  with a variable and a delayed action (community examples). Not checked here; it
+  is a file outside this repository, so it needs its own D-nnn.
+
 ## 5. Existing packages
 | Package | What | Source |
 |---|---|---|
@@ -128,12 +163,11 @@ Questions inside (b) if chosen: which sources are visible without narrowing; whe
 text search (CLion's Text scope, `consult-ripgrep`) joins as a hidden async source;
 projectile or project.el for the root.
 
-## 7. Left to measure (owner, if (a) or (b))
-- `projectile-project-files` time on RMO and on the deal.II source tree:
-  `M-: (benchmark-run 5 (projectile-project-files (projectile-project-root)))` from
-  a file in each.
-- `workspace/symbol` latency on RMO with the patched clangd: `C-c l s`, type three
-  letters, note the delay before the list fills.
+## 7. Measurements
+Moved to spike S11 (D-074): `spikes/s11-go-to-anything/RUN.md`. Dry run on a toy
+project and this repository: projectile lists every git submodule on its own (30
+here: 742 ms, against 7 ms for `git ls-files` at the top); filtering 6470 items
+takes 1 - 5 ms per input.
 
 ## Sources
 - JetBrains, CLion help "Search everywhere":

@@ -93,6 +93,8 @@ with `done when: ...`).
 | T-045 | done | M | cells, notebooks, Quarto (Python, R) | owner | RESEARCH; O-29 |
 | T-046 | done 0047 | M | Python and R cells, ESS | D-072 | owner's RMO check left |
 | T-047 | done | S | research: go to anything prompt | owner | RESEARCH; O-30 |
+| T-048 | open | S | spike S11: go to anything costs | D-074 | owner runs |
+| T-049 | open | M | go to anything prompt | D-074 | after S11, O-31 |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -237,6 +239,12 @@ with `done when: ...`).
   median on Arch within D-057's budget; owner: an RMO R script and a plotting script
   with `# %%` cells run cell by cell. Built 2026-10-10 (0047): all met but the owner's
   RMO check; startup median 0.161 s.
+- T-049 (opened 2026-10-11, D-074): the go-to-anything command in
+  `lisp/init-completion.el` (`consult--multi`, sources as D-074) on the key O-31
+  rules. Tier 2; done when agreed after S11's results.
+- T-048 (opened 2026-10-11, D-074): owner runs spike S11
+  (`spikes/s11-go-to-anything/RUN.md`); pass criteria proposed there, agreed before
+  the run. Done when: `results.log` handed back and `RESULTS.md` written.
 - T-047 (opened 2026-10-11, owner): research a "go to anything" key like CLion's
   Search Everywhere (symbols, project files, bookmarks, ...). Done when:
   `RESEARCH_go_to_anything.md` with what CLion does, what the config has, what consult
