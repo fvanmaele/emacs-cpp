@@ -28,7 +28,8 @@ any preset or database error (D-018), a warning for a source missing from the
 database (D-068); fixes to vendored packages as patch files (D-069). which-key after
 3 s (D-071). `# %%` cells in Python and R, ESS for R (D-072, 0047); owner's RMO check
 left.
-Open: O-12, O-30 (go to anything, T-047); T-025 round 2, T-026 research queued.
+Go to anything: one consult prompt (D-074), spike S11 first (owner runs, T-048), key
+open (O-31). Open: O-12, O-31; T-025 round 2, T-026 research queued.
 
 ## Hard rules (each with its reason)
 - Change-size ladder: tier 1 trivial = commit with Reasoning only; tier 2 feature = `done

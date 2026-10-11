@@ -43,8 +43,8 @@ Format: CLion feature -> Emacs component. Gap vs CLion. Status.
   clangd-based. PROPOSED.
 - Search everywhere, go to file / symbol / action -> vertico + orderless + marginalia +
   consult: `projectile-find-file`, `consult-buffer`, `consult-eglot-symbols`,
-  `consult-imenu`, `consult-ripgrep`, `M-x`. Gap: no single combined popup (O-30).
-  PROPOSED.
+  `consult-imenu`, `consult-ripgrep`, `M-x`. Gap: no single combined popup. D-074:
+  one prompt (`consult--multi`), after S11; key O-31.
 - Project tree -> treemacs + treemacs-projectile (installed). Gap: none. DECIDED
   (existing setup).
 - CMake editing -> `cmake-mode` shipped by the system `cmake` package. Gap: no target
@@ -578,6 +578,14 @@ Known defects: none yet (nothing built).
   (`which-key-idle-delay` default; 3 s since D-071); `C-h` after a prefix still
   searches them (embark);
   projectile's own menu stays on `C-c p m`. Turning it on costs about 11 ms at start.
+- DECIDED D-074 (owner 2026-10-11, O-30 (b): "(b) measure first"): one go-to-anything
+  prompt, a new command built with consult's `consult--multi`, in
+  `lisp/init-completion.el`: buffers, project files (projectile), recent files and
+  bookmarks from the first key; clangd symbols (`workspace/symbol`, through
+  consult-eglot's functions) from the third; commands and project roots behind
+  narrow keys. `C-x b` stays `consult-buffer`. Spike S11 measures each source on RMO
+  and the deal.II tree first (`spikes/s11-go-to-anything/RUN.md`); code (T-049)
+  after S11 and the key (O-31). No new package.
 - DECIDED D-071 (owner 2026-10-10): `which-key-idle-delay` 3 s instead of 1 s. ESC is
   the Meta prefix, so pressing it (e.g. to cancel) brought up the list of every `M-`
   command after 1 s. Chosen over hiding the list after ESC only, making ESC cancel in
@@ -865,6 +873,7 @@ presets, GoogleTest runner.
 | patched clangd's index navigation slower / wrong on RMO | S8 | owner | O-11 |
 | header opened first after a restart gets guessed flags | S9 (PASS) | owner | - |
 | deal.II sources index unused or too costly on RMO | S10 | owner | O-12 |
+| go-to-anything prompt slow on RMO / deal.II tree | S11 | owner | T-049 |
 | own package build glue mis-orders compilation | none (tests) | - | v0.1 |
 | config fails on macOS (paths, tools, tests) | none (`make test`) | owner | D-050 |
 | clangd too slow / too large on deal.II scale | S1 numbers | owner | v0.1 |
@@ -872,7 +881,8 @@ presets, GoogleTest runner.
 ## Research program
 - `RESEARCH_go_to_anything.md` (owner request 2026-10-11, T-047): one prompt for
   files, symbols, bookmarks and commands like CLion's Search Everywhere; consult's
-  multi-source prompt with clangd's symbols as an async source. Findings in; O-30.
+  multi-source prompt with clangd's symbols as an async source; keys. Findings in;
+  O-30 ruled (D-074), O-31 open, S11 measures.
 - `RESEARCH_other_languages.md` (owner question 2026-10-08): Python, R, Perl next to
   the C++ setup. Findings in; rulings O-19, O-20.
 - `RESEARCH_notebooks_cells.md` (owner request 2026-10-10, T-045): `# %%` cells for
@@ -1000,7 +1010,17 @@ presets, GoogleTest runner.
   budget (Arch 0.151 s); first `M-.` from the index 2.6 s (Arch 1.4 s). If the budgets
   bind on the Mac, startup needs work there first (antivirus and native-code loading
   are the suspects, not measured).
-- O-30 (OPEN; owner request 2026-10-11, T-047, `RESEARCH_go_to_anything.md`): one
+- O-31 (OPEN; owner 2026-10-11 with D-074: "explore alternative keybinds to M-M";
+  `RESEARCH_go_to_anything.md` 4): the key for the go-to-anything prompt. Free in
+  every mode the config uses (checked): `M-M`, `M-o` (both one chord, also in a
+  terminal), `C-c` plus a letter such as `C-c j` (reserved for users, two keys),
+  `<f5>` .. `<f9>` (reserved for users, one key; CLion's debugger keys are F7 - F9),
+  `C-S-n` / Mac `s-O` (CLion's file keys; graphical frames only), `M-g a`. Taken:
+  `C-,` and `C-'` (org). Double Shift needs a key remapper outside Emacs (keyd or
+  xcape on Arch, Karabiner-Elements on the Mac; not checked; its own D-nnn).
+  Several keys may share the command.
+- O-30 (RESOLVED 2026-10-11 with D-074: (b), measured first; owner request
+  2026-10-11, T-047, `RESEARCH_go_to_anything.md`): one
   "go to anything" prompt like CLion's Search Everywhere. Shift twice cannot be bound
   (Emacs has no event for a lone modifier); `M-M` is free. Options: (a) project files,
   clangd symbols and commands added to `consult-buffer` on `C-x b` (buffer switching
@@ -1251,6 +1271,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-071 | 2026-10-10 | which-key popup after 3 s instead of 1 s | 10 | owner |
 | D-072 | 2026-10-10 | `# %%` cells (code-cells), ESS for R | 12 | O-29 |
 | D-073 | 2026-10-10 | line number column keeps its width while scrolling | 5 | owner |
+| D-074 | 2026-10-11 | one go-to-anything prompt, measured first (S11) | 10 | O-30 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.

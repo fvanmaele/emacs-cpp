@@ -39,6 +39,9 @@ code is written for it. Each spike is a self-contained directory with its own bu
 - **S10 deal.II sources index** - does an offline index of deal.II's sources make
   `M-.` reach definitions and `M-?` uses inside the library on RMO, with the patched
   clangd, at what memory (O-12)?
+- **S11 go to anything** - are project files, filtering and clangd's
+  `workspace/symbol` fast enough on RMO and the deal.II tree for one combined prompt
+  (D-074)? Gates T-049.
 - **S4 cold-header flags** - DROPPED 2026-10-08: replaced by D-028 (patched clangd
   takes an includer from its index; owner ruled tier 2, toy reproduction as evidence).
   Was: which mechanism gives a header opened first (no including
@@ -60,3 +63,4 @@ code is written for it. Each spike is a self-contained directory with its own bu
 | S7 | PKGBUILD ready, owner to build | |
 | S8 | PASS (run 2) | s8-clangd-index-navigation/RESULTS.md |
 | S2 | PASS (run 1) | s2-dape-gdb/RESULTS.md |
+| S11 | dry run done, owner to run | |
