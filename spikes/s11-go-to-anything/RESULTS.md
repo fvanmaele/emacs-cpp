@@ -3,7 +3,24 @@
 Verdict: PASS (run 2, 2026-10-11). The whole prompt with D-077's settings on RMO in a
 terminal Emacs, patched clangd: opening 89 - 96 ms (criterion 150), every key's
 results 6 - 24 ms (100), symbols on screen 122 - 150 ms after the key (200), no
-garbage collection while typing. Run 1 below.
+garbage collection while typing. Run 3 (the shipped command, T-049): PASS on the
+same criteria. Run 1 below.
+
+## Run 3 (2026-10-11 16:04, load 5.46 at start, 6.47 after: not idle)
+Raw output: `results-run3.log`. `S11_SHIPPED=1`: `M-o` runs the shipped
+`emacs-cpp-go-to-anything`, RMO pass only; 10 openings, 42 keys.
+| | Run 3, shipped | Run 2, spike copy | Criterion |
+|---|---|---|---|
+| files listed at opening | 2673, 42 - 60 ms | 2767, 66 - 74 ms | |
+| opening, first screen | 54 - 74 ms | 89 - 96 ms | <= 150 ms |
+| key to its results (median) | 2 - 30 ms (18) | 6 - 24 ms (20) | <= 100 ms |
+| symbols on screen after third key | 122 - 150 ms | 122 - 150 ms | <= 200 ms |
+| collections while typing | 0 | 0 | |
+No input started with `#` (D-078). The shipped command does not log clangd's replies;
+symbols on screen is the first update after the third key whose count grew. For
+longer inputs the count only shrinks, so the arrival of their new symbols is not
+visible in this log. The file count differs from run 2 (2673 against 2767, 20
+minutes apart); not investigated.
 
 ## Run 2 (2026-10-11 15:48, load 2.38 at start, 1.46 after)
 Raw output: `results-run2.log`. `prompt.sh`: two passes, each a fresh `emacs -nw`
@@ -96,7 +113,7 @@ Median after 20 s: 5.5 ms. eglot managed `src/main.cc` 516 ms after the open.
 
 ## Decision
 Run 1: O-32 -> D-075 (accepted). Run 2: D-077's settings confirmed; T-049's
-done-when reuses run 2's criteria.
+done-when reuses run 2's criteria. Run 3: the shipped command meets them (0051).
 
 ## Gotchas
 - Run 1's script looked for `~/.emacs.d/recentf`; Emacs 31 saves `recentf.eld`

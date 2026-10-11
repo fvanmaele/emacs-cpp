@@ -1,0 +1,201 @@
+# S11 run 3 2026-10-11T16:04:41+02:00
+project: /home/alad/source/repos/RMO-gross-pitaevskii (src/main.cc), tree: /home/alad/source/repos/dealii
+clangd: /opt/clangd-index-nav/bin/clangd, clangd version 23.1.1
+load: 5.46 5.00 3.07
+# files from /home/alad/source/repos/RMO-gross-pitaevskii/; managed t; /opt/clangd-index-nav/bin/clangd; gc-cons-threshold 800000
+# ready, shipped command
+key M-o
+  listed 2673 files in 54.5 ms
+  screen   63.2 ms after key (update   2.4 ms): "" 2718 candidates, 0 GCs 0 ms
+  screen  117.9 ms after key (update   9.0 ms): "" 2718 candidates, 0 GCs 0 ms
+key m
+  screen   15.5 ms after key (update  15.1 ms): "m" 2389 candidates, 0 GCs 0 ms
+  screen   58.2 ms after key (update   5.6 ms): "m" 2389 candidates, 0 GCs 0 ms
+key a
+  screen   25.7 ms after key (update  24.8 ms): "ma" 1745 candidates, 0 GCs 0 ms
+  screen   58.0 ms after key (update   2.0 ms): "ma" 1745 candidates, 0 GCs 0 ms
+key i
+  screen   25.1 ms after key (update  23.9 ms): "mai" 23 candidates, 0 GCs 0 ms
+  screen   57.2 ms after key (update   0.7 ms): "mai" 23 candidates, 0 GCs 0 ms
+  screen  149.5 ms after key (update   0.7 ms): "mai" 123 candidates, 0 GCs 0 ms
+key n
+  screen   11.9 ms after key (update  11.4 ms): "main" 123 candidates, 0 GCs 0 ms
+  screen   54.1 ms after key (update   1.6 ms): "main" 123 candidates, 0 GCs 0 ms
+  screen  114.7 ms after key (update   2.0 ms): "main" 123 candidates, 0 GCs 0 ms
+key C-g
+key M-o
+  listed 2673 files in 57.4 ms
+  screen   70.2 ms after key (update   3.5 ms): "" 2718 candidates, 0 GCs 0 ms
+  screen  115.7 ms after key (update   2.5 ms): "" 2718 candidates, 0 GCs 0 ms
+key v
+  screen   15.6 ms after key (update  14.1 ms): "v" 1992 candidates, 0 GCs 0 ms
+  screen   56.6 ms after key (update   3.3 ms): "v" 1992 candidates, 0 GCs 0 ms
+key e
+  screen   15.3 ms after key (update  15.0 ms): "ve" 1146 candidates, 0 GCs 0 ms
+  screen   53.7 ms after key (update   1.3 ms): "ve" 1146 candidates, 0 GCs 0 ms
+key c
+  screen   11.5 ms after key (update  11.1 ms): "vec" 4 candidates, 0 GCs 0 ms
+  screen   55.5 ms after key (update   3.1 ms): "vec" 4 candidates, 0 GCs 0 ms
+  screen  147.9 ms after key (update   0.9 ms): "vec" 104 candidates, 0 GCs 0 ms
+key C-g
+key M-o
+  listed 2673 files in 57.8 ms
+  screen   71.3 ms after key (update   2.9 ms): "" 2718 candidates, 0 GCs 0 ms
+  screen  121.6 ms after key (update   6.1 ms): "" 2718 candidates, 0 GCs 0 ms
+key T
+  screen   17.7 ms after key (update  16.7 ms): "T" 2 candidates, 0 GCs 0 ms
+  screen   57.3 ms after key (update   1.3 ms): "T" 2 candidates, 0 GCs 0 ms
+key r
+  screen   10.4 ms after key (update   9.4 ms): "Tr" 0 candidates, 0 GCs 0 ms
+  screen   53.5 ms after key (update   0.6 ms): "Tr" 0 candidates, 0 GCs 0 ms
+key i
+  screen    5.9 ms after key (update   4.7 ms): "Tri" 0 candidates, 0 GCs 0 ms
+  screen  141.4 ms after key (update   1.6 ms): "Tri" 100 candidates, 0 GCs 0 ms
+key C-g
+key M-o
+  listed 2673 files in 57.2 ms
+  screen   73.5 ms after key (update   4.6 ms): "" 2718 candidates, 0 GCs 0 ms
+  screen  122.7 ms after key (update   6.3 ms): "" 2718 candidates, 0 GCs 0 ms
+key a
+  screen   22.8 ms after key (update  22.1 ms): "a" 2579 candidates, 0 GCs 0 ms
+  screen   57.8 ms after key (update   3.4 ms): "a" 2579 candidates, 0 GCs 0 ms
+key s
+  screen   23.1 ms after key (update  22.4 ms): "as" 885 candidates, 0 GCs 0 ms
+  screen   56.9 ms after key (update   2.0 ms): "as" 885 candidates, 0 GCs 0 ms
+key s
+  screen   22.6 ms after key (update  21.9 ms): "ass" 874 candidates, 0 GCs 0 ms
+  screen   59.8 ms after key (update   2.0 ms): "ass" 874 candidates, 0 GCs 0 ms
+  screen  149.6 ms after key (update   3.1 ms): "ass" 974 candidates, 0 GCs 0 ms
+key e
+  screen   21.0 ms after key (update  20.3 ms): "asse" 106 candidates, 0 GCs 0 ms
+  screen   60.6 ms after key (update   2.6 ms): "asse" 106 candidates, 0 GCs 0 ms
+  screen  128.8 ms after key (update   1.3 ms): "asse" 105 candidates, 0 GCs 0 ms
+key m
+  screen   18.4 ms after key (update  17.7 ms): "assem" 101 candidates, 0 GCs 0 ms
+  screen   58.1 ms after key (update   1.1 ms): "assem" 101 candidates, 0 GCs 0 ms
+  screen  124.0 ms after key (update   1.6 ms): "assem" 51 candidates, 0 GCs 0 ms
+key b
+  screen   15.9 ms after key (update  15.0 ms): "assemb" 51 candidates, 0 GCs 0 ms
+  screen   58.3 ms after key (update   1.3 ms): "assemb" 51 candidates, 0 GCs 0 ms
+  screen  122.7 ms after key (update   1.4 ms): "assemb" 42 candidates, 0 GCs 0 ms
+key l
+  screen   17.9 ms after key (update  17.0 ms): "assembl" 42 candidates, 0 GCs 0 ms
+  screen   57.9 ms after key (update   1.4 ms): "assembl" 42 candidates, 0 GCs 0 ms
+  screen  124.7 ms after key (update   1.4 ms): "assembl" 42 candidates, 0 GCs 0 ms
+key e
+  screen   17.4 ms after key (update  16.5 ms): "assemble" 42 candidates, 0 GCs 0 ms
+  screen   57.7 ms after key (update   1.4 ms): "assemble" 42 candidates, 0 GCs 0 ms
+  screen  123.5 ms after key (update   1.4 ms): "assemble" 35 candidates, 0 GCs 0 ms
+key C-g
+key M-o
+  listed 2673 files in 53.7 ms
+  screen   67.6 ms after key (update   3.0 ms): "" 2718 candidates, 0 GCs 0 ms
+  screen  118.0 ms after key (update   6.3 ms): "" 2718 candidates, 0 GCs 0 ms
+key S
+  screen   20.4 ms after key (update  19.4 ms): "S" 6 candidates, 0 GCs 0 ms
+  screen   55.7 ms after key (update   1.0 ms): "S" 6 candidates, 0 GCs 0 ms
+key o
+  screen   13.7 ms after key (update  13.0 ms): "So" 0 candidates, 0 GCs 0 ms
+  screen   62.3 ms after key (update   0.5 ms): "So" 0 candidates, 0 GCs 0 ms
+key l
+  screen    5.1 ms after key (update   4.5 ms): "Sol" 0 candidates, 0 GCs 0 ms
+  screen  127.8 ms after key (update   1.6 ms): "Sol" 100 candidates, 0 GCs 0 ms
+key C-g
+key M-o
+  listed 2673 files in 54.7 ms
+  screen   67.7 ms after key (update   3.0 ms): "" 2718 candidates, 0 GCs 0 ms
+  screen  118.3 ms after key (update   6.2 ms): "" 2718 candidates, 0 GCs 0 ms
+key m
+  screen   23.8 ms after key (update  22.6 ms): "m" 2389 candidates, 0 GCs 0 ms
+  screen   61.0 ms after key (update   6.2 ms): "m" 2389 candidates, 0 GCs 0 ms
+key a
+  screen   22.6 ms after key (update  21.9 ms): "ma" 1745 candidates, 0 GCs 0 ms
+  screen   57.3 ms after key (update   2.6 ms): "ma" 1745 candidates, 0 GCs 0 ms
+key i
+  screen   19.2 ms after key (update  18.6 ms): "mai" 24 candidates, 0 GCs 0 ms
+  screen   56.2 ms after key (update   1.7 ms): "mai" 24 candidates, 0 GCs 0 ms
+  screen  142.0 ms after key (update   1.8 ms): "mai" 124 candidates, 0 GCs 0 ms
+key n
+  screen   18.3 ms after key (update  17.6 ms): "main" 124 candidates, 0 GCs 0 ms
+  screen   55.7 ms after key (update   1.4 ms): "main" 124 candidates, 0 GCs 0 ms
+  screen  126.6 ms after key (update   1.5 ms): "main" 124 candidates, 0 GCs 0 ms
+key C-g
+key M-o
+  listed 2673 files in 54.7 ms
+  screen   70.2 ms after key (update   3.1 ms): "" 2718 candidates, 0 GCs 0 ms
+  screen  119.5 ms after key (update   5.1 ms): "" 2718 candidates, 0 GCs 0 ms
+key v
+  screen   22.3 ms after key (update  21.6 ms): "v" 1992 candidates, 0 GCs 0 ms
+  screen   60.0 ms after key (update   5.7 ms): "v" 1992 candidates, 0 GCs 0 ms
+key e
+  screen   23.7 ms after key (update  22.9 ms): "ve" 1146 candidates, 0 GCs 0 ms
+  screen   57.1 ms after key (update   2.4 ms): "ve" 1146 candidates, 0 GCs 0 ms
+key c
+  screen   17.2 ms after key (update  16.6 ms): "vec" 4 candidates, 0 GCs 0 ms
+  screen   55.4 ms after key (update   1.1 ms): "vec" 4 candidates, 0 GCs 0 ms
+  screen  145.6 ms after key (update   1.7 ms): "vec" 104 candidates, 0 GCs 0 ms
+key C-g
+key M-o
+  listed 2673 files in 59.5 ms
+  screen   72.5 ms after key (update   2.7 ms): "" 2718 candidates, 0 GCs 0 ms
+  screen  123.2 ms after key (update   6.3 ms): "" 2718 candidates, 0 GCs 0 ms
+key T
+  screen   14.7 ms after key (update  14.1 ms): "T" 2 candidates, 0 GCs 0 ms
+  screen   54.4 ms after key (update   0.7 ms): "T" 2 candidates, 0 GCs 0 ms
+key r
+  screen    4.9 ms after key (update   4.3 ms): "Tr" 0 candidates, 0 GCs 0 ms
+  screen   51.7 ms after key (update   0.3 ms): "Tr" 0 candidates, 0 GCs 0 ms
+key i
+  screen    2.3 ms after key (update   2.0 ms): "Tri" 0 candidates, 0 GCs 0 ms
+  screen  135.8 ms after key (update   0.7 ms): "Tri" 100 candidates, 0 GCs 0 ms
+key C-g
+key M-o
+  listed 2673 files in 42.5 ms
+  screen   54.5 ms after key (update   2.7 ms): "" 2718 candidates, 0 GCs 0 ms
+  screen  108.7 ms after key (update   9.1 ms): "" 2718 candidates, 0 GCs 0 ms
+key a
+  screen   29.5 ms after key (update  28.2 ms): "a" 2579 candidates, 0 GCs 0 ms
+  screen   59.7 ms after key (update   3.1 ms): "a" 2579 candidates, 0 GCs 0 ms
+key s
+  screen   15.5 ms after key (update  15.1 ms): "as" 885 candidates, 0 GCs 0 ms
+  screen   55.1 ms after key (update   2.5 ms): "as" 885 candidates, 0 GCs 0 ms
+key s
+  screen   14.4 ms after key (update  14.0 ms): "ass" 874 candidates, 0 GCs 0 ms
+  screen   56.9 ms after key (update   2.5 ms): "ass" 874 candidates, 0 GCs 0 ms
+  screen  134.9 ms after key (update   1.3 ms): "ass" 974 candidates, 0 GCs 0 ms
+key e
+  screen   13.3 ms after key (update  12.8 ms): "asse" 106 candidates, 0 GCs 0 ms
+  screen   55.2 ms after key (update   0.8 ms): "asse" 106 candidates, 0 GCs 0 ms
+  screen  124.1 ms after key (update   2.0 ms): "asse" 105 candidates, 0 GCs 0 ms
+key m
+  screen   18.0 ms after key (update  17.6 ms): "assem" 101 candidates, 0 GCs 0 ms
+  screen   57.1 ms after key (update   0.7 ms): "assem" 101 candidates, 0 GCs 0 ms
+  screen  120.2 ms after key (update   0.7 ms): "assem" 51 candidates, 0 GCs 0 ms
+key b
+  screen   19.2 ms after key (update  18.0 ms): "assemb" 51 candidates, 0 GCs 0 ms
+  screen   58.4 ms after key (update   0.4 ms): "assemb" 51 candidates, 0 GCs 0 ms
+  screen  120.2 ms after key (update   0.6 ms): "assemb" 42 candidates, 0 GCs 0 ms
+key l
+  screen    7.4 ms after key (update   7.1 ms): "assembl" 42 candidates, 0 GCs 0 ms
+  screen   53.2 ms after key (update   0.5 ms): "assembl" 42 candidates, 0 GCs 0 ms
+  screen  111.0 ms after key (update   2.4 ms): "assembl" 42 candidates, 0 GCs 0 ms
+key e
+  screen   11.8 ms after key (update  11.3 ms): "assemble" 42 candidates, 0 GCs 0 ms
+  screen   55.9 ms after key (update   1.1 ms): "assemble" 42 candidates, 0 GCs 0 ms
+  screen  120.3 ms after key (update   0.7 ms): "assemble" 35 candidates, 0 GCs 0 ms
+key C-g
+key M-o
+  listed 2673 files in 53.6 ms
+  screen   73.2 ms after key (update   4.0 ms): "" 2718 candidates, 0 GCs 0 ms
+  screen  120.0 ms after key (update   5.3 ms): "" 2718 candidates, 0 GCs 0 ms
+key S
+  screen   23.2 ms after key (update  22.0 ms): "S" 6 candidates, 0 GCs 0 ms
+  screen   57.8 ms after key (update   1.8 ms): "S" 6 candidates, 0 GCs 0 ms
+key o
+  screen   19.8 ms after key (update  18.5 ms): "So" 0 candidates, 0 GCs 0 ms
+  screen   67.7 ms after key (update   0.2 ms): "So" 0 candidates, 0 GCs 0 ms
+key l
+  screen    9.2 ms after key (update   8.1 ms): "Sol" 0 candidates, 0 GCs 0 ms
+  screen  121.9 ms after key (update   0.7 ms): "Sol" 100 candidates, 0 GCs 0 ms
+key C-g
+load after: 6.47 5.28 3.29

@@ -94,7 +94,7 @@ with `done when: ...`).
 | T-046 | done 0047 | M | Python and R cells, ESS | D-072 | owner's RMO check left |
 | T-047 | done | S | research: go to anything prompt | owner | RESEARCH; O-30 |
 | T-048 | done 0048 | S | spike S11: go to anything costs | D-074 | FAIL in one part |
-| T-049 | done 0050 | M | go to anything prompt | D-074 | owner's run 3, check left |
+| T-049 | done 0050 | M | go to anything prompt | D-074 | run 3 PASS; hand check left |
 | T-051 | done 0049 | S | spike S11 run 2: the whole prompt | D-077 | PASS |
 | T-050 | done | S | research: go to anything speed | owner | RESEARCH 8; O-33 |
 
@@ -253,6 +253,8 @@ with `done when: ...`).
   `prompt.sh`'s timing is repeated against the shipped command; owner's hand check
   on RMO and the deal.II tree. Agreed 2026-10-11. Built 2026-10-11 (0050): all met
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
+  S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
+  122 - 150 ms on RMO. Left: the owner's hand check.
 - T-051 (opened 2026-10-11, D-077): owner runs S11 run 2
   (`spikes/s11-go-to-anything/prompt.sh`, RUN.md run 2). Done when:
   `results-run2.log` handed back and RESULTS.md has run 2. Done 2026-10-11 (0049):

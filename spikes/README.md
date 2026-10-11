@@ -63,4 +63,4 @@ code is written for it. Each spike is a self-contained directory with its own bu
 | S7 | PKGBUILD ready, owner to build | |
 | S8 | PASS (run 2) | s8-clangd-index-navigation/RESULTS.md |
 | S2 | PASS (run 1) | s2-dape-gdb/RESULTS.md |
-| S11 | run 2 PASS (run 1 FAIL in part); run 3 owner | s11-go-to-anything/RESULTS.md |
+| S11 | runs 2, 3 PASS (run 1 FAIL in part) | s11-go-to-anything/RESULTS.md |
