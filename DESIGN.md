@@ -605,7 +605,11 @@ Known defects: none yet (nothing built).
   `workspace/symbol` request for an empty input (its own request step instead of
   consult-eglot's `setup` request). Owner asked for S11 run 2 first: the whole prompt
   on RMO with the patched clangd, listing project files at each opening
-  (`spikes/s11-go-to-anything/RUN.md`, run 2).
+  (`spikes/s11-go-to-anything/RUN.md`, run 2). Run 2 PASS (0049): RMO opening
+  89 - 96 ms, each key's results 6 - 24 ms, symbols on screen 122 - 150 ms after
+  the key, no collection while typing; deal.II's files: opening up to 178 ms, first
+  letters up to 139 ms. Interrupted static computations repeat the file listing
+  (deal.II: 6 of 10 openings); T-049 lists the files before `consult--multi`.
 - DECIDED D-071 (owner 2026-10-10): `which-key-idle-delay` 3 s instead of 1 s. ESC is
   the Meta prefix, so pressing it (e.g. to cancel) brought up the list of every `M-`
   command after 1 s. Chosen over hiding the list after ESC only, making ESC cancel in
@@ -893,7 +897,7 @@ presets, GoogleTest runner.
 | patched clangd's index navigation slower / wrong on RMO | S8 | owner | O-11 |
 | header opened first after a restart gets guessed flags | S9 (PASS) | owner | - |
 | deal.II sources index unused or too costly on RMO | S10 | owner | O-12 |
-| go-to-anything prompt slow on RMO / deal.II | S11 (FAIL in one part) | owner | T-049 |
+| go-to-anything prompt slow on RMO / deal.II | S11 (run 2 PASS) | owner | T-049 |
 | own package build glue mis-orders compilation | none (tests) | - | v0.1 |
 | config fails on macOS (paths, tools, tests) | none (`make test`) | owner | D-050 |
 | clangd too slow / too large on deal.II scale | S1 numbers | owner | v0.1 |

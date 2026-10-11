@@ -29,8 +29,8 @@ database (D-068); fixes to vendored packages as patch files (D-069). which-key a
 3 s (D-071). `# %%` cells in Python and R, ESS for R (D-072, 0047); owner's RMO check
 left.
 Go to anything: one consult prompt (D-074) on `M-o` (D-076); S11 (0048): one letter
-over deal.II accepted (D-075); speed settings (D-077); S11 run 2 on RMO left (owner,
-T-051). Open: O-12; T-025 round 2, T-026 research queued.
+over deal.II accepted (D-075); speed settings (D-077), S11 run 2 PASS on RMO (0049);
+T-049 next. Open: O-12; T-025 round 2, T-026 research queued.
 
 ## Hard rules (each with its reason)
 - Change-size ladder: tier 1 trivial = commit with Reasoning only; tier 2 feature = `done
