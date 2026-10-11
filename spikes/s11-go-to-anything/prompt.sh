@@ -6,7 +6,9 @@
 # Each pass opens the prompt once per word, types it one key per 300 ms, closes it.
 # The project is used in place (its preset and clangd index, as in a daily
 # session); nothing is written into it or into ~/.emacs.d.  Writes results-run2.log
-# next to this script, never over one.
+# next to this script, never over one.  Run 3: S11_SHIPPED=1 times the shipped
+# `emacs-cpp-go-to-anything' (T-049) instead, RMO pass only (the shipped command
+# lists the open file's project), into results-run3.log.
 set -eu
 PROJECT=${1:-$HOME/source/repos/RMO-gross-pitaevskii}
 TREE=${2:-$HOME/source/repos/dealii}
@@ -16,7 +18,8 @@ EMACS_D=${S11_EMACS_D:-$HOME/.emacs.d}
 WORDS=${S11_WORDS:-main vec Tri assemble Sol main vec Tri assemble Sol}
 HERE=$(cd "$(dirname "$0")" && pwd)
 REPO=$(cd "$HERE/../.." && pwd)
-LOG=${S11_LOG:-$HERE/results-run2.log}
+if [ -n "${S11_SHIPPED:-}" ]; then RUN=3; ROOTS=$PROJECT; else RUN=2; ROOTS="$PROJECT $TREE"; fi
+LOG=${S11_LOG:-$HERE/results-run$RUN.log}
 command -v tmux > /dev/null || { echo "s11: tmux is not installed" >&2; exit 1; }
 [ -x "$CLANGD" ] || { echo "s11: no clangd at $CLANGD" >&2; exit 1; }
 [ -f "$PROJECT/CMakePresets.json" ] || { echo "s11: no CMakePresets.json in $PROJECT" >&2; exit 1; }
@@ -29,16 +32,16 @@ trap 'tmux kill-session -t s11 2> /dev/null || true; rm -rf "$WORK"' EXIT
 if [ -f "$EMACS_D/emacs-cpp-presets.eld" ]; then
     cp "$EMACS_D/emacs-cpp-presets.eld" "$WORK/presets.eld"
 fi
-{ echo "# S11 run 2 $(date -Iseconds)"
+{ echo "# S11 run $RUN $(date -Iseconds)"
   echo "project: $PROJECT ($FILE), tree: $TREE"
   echo "clangd: $CLANGD, $("$CLANGD" --version | head -n 1)"
   echo "load: $(cut -d' ' -f1-3 /proc/loadavg)"; } > "$LOG"
-for root in "$PROJECT" "$TREE"; do
+for root in $ROOTS; do
     tmux new-session -d -s s11 -x 160 -y 48 \
         "cd '$REPO' && S11_PROJECT='$PROJECT' S11_FILE='$FILE' S11_FILES_ROOT='$root' \
 S11_CLANGD='$CLANGD' S11_STATE='$WORK/presets.eld' S11_EMACS_D='$EMACS_D' \
-S11_OUT='$LOG' S11_SETTLE='${S11_SETTLE:-20}' emacs -nw -Q -L scripts -L lisp -L test \
--l '$HERE/prompt.el'"
+S11_OUT='$LOG' S11_SETTLE='${S11_SETTLE:-20}' S11_SHIPPED='${S11_SHIPPED:-}' \
+emacs -nw -Q -L scripts -L lisp -L test -l '$HERE/prompt.el'"
     i=0
     until [ "$(grep -c '^# ready' "$LOG")" -gt "$( [ "$root" = "$PROJECT" ] && echo 0 || echo 1)" ]; do
         sleep 0.5; i=$((i + 1))

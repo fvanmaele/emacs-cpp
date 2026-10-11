@@ -102,3 +102,15 @@ Stand-in tree: listing 68 - 79 ms, opening 108 - 150 ms, keys 26 - 59 ms (first
 letter worst), symbols 126 - 148 ms (clangd 1 - 9 ms). The prompt starts with `#`:
 consult's `perl` split style marks async input that way (`#vec#filter`); T-049
 decides whether to keep it.
+
+## Run 3: the shipped command (T-049)
+`prompt.sh` with `S11_SHIPPED=1` binds `M-o` to the shipped `emacs-cpp-go-to-anything`
+and keeps run 2's logging; RMO pass only (the command lists the open file's project).
+```
+cd ~/source/repos/emacs-cpp
+S11_SHIPPED=1 sh spikes/s11-go-to-anything/prompt.sh \
+    ~/source/repos/RMO-gross-pitaevskii ~/source/repos/dealii src/main.cc
+```
+Hand back `spikes/s11-go-to-anything/results-run3.log`. Criteria: run 2's, RMO.
+Dry run (toy, 2026-10-11): opening 18 - 34 ms, keys 7 - 23 ms, symbols on screen
+about 120 ms after the key, no `#`, no collection.

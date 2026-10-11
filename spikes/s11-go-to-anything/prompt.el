@@ -7,6 +7,8 @@
 ;; Environment: S11_PROJECT, S11_FILE, S11_FILES_ROOT (root whose files the prompt
 ;; lists: the project itself, or the deal.II tree as a stand-in), S11_CLANGD,
 ;; S11_STATE, S11_EMACS_D (read only), S11_OUT (log), S11_SETTLE (seconds).
+;; S11_SHIPPED non-empty: `M-o' runs the shipped `emacs-cpp-go-to-anything' (T-049)
+;; instead of the copy below; the logging stays (run 3).
 (require 'init-test)
 (init-test--load)
 (require 'consult)
@@ -34,7 +36,8 @@
 
 (add-hook 'pre-command-hook
           (lambda ()
-            (when (or (minibufferp) (eq this-command 'go-to-anything))
+            (when (or (minibufferp)
+                      (memq this-command '(go-to-anything emacs-cpp-go-to-anything)))
               (setq key-time (current-time)
                     gc-at-key (cons gcs-done gc-elapsed))
               (say "key %s" (key-description (this-command-keys))))))
@@ -105,7 +108,13 @@
                          (consult--async-map #'consult-eglot--transformer))))
      :prompt "Go to: " :sort nil)))
 
-(keymap-global-set "M-o" #'go-to-anything)
+(if (not (getenv "S11_SHIPPED"))
+    (keymap-global-set "M-o" #'go-to-anything)
+  (advice-add 'projectile-project-files :around
+              (lambda (f &rest args)
+                (let* ((t0 (current-time)) (files (apply f args)))
+                  (say "  listed %d files in %.1f ms" (length files) (ms t0))
+                  files))))
 
 ;; Open the source once the terminal is up, wait for eglot and the index.
 (run-with-timer
@@ -121,4 +130,4 @@
           gc-cons-threshold))
    (let ((e (+ (float-time) (string-to-number (or (getenv "S11_SETTLE") "20")))))
      (while (< (float-time) e) (accept-process-output nil 0.2)))
-   (say "# ready")))
+   (say "# ready%s" (if (getenv "S11_SHIPPED") ", shipped command" ""))))

@@ -43,8 +43,9 @@ Format: CLion feature -> Emacs component. Gap vs CLion. Status.
   clangd-based. PROPOSED.
 - Search everywhere, go to file / symbol / action -> vertico + orderless + marginalia +
   consult: `projectile-find-file`, `consult-buffer`, `consult-eglot-symbols`,
-  `consult-imenu`, `consult-ripgrep`, `M-x`. Gap: no single combined popup. D-074:
-  one prompt (`consult--multi`), after S11; key O-31.
+  `consult-imenu`, `consult-ripgrep`, `M-x`; one combined prompt on `M-o` (D-074 ..
+  D-078, T-049): buffers, recent files, bookmarks, project files, clangd symbols,
+  commands and projects behind narrow keys. Gap: no settings or git items. PROPOSED.
 - Project tree -> treemacs + treemacs-projectile (installed). Gap: none. DECIDED
   (existing setup).
 - CMake editing -> `cmake-mode` shipped by the system `cmake` package. Gap: no target
@@ -610,6 +611,14 @@ Known defects: none yet (nothing built).
   the key, no collection while typing; deal.II's files: opening up to 178 ms, first
   letters up to 139 ms. Interrupted static computations repeat the file listing
   (deal.II: 6 of 10 openings); T-049 lists the files before `consult--multi`.
+- DECIDED D-078 (owner 2026-10-11, "hide the #"): the prompt binds
+  `consult-async-split-style` to nil, so its input starts without consult's `#`;
+  a second filter over symbol results (`#vec#push`) is given up.
+  Built (T-049, 0050): `emacs-cpp-go-to-anything` in `lisp/init-completion.el`, on
+  `M-o`. Narrow keys: `b` buffers, `r` recent files (consult's `f` taken), `m`
+  bookmarks, `f` project files, `s` symbols, `x` commands, `p` projects (the last two
+  hidden until narrowed). A chosen command or project runs after the prompt's
+  bindings end.
 - DECIDED D-071 (owner 2026-10-10): `which-key-idle-delay` 3 s instead of 1 s. ESC is
   the Meta prefix, so pressing it (e.g. to cancel) brought up the list of every `M-`
   command after 1 s. Chosen over hiding the list after ESC only, making ESC cancel in
@@ -1323,6 +1332,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-075 | 2026-10-11 | go to anything: first letter's cost on deal.II accepted | 10 | O-32 |
 | D-076 | 2026-10-11 | go to anything on `M-o` | 10 | O-31 |
 | D-077 | 2026-10-11 | go to anything: GC, sort, highlight, delays for speed | 10 | O-33 |
+| D-078 | 2026-10-11 | go to anything without consult's `#` | 10 | owner |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
