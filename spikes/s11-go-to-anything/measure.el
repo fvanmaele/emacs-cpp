@@ -50,11 +50,12 @@
     names))
 
 ;; The owner's recent files and bookmarks, read, never written: the temporary home
-;; of `init-test--load' receives any save.
-(let ((file (expand-file-name "recentf" emacs-d)))
+;; of `init-test--load' receives any save.  The file names are Emacs's own
+;; (`recentf.eld', `bookmarks.eld' in Emacs 31; run 1 looked for `recentf').
+(let ((file (expand-file-name (file-name-nondirectory recentf-save-file) emacs-d)))
   (when (file-exists-p file)
     (load file nil t)))
-(let ((file (expand-file-name "bookmarks" emacs-d)))
+(let ((file (expand-file-name (file-name-nondirectory bookmark-default-file) emacs-d)))
   (when (file-exists-p file)
     (bookmark-load file t t)))
 

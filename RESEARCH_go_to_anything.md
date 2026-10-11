@@ -167,7 +167,8 @@ projectile or project.el for the root.
 Moved to spike S11 (D-074): `spikes/s11-go-to-anything/RUN.md`. Dry run on a toy
 project and this repository: projectile lists every git submodule on its own (30
 here: 742 ms, against 7 ms for `git ls-files` at the top); filtering 6470 items
-takes 1 - 5 ms per input.
+takes 1 - 5 ms per input. Run 1 on RMO and deal.II: `spikes/s11-go-to-anything/
+RESULTS.md` (journal 0048).
 
 ## Sources
 - JetBrains, CLion help "Search everywhere":

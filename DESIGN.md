@@ -586,6 +586,11 @@ Known defects: none yet (nothing built).
   narrow keys. `C-x b` stays `consult-buffer`. Spike S11 measures each source on RMO
   and the deal.II tree first (`spikes/s11-go-to-anything/RUN.md`); code (T-049)
   after S11 and the key (O-31). No new package.
+  S11 run 1 (0048, FAIL in one part): file listing RMO 51 ms (2765 files), deal.II
+  66 ms (34602), no cache needed; symbols from the index median 5.5 ms, slowest
+  16.3 ms, but none until the stored index has loaded; filtering every input over
+  RMO 1.5 - 6.7 ms; over deal.II the first letter 31.8 ms (criterion 20 ms), then
+  13.1 ms and less. Handling: O-32.
 - DECIDED D-071 (owner 2026-10-10): `which-key-idle-delay` 3 s instead of 1 s. ESC is
   the Meta prefix, so pressing it (e.g. to cancel) brought up the list of every `M-`
   command after 1 s. Chosen over hiding the list after ESC only, making ESC cancel in
@@ -873,7 +878,7 @@ presets, GoogleTest runner.
 | patched clangd's index navigation slower / wrong on RMO | S8 | owner | O-11 |
 | header opened first after a restart gets guessed flags | S9 (PASS) | owner | - |
 | deal.II sources index unused or too costly on RMO | S10 | owner | O-12 |
-| go-to-anything prompt slow on RMO / deal.II tree | S11 | owner | T-049 |
+| go-to-anything prompt slow on RMO / deal.II | S11 (FAIL in one part) | owner | T-049 |
 | own package build glue mis-orders compilation | none (tests) | - | v0.1 |
 | config fails on macOS (paths, tools, tests) | none (`make test`) | owner | D-050 |
 | clangd too slow / too large on deal.II scale | S1 numbers | owner | v0.1 |
@@ -1010,6 +1015,15 @@ presets, GoogleTest runner.
   budget (Arch 0.151 s); first `M-.` from the index 2.6 s (Arch 1.4 s). If the budgets
   bind on the Mac, startup needs work there first (antivirus and native-code loading
   are the suspects, not measured).
+- O-32 (OPEN; S11 run 1, 0048): one letter typed in a deal.II-sized project filters
+  about 25000 matches in 32 ms (criterion 20 ms; RMO 6.7 ms; two letters 13 ms).
+  Options: (a) project files join from the second letter (an async source with
+  `consult--async-min-input` 2; checked in batch: one letter lists buffers, recent
+  files, bookmarks and commands, two add files; deleting back to one letter keeps
+  the last file matches listed until the next letter); (b) accept: below the 100 ms
+  of a reply that feels immediate, only in deal.II-sized trees, T-049's hand check
+  on the deal.II tree decides whether (a) follows; (c) project files only behind the
+  narrow key `f`.
 - O-31 (OPEN; owner 2026-10-11 with D-074: "explore alternative keybinds to M-M";
   `RESEARCH_go_to_anything.md` 4): the key for the go-to-anything prompt. Free in
   every mode the config uses (checked): `M-M`, `M-o` (both one chord, also in a
