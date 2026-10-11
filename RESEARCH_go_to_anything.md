@@ -1,7 +1,7 @@
 # RESEARCH - one "go to anything" prompt (T-047)
 
 Findings only; verdicts go to DESIGN (O-30 -> D-074, O-31 -> D-076, O-32 -> D-075,
-performance: O-33 -> D-077, narrowed to symbols: O-34). Owner request
+performance: O-33 -> D-077, narrowed to symbols: O-34 -> D-079). Owner request
 2026-10-11: a "go to anything" key in Emacs that works like CLion's (the owner calls it
 `M-M`): symbols, project files, bookmarks and more from one prompt. Arch, Emacs 31.1,
 2026-10-11. Package facts from the vendored sources at their pins (consult 3.10,
@@ -270,8 +270,19 @@ to symbols: updates 0.6 - 4.7 ms per key (`C-c l s`: about 3 ms), symbols on scr
 about 107 ms after the key. The narrowing space itself took 93 ms once (one
 collection).
 
+**Widening back** (owner asked, 2026-10-11): `<` `s`, `vec`, `<` `<`: in 3.10 and with
+the change, the files for the current input are back in about 30 ms (817 files and
+35 symbols for `vec`); the next key updates normally. Edge case found in batch: type
+`vec`, narrow, type `t`, delete it, widen: with the `flush` alone the hidden source
+stays empty, because `consult--async-dynamic` skips an input equal to its last one;
+forgetting the last input on `flush` fixes it (second hunk of D-079's patch).
+
+**Patched (D-079), shipped command, stand-in tree, 100 ms per key:** narrowed to
+symbols 0.2 - 4.2 ms per update, opening 109 - 130 ms, `<` `s` 38 ms, `s` space
+28 - 97 ms; `C-c l s` 0.6 - 49.7 ms (one collection).
+
 **Not checked:** the deal.II project with its own clangd (the owner's case may have a
-larger index and slower replies); widening back after narrowing.
+larger index and slower replies): S11 run 4 (T-054).
 
 ## Sources
 - JetBrains, CLion help "Search everywhere":

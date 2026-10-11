@@ -6,7 +6,8 @@
 ;; sources and narrow keys; D-077's settings hold inside the prompt only and a chosen
 ;; command runs after it; the symbol request skips an empty input, starts at the
 ;; third character and drops replies to old input; highlighting stops after the
-;; limit.  `consult--multi' and `jsonrpc-async-request' are replaced by stubs, so no
+;; limit; consult's patch 0001 (D-079) drops a source hidden by narrowing from the
+;; candidates and brings it back on widening.  `consult--multi' and `jsonrpc-async-request' are replaced by stubs, so no
 ;; prompt and no clangd are needed.  Needs git.
 
 ;;; Code:
@@ -138,6 +139,35 @@ REPLY-LATER, after all inputs, newest first."
         (funcall step "vec")
         (accept-process-output nil 0.2)
         (should (equal queries '("vec")))))))
+
+(ert-deftest init-completion-go-narrowing-drops-hidden-candidates ()
+  "consult patch 0001 (D-079): narrowed, a hidden source's candidates leave the list;
+widened at the same input, they come back."
+  (init-test--load)
+  (require 'consult)
+  (let* ((shown nil)
+         (files (list :name "File" :narrow ?f :items '("vec.h" "vector.cc" "other.cc")))
+         (symbols (list :name "Symbol" :narrow ?s
+                        :async (consult--async-dynamic
+                                (lambda (input) (list (concat "symbol-" input))))))
+         (async (funcall (consult--multi-async
+                          (consult--multi-enabled-sources (list files symbols)))
+                         (lambda (action) (when (consp action) (setq shown action)) nil))))
+    (cl-flet ((type (input)
+                (funcall async input)
+                (accept-process-output nil 0.1)
+                (mapcar (lambda (candidate)
+                          (substring-no-properties candidate 0 (1- (length candidate))))
+                        shown)))
+      (with-temp-buffer
+        (funcall async 'setup)
+        (should (equal (type "vec") '("vec.h" "vector.cc" "symbol-vec")))
+        (setq consult--narrow ?s)
+        (should (equal (type "vect") '("symbol-vect")))
+        (should (equal (type "vec") '("symbol-vec")))
+        (setq consult--narrow nil)
+        (should (equal (type "vec") '("vec.h" "vector.cc" "symbol-vec")))
+        (funcall async 'destroy)))))
 
 (ert-deftest init-completion-go-highlight-limit ()
   (init-test--load)

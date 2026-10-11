@@ -8,7 +8,9 @@
 ;; lists: the project itself, or the deal.II tree as a stand-in), S11_CLANGD,
 ;; S11_STATE, S11_EMACS_D (read only), S11_OUT (log), S11_SETTLE (seconds).
 ;; S11_SHIPPED non-empty: `M-o' runs the shipped `emacs-cpp-go-to-anything' (T-049)
-;; instead of the copy below; the logging stays (run 3).
+;; instead of the copy below; the logging stays (run 3).  Run 4 (S11_NARROW): also
+;; logs clangd's workspace/symbol requests and replies and `C-c l s'; with a files
+;; root other than the project, the shipped command lists that root's files.
 (require 'init-test)
 (init-test--load)
 (require 'consult)
@@ -37,7 +39,8 @@
 (add-hook 'pre-command-hook
           (lambda ()
             (when (or (minibufferp)
-                      (memq this-command '(go-to-anything emacs-cpp-go-to-anything)))
+                      (memq this-command '(go-to-anything emacs-cpp-go-to-anything
+                                                          consult-eglot-symbols)))
               (setq key-time (current-time)
                     gc-at-key (cons gcs-done gc-elapsed))
               (say "key %s" (key-description (this-command-keys))))))
@@ -114,7 +117,30 @@
               (lambda (f &rest args)
                 (let* ((t0 (current-time)) (files (apply f args)))
                   (say "  listed %d files in %.1f ms" (length files) (ms t0))
-                  files))))
+                  files)))
+  ;; Files from another root than the project (run 4, a deal.II-sized stand-in).
+  (unless (equal (file-name-as-directory (expand-file-name (getenv "S11_PROJECT")))
+                 files-root)
+    (advice-add 'emacs-cpp-go-to-anything :around
+                (lambda (f &rest args)
+                  (cl-letf (((symbol-function 'projectile-project-root)
+                             (lambda (&rest _) files-root)))
+                    (apply f args))))))
+
+(when (getenv "S11_NARROW")
+  (advice-add 'jsonrpc-async-request :around
+              (lambda (f conn method params &rest args)
+                (if (not (eq method :workspace/symbol))
+                    (apply f conn method params args)
+                  (let ((query (substring-no-properties (plist-get params :query)))
+                        (success (plist-get args :success-fn)))
+                    (say "  request %S %.1f ms after key" query (ms key-time))
+                    (apply f conn method params
+                           (plist-put (copy-sequence args) :success-fn
+                                      (lambda (reply)
+                                        (say "  reply %S: %d, %.1f ms after key"
+                                             query (length reply) (ms key-time))
+                                        (funcall success reply)))))))))
 
 ;; Open the source once the terminal is up, wait for eglot and the index.
 (run-with-timer

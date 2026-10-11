@@ -1,0 +1,60 @@
+From 0e8c7da01b9804c720fe57de4df521900c108a99 Mon Sep 17 00:00:00 2001
+From: Ferdinand Vanmaele <info@fvanmaele.de>
+Date: Sun, 11 Oct 2026 16:30:38 +0200
+Subject: [PATCH] Drop a hidden source's candidates in asynchronous
+ consult--multi
+
+In a consult--multi prompt with an :async source, every source runs
+through consult--multi-async.  consult--async-predicate held back input
+from a source hidden by narrowing, but the candidates that source had
+computed before stayed in the merged list, and the completion UI checked
+each of them against the narrowing predicate at every update.  With
+34583 file candidates hidden behind a narrowed symbol source, each key
+cost 15 - 35 ms in Vertico instead of under 5 ms.  The static path
+(consult--multi-static) already lists visible sources only.
+
+consult--async-predicate now sends `flush' downstream when input reaches
+a hidden source, so its candidates leave the merged list.
+consult--async-dynamic forgets its last input on a `flush' from
+upstream, so widening again computes the same input anew instead of
+leaving the source empty.
+---
+ consult.el | 15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
+
+diff --git a/consult.el b/consult.el
+index 729a2a4..480f65b 100644
+--- a/consult.el
++++ b/consult.el
+@@ -2290,6 +2290,9 @@ restarted and defaults to `consult-async-input-debounce'."
+         (prog1 (funcall sink action)
+           (pcase action
+             ((or 'cancel 'destroy) (cancel-timer timer))
++            ;; Flushed from upstream, see `consult--async-predicate': compute the
++            ;; same input again.
++            ('flush (setq current nil))
+             ((pred stringp)
+              (if (not (equal action current))
+                  (funcall compute action)
+@@ -2386,9 +2389,15 @@ The messages are prefixed with PREFIX."
+             ('setup (setq pred (consult--in-buffer pred)))
+             ((or 'cancel 'destroy) (setq input nil))
+             ((pred stringp) (setq input action)))
+-          (when (and input (funcall pred))
+-            (funcall sink input)
+-            (setq input nil)))))))
++          (when input
++            (if (funcall pred)
++                (progn
++                  (funcall sink input)
++                  (setq input nil))
++              ;; Input while hidden: drop the candidates of an earlier input, such
++              ;; that they do not stay in the merged candidate list of
++              ;; `consult--multi'.  They are computed again when visible.
++              (funcall sink 'flush))))))))
+ 
+ (defun consult--async-min-input (&optional min-input)
+   "Async function enforcing a minimum input length.
+-- 
+2.56.0
+

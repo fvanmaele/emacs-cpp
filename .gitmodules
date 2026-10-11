@@ -101,6 +101,7 @@
 	path = lib/consult
 	url = https://github.com/minad/consult
 	ignore = untracked
+	patch = patches/consult/0001-Drop-a-hidden-source-s-candidates-in-asynchronous-co.patch
 [submodule "embark"]
 	path = lib/embark
 	url = https://github.com/oantolin/embark

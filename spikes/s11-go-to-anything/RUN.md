@@ -114,3 +114,32 @@ S11_SHIPPED=1 sh spikes/s11-go-to-anything/prompt.sh \
 Hand back `spikes/s11-go-to-anything/results-run3.log`. Criteria: run 2's, RMO.
 Dry run (toy, 2026-10-11): opening 18 - 34 ms, keys 7 - 23 ms, symbols on screen
 about 120 ms after the key, no `#`, no collection.
+
+## Run 4: narrowed to symbols, a deal.II project (D-079, T-054)
+Owner request 2026-10-11 after D-079: compare `M-o` narrowed to symbols (`<` `s`) with
+`C-c l s` in a deal.II-sized project, at one key per 100 ms (`S11_KEY_DELAY`).
+`S11_NARROW=1` opens `M-o`, types `<` `s` and the word, closes it, then types the same
+word in `C-c l s`; it logs every screen update and clangd's `workspace/symbol`
+requests and replies. Two passes: the project's own files, then the large tree's
+files listed by `M-o` (clangd stays the project's).
+
+Two setups; the second needs the owner's choice (see the session of 2026-10-11):
+- deal.II's files with RMO's clangd (no deal.II build needed):
+  ```
+  cd ~/source/repos/emacs-cpp
+  S11_NARROW=1 sh spikes/s11-go-to-anything/prompt.sh \
+      ~/source/repos/RMO-gross-pitaevskii ~/source/repos/dealii src/main.cc
+  ```
+- deal.II as the project with its own clangd: the checkout needs a
+  `CMakePresets.json` writing `compile_commands.json`, a configure, and one session
+  in which clangd builds its background index of deal.II (not measured here; RMO's
+  index took minutes for 38 sources, deal.II has thousands of heavily templated
+  translation units). Then the same command with the deal.II checkout as the
+  project and a deal.II source file as the file, for example
+  `~/source/repos/dealii ~/source/repos/dealii source/grid/tria.cc`.
+Hand back `spikes/s11-go-to-anything/results-run4.log`. Recorded, not judged; the
+question is whether `M-o` narrowed feels as calm as `C-c l s` there.
+
+Dry run (2026-10-11; toy, 34583-file stand-in, patched consult, 100 ms per key):
+stand-in pass narrowed 1.4 - 3.3 ms per update; `C-c l s` 2.8 - 3.5 ms per key, one
+request after the pause.
