@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0048 | 2026-10-11 | S11 run 1: go to anything, one letter slow on deal.II | S11 | D-074 |
 | 0047 | 2026-10-10 | T-046: `# %%` cells in Python and R, ESS | T-046 | D-072 |
 | 0046 | 2026-10-10 | T-044: fixes to vendored packages as patch files | T-044 | D-069 |
 | 0045 | 2026-10-10 | T-042: warning for a source not in the database | T-042 | D-068 |
