@@ -623,6 +623,17 @@ Known defects: none yet (nothing built).
   Fixed 2026-10-11 (owner report, tier 1): the files were listed before the 64 MB
   threshold was bound; on 34583 files opening took 302 - 311 ms with 6 collections,
   after the fix 112 - 122 ms with none (stand-in tree, scratch harness).
+- DECIDED D-079 (owner 2026-10-11, O-34 (a) and (c)): consult patch 0001 (D-069,
+  `patches/consult/0001-...`): in a `consult--multi` prompt with an async source, a
+  source hidden by narrowing drops its candidates when input reaches it
+  (`consult--async-predicate` sends `flush`), and computes again when widened
+  (`consult--async-dynamic` forgets its last input on that `flush`). Narrowing is
+  documented as `<` and the letter (no first-letter filter over the files). Upstream
+  report drafted (`docs/upstream/consult-async-hidden-sources.md`), the owner sends
+  it (T-053). Built (0052): stand-in tree, 100 ms per key, narrowed: 0.2 - 4.2 ms
+  per update (before 15 - 35 ms; `C-c l s` 0.6 - 49.7 ms with a collection); widening
+  with `< <` brings the files back for the current input in about 30 ms. Owner asked
+  for a deal.II benchmark (S11 run 4, T-054).
 - DECIDED D-071 (owner 2026-10-10): `which-key-idle-delay` 3 s instead of 1 s. ESC is
   the Meta prefix, so pressing it (e.g. to cancel) brought up the list of every `M-`
   command after 1 s. Chosen over hiding the list after ESC only, making ESC cancel in
@@ -849,7 +860,7 @@ Mechanisms, each PROPOSED until measured:
   Rejected: a commit in the submodule (on no remote, a fresh clone breaks), a fork
   (network, upkeep; reconsider for many long-lived changes), and Lisp workarounds
   beyond a line or two (they lean on the package's internals). First patch:
-  treemacs 0001, T-041, replacing D-067's stand-in timer.
+  treemacs 0001, T-041, replacing D-067's stand-in timer. Second: consult 0001 (D-079).
 - REJECTED: borg (the tool this layout imitates). It assumes the package repository is
   the Emacs directory itself, which contradicts D-003; reconsider if own glue grows past
   about 100 lines. Measured after T-002: `scripts/build-packages.el` has 183 lines of
@@ -920,7 +931,7 @@ presets, GoogleTest runner.
   files, symbols, bookmarks and commands like CLion's Search Everywhere; consult's
   multi-source prompt with clangd's symbols as an async source; keys. Findings in;
   O-30 ruled (D-074), S11 measured (0048), O-31 / O-32 ruled (D-076, D-075);
-  prompt speed in a terminal Emacs: O-33; narrowed to symbols: O-34.
+  prompt speed in a terminal Emacs: O-33; narrowed to symbols: O-34 (D-079).
 - `RESEARCH_other_languages.md` (owner question 2026-10-08): Python, R, Perl next to
   the C++ setup. Findings in; rulings O-19, O-20.
 - `RESEARCH_notebooks_cells.md` (owner request 2026-10-10, T-045): `# %%` cells for
@@ -1048,7 +1059,8 @@ presets, GoogleTest runner.
   budget (Arch 0.151 s); first `M-.` from the index 2.6 s (Arch 1.4 s). If the budgets
   bind on the Mac, startup needs work there first (antivirus and native-code loading
   are the suspects, not measured).
-- O-34 (OPEN; owner report 2026-10-11, T-052, `RESEARCH_go_to_anything.md` 9): `M-o`
+- O-34 (RESOLVED 2026-10-11 with D-079: (a) and (c); owner report 2026-10-11, T-052,
+  `RESEARCH_go_to_anything.md` 9): `M-o`
   narrowed to symbols feels less responsive than `C-c l s` in deal.II-sized trees.
   Measured (stand-in, 100 ms per key): 15 - 35 ms per update against 3 ms, because a
   hidden source's candidates stay in consult's merged list after narrowing (async
@@ -1349,6 +1361,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-076 | 2026-10-11 | go to anything on `M-o` | 10 | O-31 |
 | D-077 | 2026-10-11 | go to anything: GC, sort, highlight, delays for speed | 10 | O-33 |
 | D-078 | 2026-10-11 | go to anything without consult's `#` | 10 | owner |
+| D-079 | 2026-10-11 | consult patch: hidden sources leave the list | 12 | O-34 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.

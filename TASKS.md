@@ -94,9 +94,12 @@ with `done when: ...`).
 | T-046 | done 0047 | M | Python and R cells, ESS | D-072 | owner's RMO check left |
 | T-047 | done | S | research: go to anything prompt | owner | RESEARCH; O-30 |
 | T-048 | done 0048 | S | spike S11: go to anything costs | D-074 | FAIL in one part |
-| T-049 | done 0050 | M | go to anything prompt | D-074 | run 3 PASS; hand check left |
+| T-049 | done 0050 | M | go to anything prompt | D-074 | run 3 PASS, hand check PASS |
 | T-051 | done 0049 | S | spike S11 run 2: the whole prompt | D-077 | PASS |
 | T-052 | done | S | research: `M-o` narrowed to symbols | owner | RESEARCH 9; O-34 |
+| T-053 | open | S | send the consult hidden-sources report | D-079 | owner sends it |
+| T-054 | open | S | S11 run 4: narrowed, a deal.II project | D-079 | owner runs |
+| T-055 | done 0052 | S | consult patch 0001: hidden sources | D-079 | stand-in measured |
 | T-050 | done | S | research: go to anything speed | owner | RESEARCH 8; O-33 |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
@@ -255,7 +258,18 @@ with `done when: ...`).
   on RMO and the deal.II tree. Agreed 2026-10-11. Built 2026-10-11 (0050): all met
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
-  122 - 150 ms on RMO. Left: the owner's hand check.
+  122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-055 (opened 2026-10-11, D-079): consult patch 0001 (D-069) and narrowing with `<`
+  documented. Done when (from O-34 (a), (c)): narrowed to symbols on the stand-in
+  tree, updates at most about 5 ms per key; widening brings the files back; a test
+  fails without the patch. Done 2026-10-11 (0052): 0.2 - 4.2 ms; widening about 30 ms;
+  `init-completion-go-narrowing-drops-hidden-candidates` fails unpatched.
+- T-054 (opened 2026-10-11, owner): S11 run 4, `M-o` narrowed to symbols against
+  `C-c l s` at 100 ms per key, in a deal.II project (RUN.md run 4). Done when:
+  `results-run4.log` handed back and RESULTS.md has run 4.
+- T-053 (opened 2026-10-11, D-079): send `docs/upstream/consult-async-hidden-sources.md`
+  to consult's issue tracker; outward, so the owner sends it. Done when: sent, issue
+  number noted here.
 - T-052 (opened 2026-10-11, owner report): `M-o` narrowed to symbols against
   `C-c l s` in a deal.II-sized tree. Done when: `RESEARCH_go_to_anything.md` 9 with
   the measured difference, its cause and checked options. Done 2026-10-11: cause in

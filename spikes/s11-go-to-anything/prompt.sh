@@ -8,7 +8,10 @@
 # session); nothing is written into it or into ~/.emacs.d.  Writes results-run2.log
 # next to this script, never over one.  Run 3: S11_SHIPPED=1 times the shipped
 # `emacs-cpp-go-to-anything' (T-049) instead, RMO pass only (the shipped command
-# lists the open file's project), into results-run3.log.
+# lists the open file's project), into results-run3.log.  Run 4: S11_NARROW=1 (with
+# S11_SHIPPED=1) types each word after `< s' (narrowed to symbols), then the same
+# word in `C-c l s', one key per S11_KEY_DELAY seconds (default 0.1); both passes,
+# the second with the large tree's files; into results-run4.log.
 set -eu
 PROJECT=${1:-$HOME/source/repos/RMO-gross-pitaevskii}
 TREE=${2:-$HOME/source/repos/dealii}
@@ -18,7 +21,10 @@ EMACS_D=${S11_EMACS_D:-$HOME/.emacs.d}
 WORDS=${S11_WORDS:-main vec Tri assemble Sol main vec Tri assemble Sol}
 HERE=$(cd "$(dirname "$0")" && pwd)
 REPO=$(cd "$HERE/../.." && pwd)
-if [ -n "${S11_SHIPPED:-}" ]; then RUN=3; ROOTS=$PROJECT; else RUN=2; ROOTS="$PROJECT $TREE"; fi
+if [ -n "${S11_NARROW:-}" ]; then RUN=4; ROOTS="$PROJECT $TREE"; S11_SHIPPED=1
+elif [ -n "${S11_SHIPPED:-}" ]; then RUN=3; ROOTS=$PROJECT
+else RUN=2; ROOTS="$PROJECT $TREE"; fi
+DELAY=${S11_KEY_DELAY:-$( [ "$RUN" = 4 ] && echo 0.1 || echo 0.3)}
 LOG=${S11_LOG:-$HERE/results-run$RUN.log}
 command -v tmux > /dev/null || { echo "s11: tmux is not installed" >&2; exit 1; }
 [ -x "$CLANGD" ] || { echo "s11: no clangd at $CLANGD" >&2; exit 1; }
@@ -41,6 +47,7 @@ for root in $ROOTS; do
         "cd '$REPO' && S11_PROJECT='$PROJECT' S11_FILE='$FILE' S11_FILES_ROOT='$root' \
 S11_CLANGD='$CLANGD' S11_STATE='$WORK/presets.eld' S11_EMACS_D='$EMACS_D' \
 S11_OUT='$LOG' S11_SETTLE='${S11_SETTLE:-20}' S11_SHIPPED='${S11_SHIPPED:-}' \
+S11_NARROW='${S11_NARROW:-}' \
 emacs -nw -Q -L scripts -L lisp -L test -l '$HERE/prompt.el'"
     i=0
     until [ "$(grep -c '^# ready' "$LOG")" -gt "$( [ "$root" = "$PROJECT" ] && echo 0 || echo 1)" ]; do
@@ -49,8 +56,16 @@ emacs -nw -Q -L scripts -L lisp -L test -l '$HERE/prompt.el'"
     done
     for word in $WORDS; do
         tmux send-keys -t s11 M-o; sleep 1
-        for c in $(echo "$word" | sed 's/./& /g'); do tmux send-keys -t s11 "$c"; sleep 0.3; done
+        if [ "$RUN" = 4 ]; then
+            tmux send-keys -t s11 '<'; sleep "$DELAY"; tmux send-keys -t s11 s; sleep "$DELAY"
+        fi
+        for c in $(echo "$word" | sed 's/./& /g'); do tmux send-keys -t s11 "$c"; sleep "$DELAY"; done
         sleep 1.5; tmux send-keys -t s11 C-g; sleep 0.5
+        if [ "$RUN" = 4 ]; then
+            tmux send-keys -t s11 C-c l s; sleep 1
+            for c in $(echo "$word" | sed 's/./& /g'); do tmux send-keys -t s11 "$c"; sleep "$DELAY"; done
+            sleep 1.5; tmux send-keys -t s11 C-g; sleep 0.5
+        fi
     done
     tmux kill-session -t s11
 done

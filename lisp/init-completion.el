@@ -223,6 +223,8 @@ under `while-no-input' and lists again when interrupted (S11 run 2)."
 (defun emacs-cpp-go-to-anything ()
   "Go to a buffer, recent file, bookmark, project file or clangd symbol.
 Commands (narrow with `x') and known projects (`p') are hidden until narrowed.
+Narrow with `<' and the letter (b r m f s x p), or the letter and SPC; `<' first
+does not filter the files by the letter (D-079).  `< <' widens again.
 Symbols need three characters and a running eglot server.  The settings of
 D-077 hold only while the prompt is open; the command or project chosen runs
 after it, with the usual ones."
