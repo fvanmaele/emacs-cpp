@@ -98,7 +98,7 @@ with `done when: ...`).
 | T-051 | done 0049 | S | spike S11 run 2: the whole prompt | D-077 | PASS |
 | T-052 | done | S | research: `M-o` narrowed to symbols | owner | RESEARCH 9; O-34 |
 | T-053 | open | S | send the consult hidden-sources report | D-079 | owner sends it |
-| T-054 | open | S | S11 run 4: narrowed, a deal.II project | D-079 | owner runs |
+| T-054 | done 0053 | S | S11 run 4: narrowed, a deal.II project | D-079 | recorded |
 | T-055 | done 0052 | S | consult patch 0001: hidden sources | D-079 | stand-in measured |
 | T-050 | done | S | research: go to anything speed | owner | RESEARCH 8; O-33 |
 
@@ -266,7 +266,8 @@ with `done when: ...`).
   `init-completion-go-narrowing-drops-hidden-candidates` fails unpatched.
 - T-054 (opened 2026-10-11, owner): S11 run 4, `M-o` narrowed to symbols against
   `C-c l s` at 100 ms per key, in a deal.II project (RUN.md run 4). Done when:
-  `results-run4.log` handed back and RESULTS.md has run 4.
+  `results-run4.log` handed back and RESULTS.md has run 4. Done 2026-10-11 (0053),
+  setup (1): narrowed `M-o` median 1.4 ms per key, `C-c l s` 3.0 - 3.3 ms.
 - T-053 (opened 2026-10-11, D-079): send `docs/upstream/consult-async-hidden-sources.md`
   to consult's issue tracker; outward, so the owner sends it. Done when: sent, issue
   number noted here.
