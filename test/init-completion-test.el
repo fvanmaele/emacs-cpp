@@ -41,20 +41,25 @@
   (init-test--load)
   (init-completion-test--with-project
     (let ((normal gc-cons-threshold)
-          seen ran-with)
+          seen ran-with listed-with)
       (defalias 'init-completion-test--command
         (lambda () (interactive) (setq ran-with (list gc-cons-threshold consult-async-split-style))))
       (unwind-protect
-          (cl-letf (((symbol-function 'consult--multi)
-                     (lambda (sources &rest options)
-                       (setq seen (list :sources sources :options options
-                                        :gc gc-cons-threshold
-                                        :split consult-async-split-style
-                                        :delay consult-async-refresh-delay
-                                        :directory default-directory))
-                       (let ((command (seq-find (lambda (s) (equal (plist-get s :name) "Command"))
-                                                sources)))
-                         (cons "init-completion-test--command" command)))))
+          (cl-letf* ((listing (symbol-function 'projectile-project-files))
+                     ((symbol-function 'projectile-project-files)
+                      (lambda (&rest args)
+                        (setq listed-with gc-cons-threshold)
+                        (apply listing args)))
+                     ((symbol-function 'consult--multi)
+                      (lambda (sources &rest options)
+                        (setq seen (list :sources sources :options options
+                                         :gc gc-cons-threshold
+                                         :split consult-async-split-style
+                                         :delay consult-async-refresh-delay
+                                         :directory default-directory))
+                        (let ((command (seq-find (lambda (s) (equal (plist-get s :name) "Command"))
+                                                 sources)))
+                          (cons "init-completion-test--command" command)))))
             (emacs-cpp-go-to-anything))
         (fmakunbound 'init-completion-test--command))
       (let* ((sources (plist-get seen :sources))
@@ -69,7 +74,8 @@
         (should (equal (mapcar (lambda (s) (plist-get s :hidden)) sources) '(nil nil nil nil t t)))
         (should (member (cons "sub/b.h" (concat root "sub/b.h")) files))
         (should (member (cons "a.cc" (concat root "a.cc")) files))
-        ;; D-077 and D-078 inside the prompt ...
+        ;; D-077 and D-078 inside the prompt, the file listing included ...
+        (should (= listed-with (* 64 1024 1024)))
         (should (= (plist-get seen :gc) (* 64 1024 1024)))
         (should (null (plist-get seen :split)))
         (should (= (plist-get seen :delay) 0.05))

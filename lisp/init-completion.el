@@ -230,17 +230,18 @@ after it, with the usual ones."
   (require 'consult)
   (let* ((buffer (current-buffer))
          (root (projectile-project-root))
-         (sources (emacs-cpp-go--sources buffer root))
          (selected
-          (let ((default-directory (or root default-directory))
-                ;; No collection while typing (S11: 69 % of a key's time).
-                (gc-cons-threshold (* 64 1024 1024))
-                (consult--regexp-compiler (emacs-cpp-go--highlight-first 100))
-                ;; clangd answers in under 25 ms; consult's 0.2 s was the wait.
-                (consult-async-refresh-delay 0.05)
-                ;; No `#' in front of the input (D-078).
-                (consult-async-split-style nil))
-            (consult--multi sources :prompt "Go to: " :require-match t :sort nil))))
+          ;; No collection while the files are listed or while typing (S11: 69 %
+          ;; of a key's time; 6 collections at opening on 34583 files).
+          (let ((gc-cons-threshold (* 64 1024 1024)))
+            (let ((sources (emacs-cpp-go--sources buffer root))
+                  (default-directory (or root default-directory))
+                  (consult--regexp-compiler (emacs-cpp-go--highlight-first 100))
+                  ;; clangd answers in under 25 ms; consult's 0.2 s was the wait.
+                  (consult-async-refresh-delay 0.05)
+                  ;; No `#' in front of the input (D-078).
+                  (consult-async-split-style nil))
+              (consult--multi sources :prompt "Go to: " :require-match t :sort nil)))))
     (when-let* ((action (plist-get (cdr selected) :emacs-cpp-action)))
       (funcall action (car selected)))))
 
