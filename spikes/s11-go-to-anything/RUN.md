@@ -63,3 +63,42 @@ empty `~/.emacs.d`, the patched clangd, `S11_SETTLE=5`:
 
 ## Hand back
 `spikes/s11-go-to-anything/results.log`.
+
+## Run 2: the whole prompt in a terminal Emacs (D-077)
+Risk: run 1 timed the parts in batch, where no garbage collection runs; a terminal
+Emacs showed collections are most of a key's time (`RESEARCH_go_to_anything.md` 8).
+Question: with D-077's four changes, how fast is the prompt on RMO with the patched
+clangd, listing the project's files at each opening as T-049 will?
+
+`prompt.el` builds the prompt as D-074 .. D-077 rule it (buffers, recent files,
+bookmarks, project files from `projectile-project-files` at each opening, clangd
+symbols from the third key, no request for `""`, `:sort nil`, the first 100 hits
+highlighted, 0.05 s refresh and symbol throttle, `gc-cons-threshold` 64 MB while
+open) and logs, for each key, every screen update after it: time since the key,
+input, candidates, collections since the key. `prompt.sh` runs two passes in a
+detached tmux session, each a fresh `emacs -nw`: the prompt lists RMO's files, then
+the deal.II checkout's (a stand-in for a deal.II-sized project); each pass opens the
+prompt for `main`, `vec`, `Tri`, `assemble`, `Sol`, twice, one key per 300 ms.
+
+Prerequisites: as run 1, and tmux (`pacman -S tmux` if missing). The tmux session
+is invisible; leave the machine idle for the 3 - 4 minutes.
+```
+cd ~/source/repos/emacs-cpp
+sh spikes/s11-go-to-anything/prompt.sh ~/source/repos/RMO-gross-pitaevskii \
+    ~/source/repos/dealii src/main.cc
+```
+Hand back `spikes/s11-go-to-anything/results-run2.log`.
+
+Pass criteria (proposed 2026-10-11; T-049's done-when reuses them), RMO pass:
+- Opening: the first screen within 150 ms of `M-o`, file listing included.
+- Each key: the first screen showing that key's input within 100 ms.
+- Symbols: on screen within 200 ms of the key that asked for them.
+The deal.II pass is recorded, not judged (D-075).
+
+Dry run (2026-10-11; toy project, 34583 empty files named after the LLVM stand-in
+in a scratch git directory, patched clangd): no collection while typing. Toy:
+opening 20 - 42 ms, keys 2 - 11 ms, symbols on screen about 110 ms after the key.
+Stand-in tree: listing 68 - 79 ms, opening 108 - 150 ms, keys 26 - 59 ms (first
+letter worst), symbols 126 - 148 ms (clangd 1 - 9 ms). The prompt starts with `#`:
+consult's `perl` split style marks async input that way (`#vec#filter`); T-049
+decides whether to keep it.

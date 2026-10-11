@@ -597,6 +597,15 @@ Known defects: none yet (nothing built).
 - DECIDED D-076 (owner 2026-10-11, O-31: "M-o"): the go-to-anything prompt is on
   `M-o` (unbound in Emacs 31.1 and in every mode the config uses; one chord; also in a
   terminal; Option-o on the Mac).
+- DECIDED D-077 (owner 2026-10-11, O-33: "adopt all four and skip empty symbol
+  request"): the prompt binds, around its `consult--multi` call,
+  `gc-cons-threshold` to 64 MB, `consult--regexp-compiler` to one that highlights only
+  the first 100 hits per input, and `consult-async-refresh-delay` to 0.05 s; it passes
+  `:sort nil`; its symbol source throttles and debounces at 0.05 s and sends no
+  `workspace/symbol` request for an empty input (its own request step instead of
+  consult-eglot's `setup` request). Owner asked for S11 run 2 first: the whole prompt
+  on RMO with the patched clangd, listing project files at each opening
+  (`spikes/s11-go-to-anything/RUN.md`, run 2).
 - DECIDED D-071 (owner 2026-10-10): `which-key-idle-delay` 3 s instead of 1 s. ESC is
   the Meta prefix, so pressing it (e.g. to cancel) brought up the list of every `M-`
   command after 1 s. Chosen over hiding the list after ESC only, making ESC cancel in
@@ -1022,7 +1031,8 @@ presets, GoogleTest runner.
   budget (Arch 0.151 s); first `M-.` from the index 2.6 s (Arch 1.4 s). If the budgets
   bind on the Mac, startup needs work there first (antivirus and native-code loading
   are the suspects, not measured).
-- O-33 (OPEN; owner request 2026-10-11, T-050, `RESEARCH_go_to_anything.md` 8): how
+- O-33 (RESOLVED 2026-10-11 with D-077: all four, and skip `""`; owner request
+  2026-10-11, T-050, `RESEARCH_go_to_anything.md` 8): how
   T-049 makes the prompt fast. Measured in a terminal Emacs (34602 stand-in files,
   toy clangd), key to screen: consult's defaults 310 - 900 ms for the first letter,
   69 % of it garbage collection (`gc-cons-threshold` back at 800 KB after startup),
@@ -1308,6 +1318,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-074 | 2026-10-11 | one go-to-anything prompt, measured first (S11) | 10 | O-30 |
 | D-075 | 2026-10-11 | go to anything: first letter's cost on deal.II accepted | 10 | O-32 |
 | D-076 | 2026-10-11 | go to anything on `M-o` | 10 | O-31 |
+| D-077 | 2026-10-11 | go to anything: GC, sort, highlight, delays for speed | 10 | O-33 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
