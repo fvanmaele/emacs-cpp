@@ -94,7 +94,8 @@ with `done when: ...`).
 | T-046 | done 0047 | M | Python and R cells, ESS | D-072 | owner's RMO check left |
 | T-047 | done | S | research: go to anything prompt | owner | RESEARCH; O-30 |
 | T-048 | done 0048 | S | spike S11: go to anything costs | D-074 | FAIL in one part |
-| T-049 | open | M | go to anything prompt | D-074 | after O-31, O-32 |
+| T-049 | open | M | go to anything prompt | D-074 | after O-33 |
+| T-050 | done | S | research: go to anything speed | owner | RESEARCH 8; O-33 |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -241,7 +242,11 @@ with `done when: ...`).
   RMO check; startup median 0.161 s.
 - T-049 (opened 2026-10-11, D-074): the go-to-anything command in
   `lisp/init-completion.el` (`consult--multi`, sources as D-074) on the key O-31
-  rules. Tier 2; done when agreed after S11's results (0048) and O-32.
+  rules (D-076: `M-o`). Tier 2; done when agreed after O-33.
+- T-050 (opened 2026-10-11, owner): research how to make the go-to-anything prompt
+  faster. Done when: `RESEARCH_go_to_anything.md` 8 with measured options. Done
+  2026-10-11: prototype in a terminal Emacs, four variants timed; GC is 69 % of the
+  first letter; options put to the owner as O-33.
 - T-048 (opened 2026-10-11, D-074): owner runs spike S11
   (`spikes/s11-go-to-anything/RUN.md`); pass criteria proposed there, agreed before
   the run. Done when: `results.log` handed back and `RESULTS.md` written. Done
