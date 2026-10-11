@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0053 | 2026-10-11 | S11 run 4: narrowed `M-o` as calm as `C-c l s` | S11 | D-079 |
 | 0052 | 2026-10-11 | consult patch: hidden sources leave the list | T-055 | D-079 |
 | 0051 | 2026-10-11 | S11 run 3: PASS, the shipped command on RMO | S11 | D-074..78 |
 | 0050 | 2026-10-11 | T-049: go to anything on `M-o` | T-049 | D-074..78 |

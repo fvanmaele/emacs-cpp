@@ -4,7 +4,38 @@ Verdict: PASS (run 2, 2026-10-11). The whole prompt with D-077's settings on RMO
 terminal Emacs, patched clangd: opening 89 - 96 ms (criterion 150), every key's
 results 6 - 24 ms (100), symbols on screen 122 - 150 ms after the key (200), no
 garbage collection while typing. Run 3 (the shipped command, T-049): PASS on the
-same criteria. Run 1 below.
+same criteria. Run 4 (recorded, D-079): narrowed to symbols, `M-o` updates in a median
+1.4 ms per key against `C-c l s`'s 3.0 - 3.3 ms, results 107 - 186 ms after the last
+key against 406 - 461 ms. Run 1 below.
+
+## Run 4 (2026-10-11 16:37, load 0.28 at start, 0.59 after)
+Raw output: `results-run4.log`. Setup (1) of RUN.md run 4: RMO with the patched clangd;
+pass 1 lists RMO's files, pass 2 deal.II's (clangd stays RMO's). Shipped command with
+consult patch 0001 (D-079); 10 words per pass, one key per 100 ms; `M-o` narrowed with
+`<` `s`, then the same word in `C-c l s`. Summary by a parser of the log (scratch).
+| | `M-o` `<` `s`, RMO | `C-c l s`, RMO | `M-o` `<` `s`, deal.II | `C-c l s`, deal.II |
+|---|---|---|---|---|
+| update, median (max) | 1.4 (3.8) ms | 3.3 (54.8) ms | 1.4 (5.7) ms | 3.0 (3.7) ms |
+| updates per key | 1 - 3 | 1 - 2 | 1 - 3 | 1 - 2 |
+| collections while typing | 0 | 10 | 0 | 0 |
+| clangd requests | 20 | 10 | 21 | 10 |
+| reply after its key | 55 - 135 ms | 204 - 220 ms | 54 - 131 ms | 205 - 218 ms |
+| last key to final list | 107 - 186 ms | 409 - 461 ms | 107 - 182 ms | 406 - 420 ms |
+Opening `M-o`: RMO 4201 files listed in 38 - 77 ms, first screen 48 - 95 ms; deal.II
+34602 files in 66 - 76 ms, first screen 107 - 122 ms. `<` `s`: 4 - 9 ms (RMO), 32 -
+36 ms (deal.II).
+
+### Findings (run 4)
+1. With the patch, narrowing to symbols costs no more per key in a deal.II-sized
+   project than in RMO (median 1.4 ms both), and less than `C-c l s`.
+2. `M-o` sends about twice the requests (one per key from the third, 0.05 s
+   throttle) and shows the final list 3 times sooner after the last key; `C-c l s`
+   waits for the 0.2 s pause and its 0.2 s refresh.
+3. The collections in `C-c l s` (RMO pass) come from the config's normal 800 KB
+   threshold; `M-o` binds 64 MB while open (D-077).
+4. RMO listed 4201 files (runs 2 and 3: 2767, 2673); not investigated.
+5. Not measured: deal.II as a project with its own clangd (setup (2)), where a
+   larger index may answer `workspace/symbol` more slowly.
 
 ## Run 3 (2026-10-11 16:04, load 5.46 at start, 6.47 after: not idle)
 Raw output: `results-run3.log`. `S11_SHIPPED=1`: `M-o` runs the shipped
@@ -113,7 +144,8 @@ Median after 20 s: 5.5 ms. eglot managed `src/main.cc` 516 ms after the open.
 
 ## Decision
 Run 1: O-32 -> D-075 (accepted). Run 2: D-077's settings confirmed; T-049's
-done-when reuses run 2's criteria. Run 3: the shipped command meets them (0051).
+done-when reuses run 2's criteria. Run 3: the shipped command meets them (0051). Run 4:
+D-079's patch confirmed on RMO and deal.II's files (0053).
 
 ## Gotchas
 - Run 1's script looked for `~/.emacs.d/recentf`; Emacs 31 saves `recentf.eld`

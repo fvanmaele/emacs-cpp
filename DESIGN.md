@@ -633,7 +633,10 @@ Known defects: none yet (nothing built).
   it (T-053). Built (0052): stand-in tree, 100 ms per key, narrowed: 0.2 - 4.2 ms
   per update (before 15 - 35 ms; `C-c l s` 0.6 - 49.7 ms with a collection); widening
   with `< <` brings the files back for the current input in about 30 ms. Owner asked
-  for a deal.II benchmark (S11 run 4, T-054).
+  for a deal.II benchmark (S11 run 4, T-054): 0053, RMO and deal.II's files with
+  RMO's clangd, 100 ms per key: narrowed median 1.4 ms per update in both (`C-c l s`
+  3.0 - 3.3 ms), final list 107 - 186 ms after the last key (`C-c l s` 406 - 461 ms),
+  twice the clangd requests. deal.II with its own clangd not measured.
 - DECIDED D-071 (owner 2026-10-10): `which-key-idle-delay` 3 s instead of 1 s. ESC is
   the Meta prefix, so pressing it (e.g. to cancel) brought up the list of every `M-`
   command after 1 s. Chosen over hiding the list after ESC only, making ESC cancel in
