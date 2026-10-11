@@ -96,6 +96,7 @@ with `done when: ...`).
 | T-048 | done 0048 | S | spike S11: go to anything costs | D-074 | FAIL in one part |
 | T-049 | done 0050 | M | go to anything prompt | D-074 | run 3 PASS; hand check left |
 | T-051 | done 0049 | S | spike S11 run 2: the whole prompt | D-077 | PASS |
+| T-052 | done | S | research: `M-o` narrowed to symbols | owner | RESEARCH 9; O-34 |
 | T-050 | done | S | research: go to anything speed | owner | RESEARCH 8; O-33 |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
@@ -255,6 +256,10 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Left: the owner's hand check.
+- T-052 (opened 2026-10-11, owner report): `M-o` narrowed to symbols against
+  `C-c l s` in a deal.II-sized tree. Done when: `RESEARCH_go_to_anything.md` 9 with
+  the measured difference, its cause and checked options. Done 2026-10-11: cause in
+  consult's async narrowing, a GC bug of T-049 fixed (2e778ee); options as O-34.
 - T-051 (opened 2026-10-11, D-077): owner runs S11 run 2
   (`spikes/s11-go-to-anything/prompt.sh`, RUN.md run 2). Done when:
   `results-run2.log` handed back and RESULTS.md has run 2. Done 2026-10-11 (0049):
