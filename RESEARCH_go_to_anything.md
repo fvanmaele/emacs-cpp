@@ -1,6 +1,7 @@
 # RESEARCH - one "go to anything" prompt (T-047)
 
-Findings only; verdicts go to DESIGN (O-30 -> D-074; the key: O-31). Owner request
+Findings only; verdicts go to DESIGN (O-30 -> D-074, O-31 -> D-076, O-32 -> D-075,
+performance: O-33). Owner request
 2026-10-11: a "go to anything" key in Emacs that works like CLion's (the owner calls it
 `M-M`): symbols, project files, bookmarks and more from one prompt. Arch, Emacs 31.1,
 2026-10-11. Package facts from the vendored sources at their pins (consult 3.10,
@@ -169,6 +170,66 @@ project and this repository: projectile lists every git submodule on its own (30
 here: 742 ms, against 7 ms for `git ls-files` at the top); filtering 6470 items
 takes 1 - 5 ms per input. Run 1 on RMO and deal.II: `spikes/s11-go-to-anything/
 RESULTS.md` (journal 0048).
+
+## 8. Performance (owner request 2026-10-11, T-050)
+Question: after D-075 (accept S11's one-letter cost), what makes the prompt faster?
+S11 timed the filter in batch; this section times the whole prompt in a terminal
+Emacs. Method: a prototype command in a scratch directory (never promoted), the
+shipped config loaded (`init-test--load`), `emacs -nw` driven by `tmux send-keys`
+(one prompt per word, 300 ms between keys), advice on `vertico--exhibit` logging the
+time from each key to each screen update with the GC count and GC time since the
+key, and on `jsonrpc-async-request` for `workspace/symbol`. Sources: buffers, recent
+files, bookmarks, 34602 project files (every fifth file of the LLVM 23.1.1 sources
+under `packaging/`, a stand-in for deal.II's 34602; 28381 contain `m`), clangd
+symbols of the toy project (system clangd, index loaded). Arch, 2026-10-11, idle.
+
+**Batch breakdown** (39124 items with the commands, input `m`, 30763 hits, median of
+7): matching 4.2 ms, copying the hits 1.7 ms, highlighting every hit 31 ms (S11's
+31.8 ms is mostly this), vertico's `vertico-sort-history-length-alpha` 11.7 ms on
+top (not in S11), vertico's own empty-filter pass 5.4 ms. No GC in batch.
+
+**Profile** (CPU profiler, 1 ms samples, prompt open, `m`, `C-g`): 69 % "Automatic
+GC". After startup the config restores `gc-cons-threshold` to Emacs's 800 KB
+(`early-init.el`); each key over tens of thousands of candidates allocates
+megabytes, and each collection walks the whole heap (50 - 100 ms each here).
+
+**Variants, time from the key to the screen showing that key's results:**
+| Variant | first letter | later letters | symbols after 3rd key |
+|---|---|---|---|
+| A: D-074 with consult's defaults | 310 - 900 ms, 5 - 11 GCs | 30 - 290 ms | 440 - 670 ms |
+| D: A, GC threshold 64 MB in the prompt | 108 ms, no GC | 25 - 107 ms | 440 - 630 ms |
+| B: A, `:sort nil`, 100 marked, delays | 290 - 370 ms, 3 - 5 GCs | 60 - 200 ms | 140 ms |
+| C: B and D together | 55 - 67 ms, no GC | 30 - 60 ms | 138 ms |
+A's first letter varied between runs (310 and 810 - 900 ms) with the number of
+collections. In A, B and D the screen often first shows the previous key's list and
+catches up when consult's refresh timer fires (`consult-async-refresh-delay`, 0.2 s).
+
+**What each change does:**
+- **GC threshold while the prompt is open** (`gc-cons-threshold` let-bound to 64 MB
+  around `consult--multi`; restored on exit): removes every collection while typing.
+  The one collection after the prompt closes took 65 - 110 ms. Cost: up to 64 MB more
+  memory before that collection.
+- **`:sort nil`**: candidates in source order (buffers, recent files, bookmarks,
+  files, symbols), as `consult-buffer` does; saves vertico's sort (11.7 ms for
+  `m`). Loses vertico's history order: a file chosen before does not move up.
+- **Highlight only the first 100 hits**: a regexp compiler whose highlighter stops
+  after 100 strings per input, let-bound as `consult--regexp-compiler` (an internal
+  variable; `consult-ripgrep`'s docstring tells users to adjust it). With
+  `:sort nil` the first 100 hits are the visible ones; scrolling past 100 shows
+  unmarked lines. Batch: 37.1 -> 9.4 ms for `m`.
+- **Shorter delays for this prompt**: `consult-async-refresh-delay` 0.05 s instead of
+  0.2 s (let-bound), the symbol source's throttle and debounce 0.05 s instead of
+  consult's 0.5 s / 0.2 s (consult-eglot's own command keeps them). clangd answers
+  in 6 - 8 ms here, 5.5 ms median on RMO (S11); the delays were the whole wait.
+  Cost: up to one `workspace/symbol` request per 50 ms while typing.
+
+**Side findings:**
+- consult-eglot's source asks clangd for `""` when the prompt opens (its `setup`
+  action), so the empty prompt lists 100 arbitrary symbols. Our own symbol source
+  can skip that request.
+- Not covered: the 51 - 66 ms of listing project files at each opening (S11; the
+  prototype listed them once); a cache across openings would remove it.
+  `consult-async-refresh-delay` 0 not tried. The real clangd on RMO, and the Mac.
 
 ## Sources
 - JetBrains, CLion help "Search everywhere":

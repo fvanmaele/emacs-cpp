@@ -590,7 +590,13 @@ Known defects: none yet (nothing built).
   66 ms (34602), no cache needed; symbols from the index median 5.5 ms, slowest
   16.3 ms, but none until the stored index has loaded; filtering every input over
   RMO 1.5 - 6.7 ms; over deal.II the first letter 31.8 ms (criterion 20 ms), then
-  13.1 ms and less. Handling: O-32.
+  13.1 ms and less. Handling: O-32 -> D-075; speed: O-33.
+- DECIDED D-075 (owner 2026-10-11, O-32 (b)): the first letter's cost in a
+  deal.II-sized tree is accepted; project files join from the first key. T-049's hand
+  check on the deal.II tree decides whether O-32 (a) follows.
+- DECIDED D-076 (owner 2026-10-11, O-31: "M-o"): the go-to-anything prompt is on
+  `M-o` (unbound in Emacs 31.1 and in every mode the config uses; one chord; also in a
+  terminal; Option-o on the Mac).
 - DECIDED D-071 (owner 2026-10-10): `which-key-idle-delay` 3 s instead of 1 s. ESC is
   the Meta prefix, so pressing it (e.g. to cancel) brought up the list of every `M-`
   command after 1 s. Chosen over hiding the list after ESC only, making ESC cancel in
@@ -887,7 +893,8 @@ presets, GoogleTest runner.
 - `RESEARCH_go_to_anything.md` (owner request 2026-10-11, T-047): one prompt for
   files, symbols, bookmarks and commands like CLion's Search Everywhere; consult's
   multi-source prompt with clangd's symbols as an async source; keys. Findings in;
-  O-30 ruled (D-074), O-31 open, S11 measures.
+  O-30 ruled (D-074), S11 measured (0048), O-31 / O-32 ruled (D-076, D-075);
+  prompt speed in a terminal Emacs: O-33.
 - `RESEARCH_other_languages.md` (owner question 2026-10-08): Python, R, Perl next to
   the C++ setup. Findings in; rulings O-19, O-20.
 - `RESEARCH_notebooks_cells.md` (owner request 2026-10-10, T-045): `# %%` cells for
@@ -1015,7 +1022,19 @@ presets, GoogleTest runner.
   budget (Arch 0.151 s); first `M-.` from the index 2.6 s (Arch 1.4 s). If the budgets
   bind on the Mac, startup needs work there first (antivirus and native-code loading
   are the suspects, not measured).
-- O-32 (OPEN; S11 run 1, 0048): one letter typed in a deal.II-sized project filters
+- O-33 (OPEN; owner request 2026-10-11, T-050, `RESEARCH_go_to_anything.md` 8): how
+  T-049 makes the prompt fast. Measured in a terminal Emacs (34602 stand-in files,
+  toy clangd), key to screen: consult's defaults 310 - 900 ms for the first letter,
+  69 % of it garbage collection (`gc-cons-threshold` back at 800 KB after startup),
+  symbols 440 - 670 ms after the third key (consult's 0.2 s refresh, consult-eglot's
+  0.5 s / 0.2 s throttle; clangd itself 6 - 8 ms). Options, each measured: (a)
+  `gc-cons-threshold` 64 MB while the prompt is open: first letter 108 ms; (b)
+  `:sort nil` (source order, no history order); (c) highlight only the first 100
+  hits (let-bound `consult--regexp-compiler`, internal); (d) refresh 0.05 s and
+  symbol throttle / debounce 0.05 s for this prompt. All four: every key 55 - 67 ms,
+  symbols 138 ms. Also: skip consult-eglot's `""` request at opening.
+- O-32 (RESOLVED 2026-10-11 with D-075: (b); S11 run 1, 0048): one letter typed in a
+  deal.II-sized project filters
   about 25000 matches in 32 ms (criterion 20 ms; RMO 6.7 ms; two letters 13 ms).
   Options: (a) project files join from the second letter (an async source with
   `consult--async-min-input` 2; checked in batch: one letter lists buffers, recent
@@ -1024,7 +1043,8 @@ presets, GoogleTest runner.
   of a reply that feels immediate, only in deal.II-sized trees, T-049's hand check
   on the deal.II tree decides whether (a) follows; (c) project files only behind the
   narrow key `f`.
-- O-31 (OPEN; owner 2026-10-11 with D-074: "explore alternative keybinds to M-M";
+- O-31 (RESOLVED 2026-10-11 with D-076: `M-o`; owner 2026-10-11 with D-074:
+  "explore alternative keybinds to M-M";
   `RESEARCH_go_to_anything.md` 4): the key for the go-to-anything prompt. Free in
   every mode the config uses (checked): `M-M`, `M-o` (both one chord, also in a
   terminal), `C-c` plus a letter such as `C-c j` (reserved for users, two keys),
@@ -1286,6 +1306,8 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-072 | 2026-10-10 | `# %%` cells (code-cells), ESS for R | 12 | O-29 |
 | D-073 | 2026-10-10 | line number column keeps its width while scrolling | 5 | owner |
 | D-074 | 2026-10-11 | one go-to-anything prompt, measured first (S11) | 10 | O-30 |
+| D-075 | 2026-10-11 | go to anything: first letter's cost on deal.II accepted | 10 | O-32 |
+| D-076 | 2026-10-11 | go to anything on `M-o` | 10 | O-31 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
