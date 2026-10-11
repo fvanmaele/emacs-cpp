@@ -92,6 +92,7 @@ with `done when: ...`).
 | T-044 | done 0046 | M | patch files for submodules | D-069 | treemacs 0001 first |
 | T-045 | done | M | cells, notebooks, Quarto (Python, R) | owner | RESEARCH; O-29 |
 | T-046 | done 0047 | M | Python and R cells, ESS | D-072 | owner's RMO check left |
+| T-047 | done | S | research: go to anything prompt | owner | RESEARCH; O-30 |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -236,6 +237,12 @@ with `done when: ...`).
   median on Arch within D-057's budget; owner: an RMO R script and a plotting script
   with `# %%` cells run cell by cell. Built 2026-10-10 (0047): all met but the owner's
   RMO check; startup median 0.161 s.
+- T-047 (opened 2026-10-11, owner): research a "go to anything" key like CLion's
+  Search Everywhere (symbols, project files, bookmarks, ...). Done when:
+  `RESEARCH_go_to_anything.md` with what CLion does, what the config has, what consult
+  and consult-eglot offer at their pins, the key, and options. Done 2026-10-11: one
+  batch check of a static plus an async source in `consult--multi`; clangd symbols in
+  the combined prompt not checked by hand; options put to the owner as O-30.
 - T-045 (opened 2026-10-10, owner): research cell modes for Python and R, notebooks,
   Quarto and other options. Done when: `RESEARCH_notebooks_cells.md` with the
   candidates, what is built in, what was checked by hand, and the external tools per

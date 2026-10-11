@@ -43,7 +43,8 @@ Format: CLion feature -> Emacs component. Gap vs CLion. Status.
   clangd-based. PROPOSED.
 - Search everywhere, go to file / symbol / action -> vertico + orderless + marginalia +
   consult: `projectile-find-file`, `consult-buffer`, `consult-eglot-symbols`,
-  `consult-imenu`, `consult-ripgrep`, `M-x`. Gap: no single combined popup. PROPOSED.
+  `consult-imenu`, `consult-ripgrep`, `M-x`. Gap: no single combined popup (O-30).
+  PROPOSED.
 - Project tree -> treemacs + treemacs-projectile (installed). Gap: none. DECIDED
   (existing setup).
 - CMake editing -> `cmake-mode` shipped by the system `cmake` package. Gap: no target
@@ -869,6 +870,9 @@ presets, GoogleTest runner.
 | clangd too slow / too large on deal.II scale | S1 numbers | owner | v0.1 |
 
 ## Research program
+- `RESEARCH_go_to_anything.md` (owner request 2026-10-11, T-047): one prompt for
+  files, symbols, bookmarks and commands like CLion's Search Everywhere; consult's
+  multi-source prompt with clangd's symbols as an async source. Findings in; O-30.
 - `RESEARCH_other_languages.md` (owner question 2026-10-08): Python, R, Perl next to
   the C++ setup. Findings in; rulings O-19, O-20.
 - `RESEARCH_notebooks_cells.md` (owner request 2026-10-10, T-045): `# %%` cells for
@@ -996,6 +1000,16 @@ presets, GoogleTest runner.
   budget (Arch 0.151 s); first `M-.` from the index 2.6 s (Arch 1.4 s). If the budgets
   bind on the Mac, startup needs work there first (antivirus and native-code loading
   are the suspects, not measured).
+- O-30 (OPEN; owner request 2026-10-11, T-047, `RESEARCH_go_to_anything.md`): one
+  "go to anything" prompt like CLion's Search Everywhere. Shift twice cannot be bound
+  (Emacs has no event for a lone modifier); `M-M` is free. Options: (a) project files,
+  clangd symbols and commands added to `consult-buffer` on `C-x b` (buffer switching
+  then filters by consult's regexps, not orderless); (b) a new command on `M-M`, about
+  60 to 80 lines with `consult--multi`: buffers, project files, recent files and
+  bookmarks from the first key, symbols from the third, commands behind a narrow key;
+  it calls consult-eglot's internal functions or copies them; (c) `M-M` as a prefix
+  map over the existing commands, no new Lisp; (d) consult-project-extra (MELPA, new
+  submodule) plus (c). Research recommends nothing yet; owner rules.
 - O-29 (RESOLVED 2026-10-10 with D-072: (a) and (b); owner request 2026-10-10, T-045,
   `RESEARCH_notebooks_cells.md`): how to
   run Python and R code in pieces. Options: (a) `# %%` cells in plain scripts with
