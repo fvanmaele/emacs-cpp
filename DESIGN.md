@@ -920,7 +920,7 @@ presets, GoogleTest runner.
   files, symbols, bookmarks and commands like CLion's Search Everywhere; consult's
   multi-source prompt with clangd's symbols as an async source; keys. Findings in;
   O-30 ruled (D-074), S11 measured (0048), O-31 / O-32 ruled (D-076, D-075);
-  prompt speed in a terminal Emacs: O-33.
+  prompt speed in a terminal Emacs: O-33; narrowed to symbols: O-34.
 - `RESEARCH_other_languages.md` (owner question 2026-10-08): Python, R, Perl next to
   the C++ setup. Findings in; rulings O-19, O-20.
 - `RESEARCH_notebooks_cells.md` (owner request 2026-10-10, T-045): `# %%` cells for
@@ -1048,6 +1048,18 @@ presets, GoogleTest runner.
   budget (Arch 0.151 s); first `M-.` from the index 2.6 s (Arch 1.4 s). If the budgets
   bind on the Mac, startup needs work there first (antivirus and native-code loading
   are the suspects, not measured).
+- O-34 (OPEN; owner report 2026-10-11, T-052, `RESEARCH_go_to_anything.md` 9): `M-o`
+  narrowed to symbols feels less responsive than `C-c l s` in deal.II-sized trees.
+  Measured (stand-in, 100 ms per key): 15 - 35 ms per update against 3 ms, because a
+  hidden source's candidates stay in consult's merged list after narrowing (async
+  prompts only) and vertico checks them at every update; and 2 - 3 updates per key
+  against one after the pause. Options: (a) a consult patch (D-069, `patches/consult/
+  0001`): a hidden source that receives input flushes its candidates; checked in
+  scratch: 0.6 - 4.7 ms per update; upstream report as a task; (b) symbol requests
+  after a pause, as `C-c l s` (0.2 s debounce): one update after typing stops,
+  results about 0.25 s after the last key instead of 0.11 s; (c) document narrowing
+  with `<` `s` (the narrow key; no first-letter filter over all files: 36 ms against
+  93 ms for `s` space).
 - O-33 (RESOLVED 2026-10-11 with D-077: all four, and skip `""`; owner request
   2026-10-11, T-050, `RESEARCH_go_to_anything.md` 8): how
   T-049 makes the prompt fast. Measured in a terminal Emacs (34602 stand-in files,

@@ -1,7 +1,7 @@
 # RESEARCH - one "go to anything" prompt (T-047)
 
 Findings only; verdicts go to DESIGN (O-30 -> D-074, O-31 -> D-076, O-32 -> D-075,
-performance: O-33). Owner request
+performance: O-33 -> D-077, narrowed to symbols: O-34). Owner request
 2026-10-11: a "go to anything" key in Emacs that works like CLion's (the owner calls it
 `M-M`): symbols, project files, bookmarks and more from one prompt. Arch, Emacs 31.1,
 2026-10-11. Package facts from the vendored sources at their pins (consult 3.10,
@@ -230,6 +230,48 @@ catches up when consult's refresh timer fires (`consult-async-refresh-delay`, 0.
 - Not covered: the 51 - 66 ms of listing project files at each opening (S11; the
   prototype listed them once); a cache across openings would remove it.
   `consult-async-refresh-delay` 0 not tried. The real clangd on RMO, and the Mac.
+
+## 9. Narrowed to symbols (owner report 2026-10-11, T-052)
+Owner: "`M-o` (`s` -> symbols) and `C-c l s`; the latter waits until no new keys are
+typed, appearing more responsive; particularly noticeable in larger trees like
+deal.II." Method: section 8's harness (scratch), the shipped command with the
+project's files taken from the 34583-file stand-in tree, clangd symbols of the toy;
+one key per 100 ms (S11 used 300 ms); `M-o`, `s`, space, a word; then `C-c l s` and
+the same word.
+
+| Per key | `M-o`, `s` space | `C-c l s` |
+|---|---|---|
+| screen update after the key | 15 - 35 ms (0 - 35 candidates shown) | about 3 ms |
+| screen updates | 2 - 3 (key, reply, refresh) | 1, after the pause |
+| clangd requests | one per key from the third | one, 0.2 s after the last |
+| results after the last key | 110 - 120 ms | about 400 ms |
+
+**Causes, read in consult 3.10:**
+- Narrowing only sets `consult--narrow` and refreshes (`consult-narrow`). In a prompt
+  with an async source, `consult--multi-async` gates each source with
+  `consult--async-predicate`: a hidden source gets no new input, but its last
+  candidates stay in the merged list (`consult--async-merge-sink`). The 34591
+  candidates listed at opening stay, and vertico checks each against the narrowing
+  predicate at every update: the 15 - 35 ms. A prompt with static sources only
+  (`consult--multi-static`) rebuilds its list from the visible sources and has no
+  such cost.
+- `s` then space types an `s` first: one first-letter filter over all files (53 -
+  61 ms) before the space narrows. The narrow key (`consult-narrow-key`, `<` in this
+  config) narrows without input: `<` `s` took 36 ms.
+- `C-c l s` keeps consult-eglot's throttle (0.5 s) and debounce (0.2 s): no request
+  and no update while typing, one list after the pause. D-077 set 0.05 s for `M-o`.
+- A bug in T-049, fixed (2e778ee): the files were listed before the 64 MB threshold
+  was bound; opening took 302 - 311 ms with 6 collections.
+
+**Checked change** (scratch, consult's function redefined): a hidden source that
+receives input sends `flush` instead, so its candidates leave the merged list;
+widening again recomputes it with the next key. With the stand-in tree, narrowed
+to symbols: updates 0.6 - 4.7 ms per key (`C-c l s`: about 3 ms), symbols on screen
+about 107 ms after the key. The narrowing space itself took 93 ms once (one
+collection).
+
+**Not checked:** the deal.II project with its own clangd (the owner's case may have a
+larger index and slower replies); widening back after narrowing.
 
 ## Sources
 - JetBrains, CLion help "Search everywhere":

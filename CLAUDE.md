@@ -30,7 +30,8 @@ database (D-068); fixes to vendored packages as patch files (D-069). which-key a
 left.
 Go to anything: one consult prompt (D-074) on `M-o` (D-076); S11 (0048): one letter
 over deal.II accepted (D-075); speed settings (D-077), S11 run 2 PASS (0049); built
-(T-049, 0050, no `#`: D-078); S11 run 3 PASS (0051); owner's hand check left. Open: O-12;
+(T-049, 0050, no `#`: D-078); S11 run 3 PASS (0051); owner's hand check left; narrowed
+to symbols slower than `C-c l s` on deal.II (O-34). Open: O-12, O-34;
 T-025 round 2, T-026 research queued.
 
 ## Hard rules (each with its reason)
