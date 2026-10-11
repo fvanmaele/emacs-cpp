@@ -620,6 +620,9 @@ Known defects: none yet (nothing built).
   hidden until narrowed). A chosen command or project runs after the prompt's
   bindings end. S11 run 3 (0051, PASS): on RMO opening 54 - 74 ms, keys 2 - 30 ms,
   symbols 122 - 150 ms after the third key, no collection, no `#`.
+  Fixed 2026-10-11 (owner report, tier 1): the files were listed before the 64 MB
+  threshold was bound; on 34583 files opening took 302 - 311 ms with 6 collections,
+  after the fix 112 - 122 ms with none (stand-in tree, scratch harness).
 - DECIDED D-071 (owner 2026-10-10): `which-key-idle-delay` 3 s instead of 1 s. ESC is
   the Meta prefix, so pressing it (e.g. to cancel) brought up the list of every `M-`
   command after 1 s. Chosen over hiding the list after ESC only, making ESC cancel in
