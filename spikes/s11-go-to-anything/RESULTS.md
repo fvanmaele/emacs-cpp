@@ -1,6 +1,44 @@
 # S11 - go to anything: results
 
-Verdict: FAIL in one part (run 1, 2026-10-11). Filtering a one-letter input over the
+Verdict: PASS (run 2, 2026-10-11). The whole prompt with D-077's settings on RMO in a
+terminal Emacs, patched clangd: opening 89 - 96 ms (criterion 150), every key's
+results 6 - 24 ms (100), symbols on screen 122 - 150 ms after the key (200), no
+garbage collection while typing. Run 1 below.
+
+## Run 2 (2026-10-11 15:48, load 2.38 at start, 1.46 after)
+Raw output: `results-run2.log`. `prompt.sh`: two passes, each a fresh `emacs -nw`
+in tmux; 10 openings per pass (`main`, `vec`, `Tri`, `assemble`, `Sol`, twice), 42
+keys, one per 300 ms. Summary by a parser of the log (scratch, not kept).
+| | RMO's files | deal.II's files (recorded) | Criterion |
+|---|---|---|---|
+| files listed at opening | 2767, 66 - 74 ms | 34602, 50 - 172 ms | |
+| opening, first screen | 89 - 96 ms | 86 - 178 ms | <= 150 ms |
+| key to its results (median) | 6 - 24 ms (20) | 20 - 139 ms (34) | <= 100 ms |
+| collections while typing | 0 | 3 (49 - 64 ms each) | |
+| symbols on screen after key | 122 - 150 ms | 129 - 171 ms | <= 200 ms |
+| clangd reply after request | 4.4 - 20.5 ms | 3.5 - 19.9 ms | |
+The first screen after each key already showed that key's results (the count did
+not change before the symbols arrived). deal.II's three slowest keys were the first
+letters `a` (139 ms), `m` (118 ms), `v` (94 ms), each with a collection.
+
+### Findings (run 2)
+1. D-077's settings hold on RMO with the real clangd: every key well inside the
+   criteria, the slowest part is the 0.05 s refresh and throttle (by design).
+2. clangd's 100-symbol cap is reached up to `asse`; from `assem` it lists 49 or
+   fewer.
+3. In the deal.II pass, 6 of 10 openings listed the files twice (16 listings, 10
+   openings; RMO: 10 / 10). consult computes a static source inside
+   `while-no-input` and, when interrupted, computes again 0.2 s later
+   (`consult--async-dynamic`); with 34602 files the listing and formatting take long
+   enough to be interrupted. What interrupted it is not known (no key was sent
+   then). The second listing took 154 - 172 ms. Listing the files before
+   `consult--multi`, outside that machinery, avoids the repeat.
+4. With 34602 files the 64 MB threshold was reached on 3 of 10 first letters: a
+   collection inside the prompt, 49 - 64 ms.
+
+## Run 1
+
+Run 1 result: FAIL in one part (2026-10-11). Filtering a one-letter input over the
 deal.II tree's files took 31.8 ms (criterion: 20 ms). Every other number passes,
 most by a wide margin: file listing 51 / 66 ms (100 ms), every input over RMO's
 files 1.5 - 6.7 ms, symbols median 5.5 ms, slowest 16.3 ms (100 / 300 ms). Criteria
@@ -57,7 +95,8 @@ Median after 20 s: 5.5 ms. eglot managed `src/main.cc` 516 ms after the open.
 - Typing while clangd builds a preamble.
 
 ## Decision
-Owner rules O-32 (how to handle finding 2). T-049's done-when follows.
+Run 1: O-32 -> D-075 (accepted). Run 2: D-077's settings confirmed; T-049's
+done-when reuses run 2's criteria.
 
 ## Gotchas
 - Run 1's script looked for `~/.emacs.d/recentf`; Emacs 31 saves `recentf.eld`

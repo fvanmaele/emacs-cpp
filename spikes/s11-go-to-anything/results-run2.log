@@ -1,0 +1,471 @@
+# S11 run 2 2026-10-11T15:48:11+02:00
+project: /home/alad/source/repos/RMO-gross-pitaevskii (src/main.cc), tree: /home/alad/source/repos/dealii
+clangd: /opt/clangd-index-nav/bin/clangd, clangd version 23.1.1
+load: 2.38 2.16 1.46
+# files from /home/alad/source/repos/RMO-gross-pitaevskii/; managed t; /opt/clangd-index-nav/bin/clangd; gc-cons-threshold 800000
+# ready
+key M-o
+  listed 2767 files in 69.7 ms
+  screen   88.9 ms after key (update   9.2 ms): "#" 2812 candidates, 0 GCs 0 ms
+  screen   96.4 ms after key (update   1.1 ms): "#" 2812 candidates, 0 GCs 0 ms
+  screen  141.2 ms after key (update   6.3 ms): "#" 2812 candidates, 0 GCs 0 ms
+key m
+  screen   23.4 ms after key (update  22.6 ms): "#m" 2475 candidates, 0 GCs 0 ms
+  screen   61.5 ms after key (update   6.6 ms): "#m" 2475 candidates, 0 GCs 0 ms
+key a
+  screen   23.8 ms after key (update  23.0 ms): "#ma" 1826 candidates, 0 GCs 0 ms
+  screen   59.0 ms after key (update   3.8 ms): "#ma" 1826 candidates, 0 GCs 0 ms
+key i
+  screen   20.7 ms after key (update  19.9 ms): "#mai" 36 candidates, 0 GCs 0 ms
+  screen   56.5 ms after key (update   1.6 ms): "#mai" 36 candidates, 0 GCs 0 ms
+  symbols #("mai" 0 3 (consult--force nil)): 100, reply 10.0 ms after request, 76.8 ms after key
+  screen  144.5 ms after key (update   1.9 ms): "#mai" 136 candidates, 0 GCs 0 ms
+key n
+  screen   19.7 ms after key (update  19.0 ms): "#main" 136 candidates, 0 GCs 0 ms
+  screen   56.3 ms after key (update   1.9 ms): "#main" 136 candidates, 0 GCs 0 ms
+  symbols #("main" 0 4 (consult--force nil)): 100, reply 10.2 ms after request, 76.7 ms after key
+  screen  129.3 ms after key (update   2.0 ms): "#main" 136 candidates, 0 GCs 0 ms
+key C-g
+key M-o
+  listed 2767 files in 68.4 ms
+  screen   92.7 ms after key (update   9.4 ms): "#" 2812 candidates, 0 GCs 0 ms
+  screen  102.1 ms after key (update   1.4 ms): "#" 2812 candidates, 0 GCs 0 ms
+  screen  145.3 ms after key (update   6.3 ms): "#" 2812 candidates, 0 GCs 0 ms
+key v
+  screen   22.1 ms after key (update  21.3 ms): "#v" 1995 candidates, 0 GCs 0 ms
+  screen   60.9 ms after key (update   6.0 ms): "#v" 1995 candidates, 0 GCs 0 ms
+key e
+  screen   23.0 ms after key (update  22.2 ms): "#ve" 1149 candidates, 0 GCs 0 ms
+  screen   57.8 ms after key (update   2.9 ms): "#ve" 1149 candidates, 0 GCs 0 ms
+key c
+  screen   19.1 ms after key (update  18.3 ms): "#vec" 4 candidates, 0 GCs 0 ms
+  screen   55.7 ms after key (update   1.2 ms): "#vec" 4 candidates, 0 GCs 0 ms
+  symbols #("vec" 0 3 (consult--force nil)): 100, reply 17.6 ms after request, 83.4 ms after key
+  screen  149.7 ms after key (update   2.0 ms): "#vec" 104 candidates, 0 GCs 0 ms
+key C-g
+key M-o
+  listed 2767 files in 67.1 ms
+  screen   91.9 ms after key (update  10.3 ms): "#" 2812 candidates, 0 GCs 0 ms
+  screen   99.2 ms after key (update   1.3 ms): "#" 2812 candidates, 0 GCs 0 ms
+  screen  144.5 ms after key (update   6.3 ms): "#" 2812 candidates, 0 GCs 0 ms
+key T
+  screen   19.2 ms after key (update  18.4 ms): "#T" 4 candidates, 0 GCs 0 ms
+  screen   57.0 ms after key (update   2.1 ms): "#T" 4 candidates, 0 GCs 0 ms
+key r
+  screen   14.4 ms after key (update  13.0 ms): "#Tr" 0 candidates, 0 GCs 0 ms
+  screen   54.7 ms after key (update   0.5 ms): "#Tr" 0 candidates, 0 GCs 0 ms
+key i
+  screen    6.3 ms after key (update   5.5 ms): "#Tri" 0 candidates, 0 GCs 0 ms
+  symbols #("Tri" 0 3 (consult--force nil)): 100, reply 20.5 ms after request, 75.7 ms after key
+  screen  144.7 ms after key (update   1.7 ms): "#Tri" 100 candidates, 0 GCs 0 ms
+key C-g
+key M-o
+  listed 2767 files in 68.4 ms
+  screen   91.7 ms after key (update   8.3 ms): "#" 2812 candidates, 0 GCs 0 ms
+  screen   99.4 ms after key (update   1.4 ms): "#" 2812 candidates, 0 GCs 0 ms
+  screen  145.0 ms after key (update   6.3 ms): "#" 2812 candidates, 0 GCs 0 ms
+key a
+  screen   23.9 ms after key (update  23.1 ms): "#a" 2675 candidates, 0 GCs 0 ms
+  screen   59.9 ms after key (update   4.7 ms): "#a" 2675 candidates, 0 GCs 0 ms
+key s
+  screen   22.6 ms after key (update  21.8 ms): "#as" 973 candidates, 0 GCs 0 ms
+  screen   59.7 ms after key (update   4.7 ms): "#as" 973 candidates, 0 GCs 0 ms
+key s
+  screen   21.9 ms after key (update  21.2 ms): "#ass" 942 candidates, 0 GCs 0 ms
+  screen   60.4 ms after key (update   2.3 ms): "#ass" 942 candidates, 0 GCs 0 ms
+  symbols #("ass" 0 3 (consult--force nil)): 100, reply 15.1 ms after request, 82.3 ms after key
+  screen  150.1 ms after key (update   3.0 ms): "#ass" 1042 candidates, 0 GCs 0 ms
+key e
+  screen   21.2 ms after key (update  20.5 ms): "#asse" 106 candidates, 0 GCs 0 ms
+  screen   60.3 ms after key (update   1.7 ms): "#asse" 106 candidates, 0 GCs 0 ms
+  symbols #("asse" 0 4 (consult--force nil)): 100, reply 8.6 ms after request, 75.7 ms after key
+  screen  128.1 ms after key (update   1.7 ms): "#asse" 105 candidates, 0 GCs 0 ms
+key m
+  screen   18.5 ms after key (update  17.8 ms): "#assem" 101 candidates, 0 GCs 0 ms
+  screen   58.7 ms after key (update   1.5 ms): "#assem" 101 candidates, 0 GCs 0 ms
+  symbols #("assem" 0 5 (consult--force nil)): 49, reply 8.2 ms after request, 73.7 ms after key
+  screen  126.0 ms after key (update   1.5 ms): "#assem" 51 candidates, 0 GCs 0 ms
+key b
+  screen   17.9 ms after key (update  17.1 ms): "#assemb" 51 candidates, 0 GCs 0 ms
+  screen   57.9 ms after key (update   1.4 ms): "#assemb" 51 candidates, 0 GCs 0 ms
+  symbols #("assemb" 0 6 (consult--force nil)): 40, reply 7.9 ms after request, 72.7 ms after key
+  screen  124.8 ms after key (update   1.4 ms): "#assemb" 42 candidates, 0 GCs 0 ms
+key l
+  screen   18.8 ms after key (update  18.0 ms): "#assembl" 42 candidates, 0 GCs 0 ms
+  screen   58.1 ms after key (update   1.4 ms): "#assembl" 42 candidates, 0 GCs 0 ms
+  symbols #("assembl" 0 7 (consult--force nil)): 40, reply 4.4 ms after request, 69.7 ms after key
+  screen  122.5 ms after key (update   1.5 ms): "#assembl" 42 candidates, 0 GCs 0 ms
+key e
+  screen   18.9 ms after key (update  18.2 ms): "#assemble" 42 candidates, 0 GCs 0 ms
+  screen   58.1 ms after key (update   1.5 ms): "#assemble" 42 candidates, 0 GCs 0 ms
+  symbols #("assemble" 0 8 (consult--force nil)): 33, reply 8.3 ms after request, 73.4 ms after key
+  screen  125.7 ms after key (update   1.5 ms): "#assemble" 35 candidates, 0 GCs 0 ms
+key C-g
+key M-o
+  listed 2767 files in 71.2 ms
+  screen   95.3 ms after key (update   9.2 ms): "#" 2812 candidates, 0 GCs 0 ms
+  screen  102.3 ms after key (update   1.3 ms): "#" 2812 candidates, 0 GCs 0 ms
+  screen  147.7 ms after key (update   6.3 ms): "#" 2812 candidates, 0 GCs 0 ms
+key S
+  screen   20.3 ms after key (update  19.1 ms): "#S" 6 candidates, 0 GCs 0 ms
+  screen   57.9 ms after key (update   2.7 ms): "#S" 6 candidates, 0 GCs 0 ms
+key o
+  screen   15.6 ms after key (update  14.8 ms): "#So" 0 candidates, 0 GCs 0 ms
+  screen   63.4 ms after key (update   0.5 ms): "#So" 0 candidates, 0 GCs 0 ms
+key l
+  screen    6.6 ms after key (update   5.8 ms): "#Sol" 0 candidates, 0 GCs 0 ms
+  symbols #("Sol" 0 3 (consult--force nil)): 100, reply 6.7 ms after request, 62.3 ms after key
+  screen  128.8 ms after key (update   1.4 ms): "#Sol" 100 candidates, 0 GCs 0 ms
+key C-g
+key M-o
+  listed 2767 files in 68.7 ms
+  screen   92.4 ms after key (update   9.2 ms): "#" 2812 candidates, 0 GCs 0 ms
+  screen   99.7 ms after key (update   1.5 ms): "#" 2812 candidates, 0 GCs 0 ms
+  screen  144.8 ms after key (update   6.4 ms): "#" 2812 candidates, 0 GCs 0 ms
+key m
+  screen   23.2 ms after key (update  22.3 ms): "#m" 2475 candidates, 0 GCs 0 ms
+  screen   59.6 ms after key (update   4.7 ms): "#m" 2475 candidates, 0 GCs 0 ms
+key a
+  screen   23.2 ms after key (update  22.5 ms): "#ma" 1826 candidates, 0 GCs 0 ms
+  screen   58.7 ms after key (update   3.8 ms): "#ma" 1826 candidates, 0 GCs 0 ms
+key i
+  screen   20.8 ms after key (update  20.0 ms): "#mai" 36 candidates, 0 GCs 0 ms
+  screen   56.5 ms after key (update   1.7 ms): "#mai" 36 candidates, 0 GCs 0 ms
+  symbols #("mai" 0 3 (consult--force nil)): 100, reply 10.1 ms after request, 76.9 ms after key
+  screen  144.1 ms after key (update   1.8 ms): "#mai" 136 candidates, 0 GCs 0 ms
+key n
+  screen   19.5 ms after key (update  18.7 ms): "#main" 136 candidates, 0 GCs 0 ms
+  screen   56.4 ms after key (update   1.8 ms): "#main" 136 candidates, 0 GCs 0 ms
+  symbols #("main" 0 4 (consult--force nil)): 100, reply 9.8 ms after request, 76.1 ms after key
+  screen  128.6 ms after key (update   1.8 ms): "#main" 136 candidates, 0 GCs 0 ms
+key C-g
+key M-o
+  listed 2767 files in 66.5 ms
+  screen   91.7 ms after key (update   9.3 ms): "#" 2812 candidates, 0 GCs 0 ms
+  screen   98.8 ms after key (update   1.4 ms): "#" 2812 candidates, 0 GCs 0 ms
+  screen  143.8 ms after key (update   6.2 ms): "#" 2812 candidates, 0 GCs 0 ms
+key v
+  screen   23.0 ms after key (update  22.2 ms): "#v" 1995 candidates, 0 GCs 0 ms
+  screen   61.0 ms after key (update   6.0 ms): "#v" 1995 candidates, 0 GCs 0 ms
+key e
+  screen   23.0 ms after key (update  22.2 ms): "#ve" 1149 candidates, 0 GCs 0 ms
+  screen   57.9 ms after key (update   2.9 ms): "#ve" 1149 candidates, 0 GCs 0 ms
+key c
+  screen   19.6 ms after key (update  18.8 ms): "#vec" 4 candidates, 0 GCs 0 ms
+  screen   57.1 ms after key (update   2.3 ms): "#vec" 4 candidates, 0 GCs 0 ms
+  symbols #("vec" 0 3 (consult--force nil)): 100, reply 17.2 ms after request, 83.7 ms after key
+  screen  149.5 ms after key (update   2.2 ms): "#vec" 104 candidates, 0 GCs 0 ms
+key C-g
+key M-o
+  listed 2768 files in 69.7 ms
+  screen   92.4 ms after key (update   8.8 ms): "#" 2813 candidates, 0 GCs 0 ms
+  screen   99.5 ms after key (update   1.4 ms): "#" 2813 candidates, 0 GCs 0 ms
+  screen  145.1 ms after key (update   6.3 ms): "#" 2813 candidates, 0 GCs 0 ms
+key T
+  screen   21.5 ms after key (update  19.9 ms): "#T" 4 candidates, 0 GCs 0 ms
+  screen   61.2 ms after key (update   2.1 ms): "#T" 4 candidates, 0 GCs 0 ms
+key r
+  screen   14.4 ms after key (update  13.5 ms): "#Tr" 0 candidates, 0 GCs 0 ms
+  screen   54.3 ms after key (update   0.5 ms): "#Tr" 0 candidates, 0 GCs 0 ms
+key i
+  screen    6.6 ms after key (update   5.7 ms): "#Tri" 0 candidates, 0 GCs 0 ms
+  symbols #("Tri" 0 3 (consult--force nil)): 100, reply 20.4 ms after request, 75.7 ms after key
+  screen  145.0 ms after key (update   1.5 ms): "#Tri" 100 candidates, 0 GCs 0 ms
+key C-g
+key M-o
+  listed 2769 files in 67.0 ms
+  screen   90.8 ms after key (update   9.1 ms): "#" 2814 candidates, 0 GCs 0 ms
+  screen   98.6 ms after key (update   1.3 ms): "#" 2814 candidates, 0 GCs 0 ms
+  screen  143.2 ms after key (update   6.3 ms): "#" 2814 candidates, 0 GCs 0 ms
+key a
+  screen   23.2 ms after key (update  22.4 ms): "#a" 2675 candidates, 0 GCs 0 ms
+  screen   59.6 ms after key (update   4.8 ms): "#a" 2675 candidates, 0 GCs 0 ms
+key s
+  screen   22.7 ms after key (update  21.8 ms): "#as" 973 candidates, 0 GCs 0 ms
+  screen   59.8 ms after key (update   4.7 ms): "#as" 973 candidates, 0 GCs 0 ms
+key s
+  screen   22.0 ms after key (update  21.2 ms): "#ass" 942 candidates, 0 GCs 0 ms
+  screen   59.8 ms after key (update   1.7 ms): "#ass" 942 candidates, 0 GCs 0 ms
+  symbols #("ass" 0 3 (consult--force nil)): 100, reply 14.7 ms after request, 82.0 ms after key
+  screen  149.1 ms after key (update   2.9 ms): "#ass" 1042 candidates, 0 GCs 0 ms
+key e
+  screen   20.6 ms after key (update  19.8 ms): "#asse" 106 candidates, 0 GCs 0 ms
+  screen   59.7 ms after key (update   1.6 ms): "#asse" 106 candidates, 0 GCs 0 ms
+  symbols #("asse" 0 4 (consult--force nil)): 100, reply 8.6 ms after request, 75.3 ms after key
+  screen  127.8 ms after key (update   1.7 ms): "#asse" 105 candidates, 0 GCs 0 ms
+key m
+  screen   18.5 ms after key (update  17.8 ms): "#assem" 101 candidates, 0 GCs 0 ms
+  screen   58.8 ms after key (update   1.6 ms): "#assem" 101 candidates, 0 GCs 0 ms
+  symbols #("assem" 0 5 (consult--force nil)): 49, reply 7.9 ms after request, 73.6 ms after key
+  screen  125.9 ms after key (update   1.5 ms): "#assem" 51 candidates, 0 GCs 0 ms
+key b
+  screen   17.3 ms after key (update  16.6 ms): "#assemb" 51 candidates, 0 GCs 0 ms
+  screen   57.9 ms after key (update   1.4 ms): "#assemb" 51 candidates, 0 GCs 0 ms
+  symbols #("assemb" 0 6 (consult--force nil)): 40, reply 7.8 ms after request, 72.6 ms after key
+  screen  124.7 ms after key (update   1.3 ms): "#assemb" 42 candidates, 0 GCs 0 ms
+key l
+  screen   18.0 ms after key (update  17.2 ms): "#assembl" 42 candidates, 0 GCs 0 ms
+  screen   57.9 ms after key (update   1.3 ms): "#assembl" 42 candidates, 0 GCs 0 ms
+  symbols #("assembl" 0 7 (consult--force nil)): 40, reply 7.9 ms after request, 72.7 ms after key
+  screen  124.8 ms after key (update   1.3 ms): "#assembl" 42 candidates, 0 GCs 0 ms
+key e
+  screen   18.1 ms after key (update  17.4 ms): "#assemble" 42 candidates, 0 GCs 0 ms
+  screen   57.7 ms after key (update   1.3 ms): "#assemble" 42 candidates, 0 GCs 0 ms
+  symbols #("assemble" 0 8 (consult--force nil)): 33, reply 7.8 ms after request, 72.4 ms after key
+  screen  124.6 ms after key (update   1.3 ms): "#assemble" 35 candidates, 0 GCs 0 ms
+key C-g
+key M-o
+  listed 2769 files in 73.7 ms
+  screen   96.0 ms after key (update   8.2 ms): "#" 2814 candidates, 0 GCs 0 ms
+  screen  103.7 ms after key (update   1.2 ms): "#" 2814 candidates, 0 GCs 0 ms
+  screen  149.7 ms after key (update   6.6 ms): "#" 2814 candidates, 0 GCs 0 ms
+key S
+  screen   19.4 ms after key (update  18.7 ms): "#S" 6 candidates, 0 GCs 0 ms
+  screen   57.3 ms after key (update   2.3 ms): "#S" 6 candidates, 0 GCs 0 ms
+key o
+  screen   15.5 ms after key (update  14.7 ms): "#So" 0 candidates, 0 GCs 0 ms
+  screen   63.6 ms after key (update   0.5 ms): "#So" 0 candidates, 0 GCs 0 ms
+key l
+  screen    6.3 ms after key (update   5.5 ms): "#Sol" 0 candidates, 0 GCs 0 ms
+  symbols #("Sol" 0 3 (consult--force nil)): 100, reply 6.6 ms after request, 61.9 ms after key
+  screen  129.0 ms after key (update   1.5 ms): "#Sol" 100 candidates, 0 GCs 0 ms
+key C-g
+# files from /home/alad/source/repos/dealii/; managed t; /opt/clangd-index-nav/bin/clangd; gc-cons-threshold 800000
+# ready
+key M-o
+  listed 34602 files in 68.2 ms
+  screen  118.9 ms after key (update  24.1 ms): "#" 34647 candidates, 0 GCs 0 ms
+  screen  127.0 ms after key (update   1.5 ms): "#" 34647 candidates, 0 GCs 0 ms
+  screen  166.3 ms after key (update  17.5 ms): "#" 34647 candidates, 0 GCs 0 ms
+key m
+  screen   48.5 ms after key (update  47.3 ms): "#m" 22603 candidates, 0 GCs 0 ms
+  screen   64.3 ms after key (update   9.2 ms): "#m" 22603 candidates, 0 GCs 0 ms
+key a
+  screen   37.1 ms after key (update  36.4 ms): "#ma" 6007 candidates, 0 GCs 0 ms
+  screen   58.8 ms after key (update   3.9 ms): "#ma" 6007 candidates, 0 GCs 0 ms
+key i
+  screen   34.0 ms after key (update  33.2 ms): "#mai" 85 candidates, 0 GCs 0 ms
+  screen   56.7 ms after key (update   1.1 ms): "#mai" 85 candidates, 0 GCs 0 ms
+  symbols #("mai" 0 3 (consult--force nil)): 100, reply 10.3 ms after request, 90.9 ms after key
+  screen  157.4 ms after key (update   2.3 ms): "#mai" 185 candidates, 0 GCs 0 ms
+key n
+  screen   33.8 ms after key (update  33.1 ms): "#main" 181 candidates, 0 GCs 0 ms
+  screen   56.1 ms after key (update   1.2 ms): "#main" 181 candidates, 0 GCs 0 ms
+  symbols #("main" 0 4 (consult--force nil)): 100, reply 11.1 ms after request, 90.9 ms after key
+  screen  143.4 ms after key (update   1.7 ms): "#main" 181 candidates, 0 GCs 0 ms
+key C-g
+key M-o
+  listed 34602 files in 73.4 ms
+  screen  119.3 ms after key (update  20.7 ms): "#" 34647 candidates, 0 GCs 0 ms
+  screen  125.1 ms after key (update   0.9 ms): "#" 34647 candidates, 0 GCs 0 ms
+  screen  176.7 ms after key (update  23.9 ms): "#" 34647 candidates, 0 GCs 0 ms
+key v
+  screen   37.5 ms after key (update  36.7 ms): "#v" 7844 candidates, 0 GCs 0 ms
+  screen   60.8 ms after key (update   5.5 ms): "#v" 7844 candidates, 0 GCs 0 ms
+key e
+  screen   35.7 ms after key (update  35.0 ms): "#ve" 4530 candidates, 0 GCs 0 ms
+  screen   61.6 ms after key (update   6.8 ms): "#ve" 4530 candidates, 0 GCs 0 ms
+key c
+  screen   37.7 ms after key (update  36.9 ms): "#vec" 1926 candidates, 0 GCs 0 ms
+  screen   62.1 ms after key (update   2.0 ms): "#vec" 1926 candidates, 0 GCs 0 ms
+  symbols #("vec" 0 3 (consult--force nil)): 100, reply 18.0 ms after request, 99.9 ms after key
+  screen  166.9 ms after key (update   4.6 ms): "#vec" 2026 candidates, 0 GCs 0 ms
+key C-g
+key M-o
+  listed 34602 files in 74.0 ms
+  screen  167.4 ms after key (update 106.5 ms): "#" 34647 candidates, 0 GCs 0 ms
+  listed 34602 files in 159.6 ms
+  screen  190.2 ms after key (update   1.1 ms): "#" 34647 candidates, 0 GCs 0 ms
+  screen  235.3 ms after key (update  30.9 ms): "#" 34647 candidates, 0 GCs 0 ms
+key T
+  screen   32.7 ms after key (update  31.9 ms): "#T" 213 candidates, 0 GCs 0 ms
+  screen   59.7 ms after key (update   4.0 ms): "#T" 213 candidates, 0 GCs 0 ms
+key r
+  screen   27.2 ms after key (update  26.2 ms): "#Tr" 27 candidates, 0 GCs 0 ms
+  screen   59.2 ms after key (update   4.2 ms): "#Tr" 27 candidates, 0 GCs 0 ms
+key i
+  screen   31.4 ms after key (update  30.6 ms): "#Tri" 0 candidates, 0 GCs 0 ms
+  screen   80.2 ms after key (update   0.6 ms): "#Tri" 0 candidates, 0 GCs 0 ms
+  symbols #("Tri" 0 3 (consult--force nil)): 100, reply 19.9 ms after request, 100.8 ms after key
+  screen  171.0 ms after key (update   1.9 ms): "#Tri" 100 candidates, 0 GCs 0 ms
+key C-g
+key M-o
+  listed 34602 files in 70.4 ms
+  screen  160.4 ms after key (update 101.1 ms): "#" 34647 candidates, 0 GCs 0 ms
+  listed 34602 files in 154.2 ms
+  screen  180.7 ms after key (update   0.9 ms): "#" 34647 candidates, 0 GCs 0 ms
+  screen  228.2 ms after key (update  30.6 ms): "#" 34647 candidates, 0 GCs 0 ms
+key a
+  screen  139.0 ms after key (update 138.3 ms): "#a" 29224 candidates, 1 GCs 64 ms
+  screen  200.0 ms after key (update  24.8 ms): "#a" 29224 candidates, 1 GCs 64 ms
+key s
+  screen   39.6 ms after key (update  38.9 ms): "#as" 4732 candidates, 0 GCs 0 ms
+  screen   59.2 ms after key (update   2.9 ms): "#as" 4732 candidates, 0 GCs 0 ms
+key s
+  screen   37.5 ms after key (update  36.7 ms): "#ass" 772 candidates, 0 GCs 0 ms
+  screen   60.7 ms after key (update   1.4 ms): "#ass" 772 candidates, 0 GCs 0 ms
+  symbols #("ass" 0 3 (consult--force nil)): 100, reply 17.5 ms after request, 100.2 ms after key
+  screen  169.4 ms after key (update   2.8 ms): "#ass" 872 candidates, 0 GCs 0 ms
+key e
+  screen   33.8 ms after key (update  33.1 ms): "#asse" 233 candidates, 0 GCs 0 ms
+  screen   60.5 ms after key (update   2.3 ms): "#asse" 233 candidates, 0 GCs 0 ms
+  symbols #("asse" 0 4 (consult--force nil)): 100, reply 10.4 ms after request, 91.8 ms after key
+  screen  144.8 ms after key (update   2.3 ms): "#asse" 232 candidates, 0 GCs 0 ms
+key m
+  screen   33.8 ms after key (update  33.1 ms): "#assem" 170 candidates, 0 GCs 0 ms
+  screen   60.7 ms after key (update   1.8 ms): "#assem" 170 candidates, 0 GCs 0 ms
+  symbols #("assem" 0 5 (consult--force nil)): 49, reply 9.1 ms after request, 90.9 ms after key
+  screen  143.9 ms after key (update   2.2 ms): "#assem" 120 candidates, 0 GCs 0 ms
+key b
+  screen   20.2 ms after key (update  19.8 ms): "#assemb" 120 candidates, 0 GCs 0 ms
+  screen   56.5 ms after key (update   1.9 ms): "#assemb" 120 candidates, 0 GCs 0 ms
+  symbols #("assemb" 0 6 (consult--force nil)): 40, reply 9.6 ms after request, 78.2 ms after key
+  screen  130.8 ms after key (update   1.9 ms): "#assemb" 111 candidates, 0 GCs 0 ms
+key l
+  screen   33.6 ms after key (update  32.7 ms): "#assembl" 111 candidates, 0 GCs 0 ms
+  screen   60.0 ms after key (update   1.8 ms): "#assembl" 111 candidates, 0 GCs 0 ms
+  symbols #("assembl" 0 7 (consult--force nil)): 40, reply 9.8 ms after request, 91.2 ms after key
+  screen  144.5 ms after key (update   2.4 ms): "#assembl" 111 candidates, 0 GCs 0 ms
+key e
+  screen   36.4 ms after key (update  35.6 ms): "#assemble" 111 candidates, 0 GCs 0 ms
+  screen   60.1 ms after key (update   1.8 ms): "#assemble" 111 candidates, 0 GCs 0 ms
+  symbols #("assemble" 0 8 (consult--force nil)): 33, reply 9.1 ms after request, 93.2 ms after key
+  screen  145.8 ms after key (update   1.9 ms): "#assemble" 104 candidates, 0 GCs 0 ms
+key C-g
+key M-o
+  listed 34602 files in 72.2 ms
+  screen  163.2 ms after key (update 104.0 ms): "#" 34647 candidates, 0 GCs 0 ms
+  listed 34602 files in 156.7 ms
+  screen  183.6 ms after key (update   0.9 ms): "#" 34647 candidates, 0 GCs 0 ms
+  screen  230.6 ms after key (update  29.9 ms): "#" 34647 candidates, 0 GCs 0 ms
+key S
+  screen   31.2 ms after key (update  30.3 ms): "#S" 342 candidates, 0 GCs 0 ms
+  screen   60.0 ms after key (update   5.1 ms): "#S" 342 candidates, 0 GCs 0 ms
+key o
+  screen   32.0 ms after key (update  31.3 ms): "#So" 163 candidates, 0 GCs 0 ms
+  screen   80.5 ms after key (update   1.9 ms): "#So" 163 candidates, 0 GCs 0 ms
+key l
+  screen   29.2 ms after key (update  28.3 ms): "#Sol" 0 candidates, 0 GCs 0 ms
+  screen   77.6 ms after key (update   0.5 ms): "#Sol" 0 candidates, 0 GCs 0 ms
+  symbols #("Sol" 0 3 (consult--force nil)): 100, reply 6.8 ms after request, 85.0 ms after key
+  screen  151.5 ms after key (update   1.4 ms): "#Sol" 100 candidates, 0 GCs 0 ms
+key C-g
+key M-o
+  listed 34602 files in 82.7 ms
+  screen  176.4 ms after key (update 115.4 ms): "#" 34647 candidates, 0 GCs 0 ms
+  listed 34602 files in 167.6 ms
+  screen  200.9 ms after key (update   1.0 ms): "#" 34647 candidates, 0 GCs 0 ms
+  screen  244.6 ms after key (update  31.7 ms): "#" 34647 candidates, 0 GCs 0 ms
+key m
+  screen  118.3 ms after key (update 116.4 ms): "#m" 22603 candidates, 1 GCs 49 ms
+  screen  177.6 ms after key (update  22.1 ms): "#m" 22603 candidates, 1 GCs 49 ms
+key a
+  screen   42.1 ms after key (update  41.2 ms): "#ma" 6007 candidates, 0 GCs 0 ms
+  screen   65.9 ms after key (update   9.1 ms): "#ma" 6007 candidates, 0 GCs 0 ms
+key i
+  screen   36.2 ms after key (update  35.2 ms): "#mai" 85 candidates, 0 GCs 0 ms
+  screen   59.2 ms after key (update   1.8 ms): "#mai" 85 candidates, 0 GCs 0 ms
+  symbols #("mai" 0 3 (consult--force nil)): 100, reply 11.4 ms after request, 95.1 ms after key
+  screen  163.9 ms after key (update   2.0 ms): "#mai" 185 candidates, 0 GCs 0 ms
+key n
+  screen   33.1 ms after key (update  32.1 ms): "#main" 181 candidates, 0 GCs 0 ms
+  screen   56.8 ms after key (update   1.8 ms): "#main" 181 candidates, 0 GCs 0 ms
+  symbols #("main" 0 4 (consult--force nil)): 100, reply 10.2 ms after request, 89.2 ms after key
+  screen  141.9 ms after key (update   1.9 ms): "#main" 181 candidates, 0 GCs 0 ms
+key C-g
+key M-o
+  listed 34602 files in 88.1 ms
+  screen  178.1 ms after key (update 118.7 ms): "#" 34647 candidates, 0 GCs 0 ms
+  listed 34602 files in 172.0 ms
+  screen  198.3 ms after key (update   0.9 ms): "#" 34647 candidates, 0 GCs 0 ms
+  screen  234.7 ms after key (update  19.0 ms): "#" 34647 candidates, 0 GCs 0 ms
+key v
+  screen   94.5 ms after key (update  93.3 ms): "#v" 7844 candidates, 1 GCs 53 ms
+  screen   97.8 ms after key (update   2.9 ms): "#v" 7844 candidates, 1 GCs 53 ms
+key e
+  screen   36.7 ms after key (update  35.5 ms): "#ve" 4530 candidates, 0 GCs 0 ms
+  screen   58.7 ms after key (update   3.1 ms): "#ve" 4530 candidates, 0 GCs 0 ms
+key c
+  screen   32.7 ms after key (update  31.5 ms): "#vec" 1926 candidates, 0 GCs 0 ms
+  screen   58.1 ms after key (update   2.8 ms): "#vec" 1926 candidates, 0 GCs 0 ms
+  symbols #("vec" 0 3 (consult--force nil)): 100, reply 17.4 ms after request, 96.6 ms after key
+  screen  162.7 ms after key (update   4.2 ms): "#vec" 2026 candidates, 0 GCs 0 ms
+key C-g
+key M-o
+  listed 34602 files in 80.6 ms
+  screen  172.5 ms after key (update 112.8 ms): "#" 34647 candidates, 0 GCs 0 ms
+  listed 34602 files in 165.8 ms
+  screen  192.4 ms after key (update   0.9 ms): "#" 34647 candidates, 0 GCs 0 ms
+  screen  240.1 ms after key (update  30.7 ms): "#" 34647 candidates, 0 GCs 0 ms
+key T
+  screen   32.3 ms after key (update  31.4 ms): "#T" 213 candidates, 0 GCs 0 ms
+  screen   58.6 ms after key (update   3.8 ms): "#T" 213 candidates, 0 GCs 0 ms
+key r
+  screen   31.5 ms after key (update  30.7 ms): "#Tr" 27 candidates, 0 GCs 0 ms
+  screen   56.5 ms after key (update   1.9 ms): "#Tr" 27 candidates, 0 GCs 0 ms
+key i
+  screen   30.1 ms after key (update  29.3 ms): "#Tri" 0 candidates, 0 GCs 0 ms
+  screen   78.3 ms after key (update   0.5 ms): "#Tri" 0 candidates, 0 GCs 0 ms
+  symbols #("Tri" 0 3 (consult--force nil)): 100, reply 19.4 ms after request, 98.4 ms after key
+  screen  166.8 ms after key (update   1.5 ms): "#Tri" 100 candidates, 0 GCs 0 ms
+key C-g
+key M-o
+  listed 34602 files in 49.8 ms
+  screen   86.5 ms after key (update  16.5 ms): "#" 34647 candidates, 0 GCs 0 ms
+  screen   91.4 ms after key (update   0.9 ms): "#" 34647 candidates, 0 GCs 0 ms
+  screen  147.9 ms after key (update  24.3 ms): "#" 34647 candidates, 0 GCs 0 ms
+key a
+  screen   75.6 ms after key (update  74.9 ms): "#a" 29224 candidates, 0 GCs 0 ms
+  screen   95.8 ms after key (update  19.7 ms): "#a" 29224 candidates, 0 GCs 0 ms
+key s
+  screen   38.7 ms after key (update  38.0 ms): "#as" 4732 candidates, 0 GCs 0 ms
+  screen   58.5 ms after key (update   2.7 ms): "#as" 4732 candidates, 0 GCs 0 ms
+key s
+  screen   33.1 ms after key (update  32.4 ms): "#ass" 772 candidates, 0 GCs 0 ms
+  screen   59.6 ms after key (update   1.4 ms): "#ass" 772 candidates, 0 GCs 0 ms
+  symbols #("ass" 0 3 (consult--force nil)): 100, reply 14.0 ms after request, 93.4 ms after key
+  screen  159.8 ms after key (update   2.7 ms): "#ass" 872 candidates, 0 GCs 0 ms
+key e
+  screen   27.0 ms after key (update  26.6 ms): "#asse" 233 candidates, 0 GCs 0 ms
+  screen   55.0 ms after key (update   1.1 ms): "#asse" 233 candidates, 0 GCs 0 ms
+  symbols #("asse" 0 4 (consult--force nil)): 100, reply 4.3 ms after request, 77.6 ms after key
+  screen  128.8 ms after key (update   0.9 ms): "#asse" 232 candidates, 0 GCs 0 ms
+key m
+  screen   32.4 ms after key (update  32.0 ms): "#assem" 170 candidates, 0 GCs 0 ms
+  screen   56.0 ms after key (update   2.0 ms): "#assem" 170 candidates, 0 GCs 0 ms
+  symbols #("assem" 0 5 (consult--force nil)): 49, reply 3.5 ms after request, 80.8 ms after key
+  screen  133.6 ms after key (update   2.0 ms): "#assem" 120 candidates, 0 GCs 0 ms
+key b
+  screen   34.7 ms after key (update  33.5 ms): "#assemb" 120 candidates, 0 GCs 0 ms
+  screen   61.8 ms after key (update   2.1 ms): "#assemb" 120 candidates, 0 GCs 0 ms
+  symbols #("assemb" 0 6 (consult--force nil)): 40, reply 3.7 ms after request, 86.1 ms after key
+  screen  138.8 ms after key (update   1.9 ms): "#assemb" 111 candidates, 0 GCs 0 ms
+key l
+  screen   35.3 ms after key (update  34.2 ms): "#assembl" 111 candidates, 0 GCs 0 ms
+  screen   61.9 ms after key (update   1.8 ms): "#assembl" 111 candidates, 0 GCs 0 ms
+  symbols #("assembl" 0 7 (consult--force nil)): 40, reply 3.5 ms after request, 86.6 ms after key
+  screen  139.3 ms after key (update   1.9 ms): "#assembl" 111 candidates, 0 GCs 0 ms
+key e
+  screen   33.2 ms after key (update  32.3 ms): "#assemble" 111 candidates, 0 GCs 0 ms
+  screen   60.6 ms after key (update   1.0 ms): "#assemble" 111 candidates, 0 GCs 0 ms
+  symbols #("assemble" 0 8 (consult--force nil)): 33, reply 3.9 ms after request, 85.2 ms after key
+  screen  138.0 ms after key (update   2.0 ms): "#assemble" 104 candidates, 0 GCs 0 ms
+key C-g
+key M-o
+  listed 34602 files in 69.1 ms
+  screen  117.2 ms after key (update  17.8 ms): "#" 34647 candidates, 0 GCs 0 ms
+  screen  122.2 ms after key (update   0.9 ms): "#" 34647 candidates, 0 GCs 0 ms
+  screen  185.3 ms after key (update  32.2 ms): "#" 34647 candidates, 0 GCs 0 ms
+key S
+  screen   30.3 ms after key (update  29.5 ms): "#S" 342 candidates, 0 GCs 0 ms
+  screen   59.0 ms after key (update   4.4 ms): "#S" 342 candidates, 0 GCs 0 ms
+key o
+  screen   30.3 ms after key (update  29.5 ms): "#So" 163 candidates, 0 GCs 0 ms
+  screen   79.8 ms after key (update   2.1 ms): "#So" 163 candidates, 0 GCs 0 ms
+key l
+  screen   23.6 ms after key (update  22.9 ms): "#Sol" 0 candidates, 0 GCs 0 ms
+  screen   72.6 ms after key (update   0.5 ms): "#Sol" 0 candidates, 0 GCs 0 ms
+  symbols #("Sol" 0 3 (consult--force nil)): 100, reply 7.5 ms after request, 80.8 ms after key
+  screen  147.5 ms after key (update   1.6 ms): "#Sol" 100 candidates, 0 GCs 0 ms
+key C-g
+load after: 1.46 1.81 1.42

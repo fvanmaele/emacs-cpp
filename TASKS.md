@@ -94,8 +94,8 @@ with `done when: ...`).
 | T-046 | done 0047 | M | Python and R cells, ESS | D-072 | owner's RMO check left |
 | T-047 | done | S | research: go to anything prompt | owner | RESEARCH; O-30 |
 | T-048 | done 0048 | S | spike S11: go to anything costs | D-074 | FAIL in one part |
-| T-049 | open | M | go to anything prompt | D-074 | after S11 run 2 |
-| T-051 | open | S | spike S11 run 2: the whole prompt | D-077 | owner runs |
+| T-049 | next | M | go to anything prompt | D-074 | done-when proposed |
+| T-051 | done 0049 | S | spike S11 run 2: the whole prompt | D-077 | PASS |
 | T-050 | done | S | research: go to anything speed | owner | RESEARCH 8; O-33 |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
@@ -243,11 +243,19 @@ with `done when: ...`).
   RMO check; startup median 0.161 s.
 - T-049 (opened 2026-10-11, D-074): the go-to-anything command in
   `lisp/init-completion.el` (`consult--multi`, sources as D-074) on the key O-31
-  rules (D-076: `M-o`), with D-077's speed settings. Tier 2; done when agreed after
-  S11 run 2 (T-051).
+  rules (D-076: `M-o`), with D-077's speed settings. Tier 2. Done when (proposed
+  2026-10-11, owner agrees before code): `M-o` opens one prompt from any buffer;
+  buffers, recent files, bookmarks and the project's files (listed before the
+  prompt opens, S11 run 2 finding 3) from the first key, clangd symbols from the
+  third, no request for an empty input, commands and project roots behind narrow
+  keys; D-077's settings bound only around the prompt; `make test` covers the
+  sources, the empty-input rule and the key; S11 run 2's criteria hold on RMO when
+  `prompt.sh`'s timing is repeated against the shipped command; owner's hand check
+  on RMO and the deal.II tree.
 - T-051 (opened 2026-10-11, D-077): owner runs S11 run 2
   (`spikes/s11-go-to-anything/prompt.sh`, RUN.md run 2). Done when:
-  `results-run2.log` handed back and RESULTS.md has run 2.
+  `results-run2.log` handed back and RESULTS.md has run 2. Done 2026-10-11 (0049):
+  PASS on RMO.
 - T-050 (opened 2026-10-11, owner): research how to make the go-to-anything prompt
   faster. Done when: `RESEARCH_go_to_anything.md` 8 with measured options. Done
   2026-10-11: prototype in a terminal Emacs, four variants timed; GC is 69 % of the
