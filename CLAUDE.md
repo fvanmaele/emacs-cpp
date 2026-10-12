@@ -26,8 +26,8 @@ rules (D-065, superseding D-061), from plain `.dir-locals.el` values (D-062).
 Tree follow options, not into library files (D-067, D-070); eglot refused loudly on
 any preset or database error (D-018), a warning for a source missing from the
 database (D-068); fixes to vendored packages as patch files (D-069). which-key after
-3 s (D-071). `# %%` cells in Python and R, ESS for R (D-072, 0047); owner's RMO check
-left.
+3 s (D-071), narrow keys 0.2 s after `<` in prompts (D-080, 0054). `# %%` cells in
+Python and R, ESS for R (D-072, 0047); owner's RMO check left.
 Go to anything: one consult prompt (D-074) on `M-o` (D-076); S11 (0048): one letter
 over deal.II accepted (D-075); speed settings (D-077), S11 run 2 PASS (0049); built
 (T-049, 0050, no `#`: D-078), runs and hand check pass; narrowed to symbols: consult

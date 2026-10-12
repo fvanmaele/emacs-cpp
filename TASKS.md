@@ -101,6 +101,7 @@ with `done when: ...`).
 | T-054 | done 0053 | S | S11 run 4: narrowed, a deal.II project | D-079 | recorded |
 | T-055 | done 0052 | S | consult patch 0001: hidden sources | D-079 | stand-in measured |
 | T-050 | done | S | research: go to anything speed | owner | RESEARCH 8; O-33 |
+| T-056 | done 0054 | S | narrow keys 0.2 s after `<` | D-080 | test, terminal check |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -259,6 +260,13 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-056 (opened 2026-10-12, D-080): which-key lists consult's narrow keys 0.2 s
+  after `<` in any prompt that has them. Done when: in such a prompt, `<` lists them
+  after about 0.2 s; ESC, `C-x` and other prefixes still wait 3 s, in the prompt and
+  outside it; after the prompt closes every prefix waits 3 s again; an ERT test
+  checks the delays for `<` and ESC inside and outside a prompt; owner's hand check
+  with `M-o` and `C-x b`. Agreed 2026-10-12. Built 2026-10-12 (0054): all met but
+  the owner's hand check; 82 tests.
 - T-055 (opened 2026-10-11, D-079): consult patch 0001 (D-069) and narrowing with `<`
   documented. Done when (from O-34 (a), (c)): narrowed to symbols on the stand-in
   tree, updates at most about 5 ms per key; widening brings the files back; a test

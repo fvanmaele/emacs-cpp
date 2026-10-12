@@ -640,7 +640,17 @@ Known defects: none yet (nothing built).
 - DECIDED D-071 (owner 2026-10-10): `which-key-idle-delay` 3 s instead of 1 s. ESC is
   the Meta prefix, so pressing it (e.g. to cancel) brought up the list of every `M-`
   command after 1 s. Chosen over hiding the list after ESC only, making ESC cancel in
-  graphical frames, or a list only on `C-h`. Applies to every prefix.
+  graphical frames, or a list only on `C-h`. Applies to every prefix (but see D-080).
+- DECIDED D-080 (owner 2026-10-12, O-35: "every prompt with narrow keys; delay about
+  0.2s"): in any prompt with consult's narrow keys (`M-o`, `C-x b`, `C-x p b`,
+  `M-g i`, `M-g f`, `M-g e` ...), which-key lists them 0.2 s after `<`; ESC, `C-x` and
+  every other prefix still wait 3 s, in prompts too (D-071). which-key has one idle
+  timer for every prefix and `which-key-delay-functions` can only add delay, so
+  `lisp/init-ui.el` restarts the timer at 0.2 s when a prompt opens (which-key's
+  internal `which-key--start-timer`), adds 2.8 s for any prefix but the narrow key
+  while one is open, and restores 3 s when the last prompt closes. Not every pop-up
+  shortcut: ESC is a prefix in the minibuffer too, the reason for D-071. Built
+  (0054): terminal Emacs, `C-x b`: popup 0.15 - 0.4 s after `<`, 2.5 - 3.5 s after ESC.
 - DECIDED D-029 (owner 2026-10-08): `C-c t` toggles the project tree; treemacs runs
   `treemacs-project-follow-mode`, so the tree shows only the project of the selected
   buffer (projectile's, via treemacs-projectile) and follows it. Not opened at startup
@@ -1062,6 +1072,10 @@ presets, GoogleTest runner.
   budget (Arch 0.151 s); first `M-.` from the index 2.6 s (Arch 1.4 s). If the budgets
   bind on the Mac, startup needs work there first (antivirus and native-code loading
   are the suspects, not measured).
+- O-35 (RESOLVED 2026-10-12 with D-080: every prompt with narrow keys, about 0.2 s;
+  owner 2026-10-12): which-key lists consult's narrow keys only 3 s after `<`
+  (D-071), too late in the go-to-anything prompt. Scope: `M-o` only, every prompt
+  with narrow keys, or every shortcut in pop-ups (ESC brings D-071's problem back).
 - O-34 (RESOLVED 2026-10-11 with D-079: (a) and (c); owner report 2026-10-11, T-052,
   `RESEARCH_go_to_anything.md` 9): `M-o`
   narrowed to symbols feels less responsive than `C-c l s` in deal.II-sized trees.
@@ -1365,6 +1379,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-077 | 2026-10-11 | go to anything: GC, sort, highlight, delays for speed | 10 | O-33 |
 | D-078 | 2026-10-11 | go to anything without consult's `#` | 10 | owner |
 | D-079 | 2026-10-11 | consult patch: hidden sources leave the list | 12 | O-34 |
+| D-080 | 2026-10-12 | which-key lists narrow keys 0.2 s after `<` in prompts | 10 | O-35 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
