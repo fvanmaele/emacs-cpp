@@ -1,7 +1,8 @@
 # RESEARCH - one "go to anything" prompt (T-047)
 
 Findings only; verdicts go to DESIGN (O-30 -> D-074, O-31 -> D-076, O-32 -> D-075,
-performance: O-33 -> D-077, narrowed to symbols: O-34 -> D-079). Owner request
+performance: O-33 -> D-077, narrowed to symbols: O-34 -> D-079,
+path filter for symbols: O-52 -> D-082). Owner request
 2026-10-11: a "go to anything" key in Emacs that works like CLion's (the owner calls it
 `M-M`): symbols, project files, bookmarks and more from one prompt. Arch, Emacs 31.1,
 2026-10-11. Package facts from the vendored sources at their pins (consult 3.10,
@@ -469,6 +470,93 @@ the first time: Org 5.2 s, ESS 0.9 s, and every session's first preview 0.3 - 0.
 - Not checked: the stall in a graphical frame with real images; PDF previews (step-1
   lists none).
 
+## 13. A server-side path filter for symbols (owner request 2026-10-12, T-075)
+Written 2026-10-12, before section 10; superseded 2026-10-13 by O-37's ruling
+(D-082, D-083: no patch, Emacs filters a larger reply), which measured option (a).
+Owner: "Research a server-side path filter": `M-o` symbols only from the project's
+files, all symbols behind a narrow key `a`. Read in the clangd sources the patched
+build compiles (`packaging/clangd-index-nav/src/llvm-project-23.1.1.src/
+clang-tools-extra/clangd`, LLVM 23.1.1); patches 0001 - 0009 touch none of the files
+named here. Nothing built or measured.
+
+**Path of a `workspace/symbol` request:**
+- `ClangdLSPServer::onWorkspaceSymbol` passes the query and `limit`, a clangd
+  extension of `WorkspaceSymbolParams` (`Protocol.h`: "Max results to return,
+  overriding global default. 0 means no limit"), else the completion limit, 100.
+- `ClangdServer::workspaceSymbols` calls `getWorkspaceSymbols` (`FindSymbols.cpp`)
+  with the merged index; the workspace root goes in only to turn URIs into paths.
+- `getWorkspaceSymbols` builds a `FuzzyFindRequest` (`index/Index.h`: query, scopes,
+  `AnyScope`, `Limit`, `RestrictForCodeCompletion`, `ProximityPaths`,
+  `PreferredTypes`); no field restricts by file. It ranks what the index yields and
+  keeps the top `Limit`. The location shown is the definition, else the canonical
+  declaration.
+- `MergedIndex::fuzzyFind` (`index/Merge.cpp`) asks the dynamic index, then the
+  background index, with the same request. Background and preamble symbols are in
+  a `Dex` (`IndexType::Heavy`), main-file symbols in a `MemIndex` (`Light`), which
+  scans every symbol.
+- `Dex::fuzzyFind` (`index/dex/Dex.cpp`) intersects the query's trigram lists with
+  the scopes, a proximity boost and a type boost; caps the result at `Limit * 100`
+  documents (10000 for 100), which keeps the best by quality, since documents are
+  numbered in quality order; fuzzy-matches the names; keeps the top `Limit`.
+
+So a filter after the index, in `getWorkspaceSymbols` or in Emacs, sees only the
+index's top `Limit`: in RMO, deal.II and std symbols can fill it. The filter has to
+run inside the index, before the top-`Limit` cut and before the `Limit * 100` cap.
+
+**What exists, and why it does not fit:**
+- `ProximityPaths`: each parent directory of the given files becomes a `BOOST`
+  inside a union with all symbols. It reorders, never removes.
+- Dex's `ProximityURI` lists hold, per symbol, its canonical declaration's file and
+  at most 4 parent directories (`generateProximityURIs`, `ProximityURILimit = 5`).
+  The project root is listed only for files at most 4 levels below it:
+  `include/rmo/a/b.h` yes, `include/rmo/a/b/c.h` no. Intersecting with the root's
+  list would drop deeper files without a word.
+- Excluding at indexing: D84811 ("exclude symbols outside of project root from
+  index", for the remote index server); `Index: Background: Skip` in `.clangd`
+  (checked per translation unit, `index/Background.cpp`). Both take the library
+  symbols out of the index that patches 0001 - 0004 navigate with (D-026 .. D-028):
+  `M-.` into deal.II would stop working.
+- Upstream: no filter by path at query time found (web search 2026-10-12; clangd
+  issues 1101 and 707 and discussion 1382 are about missing symbols or skipping
+  files).
+
+**Options:**
+- (a) No clangd patch: Emacs sends `limit` 1000 (or 0), keeps the results under the
+  root, shows the first 100. Up to 10 times the JSON per key (or all matches); a
+  project symbol ranked below the limit is still missing. Not measured.
+- (b) Patch 0010, filter while scoring: a new clangd extension field in
+  `WorkspaceSymbolParams` (absolute directories) copied into a new
+  `FuzzyFindRequest` field; `Dex::fuzzyFind` and `MemIndex::fuzzyFind` skip a
+  symbol outside every directory before the name match, and `Dex` drops its
+  `Limit * 100` cap while the field is set (the cap counts symbols before the
+  filter). Files: `Protocol.h`, `Protocol.cpp`, `ClangdLSPServer.cpp`,
+  `ClangdServer.h`, `ClangdServer.cpp`, `FindSymbols.h`, `FindSymbols.cpp`,
+  `index/Index.h`, `index/Index.cpp` (field, `==`, JSON), `index/dex/Dex.cpp`,
+  `index/MemIndex.cpp`. Cost: one prefix comparison per trigram match, all matches
+  read; how many a 3-letter query matches in deal.II is not known.
+- (c) Patch 0010, a list per directory set: the same field; `Dex` builds, at the
+  first request for a set of directories, the list of its symbols under them (one
+  pass over all symbols), keeps it while that `Dex` lives and intersects it like a
+  scope, so the cap stays meaningful. More code; the background `Dex` is rebuilt as
+  shards change and the preamble one per open file, and the pass repeats then.
+- (d) Raise `ProximityURILimit` and intersect with the root's list: more lists for
+  every symbol, still a fixed depth. Not pursued.
+
+**Open for (b) and (c):**
+- Which file decides: the definition (what the prompt shows) or the canonical
+  declaration (what Dex's lists use); a symbol declared in a library header and
+  defined in the project, or the other way round.
+- The build directory under the root: its generated headers would count.
+- The index stores URIs (`file:///...`, percent-encoded): the request's directories
+  are converted with `URI::create` and compared up to a `/`. On the Mac `/Users` is
+  case-insensitive and `/tmp` is `/private/tmp`; not checked.
+- `C-c l s` (consult-eglot) sends no such field and keeps today's list unless
+  wrapped.
+- The remote index (`index/remote`, protobuf) would not carry the field; not used
+  here.
+- A new clangd patch is tier 3: a spike first, counting trigram matches of 3-letter
+  queries in RMO's and deal.II's indexes and timing (b) against today.
+
 ## Sources
 - JetBrains, CLion help "Search everywhere":
   https://www.jetbrains.com/help/clion/searching-everywhere.html
@@ -477,3 +565,13 @@ the first time: Org 5.2 s, ESS 0.9 s, and every session's first preview 0.3 - 0.
 - consult-eglot v0.5.0: `lib/consult-eglot/consult-eglot.el`.
 - consult-project-extra: https://github.com/Qkessler/consult-project-extra
 - consult-omni: https://github.com/armindarvish/consult-omni
+- clangd, LLVM 23.1.1: `clang-tools-extra/clangd/` `Protocol.h`, `ClangdLSPServer.cpp`,
+  `ClangdServer.cpp`, `FindSymbols.cpp`, `index/Index.h`, `index/Merge.cpp`,
+  `index/MemIndex.cpp`, `index/FileIndex.cpp`, `index/BackgroundRebuild.cpp`,
+  `index/Background.cpp`, `index/dex/Dex.cpp`.
+- D84811, "[clangd] Add an option to exclude symbols outside of project root from
+  index": https://reviews.llvm.org/D84811
+- clangd issues 1101 and 707, discussion 1382:
+  https://github.com/clangd/clangd/issues/1101,
+  https://github.com/clangd/clangd/issues/707,
+  https://github.com/clangd/clangd/discussions/1382
