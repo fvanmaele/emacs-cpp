@@ -1426,6 +1426,17 @@ presets, GoogleTest runner.
   shipped config, real texlab, a git project. Options: (a) a region through latexindent
   itself (`--lines MIN-MAX`); (b) region by AUCTeX, its variables set to latexindent's
   defaults; (c) document the gap. Owner rules.
+- O-52 (RESOLVED 2026-10-13 with D-082 through O-37: no patch; owner request
+  2026-10-12, T-075, `RESEARCH_go_to_anything.md` 13): `M-o`
+  symbols only from the project's files, all symbols behind narrow key `a`, filtered
+  in clangd. A filter after the index sees only its top `limit` (100), which library
+  symbols can fill; Dex's path lists stop 4 directories above a file; excluding at
+  indexing breaks `M-.` into libraries (D-026 .. D-028). Options: (a) no patch, Emacs
+  asks for `limit` 1000 and filters; (b) clangd patch 0010, a request field of
+  directories, symbols outside skipped while scoring in `Dex` and `MemIndex`, `Dex`'s
+  cap off while set; (c) as (b), a list per directory set built in `Dex` and
+  intersected; tier 3, spike first. Also open: definition or declaration decides;
+  build directory; `C-c l s`.
 - O-49 (RESOLVED 2026-10-14 with D-099: (a); found 2026-10-14 checking order
   dependencies, D-098): `M-o`
   (`emacs-cpp-go-to-anything`, init-completion) calls projectile
