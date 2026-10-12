@@ -94,7 +94,8 @@ Theme: `M-x customize-themes`, pick one, "Save Theme Settings"; it stays after a
 restart. Without a saved choice the theme is `modus-vivendi-tritanopia`.
 
 After any prefix (`C-c p`, `C-x C-a`, `C-c l`), wait 3 seconds: which-key shows the keys
-that can follow (D-034). `C-h` in that popup pages through them.
+that can follow (D-034). `C-h` in that popup pages through them. In a prompt with
+narrow keys (`M-o`, `C-x b`, `M-g i` ...), `<` shows them after 0.2 seconds (D-080).
 
 ## Projects, CMake presets, building
 | Key | Does |
