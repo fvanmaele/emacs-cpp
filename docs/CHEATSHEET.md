@@ -94,7 +94,8 @@ Theme: `M-x customize-themes`, pick one, "Save Theme Settings"; it stays after a
 restart. Without a saved choice the theme is `modus-vivendi-tritanopia`.
 
 After any prefix (`C-c p`, `C-x C-a`, `C-c l`), wait 3 seconds: which-key shows the keys
-that can follow (D-034). `C-h` in that popup pages through them.
+that can follow (D-034). `C-h` in that popup pages through them. In a prompt with
+narrow keys (`M-o`, `C-x b`, `M-g i` ...), `<` shows them after 0.2 seconds (D-080).
 
 ## Projects, CMake presets, building
 | Key | Does |
@@ -108,6 +109,7 @@ that can follow (D-034). `C-h` in that popup pages through them.
 | `C-c p t` | toggle between implementation and test |
 | `C-c p !` | shell command in the project root |
 | `C-c p r` | replace text in the whole project |
+| `C-c p ?` | text search for the symbol at point in the project's files (`M-?` asks clangd) |
 | `C-c p k` | kill all buffers of the project |
 
 The commands show at the prompt: add `--target main` to build one target. `M-g n` /
