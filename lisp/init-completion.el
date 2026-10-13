@@ -132,28 +132,59 @@ with `:sort nil' the first hits are the ones on screen."
                    (when (<= count limit)
                      (funcall highlight string))))))))
 
+(defcustom emacs-cpp-go-symbol-limit 10000
+  "Most symbols `M-o' asks clangd for per input before keeping the project's.
+0: no limit.  clangd ranks without regard to where a symbol is defined, so a
+reply that reaches the limit may lack project symbols ranked below library
+ones; a message says so (D-083).  On the deal.II project step-1 the largest
+reply of 47 three-letter inputs held 6673 symbols (49 ms); 5000 lost project
+symbols there, 10000 none."
+  :type 'natnum
+  :group 'tools)
+
+(defconst emacs-cpp-go--clangd-uri-chars
+  (let ((chars (make-vector 256 nil)))
+    (dotimes (c 256)
+      (when (or (<= ?a c ?z) (<= ?A c ?Z) (<= ?0 c ?9) (memq c '(?- ?_ ?. ?~ ?/ ?:)))
+        (aset chars c t)))
+    chars)
+  "Characters clangd leaves unescaped in a file URI (URI.cpp, `shouldEscape').
+eglot escapes `:' and leaves `+ ( ) @ , ; = ! $ & \=' *' as they are (D-083).")
+
+(defconst emacs-cpp-go--root-ignore-case (eq system-type 'darwin)
+  "Non-nil: symbol URIs are compared with the root ignoring case (D-083).
+macOS disks ignore case, so a project opened as TOY/ is clangd's toy/.")
+
 (defun emacs-cpp-go--root-uris (root)
   "Return the file URIs a symbol under project ROOT starts with, ending in /.
 Both ROOT as projectile gives it and its true name: clangd's URIs follow the
-paths of the compilation database, which may or may not resolve symlinks."
+paths of the compilation database, which may or may not resolve symlinks.
+Each in eglot's and in clangd's encoding, which differ (D-083)."
   (seq-uniq
-   (mapcar (lambda (dir)
-             ;; `:truenamep t': taken as given, else eglot resolves symlinks.
-             (concat (eglot-path-to-uri (directory-file-name dir) :truenamep t) "/"))
+   (mapcan (lambda (dir)
+             (let ((dir (directory-file-name dir)))
+               ;; `:truenamep t': taken as given, else eglot resolves symlinks.
+               (list (concat (eglot-path-to-uri dir :truenamep t) "/")
+                     (concat "file://"
+                             (url-hexify-string dir emacs-cpp-go--clangd-uri-chars)
+                             "/"))))
            (list (expand-file-name root) (file-truename root)))))
 
 (defun emacs-cpp-go--under-root-p (symbol root-uris)
   "Non-nil when SYMBOL's file URI starts with one of ROOT-URIS."
   (let ((uri (plist-get (plist-get symbol :location) :uri)))
-    (seq-some (lambda (prefix) (string-prefix-p prefix uri)) root-uris)))
+    (seq-some (lambda (prefix)
+                (string-prefix-p prefix uri emacs-cpp-go--root-ignore-case))
+              root-uris)))
 
 (defun emacs-cpp-go--symbol-request (servers &optional root-uris)
   "Return an async step asking SERVERS for the workspace symbols of each input.
 An empty input sends nothing (D-077): consult-eglot's own source asks for \"\"
 when its prompt opens, which lists 100 arbitrary symbols.  A reply to an input
-that has since changed is dropped.  With ROOT-URIS, each request asks for every
-match (clangd's `limit' 0) and only symbols under one of ROOT-URIS are kept
-(D-082): within clangd's usual 100, library symbols crowd the project's out."
+that has since changed is dropped.  With ROOT-URIS, each request asks for up to
+`emacs-cpp-go-symbol-limit' matches (D-083) and only symbols under one of
+ROOT-URIS are kept (D-082): within clangd's usual 100, library symbols crowd the
+project's out."
   (lambda (sink)
     (let (latest)
       (lambda (action)
@@ -163,11 +194,18 @@ match (clangd's `limit' 0) and only symbols under one of ROOT-URIS are kept
             (dolist (server servers)
               (jsonrpc-async-request
                server :workspace/symbol
-               (if root-uris `(:query ,query :limit 0) `(:query ,query))
+               (if root-uris
+                   `(:query ,query :limit ,emacs-cpp-go-symbol-limit)
+                 `(:query ,query))
                :success-fn
                (lambda (reply)
                  (when (equal query latest)
                    (when root-uris
+                     (when (and (> emacs-cpp-go-symbol-limit 0)
+                                (>= (length reply) emacs-cpp-go-symbol-limit))
+                       (message "emacs-cpp: %S matched %d symbols or more, \
+`emacs-cpp-go-symbol-limit'; project symbols may be missing: type more (D-083)"
+                                query emacs-cpp-go-symbol-limit))
                      (setq reply (seq-filter (lambda (symbol)
                                                (emacs-cpp-go--under-root-p symbol root-uris))
                                              reply)))

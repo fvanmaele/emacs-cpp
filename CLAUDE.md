@@ -33,7 +33,8 @@ over deal.II accepted (D-075); speed settings (D-077), S11 run 2 PASS (0049); bu
 (T-049, 0050, no `#`: D-078), runs and hand check pass; narrowed to symbols: consult
 patch 0001 (D-079, 0052), confirmed with deal.II's files (0053). `C-c p ?` over
 projectile's files, ripgrep on macOS (D-081, 0055). `M-o` symbols: the project's, all
-on `< l` (D-082, 0056). Open: O-12; O-38 rg.el / ag.el; T-025 round 2, T-026 queued.
+on `< l` (D-082, 0056), capped at 10000 (D-083, 0057). Open: O-12; O-38 rg.el /
+ag.el; T-025 round 2, T-026 queued.
 
 ## Hard rules (each with its reason)
 - Change-size ladder: tier 1 trivial = commit with Reasoning only; tier 2 feature = `done

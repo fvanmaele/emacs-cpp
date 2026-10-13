@@ -106,6 +106,7 @@ with `done when: ...`).
 | T-058 | open | S | send the projectile find-references report | D-081 | owner sends it |
 | T-059 | done | S | S11 run 5: project symbols among clangd's | O-37 | RESULTS run 5 |
 | T-060 | done 0056 | S | `M-o` project symbols, all on `l` | D-082 | toy with clangd |
+| T-061 | done 0057 | S | project symbols: cap, encoding, case | D-083 | step-1, toys |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -264,6 +265,13 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-061 (opened 2026-10-13, D-083): risks of D-082 measured; cap and filter fixes.
+  Done when: defcustom `emacs-cpp-go-symbol-limit`, default 10000 (0 = none), sent
+  as clangd's limit for `s`; a reply reaching it shows a message; the root also
+  matched in clangd's encoding, and ignoring case on macOS; tests for each; the toy
+  checks re-run (`TOY/`, `c++ (x)@y` give 2); `make test`. Agreed 2026-10-13. Done
+  2026-10-13 (0057): toys 2 / 2 / 2; step-1 `typ` at 5000: 87 and the message, at
+  10000: 111; 87 tests.
 - T-060 (opened 2026-10-13, D-082): `M-o` `s` lists the project's symbols, hidden
   `l` all of them. Done when: `s` asks clangd with limit 0 and lists only symbols
   whose URI is under the project root (as projectile gives it or its true name);
