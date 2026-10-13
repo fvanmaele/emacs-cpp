@@ -113,6 +113,7 @@ with `done when: ...`).
 | T-065 | done 0061 | M | LaTeX: AUCTeX, texlab, `C-c l b` | D-090, D-091 | Mac hand-on |
 | T-066 | done 0062 | S | navigation clicks, right-click menu | D-093 | tests, clangd |
 | T-067 | open | S | side buttons: back / forward | O-44 (c) | owner's `C-h k` |
+| T-068 | done 0063 | S | clang-tidy fixes, clang-move | D-094 | generated project |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -271,6 +272,13 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-068 (opened 2026-10-13, D-094, O-43 (c)): commands around clang's tools. Done
+  when: `C-c l T` run-clang-tidy -fix (checks asked), `C-c l N` clang-change-namespace,
+  `C-c l M` clang-move, each in a compilation buffer on the active preset's
+  database, buffers reverted; tool directory a D-055 default, checked loudly; tests
+  with stubbed processes; a run of each on a generated project. Agreed 2026-10-13.
+  Done 2026-10-14 (0063): T and M met; N not built (the tool crashes, D-094); 100
+  tests.
 - T-067 (opened 2026-10-13, O-44 (c)): the mouse's side buttons for back / forward
   (`xref-go-back` / `xref-go-forward`). Owner first: in the Mac's Emacs, `C-h k` then
   the back button, and the forward button; report the event names (or that nothing

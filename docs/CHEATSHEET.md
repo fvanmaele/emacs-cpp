@@ -40,6 +40,8 @@ part to jump (D-043).
 | `M-;` | comment / uncomment the region or line |
 | `M-i` | indent by hand to the next step (`c-ts-indent-offset`, D-066) |
 | `C-x TAB` then `S-<right>` / `S-<left>` | move the selected lines one step right / left |
+| `C-c l T` | apply clang-tidy's fixes to the whole project (asks for the checks) |
+| `C-c l M` | move classes to a new header / source (clang-move); add the source to CMake |
 
 `C-c l f` follows the project's `.clang-format` (LLVM style without one); `TAB` and
 `RET` follow `.dir-locals.el` (Emacs's rules, D-065). Writing both from a file that has the project's style:
