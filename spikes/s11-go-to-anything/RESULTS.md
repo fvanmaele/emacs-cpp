@@ -8,6 +8,33 @@ same criteria. Run 4 (recorded, D-079): narrowed to symbols, `M-o` updates in a 
 1.4 ms per key against `C-c l s`'s 3.0 - 3.3 ms, results 107 - 186 ms after the last
 key against 406 - 461 ms. Run 1 below.
 
+## Run 5 (2026-10-13 19:13, Mac, load not logged: no /proc there)
+Raw output: `results-run5.log`. O-37, T-059. The owner's deal.II project
+`~/CLionProjects/step-1` (449 files, `src/main.cc`) on the Mac with the patched clangd
+(`~/opt/clangd-index-nav`, D-052), not RMO. 102 seeds (the project's C++ file base
+names) found 383 project symbol names; 40 queries from them (3- and 5-letter prefixes,
+full names). Each query asked with `limit` 100, 1000 and 0 (none); "mine" = symbols
+whose file lies under the project root. Times are `jsonrpc-request` round trips, the
+reply's JSON parse included.
+
+| limit | median | slowest | queries losing project symbols | symbols lost |
+|---|---|---|---|---|
+| 100 (today) | 0.3 ms | 1.7 ms | 14 of 40 | 373 |
+| 1000 | 0.3 ms | 6.9 ms | 2 of 40 (`get`, `par`) | 30 |
+| 0 (none) | 0.3 ms | 15.9 ms (`get`: 2458 symbols) | 0 | 0 |
+
+- Losses at 100 are all three-letter queries, and large: `opt` 12 of 66 project
+  symbols shown, `Pro` 8 of 43, `Des` 3 of 19, `get` 4 of 100. From five letters on
+  every reply but `Outpu` (100 symbols, 17 of 21) is below 100 and loses nothing.
+- At 1000, `get` (2458 matches, 100 the project's) and `par` (1354, 57) still lose
+  23 and 7.
+- Without a limit the slowest reply is 15.9 ms, the largest 2458 symbols; longer
+  queries stay at 0.1 - 1.4 ms.
+- Not measured: consult-eglot's formatting of each kept symbol; the harness checks
+  each file with `file-truename` (a real filter would compare URIs); a project whose
+  index holds the deal.II sources themselves (O-12), where `get` would match far
+  more.
+
 ## Run 4 (2026-10-11 16:37, load 0.28 at start, 0.59 after)
 Raw output: `results-run4.log`. Setup (1) of RUN.md run 4: RMO with the patched clangd;
 pass 1 lists RMO's files, pass 2 deal.II's (clangd stays RMO's). Shipped command with
@@ -145,7 +172,8 @@ Median after 20 s: 5.5 ms. eglot managed `src/main.cc` 516 ms after the open.
 ## Decision
 Run 1: O-32 -> D-075 (accepted). Run 2: D-077's settings confirmed; T-049's
 done-when reuses run 2's criteria. Run 3: the shipped command meets them (0051). Run 4:
-D-079's patch confirmed on RMO and deal.II's files (0053).
+D-079's patch confirmed on RMO and deal.II's files (0053). Run 5: O-37's numbers, to
+the owner.
 
 ## Gotchas
 - Run 1's script looked for `~/.emacs.d/recentf`; Emacs 31 saves `recentf.eld`
