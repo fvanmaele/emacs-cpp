@@ -5,12 +5,13 @@
 ;; C++ buffers use `c++-ts-mode' on the system tree-sitter grammar (D-008), and eglot
 ;; starts clangd for them with the active CMake preset's build directory (D-016,
 ;; D-017, lisp/emacs-cpp-presets.el).  Navigation (M-. M-? M-,), rename, code actions
-;; and diagnostics are eglot's; the rest of the code commands are on `C-c l' (D-004,
-;; T-007), which which-key lists after a pause.
+;; and diagnostics are eglot's (lisp/init-lsp.el); the code commands are on `C-c l'
+;; (D-004, T-007), two of them C++'s own (below).
 
 ;;; Code:
 
 (require 'emacs-cpp-presets)
+(require 'init-lsp)
 
 ;; Fail loudly (DESIGN 4): without the grammar `c++-ts-mode' cannot work.
 (unless (treesit-language-available-p 'cpp)
@@ -163,70 +164,20 @@ Mode hooks run before a visited file's local variables are read."
 
 (add-hook 'c++-ts-mode-hook #'emacs-cpp-indent-setup)
 
-(use-package eglot
-  ;; Not autoloaded by eglot; `C-c l' (below) can come before eglot has loaded.
-  :commands (eglot-rename eglot-code-actions eglot-format eglot-find-implementation
-             eglot-find-declaration eglot-show-call-hierarchy eglot-show-type-hierarchy
-             eglot-inlay-hints-mode)
-  :config
-  ;; RET indents by Emacs's rules (electric indentation, D-062's rules), not by
-  ;; clangd: on each newline eglot would ask the server to format, and clangd
-  ;; then also rewrites the line just ended (hand alignment collapsed, `{' moved
-  ;; to its own line) (D-065, superseding D-061).
-  (add-to-list 'eglot-ignored-server-capabilities :documentOnTypeFormattingProvider)
-  ;; A source missing from the preset's database gets a warning, not silence (D-068).
-  (add-hook 'eglot-managed-mode-hook #'emacs-cpp-presets-warn-if-not-in-database)
-  ;; Ahead of eglot's own clangd entry, which starts clangd without a database.
-  (add-to-list 'eglot-server-programs
-               '(c++-ts-mode . emacs-cpp-presets-clangd-contact))
-  ;; Python rides along with pyright (D-045), named so that another server eglot
-  ;; knows (pylsp, basedpyright) does not take over when installed later.
-  (add-to-list 'eglot-server-programs
-               '((python-ts-mode python-mode) . ("pyright-langserver" "--stdio")))
-  ;; No JSON event log (the eglot manual's first performance advice); shut clangd
-  ;; down when its last buffer closes.
-  (setq eglot-events-buffer-config '(:size 0 :format full)
-        eglot-autoshutdown t
-        ;; Library headers reached with M-. (deal.II, Boost) join the project's
-        ;; clangd, so M-. keeps working inside them (D-019).
-        eglot-extend-to-xref t)
-  ;; macOS watches files with kqueue, one file descriptor per directory, and Emacs
-  ;; refuses watches beyond 975: pyright asks to watch Python's library and
-  ;; site-packages, about 2000 directories, and exits when the request fails.
-  ;; Watch only the project, and cap the watches well below 975 (D-054).  At the
-  ;; cap eglot also fails the request (pyright then exits too); pyright registers
-  ;; three times, so this holds projects up to about 160 directories (O-26).
-  (when (eq system-type 'darwin)
-    (setq eglot-watch-files-outside-project-root nil
-          eglot-max-file-watches 500)))
+;; clangd with the active preset's build directory, ahead of eglot's own clangd
+;; entry, which starts clangd without a database (D-016, D-091).
+(emacs-cpp-lsp-server 'c++-ts-mode #'emacs-cpp-presets-clangd-contact)
+;; A source missing from the preset's database gets a warning, not silence (D-068).
+(add-hook 'eglot-managed-mode-hook #'emacs-cpp-presets-warn-if-not-in-database)
 
 ;; Header line: project-relative path, then the class and function at point (D-043).
 (use-package breadcrumb
   :hook (c-ts-base-mode . breadcrumb-local-mode))
 
-(use-package flymake
-  :commands flymake-show-project-diagnostics)
-
-(use-package consult-eglot
-  :after (consult eglot))
-
-(defvar-keymap emacs-cpp-code-map
-  :doc "Code commands on `C-c l' (D-004).  Eglot's need a managed buffer."
-  "r" #'eglot-rename
-  "a" #'eglot-code-actions
-  "f" #'eglot-format
-  "i" #'eglot-find-implementation
-  "d" #'eglot-find-declaration
-  "h" #'eglot-show-call-hierarchy
-  "t" #'eglot-show-type-hierarchy
-  ;; By name across the project: RMO keeps headers in include/rmo/, sources in src/.
-  "o" #'projectile-find-other-file
-  "s" #'consult-eglot-symbols
-  "e" #'flymake-show-project-diagnostics
-  ;; Eglot turns inlay hints on in every managed buffer; this hides / shows them.
-  "I" #'eglot-inlay-hints-mode
-  "P" #'emacs-cpp-presets-select)
-(keymap-global-set "C-c l" emacs-cpp-code-map)
+;; C++'s own code commands on `C-c l' (D-004): by name across the project (RMO
+;; keeps headers in include/rmo/, sources in src/), and the active CMake preset.
+(keymap-set emacs-cpp-code-map "o" #'projectile-find-other-file)
+(keymap-set emacs-cpp-code-map "P" #'emacs-cpp-presets-select)
 
 (provide 'init-cpp)
 ;;; init-cpp.el ends here

@@ -110,6 +110,7 @@ with `done when: ...`).
 | T-062 | done 0058 | S | one URI matcher for every server | D-085 | clangd, pyright |
 | T-063 | done 0059 | S | `< l` lists as `C-c l s` | D-086 | terminal check |
 | T-064 | done 0060 | S | `M-o` previews after a pause | D-088 | terminal check |
+| T-065 | done 0061 | M | LaTeX: AUCTeX, texlab, `C-c l b` | D-090, D-091 | Mac hand-on |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -268,6 +269,17 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-065 (opened 2026-10-13, D-090, O-42 (b)): LaTeX with AUCTeX and texlab. Done
+  when: AUCTeX 14.2.0 as a submodule from GNU ELPA's git (pinned to the 14.2.0
+  commit), built by `make packages` with its manual, one `use-package` form; `.tex`
+  opens in AUCTeX's `LaTeX-mode`; texlab through eglot for `LaTeX-mode` /
+  `bibtex-mode` files of a project, named explicitly; `C-c l b` builds through texlab
+  (asynchronous, status in the echo area) and shows the line in the viewer (Skim on
+  macOS, zathura on Arch, D-055); AUCTeX's keys unchanged; tests: mode, eglot
+  program, build request and its report, viewer per platform; hand-on check on the
+  Mac; `make test`; owner's hand check; zathura on Arch by the owner. Agreed
+  2026-10-13. Done 2026-10-13 (0061): all met but the owner's two checks; 93 tests.
+  With it D-091 (owner): eglot's form moved to lisp/init-lsp.el.
 - T-064 (opened 2026-10-13, D-088, O-41 (b)): `M-o` previews 0.3 s after typing,
   at once when browsing. Done when: `M-o` binds that preview key; other prompts
   unchanged; terminal check: `answer` at 50 ms per key on a session's first `M-o`

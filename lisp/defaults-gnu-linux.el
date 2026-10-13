@@ -15,6 +15,12 @@
   "Directories put in front of `exec-path' and PATH at startup when missing (D-089).
 None on Arch: pacman installs into /usr/bin.")
 
+(defconst emacs-cpp-default-pdf-viewer
+  '("zathura" "--synctex-forward" "%l:1:%f" "%p")
+  "Program and arguments texlab runs to show a line of a LaTeX source in its PDF
+\(forward search, D-090); %l line, %p PDF, %f source.  zathura (pacman `zathura'
+with `zathura-pdf-mupdf' or `zathura-pdf-poppler').")
+
 (defconst emacs-cpp-default-xref-search-program 'grep
   "The program textual searches run, `C-c p ?' among them (D-081, D-055).
 GNU grep: Arch has no ripgrep (DESIGN 3).")

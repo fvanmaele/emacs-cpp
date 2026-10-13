@@ -10,12 +10,15 @@
 ;;   lib/autoloads.el   the autoloads of all packages, in one file
 ;;   lib/info/          the packages' Info manuals and their `dir' index (D-039)
 ;;
-;; Extra keys a submodule section in .gitmodules may carry:
+;; git's own keys path, url, branch, ignore and shallow (a shallow first clone: AUCTeX
+;; comes from GNU ELPA's repository of all packages, D-090) are accepted.  Extra keys
+;; a submodule section in .gitmodules may carry:
 ;;
 ;;   load-path = DIR        directory with the package's Lisp, relative to the
 ;;                          submodule; repeatable; default "."
 ;;   build-exclude = FILE   file not compiled and not scanned for autoloads (needs a
-;;                          package that is not vendored); repeatable
+;;                          package that is not vendored, or serves only the
+;;                          package's own build); repeatable
 ;;   info = FILE            Texinfo manual built with makeinfo into lib/info/,
 ;;                          relative to the submodule; repeatable
 ;;   patch = FILE           patch applied to the submodule's files before compiling,
@@ -40,7 +43,7 @@
   "Root of the emacs-cpp repository (the parent of scripts/).")
 
 (defconst build-packages-known-keys
-  '("path" "url" "branch" "ignore" "load-path" "build-exclude" "info" "patch")
+  '("path" "url" "branch" "ignore" "shallow" "load-path" "build-exclude" "info" "patch")
   "Keys allowed in a .gitmodules submodule section.")
 
 (defconst build-packages-default-excludes

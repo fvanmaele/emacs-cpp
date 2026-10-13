@@ -18,7 +18,9 @@ key is in `docs/CHEATSHEET.md`.
 sudo pacman -S --needed emacs git make texinfo \
     cmake ninja gcc clang gdb lldb \
     tree-sitter-python pyright python-debugpy r \
-    fd ripgrep
+    fd ripgrep \
+    texlab texlive-basic texlive-latex texlive-latexrecommended texlive-latexextra \
+    texlive-binextra zathura zathura-pdf-mupdf
 ```
 - **Emacs 31** with native compilation and tree-sitter (the Arch `emacs` package).
 - **tree-sitter-cpp** must also be installed as a pacman package. On the owner machine
@@ -28,6 +30,9 @@ sudo pacman -S --needed emacs git make texinfo \
   loads (D-013). **clang** provides clangd, clang-tidy and clang-format.
 - **texinfo** provides `makeinfo` and `install-info`; `make packages` fails without
   them (D-039).
+- **LaTeX** (D-090): texlab is the language server, `texlive-binextra` brings latexmk,
+  zathura shows the line `C-c l b` built. Leave these out if you write no LaTeX; only
+  `.tex` buffers use them.
 
 ### 2. Clone and build the packages
 All packages are git submodules pinned in `lib/` (D-006). Nothing is downloaded when
@@ -38,6 +43,12 @@ git clone --recurse-submodules git@github.com:fvanmaele/emacs-cpp \
 cd ~/source/repos/emacs-cpp
 make packages    # byte-compile lib/, write lib/load-path.el, lib/autoloads.el, lib/info/
 make test        # optional: the ERT suite, loads init.el in batch
+```
+AUCTeX comes from GNU ELPA's repository, which holds every ELPA package (D-090):
+`--recurse-submodules` fetches about 217 MB for it. To fetch only its branch
+(17 MB), clone without `--recurse-submodules`, then in the clone:
+```sh
+git submodule update --init --single-branch
 ```
 Bare `make` only lists the targets.
 
@@ -156,7 +167,7 @@ Not supported, and refused with an error rather than guessed: the presets file's
 ### Updating
 Package upgrades are commits that move a submodule (D-006). After a pull:
 ```sh
-git submodule update --init
+git submodule update --init --single-branch
 make packages
 ```
 `make packages` also applies the fixes in `patches/` that upstream has not taken yet
@@ -173,12 +184,15 @@ macOS is supported since 2026-10-09 (D-050), with system tools from MacPorts onl
 ```sh
 sudo port install emacs-app +nativecomp +treesitter
 sudo port install cmake ninja clang-23 tree-sitter-cpp tree-sitter-python \
-    texinfo ripgrep fd pyright py314-debugpy R
+    texinfo ripgrep fd pyright py314-debugpy R texlab
 sudo port select --set clang mp-clang-23   # /opt/local/bin/clangd -> clangd 23
 xcode-select --install                     # git, make and the compiler
 ```
 Emacs finds both tree-sitter grammars without configuration. `cmake-mode.el` comes
-from the cmake port in `/opt/local/share/emacs/site-lisp`.
+from the cmake port in `/opt/local/share/emacs/site-lisp`. For LaTeX (D-090): TeX
+Live from MacTeX (tug.org/mactex, in `/Library/TeX/texbin`) and the PDF viewer Skim
+(skim-app.sourceforge.io, in `/Applications/Skim.app`); neither is a MacPorts port
+(MacPorts' `skim` is an unrelated fuzzy finder).
 
 ### 2. Clone, build, link
 As steps 2 and 3 for Arch above. The MacPorts Emacs lives in
@@ -187,8 +201,8 @@ As steps 2 and 3 for Arch above. The MacPorts Emacs lives in
 ```sh
 make packages EMACS=/Applications/MacPorts/Emacs.app/Contents/MacOS/Emacs
 ```
-An Emacs started from the Dock does not read the shell profile, so `/opt/local/bin`
-must be on the `PATH` it sees for clangd, cmake and pyright.
+An Emacs started from the Dock does not read the shell profile; the config puts
+`/opt/local/bin`, `/opt/local/sbin` and `/usr/local/bin` on its `PATH` (D-089).
 
 ### Differences from Arch
 - **eglot watches only project files** (D-054). macOS needs one file descriptor per
@@ -226,16 +240,18 @@ Load order is the contract: a module may only use modules loaded before it (DESI
 | `lisp/init-ui.el` | theme, which-key, Info manuals of the packages |
 | `lisp/init-completion.el` | vertico, orderless, marginalia, consult, embark, corfu, cape |
 | `lisp/init-project.el` | projectile, treemacs (`C-c t`) |
-| `lisp/init-cpp.el` | `c++-ts-mode`, eglot and clangd, breadcrumb, the `C-c l` map |
+| `lisp/init-lsp.el` | eglot for every language, the `C-c l` map (D-091) |
+| `lisp/init-cpp.el` | `c++-ts-mode`, clangd, breadcrumb, its `C-c l` keys |
 | `lisp/emacs-cpp-presets.el` | presets: active preset, clangd command, build commands |
 | `lisp/init-cmake.el` | `cmake-mode` from the system cmake package |
 | `lisp/init-debug.el` | dape, `gdb-preset`, `lldb-preset`, breakpoints in the fringe |
 | `lisp/init-python.el` | `python-ts-mode`, pyright, debugpy |
 | `lisp/init-r.el` | R with ESS (`ess-r-mode`, the R process) |
+| `lisp/init-latex.el` | LaTeX with AUCTeX and texlab, `C-c l b` builds |
 | `lisp/init-cells.el` | `# %%` cells in Python and R scripts (code-cells) |
 | `lisp/init-git.el` | magit, treemacs-magit, diff-hl |
 | `lisp/init-writing.el` | markdown-mode, org-journal |
-| `lib/<package>/` | the 30 pinned package submodules (DESIGN 12) |
+| `lib/<package>/` | the 31 pinned package submodules (DESIGN 12) |
 | `patches/<package>/` | fixes not yet upstream, applied by `make packages` (D-069) |
 | `lib/load-path.el`, `lib/autoloads.el` | generated by `make packages`, git-ignored |
 | `lib/info/` | package manuals, generated by `make packages`, git-ignored |

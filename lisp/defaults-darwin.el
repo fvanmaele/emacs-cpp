@@ -19,6 +19,12 @@ Emacs started from the Dock or Finder gets launchd's PATH, /usr/bin:/bin:/usr/sb
 /sbin, whatever Emacs.app's Info.plist asks for: then rg, cmake, ninja, pyright
 (MacPorts, D-053) and R (CRAN's, in /usr/local/bin) were not found.")
 
+(defconst emacs-cpp-default-pdf-viewer
+  '("/Applications/Skim.app/Contents/SharedSupport/displayline" "-r" "-g" "%l" "%p" "%f")
+  "Program and arguments texlab runs to show a line of a LaTeX source in its PDF
+\(forward search, D-090); %l line, %p PDF, %f source.  Skim, installed outside
+MacPorts: `-r' reloads the PDF, `-g' leaves Emacs in front.")
+
 (defconst emacs-cpp-default-xref-search-program 'ripgrep
   "The program textual searches run, `C-c p ?' among them (D-081, D-055).
 ripgrep (MacPorts): opening a file costs about 14 ms here, so BSD grep, one file

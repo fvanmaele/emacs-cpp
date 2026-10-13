@@ -222,19 +222,21 @@ Observed on the owner's Mac, 2026-10-09 (D-050):
 | early init | `early-init.el` | KEEP | T-002, owner-confirmed |
 | platform defaults | `lisp/defaults-<platform>.el` | PROTOTYPE | T-031 (D-055) |
 | init | `init.el` | KEEP | T-002, replaces `~/.emacs` (D-003) |
-| packages | `lib/<repo>/` submodules | KEEP | 30 repositories after T-046 (section 12) |
+| packages | `lib/<repo>/` submodules | KEEP | 31 repositories after T-065 (section 12) |
 | clangd, macOS | `packaging/clangd-index-nav/build-macos.sh` | PROTOTYPE | T-023, D-052 |
 | package build | `scripts/build-packages.el` | KEEP | T-002, `make packages` |
 | theme | `lisp/init-ui.el` | KEEP | T-002 |
 | writing | `lisp/init-writing.el` | KEEP | T-002: markdown, org-journal |
 | completion UI | `lisp/init-completion.el` | KEEP | T-003, owner-confirmed |
 | project, tree | `lisp/init-project.el` | KEEP | T-002: projectile, treemacs |
-| C++, LSP | `lisp/init-cpp.el` | PROTOTYPE | T-004: c++-ts-mode, eglot |
+| LSP | `lisp/init-lsp.el` | PROTOTYPE | eglot's form, `C-c l` (D-091) |
+| C++ | `lisp/init-cpp.el` | PROTOTYPE | T-004: c++-ts-mode, clangd |
 | presets | `lisp/emacs-cpp-presets.el` | PROTOTYPE | T-004: D-016 - D-018 |
 | CMake build | `lisp/emacs-cpp-presets.el`, projectile form | PROTOTYPE | T-005 (D-035) |
 | CMake mode | `lisp/init-cmake.el` | PROTOTYPE | system cmake-mode (D-013) |
 | Python | `lisp/init-python.el` | PROTOTYPE | T-018: ts-mode, pyright, debugpy (D-045) |
 | R | `lisp/init-r.el` | PROTOTYPE | T-046: ESS, no eglot (D-072) |
+| LaTeX | `lisp/init-latex.el` | PROTOTYPE | T-065: AUCTeX, texlab (D-090) |
 | cells | `lisp/init-cells.el` | PROTOTYPE | T-046: code-cells, Python and R (D-072) |
 | debugger | `lisp/init-debug.el` | PROTOTYPE | gdb / lldb presets (D-031, D-051, D-056) |
 | git | `lisp/init-git.el` | KEEP | magit, treemacs-magit, diff-hl (T-015, T-016) |
@@ -937,6 +939,35 @@ Mechanisms, each PROPOSED until measured:
   ESS reads its directory from where its autoloads are loaded, so `lisp/init-r.el`
   names it (our autoloads are one file in `lib/`); `make packages` runs makeinfo from
   a manual's directory, for ESS's `@include ../VERSION`.
+- DECIDED D-090 (owner 2026-10-13, O-42 (b): "texlab with build key, texlab + AUCTeX,
+  use auctex from gnu if possible"; done when agreed): LaTeX with AUCTeX 14.2.0 from
+  GNU ELPA's git repository (`elpa.git`, branch `externals/auctex`, pinned to the
+  release commit cc5a477, no tags there; submodule `lib/auctex`, `shallow = true`:
+  the repository holds every ELPA package, 629 MB in full, 17 MB for this branch
+  alone with `git submodule update --init --single-branch`, 217 MB shallow) and
+  texlab through eglot (D-091) for `LaTeX-mode` / `bibtex-mode` files of a project, as
+  pyright. The ELPA branch carries AUCTeX's generated Lisp (`tex-site.el`,
+  `preview.el`); its two generated Texinfo files are patch 0001 (D-069) so its
+  manuals build (`auctex.info`, `preview-latex.info`); `lpath.el` (only for
+  AUCTeX's own installation, `no-byte-compile`) is excluded; `style/` stays off
+  `load-path` (six of its files share names with Emacs libraries: url, color, array,
+  ...). `.tex` opens in AUCTeX's `LaTeX-mode` (its tex-site.el remaps `latex-mode`).
+  `C-c l b` sends texlab's build request (latexmk, asynchronous, result in the echo
+  area, modified LaTeX buffers saved first); texlab then shows the line in the
+  viewer (`texlab.build.forwardSearchAfter`): Skim's `displayline -r -g` on macOS,
+  zathura `--synctex-forward` on Arch (`emacs-cpp-default-pdf-viewer`, D-055).
+  AUCTeX's own keys unchanged. Dependencies: texlab (pacman `extra`, MacPorts), a
+  TeX distribution (Arch: texlive packages; Mac: MacTeX, not MacPorts), Skim
+  (outside MacPorts, owner-installed) / zathura (pacman). Built (T-065, 0061).
+- DECIDED D-091 (owner 2026-10-13: "avoid latex code in init-cpp.el"): eglot's one
+  `use-package` form moves from `lisp/init-cpp.el` to a new `lisp/init-lsp.el`
+  (loaded after `init-project`, before the languages), with what holds for every
+  server and the generic `C-c l` keys; each language module names its server and
+  settings through `emacs-cpp-lsp-server` / `emacs-cpp-lsp-settings` (each adds to
+  `eglot-server-programs` / `eglot-workspace-configuration` once eglot loads) and
+  adds its own `C-c l` keys: clangd, `o`, `P` in init-cpp; pyright in init-python;
+  texlab, `b` in init-latex. DESIGN 4 principle 3 holds: eglot is configured in
+  one form, the languages only register data.
 - SUPERSEDED by D-039 (2026-10-08): "Known gap: package Info manuals (magit,
   projectile) are not built; T-010."
 - DECIDED D-039 (owner 2026-10-08, T-010): `make packages` builds the Texinfo manuals
@@ -1063,7 +1094,7 @@ presets, GoogleTest runner.
   project-only symbols: O-37 (D-082, D-083); URIs without per-server spellings: O-40.
 - `RESEARCH_latex.md` (owner request 2026-10-13): texlab (and digestif) through
   eglot in the built-in `latex-mode`; packaging; hands-on on the Mac. Findings in;
-  O-42.
+  O-42 ruled (D-090).
 - `RESEARCH_r_language_servers.md` (owner request 2026-10-13): languageserver, Arity,
   Air, Ark; packaging on Arch and MacPorts; languageserver run through eglot on the
   Mac. Findings in; O-39.
@@ -1211,7 +1242,8 @@ presets, GoogleTest runner.
   (T-059, owner's deal.II project `step-1`, Mac, 40 queries): filtering today's 100
   loses project symbols in 14 queries (373 symbols), 1000 in 2 (30), no limit in
   none, slowest reply 15.9 ms (2458 symbols), median 0.3 ms. To the owner.
-- O-42 (OPEN, owner request 2026-10-13: "research latex (LSP) support, in particular
+- O-42 (RESOLVED 2026-10-13 with D-090: (b), build on a key; owner request
+  2026-10-13: "research latex (LSP) support, in particular
   texlab"): findings in `RESEARCH_latex.md`. texlab is packaged on both machines
   (Arch `extra`, MacPorts) and works through eglot in the built-in `latex-mode`:
   cross-file `\ref` / `\cite` / `\newcommand` definitions and references, citation
@@ -1606,6 +1638,8 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-087 | 2026-10-13 | `M-o` symbol requests with `C-c l s`'s timing | 10 | owner |
 | D-088 | 2026-10-13 | `M-o` previews after a pause in typing | 10 | O-41 |
 | D-089 | 2026-10-13 | macOS: MacPorts, /usr/local/bin on exec-path and PATH | 12 | owner |
+| D-090 | 2026-10-13 | LaTeX: AUCTeX from GNU ELPA, texlab, build on `C-c l b` | 12 | O-42 |
+| D-091 | 2026-10-13 | eglot's form in init-lsp.el; languages register servers | 5 | owner |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.

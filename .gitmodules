@@ -145,3 +145,13 @@
 	ignore = untracked
 	load-path = lisp
 	info = doc/ess.texi
+[submodule "auctex"]
+	path = lib/auctex
+	url = https://git.savannah.gnu.org/git/emacs/elpa.git
+	branch = externals/auctex
+	shallow = true
+	ignore = untracked
+	info = doc/auctex.texi
+	info = doc/preview-latex.texi
+	patch = patches/auctex/0001-Add-the-generated-Texinfo-files-of-the-manuals.patch
+	build-exclude = lpath.el

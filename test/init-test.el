@@ -60,8 +60,8 @@ under way when the visit returns; the buffer is managed once it ends."
 (ert-deftest init-loads-and-matches-retired-dot-emacs ()
   "init.el loads without error and keeps the behaviour of the retired ~/.emacs."
   (init-test--load)
-  (dolist (feature '(init-ui init-completion init-project init-cpp init-cmake init-debug
-                     init-git init-writing))
+  (dolist (feature '(init-ui init-completion init-project init-lsp init-cpp init-cmake init-debug
+                     init-latex init-git init-writing))
     (should (featurep feature)))
   (should-not package-enable-at-startup)
   (should (equal custom-file (expand-file-name "custom.el" init-test--home)))
