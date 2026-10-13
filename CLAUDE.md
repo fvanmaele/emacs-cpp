@@ -32,8 +32,8 @@ Go to anything: one consult prompt (D-074) on `M-o` (D-076); S11 (0048): one let
 over deal.II accepted (D-075); speed settings (D-077), S11 run 2 PASS (0049); built
 (T-049, 0050, no `#`: D-078), runs and hand check pass; narrowed to symbols: consult
 patch 0001 (D-079, 0052), confirmed with deal.II's files (0053). `C-c p ?` over
-projectile's files, ripgrep on macOS (D-081, 0055). Open: O-12;
-T-025 round 2, T-026 research queued.
+projectile's files, ripgrep on macOS (D-081, 0055). Open: O-12; O-37 project-only
+symbols (S11 run 5, T-059); O-38 rg.el / ag.el; T-025 round 2, T-026 research queued.
 
 ## Hard rules (each with its reason)
 - Change-size ladder: tier 1 trivial = commit with Reasoning only; tier 2 feature = `done

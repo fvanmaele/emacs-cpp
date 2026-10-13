@@ -284,6 +284,32 @@ symbols 0.2 - 4.2 ms per update, opening 109 - 130 ms, `<` `s` 38 ms, `s` space
 **Not checked:** the deal.II project with its own clangd (the owner's case may have a
 larger index and slower replies): S11 run 4 (T-054).
 
+## 10. Symbols of the project only (owner question 2026-10-13, O-37)
+Owner: `C-c l s` and `M-o` `<` `s` return all symbols, not the project's alone.
+Read in clangd 23.1.1 (`packaging/llvm-project-23.1.1.src`, unpacked for T-023):
+- `ClangdLSPServer::onWorkspaceSymbol` passes
+  `Params.limit.value_or(Opts.CodeComplete.Limit)`: `WorkspaceSymbolParams` has a
+  `limit` (clangd extension; 0 = no limit), else the completion limit, 100 by
+  default (`--limit-results`; the config passes none).
+- `getWorkspaceSymbols` (FindSymbols.cpp) runs `fuzzyFind` over the whole index
+  (dynamic, background and stored shards: the project, the deal.II and standard
+  headers it includes) and keeps the top `limit` by quality and name match.
+  `WorkspaceRoot` arrives as `HintPath` and only resolves file URIs; nothing ranks
+  or filters by location. No flag restricts the search to the project.
+- So, without a clangd change: ask with a larger `limit`, keep the symbols whose
+  file lies under the project root. With a finite limit, a short query whose top
+  results are library symbols loses project symbols ranked below them; with 0 the
+  reply holds every match.
+- JSON cost in Emacs (`json-parse-string` of a synthetic `workspace/symbol` reply,
+  262 bytes per symbol, Mac): 100 symbols 0.05 ms, 1000 1.6 ms, 10000 8.2 ms.
+  clangd's own time for large limits, and consult-eglot's formatting of each
+  symbol, not measured.
+- With a clangd change (patched clangd, D-026 path): drop or rank down symbols
+  outside the workspace root inside `getWorkspaceSymbols` (a new `limit`-like
+  request field or flag); exact, small replies; needs patch 0010 and a rebuild.
+- Toy (2026-10-13): `ans` gave 15 symbols, 2 of the project, the rest from
+  `<vector>` / `<string>`. Measurement on RMO with deal.II: S11 run 5 (`RUN.md`).
+
 ## Sources
 - JetBrains, CLion help "Search everywhere":
   https://www.jetbrains.com/help/clion/searching-everywhere.html

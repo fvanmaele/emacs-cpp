@@ -104,6 +104,7 @@ with `done when: ...`).
 | T-056 | done 0054 | S | narrow keys 0.2 s after `<` | D-080 | test, terminal check |
 | T-057 | done 0055 | S | `C-c p ?` over projectile's files | D-081 | Mac measured |
 | T-058 | open | S | send the projectile find-references report | D-081 | owner sends it |
+| T-059 | open | S | S11 run 5: project symbols among clangd's | O-37 | owner runs it |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -262,6 +263,10 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-059 (opened 2026-10-13, O-37): owner runs S11 run 5
+  (`spikes/s11-go-to-anything/scope.sh`, RUN.md run 5) on RMO. Done when:
+  `results-run5.log` handed back and RESULTS.md has run 5; O-37 then goes to the
+  owner with the numbers.
 - T-058 (opened 2026-10-13, D-081): send
   `docs/upstream/projectile-find-references-file-list.md` to projectile's issue
   tracker; outward, so the owner sends it. Done when: sent, issue number noted here.
