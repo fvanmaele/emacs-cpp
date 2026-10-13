@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0056 | 2026-10-13 | `M-o` symbols: the project's, all on `l` | T-060 | D-082 |
 | 0055 | 2026-10-13 | `C-c p ?` over projectile's files, ripgrep on macOS | T-057 | D-081 |
 | 0054 | 2026-10-12 | narrow keys listed 0.2 s after `<` | T-056 | D-080 |
 | 0053 | 2026-10-11 | S11 run 4: narrowed `M-o` as calm as `C-c l s` | S11 | D-079 |

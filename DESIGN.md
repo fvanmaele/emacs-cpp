@@ -637,6 +637,16 @@ Known defects: none yet (nothing built).
   RMO's clangd, 100 ms per key: narrowed median 1.4 ms per update in both (`C-c l s`
   3.0 - 3.3 ms), final list 107 - 186 ms after the last key (`C-c l s` 406 - 461 ms),
   twice the clangd requests. deal.II with its own clangd not measured.
+- DECIDED D-082 (owner 2026-10-13, O-37: "no limit + root filter", "M-o key + C-c l s
+  all"): `M-o`'s symbol source (`s`) lists the project's symbols only: each
+  `workspace/symbol` request asks for every match (clangd's `limit` 0, an LSP
+  extension; stock clangd, no patch) and keeps symbols whose file URI starts with
+  the project root's, as projectile gives it or its true name. A hidden source on
+  `l` ("All Symbols") asks as `s` did before: clangd's best 100 of the whole index,
+  deal.II's and the standard library's too (CLion's "Include non-project items").
+  `C-c l s` stays as it is, all symbols. S11 run 5 (T-059): filtering clangd's usual
+  100 lost project symbols in 14 of 40 queries, no limit in none, slowest reply
+  15.9 ms. Built (T-060, 0056).
 - DECIDED D-071 (owner 2026-10-10): `which-key-idle-delay` 3 s instead of 1 s. ESC is
   the Meta prefix, so pressing it (e.g. to cancel) brought up the list of every `M-`
   command after 1 s. Chosen over hiding the list after ESC only, making ESC cancel in
@@ -1096,7 +1106,8 @@ presets, GoogleTest runner.
   The owner added exceptions to the GDATA scanner the same day: 5.2 s for all
   33768 files (0.15 ms each), `rg` over the tree 5.6 -> 1.07 s. Startup not
   measured again.
-- O-37 (OPEN, owner 2026-10-13: "research first"): symbols of the project only in
+- O-37 (RESOLVED 2026-10-13 with D-082: (a) with no limit, `l` for all symbols;
+  owner 2026-10-13: "research first"): symbols of the project only in
   `C-c l s` and `M-o` `<` `s` (today every symbol of clangd's index, deal.II's and the
   standard library's too). Options: (a) a larger `limit` per request (clangd
   extension, no patch) and a filter by project root in Emacs, a key showing library
@@ -1432,6 +1443,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-079 | 2026-10-11 | consult patch: hidden sources leave the list | 12 | O-34 |
 | D-080 | 2026-10-12 | which-key lists narrow keys 0.2 s after `<` in prompts | 10 | O-35 |
 | D-081 | 2026-10-13 | `C-c p ?` searches projectile's files, ripgrep on macOS | 12 | O-36 |
+| D-082 | 2026-10-13 | `M-o` symbols: the project's; all on `l` | 10 | O-37 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.

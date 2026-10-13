@@ -14,7 +14,7 @@ tasks step by step: `docs/MANUAL.md`.
 | `M-,` | go back to where you were before `M-.` / `M-?` |
 | `C-M-,` | go forward again |
 | `C-M-.` | search symbols in the whole project by name |
-| `C-c l s` | the same, with live preview (`consult-eglot-symbols`) |
+| `C-c l s` | the same, with live preview (`consult-eglot-symbols`); libraries' symbols too |
 | `M-g i` | symbols of this file (functions, classes); `M-g I`: of all open files |
 | `C-c l i` | implementations / overrides |
 | `C-c l d` | declaration (header) of a definition |
@@ -61,6 +61,7 @@ part to jump (D-043).
 ## Jump to anything / search
 | Key | Does |
 |---|---|
+| `M-o` | go to anything: buffers, recent files, bookmarks, project files, the project's symbols (from the third letter); `<` then `b r m f s` narrows to one, `< l` all symbols (libraries too), `< x` commands, `< p` projects |
 | `C-x b` | buffers, recent files, bookmarks in one list |
 | `C-x p b` | buffers of this project |
 | `C-c p f` | find a file in the project |
