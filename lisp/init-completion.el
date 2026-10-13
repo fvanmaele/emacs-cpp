@@ -186,10 +186,23 @@ server escapes is needed."
                        uri)
                      case))))))
 
-(defun emacs-cpp-go--symbol-request (servers &optional root-uris)
+(defun emacs-cpp-go--min-input (min empty)
+  "Return an async step passing inputs of MIN characters or more, and with EMPTY
+the empty input too, as `C-c l s' asks for it when its prompt opens (D-086).
+Shorter inputs cancel: the list shown stays, as in `C-c l s'."
+  (lambda (sink)
+    (lambda (action)
+      (funcall sink (if (and (stringp action)
+                             (< (length action) min)
+                             (not (and empty (equal action ""))))
+                        'cancel
+                      action)))))
+
+(defun emacs-cpp-go--symbol-request (servers &optional root-uris empty)
   "Return an async step asking SERVERS for the workspace symbols of each input.
-An empty input sends nothing (D-077): consult-eglot's own source asks for \"\"
-when its prompt opens, which lists 100 arbitrary symbols.  A reply to an input
+An empty input sends nothing (D-077) unless EMPTY: consult-eglot's own source
+asks for \"\" when its prompt opens, which lists clangd's first 100 symbols;
+`< l' does so when narrowed to (D-086), hidden it gets no input.  A reply to an input
 that has since changed is dropped.  With ROOT-URIS, each request asks for up to
 `emacs-cpp-go-symbol-limit' matches (D-083) and only symbols under one of
 ROOT-URIS are kept (D-082): within clangd's usual 100, library symbols crowd the
@@ -197,7 +210,7 @@ project's out."
   (lambda (sink)
     (let (latest)
       (lambda (action)
-        (when (and (stringp action) (not (equal action "")))
+        (when (and (stringp action) (or empty (not (equal action ""))))
           (let ((query action) (replies nil))
             (setq latest query)
             (dolist (server servers)
@@ -235,20 +248,21 @@ project's out."
   "Return the clangd symbol sources for project ROOT, nil when no server has one.
 `s': symbols defined under ROOT (D-082).  `l', hidden until narrowed: every
 symbol of clangd's index, deal.II's and the standard library's too, clangd's
-best 100 as `C-c l s' shows them.  Without ROOT, `s' is the latter."
+best 100 as `C-c l s' shows them, its first 100 for an empty input (D-086).
+Without ROOT, `s' is the latter but asks nothing for an empty input."
   (when (featurep 'eglot)
     (require 'consult-eglot)
     (when-let* ((servers (consult-eglot--servers)))
       (if root
           (list (emacs-cpp-go--symbol-source "Symbol" ?s nil servers
-                                             (emacs-cpp-go--root-uris root))
-                (emacs-cpp-go--symbol-source "All Symbols" ?l t servers nil))
-        (list (emacs-cpp-go--symbol-source "Symbol" ?s nil servers nil))))))
+                                             (emacs-cpp-go--root-uris root) nil)
+                (emacs-cpp-go--symbol-source "All Symbols" ?l t servers nil t))
+        (list (emacs-cpp-go--symbol-source "Symbol" ?s nil servers nil nil))))))
 
-(defun emacs-cpp-go--symbol-source (name narrow hidden servers root-uris)
+(defun emacs-cpp-go--symbol-source (name narrow hidden servers root-uris empty)
   "Return a symbol source NAME on key NARROW, HIDDEN or not, asking SERVERS.
-ROOT-URIS as in `emacs-cpp-go--symbol-request'.  The candidates and their
-preview come from consult-eglot."
+ROOT-URIS and EMPTY as in `emacs-cpp-go--symbol-request'.  The candidates and
+their preview come from consult-eglot."
   (list :name name :narrow narrow :hidden hidden :category 'consult-eglot-symbols
         :state (lambda ()
                  (let ((state (consult-eglot--state)))
@@ -259,9 +273,9 @@ preview come from consult-eglot."
                                                       candidate))))))
         :emacs-cpp-action (lambda (_) (run-hooks 'consult-after-jump-hook))
         :async (consult--async-pipeline
-                (consult--async-min-input 3)
+                (emacs-cpp-go--min-input 3 empty)
                 (consult--async-throttle 0.05 0.05)
-                (emacs-cpp-go--symbol-request servers root-uris)
+                (emacs-cpp-go--symbol-request servers root-uris empty)
                 (consult--async-map #'consult-eglot--transformer))))
 
 (defun emacs-cpp-go--file-source (root)

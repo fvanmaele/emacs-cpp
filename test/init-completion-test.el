@@ -147,6 +147,28 @@ REPLY-LATER, after all inputs, newest first."
   (should (eq (keymap-lookup vertico-map "<prior>") #'vertico-scroll-down))
   (should (eq (keymap-lookup minibuffer-local-map "M-n") #'next-history-element)))
 
+(ert-deftest init-completion-go-all-symbols-empty-input ()
+  "D-086: `l' asks clangd for an empty input, as `C-c l s' does when it opens, and
+keeps that list for one or two characters; `s' asks nothing for either."
+  (init-test--load)
+  (require 'consult)
+  (let ((steps (lambda (empty inputs)
+                 (let (sunk)
+                   (let ((step (funcall (emacs-cpp-go--min-input 3 empty)
+                                        (lambda (action) (push action sunk) nil))))
+                     (mapc step inputs))
+                   (nreverse sunk)))))
+    (should (equal (funcall steps t '("" "a" "an" "ans")) '("" cancel cancel "ans")))
+    (should (equal (funcall steps nil '("" "a" "an" "ans")) '(cancel cancel cancel "ans"))))
+  (let (queries)
+    (cl-letf (((symbol-function 'jsonrpc-async-request)
+               (lambda (_server _method params &rest _) (push params queries))))
+      (funcall (funcall (emacs-cpp-go--symbol-request '(server) nil t) #'ignore) "")
+      (funcall (funcall (emacs-cpp-go--symbol-request '(server) '(("file:///p/" . "file:///p/")))
+                        #'ignore)
+               ""))
+    (should (equal queries '((:query ""))))))
+
 (ert-deftest init-completion-go-symbol-sources ()
   "D-082: `s' the project's symbols, `l' hidden with every symbol; no root, `s' only."
   (init-test--load)
