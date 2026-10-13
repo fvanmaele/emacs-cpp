@@ -140,6 +140,13 @@ REPLY-LATER, after all inputs, newest first."
         (accept-process-output nil 0.2)
         (should (equal queries '("vec")))))))
 
+(ert-deftest init-completion-page-keys ()
+  "D-084: PgDn / PgUp page through vertico's candidates, not the history."
+  (init-test--load)
+  (should (eq (keymap-lookup vertico-map "<next>") #'vertico-scroll-up))
+  (should (eq (keymap-lookup vertico-map "<prior>") #'vertico-scroll-down))
+  (should (eq (keymap-lookup minibuffer-local-map "M-n") #'next-history-element)))
+
 (ert-deftest init-completion-go-symbol-sources ()
   "D-082: `s' the project's symbols, `l' hidden with every symbol; no root, `s' only."
   (init-test--load)

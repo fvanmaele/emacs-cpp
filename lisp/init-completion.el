@@ -22,7 +22,14 @@
 
 ;;;; Minibuffer
 
+;; PgDn / PgUp page through the candidates, as `C-v' / `M-v' do (vertico remaps
+;; those); the minibuffer bound them to the next / previous history element, so
+;; in `M-o' they said "End of history; no default available" (D-084).  History
+;; stays on `M-n' / `M-p' and `M-r'.
 (use-package vertico
+  :bind (:map vertico-map
+              ("<next>" . vertico-scroll-up)
+              ("<prior>" . vertico-scroll-down))
   :init
   (vertico-mode))
 

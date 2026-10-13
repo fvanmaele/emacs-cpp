@@ -668,6 +668,12 @@ Known defects: none yet (nothing built).
   Adding a language server to the config (its own D-nnn) includes checking its URI
   encoding the same way and, if it is a fourth, adding it to
   `emacs-cpp-go--server-uri-chars`; not a user option (owner question 2026-10-13).
+- DECIDED D-084 (owner 2026-10-13, tier 1): in every vertico prompt (`M-o`, `C-x b`,
+  `M-x`, `C-x C-f` ...) PgDn / PgUp (`<next>` / `<prior>`) page through the
+  candidates (`vertico-scroll-up` / `-down`, as `C-v` / `M-v`); the minibuffer bound
+  them to the next / previous history element ("End of history; no default
+  available" in `M-o`, owner report). History stays on `M-n` / `M-p`, `M-r`. Checked
+  in a terminal Emacs: `M-x`, PgDn twice, PgUp once: candidate 0 -> 10 -> 20 -> 10.
 - DECIDED D-071 (owner 2026-10-10): `which-key-idle-delay` 3 s instead of 1 s. ESC is
   the Meta prefix, so pressing it (e.g. to cancel) brought up the list of every `M-`
   command after 1 s. Chosen over hiding the list after ESC only, making ESC cancel in
@@ -1466,6 +1472,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-081 | 2026-10-13 | `C-c p ?` searches projectile's files, ripgrep on macOS | 12 | O-36 |
 | D-082 | 2026-10-13 | `M-o` symbols: the project's; all on `l` | 10 | O-37 |
 | D-083 | 2026-10-13 | project symbols capped (10000), URI encoding and case | 10 | owner |
+| D-084 | 2026-10-13 | PgDn / PgUp page through vertico's candidates | 10 | owner |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
