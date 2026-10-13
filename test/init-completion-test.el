@@ -230,6 +230,12 @@ clangd's URIs; on macOS a root in another case does too."
           (should (emacs-cpp-go--under-root-p (funcall symbol clangd-uri) uris))
           (should-not (emacs-cpp-go--under-root-p
                        (funcall symbol (concat "file://" parent "c%2B%2B/a.h")) uris))
+          ;; pyright escapes `:' as well (checked 2026-10-13 with `py a:b c++').
+          (let* ((py-root (concat parent "py a:b c++/"))
+                 (py-uri (concat "file://" (directory-file-name parent)
+                                 "/py%20a%3Ab%20c%2B%2B/pkg/answers.py")))
+            (should (emacs-cpp-go--under-root-p (funcall symbol py-uri)
+                                                (emacs-cpp-go--root-uris py-root))))
           (should (eq (and (emacs-cpp-go--under-root-p (funcall symbol (upcase clangd-uri)) uris)
                            t)
                       (eq system-type 'darwin))))

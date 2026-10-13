@@ -142,14 +142,20 @@ symbols there, 10000 none."
   :type 'natnum
   :group 'tools)
 
-(defconst emacs-cpp-go--clangd-uri-chars
+(defun emacs-cpp-go--uri-chars (&rest others)
+  "Return a `url-hexify-string' table: letters, digits and OTHERS unescaped."
   (let ((chars (make-vector 256 nil)))
     (dotimes (c 256)
-      (when (or (<= ?a c ?z) (<= ?A c ?Z) (<= ?0 c ?9) (memq c '(?- ?_ ?. ?~ ?/ ?:)))
+      (when (or (<= ?a c ?z) (<= ?A c ?Z) (<= ?0 c ?9) (memq c others))
         (aset chars c t)))
-    chars)
-  "Characters clangd leaves unescaped in a file URI (URI.cpp, `shouldEscape').
-eglot escapes `:' and leaves `+ ( ) @ , ; = ! $ & \=' *' as they are (D-083).")
+    chars))
+
+(defconst emacs-cpp-go--server-uri-chars
+  (list (emacs-cpp-go--uri-chars ?- ?_ ?. ?~ ?/ ?:)
+        (emacs-cpp-go--uri-chars ?- ?_ ?. ?~ ?/))
+  "Characters the language servers leave unescaped in a file URI (D-083).
+clangd (URI.cpp, `shouldEscape'); pyright, which escapes `:' too.  eglot
+escapes `:' and leaves `+ ( ) @ , ; = ! $ & \=' *' as they are.")
 
 (defconst emacs-cpp-go--root-ignore-case (eq system-type 'darwin)
   "Non-nil: symbol URIs are compared with the root ignoring case (D-083).
@@ -159,15 +165,15 @@ macOS disks ignore case, so a project opened as TOY/ is clangd's toy/.")
   "Return the file URIs a symbol under project ROOT starts with, ending in /.
 Both ROOT as projectile gives it and its true name: clangd's URIs follow the
 paths of the compilation database, which may or may not resolve symlinks.
-Each in eglot's and in clangd's encoding, which differ (D-083)."
+Each in eglot's, clangd's and pyright's encoding, which differ (D-083)."
   (seq-uniq
    (mapcan (lambda (dir)
              (let ((dir (directory-file-name dir)))
                ;; `:truenamep t': taken as given, else eglot resolves symlinks.
-               (list (concat (eglot-path-to-uri dir :truenamep t) "/")
-                     (concat "file://"
-                             (url-hexify-string dir emacs-cpp-go--clangd-uri-chars)
-                             "/"))))
+               (cons (concat (eglot-path-to-uri dir :truenamep t) "/")
+                     (mapcar (lambda (chars)
+                               (concat "file://" (url-hexify-string dir chars) "/"))
+                             emacs-cpp-go--server-uri-chars))))
            (list (expand-file-name root) (file-truename root)))))
 
 (defun emacs-cpp-go--under-root-p (symbol root-uris)
