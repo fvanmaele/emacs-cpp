@@ -267,6 +267,11 @@ Known defects: none yet (nothing built).
   the default and `C-c l P`), except the regular-expression types, which are refused
   (ECMAScript, not Emacs syntax); `$env{}` takes the preset's `environment` expanded,
   null as unset, a cycle as an error.
+- DECIDED D-092 (owner 2026-10-13, O-43 (a), tier 1): clangd starts with
+  `--rename-file-limit=0`, for the system and the patched clangd: its default stops a
+  rename at 50 files ("The number of affected files exceeds the max limit 50").
+  Measured on a generated project of 62 sources: refused before, 63 files renamed
+  in 284 ms through the shipped config after.
 - DECIDED D-026 (owner 2026-10-08, after S8 PASS): the config keeps clangd and can run
   the patched clangd that answers navigation from its index (O-11):
   `emacs-cpp-clangd-program` nil = system clangd; a path = that program with
@@ -1269,7 +1274,8 @@ presets, GoogleTest runner.
   special members, override pure virtuals, scopify enum and more as code actions.
   Options: (a) `--rename-file-limit=0`; (b) a clangd change-signature tweak, spike
   first; (c) commands around clang-move, clang-change-namespace, run-clang-tidy -fix;
-  (d) document the by-hand route for signature changes. Owner rules.
+  (d) document the by-hand route for signature changes. Owner 2026-10-13: all four;
+  (a) built as D-092; (b) a spike first; (c) and (d) to be scoped.
 - O-42 (RESOLVED 2026-10-13 with D-090: (b), build on a key; owner request
   2026-10-13: "research latex (LSP) support, in particular
   texlab"): findings in `RESEARCH_latex.md`. texlab is packaged on both machines
@@ -1668,6 +1674,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-089 | 2026-10-13 | macOS: MacPorts, /usr/local/bin on exec-path and PATH | 12 | owner |
 | D-090 | 2026-10-13 | LaTeX: AUCTeX from GNU ELPA, texlab, build on `C-c l b` | 12 | O-42 |
 | D-091 | 2026-10-13 | eglot's form in init-lsp.el; languages register servers | 5 | owner |
+| D-092 | 2026-10-13 | clangd with `--rename-file-limit=0` | 7 | O-43 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
