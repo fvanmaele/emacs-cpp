@@ -157,7 +157,8 @@ REPLY-LATER, after all inputs, newest first."
                    '(?s)))))
 
 (ert-deftest init-completion-go-project-symbols ()
-  "D-082: with root URIs every match is asked for and only the project's kept;
+  "D-082, D-083: with root URIs up to `emacs-cpp-go-symbol-limit' matches are
+asked for and only the project's kept, a message when a reply reaches the limit;
 without, clangd's usual limit and no filter."
   (init-test--load)
   (require 'consult)
@@ -169,10 +170,10 @@ without, clangd's usual limit and no filter."
           (make-symbolic-link (directory-file-name real) link)
           (let ((uris (emacs-cpp-go--root-uris (file-name-as-directory link))))
             ;; Both spellings, each ending in a slash, so `root-other/' is no match.
-            (should (equal uris (list (concat (eglot-path-to-uri link :truenamep t) "/")
-                                      (concat (eglot-path-to-uri (directory-file-name real)
-                                                                 :truenamep t)
-                                              "/"))))
+            (should (member (concat (eglot-path-to-uri link :truenamep t) "/") uris))
+            (should (member (concat (eglot-path-to-uri (directory-file-name real) :truenamep t)
+                                    "/")
+                            uris))
             (let* ((symbol (lambda (name path)
                              (list :name name :location
                                    (list :uri (eglot-path-to-uri path :truenamep t)))))
@@ -182,23 +183,57 @@ without, clangd's usual limit and no filter."
                                   (funcall symbol "sibling"
                                            (concat (directory-file-name real) "-other/a.cc"))))
                    (run (lambda (root-uris)
-                          (let (params sunk)
+                          (let (params sunk messages)
                             (cl-letf (((symbol-function 'jsonrpc-async-request)
                                        (lambda (_server _method p &rest args)
                                          (setq params p)
-                                         (funcall (plist-get args :success-fn) reply))))
+                                         (funcall (plist-get args :success-fn) reply)))
+                                      ((symbol-function 'message)
+                                       (lambda (format &rest args)
+                                         (push (apply #'format-message format args) messages))))
                               (funcall (funcall (emacs-cpp-go--symbol-request '(server) root-uris)
                                                 (lambda (action) (push action sunk) nil))
                                        "vec"))
                             (list params
                                   (mapcar (lambda (s) (plist-get s :name))
-                                          (seq-find #'consp sunk)))))))
+                                          (seq-find #'consp sunk))
+                                  (and messages t))))))
+              (should (= (default-value 'emacs-cpp-go-symbol-limit) 10000))
               (should (equal (funcall run uris)
-                             '((:query "vec" :limit 0) ("mine" "linked"))))
+                             '((:query "vec" :limit 10000) ("mine" "linked") nil)))
+              ;; A reply as long as the limit: maybe more matched; said, not hidden.
+              (let ((emacs-cpp-go-symbol-limit 4))
+                (should (equal (funcall run uris)
+                               '((:query "vec" :limit 4) ("mine" "linked") t))))
+              (let ((emacs-cpp-go-symbol-limit 0))
+                (should (equal (funcall run uris)
+                               '((:query "vec" :limit 0) ("mine" "linked") nil))))
               (should (equal (funcall run nil)
-                             '((:query "vec") ("mine" "linked" "library" "sibling")))))))
+                             '((:query "vec") ("mine" "linked" "library" "sibling") nil))))))
       (delete-file link)
       (delete-directory real t))))
+
+(ert-deftest init-completion-go-root-encoding-and-case ()
+  "D-083: a root with characters eglot and clangd encode differently matches
+clangd's URIs; on macOS a root in another case does too."
+  (init-test--load)
+  (require 'eglot)
+  (let* ((parent (file-name-as-directory (file-truename (make-temp-file "emacs-cpp-root" t))))
+         (root (concat parent "c++ (x)@y/")))
+    (unwind-protect
+        (let* ((uris (emacs-cpp-go--root-uris root))
+               ;; As clangd 23.1.1 wrote it for such a project (checked 2026-10-13).
+               (clangd-uri (concat "file://" (directory-file-name parent)
+                                   "/c%2B%2B%20%28x%29%40y/include/toy/answer.h"))
+               (symbol (lambda (uri) (list :name "answer" :location (list :uri uri)))))
+          (make-directory root)
+          (should (emacs-cpp-go--under-root-p (funcall symbol clangd-uri) uris))
+          (should-not (emacs-cpp-go--under-root-p
+                       (funcall symbol (concat "file://" parent "c%2B%2B/a.h")) uris))
+          (should (eq (and (emacs-cpp-go--under-root-p (funcall symbol (upcase clangd-uri)) uris)
+                           t)
+                      (eq system-type 'darwin))))
+      (delete-directory parent t))))
 
 (ert-deftest init-completion-go-narrowing-drops-hidden-candidates ()
   "consult patch 0001 (D-079): narrowed, a hidden source's candidates leave the list;

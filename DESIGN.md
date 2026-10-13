@@ -639,14 +639,28 @@ Known defects: none yet (nothing built).
   twice the clangd requests. deal.II with its own clangd not measured.
 - DECIDED D-082 (owner 2026-10-13, O-37: "no limit + root filter", "M-o key + C-c l s
   all"): `M-o`'s symbol source (`s`) lists the project's symbols only: each
-  `workspace/symbol` request asks for every match (clangd's `limit` 0, an LSP
-  extension; stock clangd, no patch) and keeps symbols whose file URI starts with
-  the project root's, as projectile gives it or its true name. A hidden source on
+  `workspace/symbol` request asks for every match (clangd's `limit` 0, an LSP extension;
+  stock clangd, no patch; capped since D-083) and keeps symbols whose file URI starts
+  with the project root's, as projectile gives it or its true name. A hidden source on
   `l` ("All Symbols") asks as `s` did before: clangd's best 100 of the whole index,
   deal.II's and the standard library's too (CLion's "Include non-project items").
   `C-c l s` stays as it is, all symbols. S11 run 5 (T-059): filtering clangd's usual
   100 lost project symbols in 14 of 40 queries, no limit in none, slowest reply
   15.9 ms. Built (T-060, 0056).
+- DECIDED D-083 (owner 2026-10-13: "a configurable cap as fallback"; done when agreed;
+  "keep fmt as project"): `M-o`'s project symbols ask clangd for at most
+  `emacs-cpp-go-symbol-limit` matches (defcustom, default 10000, 0 = none); a reply
+  that reaches it shows a message (project symbols may be missing, type more). The
+  root also matches in clangd's URI encoding (it escapes `+ ( ) @ , ; = ! $ & ' *`,
+  eglot does not, and eglot escapes `:`) and, on macOS, ignoring case. Measured on
+  step-1 (deal.II, Mac, 47 three-letter inputs, no limit): largest reply `typ` 6673
+  symbols, 48.9 ms round trip (about 7 us per symbol, most of it clangd's while
+  Emacs takes keys); project symbols kept for `typ` / `ope` at 1000: 0 / 21, 2000:
+  33 / 24, 5000: 87 / 106, 10000: 111 / 111 (all). Toy checks with clangd: a root
+  opened as `TOY/` and a root `c++ (x)@y` listed 0 project symbols before, 2 after.
+  Vendored code under the root counts as the project's (owner): step-1's `fmt/`
+  submodule gives 144 of `for`'s 146. Generated files under `build/`: none seen.
+  Built (T-061, 0057).
 - DECIDED D-071 (owner 2026-10-10): `which-key-idle-delay` 3 s instead of 1 s. ESC is
   the Meta prefix, so pressing it (e.g. to cancel) brought up the list of every `M-`
   command after 1 s. Chosen over hiding the list after ESC only, making ESC cancel in
@@ -1444,6 +1458,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-080 | 2026-10-12 | which-key lists narrow keys 0.2 s after `<` in prompts | 10 | O-35 |
 | D-081 | 2026-10-13 | `C-c p ?` searches projectile's files, ripgrep on macOS | 12 | O-36 |
 | D-082 | 2026-10-13 | `M-o` symbols: the project's; all on `l` | 10 | O-37 |
+| D-083 | 2026-10-13 | project symbols capped (10000), URI encoding and case | 10 | owner |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.

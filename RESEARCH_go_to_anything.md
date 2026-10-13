@@ -314,6 +314,22 @@ Read in clangd 23.1.1 (`packaging/llvm-project-23.1.1.src`, unpacked for T-023):
   loses project symbols in 14 queries (373 symbols; all three-letter queries, e.g.
   `opt` 12 of 66); over 1000 in 2 (30 symbols); with no limit in none, slowest reply
   15.9 ms (2458 symbols), median 0.3 ms at every limit.
+- Risks checked (2026-10-13, Mac, step-1 and toy projects, patched clangd):
+  - Reply size, no limit, 47 common three-letter inputs: largest `typ` 6673
+    symbols, 48.9 ms; `ope` 5538, 40.4 ms; 33 of 47 under 1000. Round trip about
+    7 us per symbol; the root filter adds about 0.15 us per symbol (1 ms for 6673).
+  - Caps for `typ` / `ope` (project symbols kept of 111 / 111): 1000 -> 0 / 21,
+    2000 -> 33 / 24, 5000 -> 87 / 106, 10000 -> all.
+  - URI encoding: clangd 23.1.1 (`URI.cpp`, `shouldEscape`) leaves only letters,
+    digits and `- _ . ~ / :` unescaped; eglot's `eglot-path-to-uri` leaves
+    `url-path-allowed-chars` but `:` and `%`, so `+ ( ) @ , ; = ! $ & ' *` differ. A
+    toy under `c++ (x)@y` listed no project symbols. Decoding each URI with `%`
+    instead costs 33 ms per 6673 symbols; a second, clangd-encoded root costs none.
+  - Case: the toy opened as `TOY/` (macOS, case-insensitive disk) listed none:
+    projectile's root keeps the typed case, clangd's URIs the database's.
+  - Vendored code: step-1's `fmt/` submodule lies under the root; `for` keeps 146
+    project symbols, 144 of them fmt's; `buf` 81 of 81.
+  - Generated files under `build/`: 0 symbols in 47 inputs.
 
 ## Sources
 - JetBrains, CLion help "Search everywhere":
