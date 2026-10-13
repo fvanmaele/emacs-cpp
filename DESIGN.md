@@ -1222,7 +1222,12 @@ presets, GoogleTest runner.
   native code is what is slow on the Mac (Org 2.9 - 3.8 s native, 1.2 s byte-code;
   the config in batch 1.37 - 1.71 s against 0.40 - 0.42 s). In its place: (c1) GDATA
   exceptions for Emacs.app and the eln-cache, measured again; (c2) byte-code on macOS
-  (`load-no-native`). Asked again.
+  (`load-no-native`). Asked again; owner chose (c1): exception for
+  `/Applications/MacPorts` (GDATA cannot select hidden directories such as the
+  eln-cache). Then Org native 1.18 - 1.42 s, byte-code 0.27 - 0.33 s; the config in
+  batch native 0.54 - 0.65 s, byte-code 0.21 s. Possible next: the eln-cache moved
+  to a visible directory under `~/source` (`startup-redirect-eln-cache`), not
+  ruled.
 - O-40 (RESOLVED 2026-10-13 with D-085: (a); owner 2026-10-13: "research more general
   mechanisms"): D-083 matches
   the project root in one spelling per server encoding (eglot, clangd, pyright); R's
