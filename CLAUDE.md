@@ -37,6 +37,7 @@ on `< l` (D-082, 0056), capped at 10000 (D-083, 0057), any server's URIs (D-085)
 `< l` as `C-c l s` (D-086),
 preview after a pause (D-088); macOS PATH from MacPorts at startup (D-089). LaTeX:
 AUCTeX from GNU ELPA and texlab, `C-c l b` (D-090); eglot in init-lsp.el (D-091).
+Rename without file limit (D-092); CLion's navigation clicks, right-click menu (D-093).
 Open: O-12; O-38 rg.el / ag.el; O-39 R server; T-025 round 2, T-026 queued.
 
 ## Hard rules (each with its reason)

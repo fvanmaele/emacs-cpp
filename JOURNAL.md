@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0062 | 2026-10-13 | navigation clicks, right-click menu | T-066 | D-093 |
 | 0061 | 2026-10-13 | LaTeX: AUCTeX, texlab, `C-c l b`; init-lsp.el | T-065 | D-090..91 |
 | 0060 | 2026-10-13 | `M-o` previews after a pause in typing | T-064 | D-088 |
 | 0059 | 2026-10-13 | `M-o` `< l` lists as `C-c l s` for empty input | T-063 | D-086 |

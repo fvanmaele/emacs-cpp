@@ -21,6 +21,10 @@ Emacs started from the Dock or Finder gets launchd's PATH, /usr/bin:/bin:/usr/sb
 latexmk, dvipng for AUCTeX's preview and texlab's build, D-090) were not found.
 Shells get /Library/TeX/texbin from /etc/paths.d, which launchd does not read.")
 
+(defconst emacs-cpp-default-mouse-modifier 'super
+  "Modifier of the navigation clicks (D-093): Command, which Emacs calls super on
+the Mac, as CLion's Cmd+Click.")
+
 (defconst emacs-cpp-default-pdf-viewer
   '("/Applications/Skim.app/Contents/SharedSupport/displayline" "-r" "-g" "%l" "%p" "%f")
   "Program and arguments texlab runs to show a line of a LaTeX source in its PDF

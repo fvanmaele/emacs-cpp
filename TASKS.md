@@ -111,6 +111,8 @@ with `done when: ...`).
 | T-063 | done 0059 | S | `< l` lists as `C-c l s` | D-086 | terminal check |
 | T-064 | done 0060 | S | `M-o` previews after a pause | D-088 | terminal check |
 | T-065 | done 0061 | M | LaTeX: AUCTeX, texlab, `C-c l b` | D-090, D-091 | Mac hand-on |
+| T-066 | done 0062 | S | navigation clicks, right-click menu | D-093 | tests, clangd |
+| T-067 | open | S | side buttons: back / forward | O-44 (c) | owner's `C-h k` |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -269,6 +271,17 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-067 (opened 2026-10-13, O-44 (c)): the mouse's side buttons for back / forward
+  (`xref-go-back` / `xref-go-forward`). Owner first: in the Mac's Emacs, `C-h k` then
+  the back button, and the forward button; report the event names (or that nothing
+  arrives). Done when: bound to the events reported, test.
+- T-066 (opened 2026-10-13, D-093, O-44 (a), (b2)): navigation clicks and the
+  right-click menu. Done when: Cmd+Click (Mac) / Ctrl+Click (Arch) definition, or
+  references on the definition; Opt / Alt implementations; Shift type; right click
+  a menu with the server's entries; tests for the bindings per platform, the
+  definition / references choice, the menu; owner's hand check in the GUI, Arch by
+  the owner. Agreed 2026-10-13. Built 2026-10-13 (0062): all met but the owner's
+  checks; 96 tests.
 - T-065 (opened 2026-10-13, D-090, O-42 (b)): LaTeX with AUCTeX and texlab. Done
   when: AUCTeX 14.2.0 as a submodule from GNU ELPA's git (pinned to the 14.2.0
   commit), built by `make packages` with its manual, one `use-package` form; `.tex`
