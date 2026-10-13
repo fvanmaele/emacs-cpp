@@ -604,7 +604,8 @@ Known defects: none yet (nothing built).
   the first 100 hits per input, and `consult-async-refresh-delay` to 0.05 s; it passes
   `:sort nil`; its symbol source throttles and debounces at 0.05 s and sends no
   `workspace/symbol` request for an empty input (its own request step instead of
-  consult-eglot's `setup` request). Owner asked for S11 run 2 first: the whole prompt
+  consult-eglot's `setup` request; `< l` asks for it since D-086). Owner asked for
+  S11 run 2 first: the whole prompt
   on RMO with the patched clangd, listing project files at each opening
   (`spikes/s11-go-to-anything/RUN.md`, run 2). Run 2 PASS (0049): RMO opening
   89 - 96 ms, each key's results 6 - 24 ms, symbols on screen 122 - 150 ms after
@@ -674,6 +675,15 @@ Known defects: none yet (nothing built).
   mechanism without per-server spellings, 4x faster, is researched as O-40
   (`RESEARCH_go_to_anything.md` 11). Warm (a first call pays `seq-filter`'s setup):
   13.6 - 14.2 ms.
+- DECIDED D-086 (owner 2026-10-13: "the behavior of M-o <l should match C-c l s";
+  done when agreed): `M-o` `< l` with no input asks clangd for "" and lists its
+  first 100 symbols, as `C-c l s` does when it opens; one or two characters keep
+  that list; from three, clangd's matches. Hidden, `l` gets no input, so opening
+  `M-o` sends nothing more (0 requests, terminal check). `s` still asks nothing for
+  an empty input (D-077): with D-082's filter and D-083's limit it would fetch up to
+  10000. Terminal check on the toy, candidates after empty / `a` / `an` / `ans`: `C-c
+  l s` 100 / 100 / 100 / 15, `M-o` `< l` the same (before: 0 / 0 / 0 / 15). D-077's
+  0.05 s throttle stays for `l`. Built (T-063, 0059).
 - DECIDED D-085 (owner 2026-10-13, O-40: "replace"; done when agreed): `M-o`'s
   project symbols match a URI against the project root without knowing how its
   server escapes: the root URI up to its first character other than a letter, digit
@@ -1520,6 +1530,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-083 | 2026-10-13 | project symbols capped (10000), URI encoding and case | 10 | owner |
 | D-084 | 2026-10-13 | PgDn / PgUp page through vertico's candidates | 10 | owner |
 | D-085 | 2026-10-13 | project symbols: one URI matcher for every server | 10 | O-40 |
+| D-086 | 2026-10-13 | `M-o` `< l` lists clangd's first 100 for empty input | 10 | owner |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.

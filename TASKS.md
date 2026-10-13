@@ -108,6 +108,7 @@ with `done when: ...`).
 | T-060 | done 0056 | S | `M-o` project symbols, all on `l` | D-082 | toy with clangd |
 | T-061 | done 0057 | S | project symbols: cap, encoding, case | D-083 | step-1, toys |
 | T-062 | done 0058 | S | one URI matcher for every server | D-085 | clangd, pyright |
+| T-063 | done 0059 | S | `< l` lists as `C-c l s` | D-086 | terminal check |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -266,6 +267,12 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-063 (opened 2026-10-13, D-086, owner's T-060 hand check): `M-o` `< l` behaves as
+  `C-c l s`. Done when: empty input asks clangd for "" and lists its 100; 1 - 2
+  characters keep that list; from 3, clangd's matches; `s` unchanged; opening `M-o`
+  sends no extra request; test for the request steps; terminal check on the toy
+  (empty 100, a 100, an 100, ans 15, as `C-c l s`); `make test`. Agreed 2026-10-13.
+  Done 2026-10-13 (0059): all met; requests at opening 0; 89 tests.
 - T-062 (opened 2026-10-13, D-085): replace D-083's per-server spellings. Done
   when: the spellings go; a symbol is kept when its URI starts with the root's safe
   prefix and, decoded, with the root path (as given or true name), ignoring case on
@@ -290,7 +297,8 @@ with `done when: ...`).
   and keys; `make test`; owner's hand check: `M-o` `opt` and `< l` in step-1. Agreed
   2026-10-13. Built 2026-10-13 (0056): all met but the owner's hand check; 86 tests.
   The `s` part passed in the owner's checks of D-083 and D-085 (`M-o` `typ`, step-1);
-  `< l` not reported yet.
+  `< l`: owner 2026-10-13, empty input listed nothing (`opt`: deal.II and the
+  standard library) -> T-063, D-086.
 - T-059 (opened 2026-10-13, O-37): owner runs S11 run 5
   (`spikes/s11-go-to-anything/scope.sh`, RUN.md run 5) on RMO. Done when:
   `results-run5.log` handed back and RESULTS.md has run 5; O-37 then goes to the
