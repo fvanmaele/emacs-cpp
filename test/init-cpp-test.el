@@ -102,7 +102,8 @@ any eglot server shut down."
         (should (init-test--wait-managed))
         (should (equal (process-command (jsonrpc--process (eglot-current-server)))
                        (list "clangd" (concat "--compile-commands-dir="
-                                              (expand-file-name "build/debug" root))))))
+                                              (expand-file-name "build/debug" root))
+                             "--rename-file-limit=0"))))
       ;; M-. crosses files inside the project ...
       (should (member (file-name-nondirectory
                        (init-cpp-test--definition-file main "answer()"))
@@ -212,6 +213,7 @@ Arch: the package's /opt (D-027); macOS: build-macos.sh's ~/opt (D-052)."
                          (list program
                                (concat "--compile-commands-dir="
                                        (expand-file-name "build/debug" root))
+                               "--rename-file-limit=0"
                                "--navigation-from-index"
                                "--header-flags-from-index"))))
         (should (member (file-name-nondirectory
