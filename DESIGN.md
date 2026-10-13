@@ -581,6 +581,18 @@ Known defects: none yet (nothing built).
   Built in T-007 (2026-10-08): all eleven plus `P` preset; `o` is
   `projectile-find-other-file` (by name across the project; RMO splits include/ and
   src/); inlay hints are on by default (eglot 31), `I` hides them.
+- DECIDED D-093 (owner 2026-10-13, O-44 (a), (b2); done when agreed): navigation
+  clicks as CLion's, on the platform's modifier (`emacs-cpp-default-mouse-modifier`,
+  D-055: Command (`super`) on the Mac, Control on Arch): click = definition of the
+  symbol clicked, or its references when the click is on its definition; with Opt /
+  Alt = implementations; with Shift = type definition. The press of each is unbound
+  so the click arrives; on Arch that drops Emacs's buffer menu (C-down-mouse-1) and
+  its rectangle drag with Ctrl+Alt (to be ruled if missed). Right click opens a menu
+  (`context-menu-mode`): Emacs's Find Definition / Find References at the click and
+  editing entries, plus in eglot buffers Rename Symbol, Code Actions, Go to
+  Implementation (each at the click) and Format Buffer. Shift+click extends the
+  selection (Emacs's `mouse-save-then-kill`, as right click did; a quick second
+  Shift+click on the same spot cuts). Built (T-066, 0062).
 - DECIDED D-034 (owner 2026-10-08, O-16): built-in `which-key-mode` is on: after any
   prefix (`C-c p`, `C-x C-a`, `C-c l`) its keys appear once you pause 1 s
   (`which-key-idle-delay` default; 3 s since D-071); `C-h` after a prefix still
@@ -1264,7 +1276,8 @@ presets, GoogleTest runner.
   `context-menu-mode` (off) would put both in a right-click menu. Options: (a)
   Cmd+Click definition, a second click for references, Cmd+Opt+Click implementation,
   Cmd+Shift+Click type (Ctrl on Arch); (b) `context-menu-mode`; (c) back / forward on
-  the mouse's side buttons, after checking their events; (d) none. Owner rules.
+  the mouse's side buttons, after checking their events; (d) none. Owner 2026-10-13:
+  (a) and (b2) built as D-093; (c) waits for the owner's `C-h k` on a side button.
 - O-43 (OPEN, owner request 2026-10-13: "research further C++ refactorings from
   CLion, e.g. signature change, refactor in project files"): findings in
   `RESEARCH_refactoring.md`. clangd renames across files from its index but refuses
@@ -1675,6 +1688,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-090 | 2026-10-13 | LaTeX: AUCTeX from GNU ELPA, texlab, build on `C-c l b` | 12 | O-42 |
 | D-091 | 2026-10-13 | eglot's form in init-lsp.el; languages register servers | 5 | owner |
 | D-092 | 2026-10-13 | clangd with `--rename-file-limit=0` | 7 | O-43 |
+| D-093 | 2026-10-13 | CLion's navigation clicks; right-click menu | 10 | O-44 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
