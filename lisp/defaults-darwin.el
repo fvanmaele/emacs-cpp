@@ -12,6 +12,13 @@
   "The debug configuration `C-x C-a d' offers first in C++ buffers.
 Apple silicon has no gdb (D-051, D-055).")
 
+(defconst emacs-cpp-default-exec-path-prepend
+  '("/opt/local/bin" "/opt/local/sbin" "/usr/local/bin")
+  "Directories put in front of `exec-path' and PATH at startup when missing (D-089).
+Emacs started from the Dock or Finder gets launchd's PATH, /usr/bin:/bin:/usr/sbin:
+/sbin, whatever Emacs.app's Info.plist asks for: then rg, cmake, ninja, pyright
+(MacPorts, D-053) and R (CRAN's, in /usr/local/bin) were not found.")
+
 (defconst emacs-cpp-default-xref-search-program 'ripgrep
   "The program textual searches run, `C-c p ?' among them (D-081, D-055).
 ripgrep (MacPorts): opening a file costs about 14 ms here, so BSD grep, one file

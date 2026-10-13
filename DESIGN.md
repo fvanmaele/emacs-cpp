@@ -954,6 +954,15 @@ Mechanisms, each PROPOSED until measured:
   beyond a line or two (they lean on the package's internals). First patch:
   treemacs 0001, T-041, replacing D-067's stand-in timer. Second: consult 0001 (D-079).
   Third: projectile 0001 (D-081).
+- DECIDED D-089 (owner report 2026-10-13, tier 1): on macOS the config puts
+  `/opt/local/bin`, `/opt/local/sbin` (MacPorts, D-053) and `/usr/local/bin` (CRAN's
+  R) in front of `exec-path` and PATH at startup when missing
+  (`emacs-cpp-default-exec-path-prepend`, D-055; none on Arch). Emacs started from
+  the Dock or Finder got launchd's PATH (`/usr/bin:/bin:/usr/sbin:/sbin`) although
+  Emacs.app's Info.plist sets `LSEnvironment` PATH, so D-081's check stopped startup
+  ("rg is not on exec-path"), and cmake, ninja, pyright would not have been found
+  either. Test: a child Emacs with launchd's PATH loads the config and finds its
+  search program (fails without the fix).
 - DECIDED D-081 (owner 2026-10-13, O-36: "patch projectile", "GNU grep on Arch"):
   `C-c p ?` / `C-c p s x` (`projectile-find-references`, a textual search) searches the
   files `projectile-project-files` lists with `xref-matches-in-files`, through
@@ -1584,6 +1593,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-085 | 2026-10-13 | project symbols: one URI matcher for every server | 10 | O-40 |
 | D-086 | 2026-10-13 | `M-o` `< l` lists clangd's first 100 for empty input | 10 | owner |
 | D-087 | 2026-10-13 | `M-o` symbol requests with `C-c l s`'s timing | 10 | owner |
+| D-089 | 2026-10-13 | macOS: MacPorts, /usr/local/bin on exec-path and PATH | 12 | owner |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.

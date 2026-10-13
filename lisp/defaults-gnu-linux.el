@@ -11,6 +11,10 @@
 (defconst emacs-cpp-default-debug-configuration 'gdb-preset
   "The debug configuration `C-x C-a d' offers first in C++ buffers (D-051, D-055).")
 
+(defconst emacs-cpp-default-exec-path-prepend nil
+  "Directories put in front of `exec-path' and PATH at startup when missing (D-089).
+None on Arch: pacman installs into /usr/bin.")
+
 (defconst emacs-cpp-default-xref-search-program 'grep
   "The program textual searches run, `C-c p ?' among them (D-081, D-055).
 GNU grep: Arch has no ripgrep (DESIGN 3).")
