@@ -114,6 +114,7 @@ with `done when: ...`).
 | T-066 | done 0062 | S | navigation clicks, right-click menu | D-093 | tests, clangd |
 | T-067 | open | S | side buttons: back / forward | O-44 (c) | owner's `C-h k` |
 | T-068 | done 0063 | S | clang-tidy fixes, clang-move | D-094 | generated project |
+| T-069 | open | L | spike S12: change signature in clangd | O-43 (b) | RUN.md planned |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -272,6 +273,9 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-069 (opened 2026-10-14, O-43 (b)): spike S12, a change-signature code action in
+  clangd (`spikes/s12-change-signature/RUN.md`, pass criteria agreed 2026-10-13).
+  Done when: RESULTS.md with a verdict against them.
 - T-068 (opened 2026-10-13, D-094, O-43 (c)): commands around clang's tools. Done
   when: `C-c l T` run-clang-tidy -fix (checks asked), `C-c l N` clang-change-namespace,
   `C-c l M` clang-move, each in a compilation buffer on the active preset's

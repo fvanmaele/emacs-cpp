@@ -1303,7 +1303,8 @@ presets, GoogleTest runner.
   Options: (a) `--rename-file-limit=0`; (b) a clangd change-signature tweak, spike
   first; (c) commands around clang-move, clang-change-namespace, run-clang-tidy -fix;
   (d) document the by-hand route for signature changes. Owner 2026-10-13: all four;
-  (a) built as D-092; (b) a spike first (S12); (c) built as D-094 without
+  (a) built as D-092; (b) a spike first (S12, T-069, `spikes/s12-change-signature`);
+  (c) built as D-094 without
   clang-change-namespace; (d) done 2026-10-14: MANUAL 8, "Changing a function's
   signature by hand", after running the route on 63 files.
 - O-42 (RESOLVED 2026-10-13 with D-090: (b), build on a key; owner request
