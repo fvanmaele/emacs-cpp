@@ -212,6 +212,27 @@ word): answer `n` there unless the directory is renamed too, or search for
 `C-c p r` (replace in the whole project) does the same one hit at a time, without the
 list.
 
+### Changing a function's signature by hand
+clangd has no "change signature" (CLion's Ctrl+F6, RESEARCH_refactoring.md). The
+compiler and the list of uses do it in steps:
+
+- **A new parameter with a default value** (`int area(double scale = 1.0)`): change
+  the declaration and the definition; the calls need no edit.
+- **A new name**: `C-c l r` renames it in every file (no limit since D-092).
+- **Reordering or removing parameters**: change the declaration and the definition,
+  then `M-?` on the function, `C-.` then `E`: the calls go into a buffer of their
+  own; `RET` visits a call, `n` / `p` the next / previous. A change that looks the
+  same at every call can be done as text, as for a namespace above: `M-s r` with a
+  regexp, `C-.` `E`, `e`, then `C-M-%` (e.g. `area(\([^,]*\), \([^)]*\))` to
+  `area(\2, \1)` swaps two arguments).
+- **Checking**: `C-c p c c` builds; `M-g n` / `M-g p` step through every call the
+  compiler still rejects.
+
+The list of uses can also replace the name at each of them, where `C-c l r` is not
+offered (checked 2026-10-14 on 63 files): `M-?`, `C-.` `E`, then `r`, the new
+name `RET`, and `Y` (every use, in every file; `!` only does the current one), then
+`C-x s !` to save them all. It changes only the name, never the arguments after it.
+
 ### Indentation settings for a project
 `TAB`, `RET` and the electric characters (`}`, `;`, ...) indent by Emacs's rules,
 set per project in `.dir-locals.el` in the project root (D-062, D-065). It applies
