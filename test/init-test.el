@@ -135,6 +135,33 @@ platform stops startup."
     (should (car names))
     (should (equal (car names) (cadr names)))))
 
+(ert-deftest init-starts-with-launchd-path ()
+  "D-089: started with launchd's PATH, as from the Dock or Finder, the
+configuration loads and finds its search program."
+  (init-test--load)
+  (let ((home (file-name-as-directory (make-temp-file "emacs-cpp-path" t))))
+    (unwind-protect
+        (with-temp-buffer
+          (let ((process-environment (cons "PATH=/usr/bin:/bin:/usr/sbin:/sbin"
+                                           process-environment)))
+            (call-process
+             (expand-file-name invocation-name invocation-directory) nil t nil
+             "-Q" "--batch" "--eval"
+             (format "(progn (setq user-emacs-directory %S)
+                       (load %S nil t) (load %S nil t) (run-hooks 'after-init-hook)
+                       (princ (format \"SEARCH %%S %%S\" xref-search-program
+                                      (and (executable-find (if (eq xref-search-program 'ripgrep)
+                                                                \"rg\" \"grep\"))
+                                           t))))"
+                     home
+                     (expand-file-name "early-init.el" build-packages-root)
+                     (expand-file-name "init.el" build-packages-root))))
+          (goto-char (point-min))
+          (should (re-search-forward "^SEARCH \\(.*\\)" nil t))
+          (should (equal (match-string 1)
+                         (format "%S t" emacs-cpp-default-xref-search-program))))
+      (delete-directory home t))))
+
 (ert-deftest init-saved-theme-survives-restart ()
   "D-040: a theme saved with customize-themes is the one in effect after startup;
 without one, the default theme is."
