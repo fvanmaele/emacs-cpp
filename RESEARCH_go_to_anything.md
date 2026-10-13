@@ -318,6 +318,9 @@ Read in clangd 23.1.1 (`packaging/llvm-project-23.1.1.src`, unpacked for T-023):
   - Reply size, no limit, 47 common three-letter inputs: largest `typ` 6673
     symbols, 48.9 ms; `ope` 5538, 40.4 ms; 33 of 47 under 1000. Round trip about
     7 us per symbol; the root filter adds about 0.15 us per symbol (1 ms for 6673).
+    Corrected 2026-10-13 (section 11): that was one inline `string-prefix-p`; the
+    shipped `emacs-cpp-go--under-root-p` (up to six prefixes through `seq-some`,
+    interpreted as `lisp/` is) costs 16.7 ms per 6673 symbols, 2.5 us each.
   - Caps for `typ` / `ope` (project symbols kept of 111 / 111): 1000 -> 0 / 21,
     2000 -> 33 / 24, 5000 -> 87 / 106, 10000 -> all.
   - URI encoding: clangd 23.1.1 (`URI.cpp`, `shouldEscape`) leaves only letters,
@@ -336,6 +339,42 @@ Read in clangd 23.1.1 (`packaging/llvm-project-23.1.1.src`, unpacked for T-023):
   - Vendored code: step-1's `fmt/` submodule lies under the root; `for` keeps 146
     project symbols, 144 of them fmt's; `buf` 81 of 81.
   - Generated files under `build/`: 0 symbols in 47 inputs.
+
+## 11. Matching URIs without a table per server (owner question 2026-10-13)
+Question: D-083 keeps one spelling of the project root per server encoding (eglot,
+clangd, pyright); R's `languageserver` would be a fourth (`r%20a:b%20c++`,
+`RESEARCH_r_language_servers.md` 2). Is there a mechanism that needs no table?
+
+Spellings seen for the same path (`c++ (x)@y`, `a:b` + U+00E4, `py a:b c++`): every
+encoder leaves letters, digits and `- _ . /` unescaped (RFC 3986's unreserved set,
+less `~`, which some encoders escape); they differ in `: + ( ) @ , ; = ! $ & ' *`
+and space handling beyond that. Hex digits came out upper case in all four.
+
+Mechanisms, measured on 6673 symbol URIs (111 under the root), Mac, Emacs 31.1:
+- Shipped D-083, a string prefix in each known spelling: not general (one table
+  per server); 16.7 ms interpreted.
+- `eglot-uri-to-path` on every URI, then compare paths: general (also
+  `localhost`, remote); 56.4 ms interpreted, 54.6 compiled.
+- Percent-decode every URI, then compare: general; 5.7 / 4.6 ms.
+- **Safe prefix, then decode**: the root URI up to its first character outside
+  letters, digits, `- _ . /` filters with one `string-prefix-p`; only URIs that pass
+  are decoded (when they hold `%`) and compared with the root path. General;
+  3.8 - 5.0 ms interpreted, 0.7 - 0.9 ms compiled.
+- The safe prefix is the same in every spelling, so no URI under the root is lost
+  at the first step; library URIs (`/usr/include`, the SDK, `~/opt/dealii`) fail it
+  at once. A root with a special character early (`/Users/a b/...`) lets more URIs
+  through to the second step: 5.0 ms instead of 3.8 ms.
+- Checked: all four spellings under all three roots match; a sibling
+  (`c%2B%2B%20%28x%29%40y-other/`) and a library URI do not; an upper-cased URI
+  matches when case is ignored (macOS, D-083).
+- Decoding: `url-unhex-string`, then `decode-coding-string` as UTF-8, so `%C3%A4`
+  becomes U+00E4 as in Emacs's file name.
+- Left open by every mechanism: Unicode normalization (a server reporting a
+  decomposed U+00E4, NFD, against Emacs's composed one; not seen: clangd, pyright and
+  languageserver all sent `%C3%A4`); `file://localhost/` or `file:/` forms (none of the
+  four servers sends them; only `eglot-uri-to-path` handles them); `+` for space
+  (form encoding, not URIs; none seen).
+- Prototype: scratch only (`urimatch.el`, this session), not shipped.
 
 ## Sources
 - JetBrains, CLion help "Search everywhere":
