@@ -1001,7 +1001,13 @@ Mechanisms, each PROPOSED until measured:
   Emacs.app's Info.plist sets `LSEnvironment` PATH, so D-081's check stopped startup
   ("rg is not on exec-path"), and cmake, ninja, pyright would not have been found
   either. Test: a child Emacs with launchd's PATH loads the config and finds its
-  search program (fails without the fix).
+  search program (fails without the fix). Amended 2026-10-13 (owner report "LaTeX found
+  no preview images", tier 1): `/Library/TeX/texbin` (MacTeX, D-090) joins the list;
+  shells get it from /etc/paths.d, launchd does not, so from the Dock pdflatex,
+  latexmk and dvipng were missing for AUCTeX's preview and texlab's build. Checked
+  in a graphical Emacs with launchd's PATH: `preview-buffer` made both previews of
+  a toy document. Not taken: all of /etc/paths.d (it also lists system-internal and
+  the virus scanner's directories).
 - DECIDED D-081 (owner 2026-10-13, O-36: "patch projectile", "GNU grep on Arch"):
   `C-c p ?` / `C-c p s x` (`projectile-find-references`, a textual search) searches the
   files `projectile-project-files` lists with `xref-matches-in-files`, through
