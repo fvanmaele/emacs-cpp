@@ -1181,7 +1181,9 @@ presets, GoogleTest runner.
   file opened, page cache or not, which points at a scanner checking each open.
   The owner added exceptions to the GDATA scanner the same day: 5.2 s for all
   33768 files (0.15 ms each), `rg` over the tree 5.6 -> 1.07 s. Startup not
-  measured again.
+  measured again. Later the same day (O-41): loading native code (`.eln`) costs about
+  15 ms per file here against about 1 ms for byte-code; the config loaded in batch
+  1.37 - 1.71 s native, 0.40 - 0.42 s byte-code, a likely part of the Mac's startup.
 - O-37 (RESOLVED 2026-10-13 with D-082: (a) with no limit, `l` for all symbols;
   owner 2026-10-13: "research first"): symbols of the project only in
   `C-c l s` and `M-o` `<` `s` (today every symbol of clangd's index, deal.II's and the
@@ -1215,7 +1217,12 @@ presets, GoogleTest runner.
   the GUI (not measured); step-1 lists 286 `.org` and 111 images, all fully
   previewed. Options: (a) no preview of images and PDFs; (b) debounced preview in
   `M-o`; (c) native-compile Emacs's own Org ahead of time; (d) load Org at idle
-  (rejected unless (c) makes it short). Owner rules.
+  (rejected unless (c) makes it short). Owner 2026-10-13: (b) and (c). (c) found
+  moot the same day: Org is native-compiled already (121 of 128 files); loading
+  native code is what is slow on the Mac (Org 2.9 - 3.8 s native, 1.2 s byte-code;
+  the config in batch 1.37 - 1.71 s against 0.40 - 0.42 s). In its place: (c1) GDATA
+  exceptions for Emacs.app and the eln-cache, measured again; (c2) byte-code on macOS
+  (`load-no-native`). Asked again.
 - O-40 (RESOLVED 2026-10-13 with D-085: (a); owner 2026-10-13: "research more general
   mechanisms"): D-083 matches
   the project root in one spelling per server encoding (eglot, clangd, pyright); R's

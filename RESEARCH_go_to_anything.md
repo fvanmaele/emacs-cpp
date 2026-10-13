@@ -420,12 +420,25 @@ files):
   drawing the image happen only in a graphical frame, not measured;
 - `.py`, first: 139 ms, then 18 ms.
 
-**Why Org takes seconds:** `(require 'org)` 1.3 s and the first Org buffer another
-3.4 s even under `emacs -Q`; 174 files load, 93 % of the time in `require`, 86 % in
-byte-code: Emacs.app (MacPorts, native-comp) ships native code for 40 Org files;
-`org-element`, much of Org and `cl-extra` run as byte-code, and the eln-cache holds
-one Org file. Reading the 174 files costs 0.9 s cold, 0.03 s warm (scanner; the
-GDATA exceptions cover `~/source`, not Emacs.app).
+**Why Org takes seconds** (corrected 2026-10-13): `(require 'org)` 1.3 s and the
+first Org buffer another 3.4 s even under `emacs -Q`; 174 files load. Org *is*
+native-compiled: Emacs.app ships `.eln` files for 121 of Org's 128 (a first count of
+40 matched `org*` names only, and a check of `org-element-parse-buffer` before its
+file had loaded saw the autoload, not native code). The CPU profile puts 90 % of the
+samples in `require` itself, the C code that finds and loads files. Loading native
+code is what is slow on this Mac:
+- Org (`require` + `org-mode`), fresh `emacs -Q` each: native 2.9 - 3.8 s,
+  byte-code (`load-no-native` t) 1.2 s.
+- `org-macs` alone (2 files): native 6 - 35 ms, byte-code 1 ms.
+- The shipped config loaded in batch (226 files): native 1.37 - 1.71 s, byte-code
+  0.40 - 0.42 s.
+- An `.eln` is a Mach-O shared object (ad-hoc signed, `codesign -dv`); each load
+  goes through the dynamic loader, code-signature checks and, possibly, the GDATA
+  scanner (its exceptions cover `~/source`, not Emacs.app or `~/.emacs.d/eln-cache`).
+  Which of these costs the time is not measured. Reading the 174 files' bytes costs
+  0.9 s cold, 0.03 s warm.
+- Arch not measured; O-24's Mac startup (0.85 s against Arch's 0.15 s) may be the
+  same cause.
 
 **So images are a cause, but a small one in batch** (about 0.16 s once, plus decoding
 in the GUI, not measured); the large first-use costs come from modes loading for
@@ -438,9 +451,12 @@ the first time: Org 5.2 s, ESS 0.9 s, and every session's first preview 0.3 - 0.
 - (b) Debounce previews in `M-o` (consult's `:preview-key '(:debounce 0.3 any)` for
   the command): no preview while typing, one after a pause; the first-load cost
   remains, but not between keys.
-- (c) Native-compile Emacs's own Org (and the other byte-code files) ahead of time:
-  `native-compile-async` on Emacs.app's `lisp/` into the eln-cache, once per Emacs
-  build (owner runs it); expected to cut Org's load, not measured.
+- (c) Native-compile Emacs's own Org ahead of time: moot, Org is native already
+  (corrected above). In its place: (c1) GDATA exceptions for Emacs.app and
+  `~/.emacs.d/eln-cache`, then measure again (owner, no code); (c2) load byte-code
+  instead of native code on macOS (`load-no-native`, a D-055 platform default):
+  loads about 3x faster here, the Lisp then runs as byte-code (slower to run, not
+  measured).
 - (d) Load Org at idle after startup: moves 1.3 - 4.5 s into idle time, but a load
   cannot be interrupted; rejected unless (c) makes it short.
 - Not checked: the stall in a graphical frame with real images; PDF previews (step-1
