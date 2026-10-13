@@ -1116,6 +1116,9 @@ presets, GoogleTest runner.
   Findings in; O-26 ruled (D-054 confirmed, upstream report T-032).
 - `RESEARCH_keys_build_debug_ui.md` (owner questions 2026-10-08): key hints, building
   from any buffer, breakpoint indicators. Findings in; rulings O-16, O-17, O-18.
+- `RESEARCH_mouse.md` (owner request 2026-10-13): CLion's mouse and modifier-click
+  bindings against Emacs 31.1's (`xref-...-at-mouse`, `context-menu-mode`). Findings
+  in; O-44.
 - `RESEARCH_refactoring.md` (owner request 2026-10-13): CLion's C++ refactorings
   against clangd 23.1.1's rename and tweaks and the clang command-line tools; rename
   measured across 63 files. Findings in; O-43.
@@ -1243,6 +1246,14 @@ presets, GoogleTest runner.
   (T-059, owner's deal.II project `step-1`, Mac, 40 queries): filtering today's 100
   loses project symbols in 14 queries (373 symbols), 1000 in 2 (30), no limit in
   none, slowest reply 15.9 ms (2458 symbols), median 0.3 ms. To the owner.
+- O-44 (OPEN, owner request 2026-10-13: "research additional mouse bindings, e.g.
+  Command+M1 for going to symbol (M-.), compare to Clion key+mouse bindings"):
+  findings in `RESEARCH_mouse.md`. Cmd+Click (`s-<mouse-1>`) is unbound; Emacs has
+  `xref-find-definitions-at-mouse` / `xref-find-references-at-mouse`, and
+  `context-menu-mode` (off) would put both in a right-click menu. Options: (a)
+  Cmd+Click definition, a second click for references, Cmd+Opt+Click implementation,
+  Cmd+Shift+Click type (Ctrl on Arch); (b) `context-menu-mode`; (c) back / forward on
+  the mouse's side buttons, after checking their events; (d) none. Owner rules.
 - O-43 (OPEN, owner request 2026-10-13: "research further C++ refactorings from
   CLion, e.g. signature change, refactor in project files"): findings in
   `RESEARCH_refactoring.md`. clangd renames across files from its index but refuses
