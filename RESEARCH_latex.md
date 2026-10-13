@@ -101,6 +101,55 @@ Toy project: `main.tex` (`\input{chapters/intro}`, `\ref`, `\cite`, `\newcommand
   with no change (D-085).
 - TeX Live itself on the Mac is MacTeX, not MacPorts (as R, O-39; D-053).
 
+## 7. texlab against AUCTeX; build triggers (owner questions 2026-10-13)
+**What texlab gives for writing** (hands-on, Mac): completion returns plain names,
+no snippets (`begin` after `\beg`, `equation` inside `\begin{}`; no `\end{...}` added;
+eglot would expand snippets only with yasnippet, not vendored); hover on `\alpha`
+returns Markdown with the glyph as an embedded PNG (`texlab.hover.symbols` `image`),
+not a rendered formula of the document, and eglot's help display is not expected to
+show the image (not checked). No in-buffer preview, no insertion commands: those
+are editor features, not language-server ones.
+
+**Emacs's built-in `latex-mode`** (tex-mode.el): `C-c C-o` inserts an environment
+(asks its name, adds `\begin` / `\end`), `C-c C-e` / `C-c ]` closes the open one,
+`C-c {` braces, `C-c C-c` / `C-c C-f` / `C-c C-b` run TeX, `C-c C-v` views,
+`C-c C-u` to the last unclosed block. No preview, no math shortcuts.
+
+**AUCTeX** (GNU ELPA 14.2.0, 2026-09-15; features from its manual, not run here):
+preview-latex renders formulas, figures and sections as images in the buffer
+(needs gs, dvipng or dvisvgm and `preview.sty`: all present on the Mac, gs from
+MacPorts, the rest from TeX Live); `TeX-fold-mode` folds macros and environments into
+their text or glyph; `LaTeX-math-mode` (a prefix key, `` ` `` by default, then a
+letter for a symbol); insertion with prompts: `C-c C-e` environments (labels,
+captions), `C-c C-m` macros with their arguments, `C-c C-s` sectioning with a
+label, `C-c C-f` fonts; `C-c C-c` runs what the document needs next (LaTeX, BibTeX,
+view); `` C-c ` `` steps through errors with their help; SyncTeX forward and
+inverse search with Skim / zathura; per-package style hooks (commands and
+environments of loaded packages offered). RefTeX (part of Emacs) adds a table of
+contents and label / citation selection in either mode. AUCTeX 14 changed its major
+mode names (`LaTeX-mode` and others, no longer replacing the built-in
+`latex-mode`): not verified here (Savannah timed out); eglot's server entry would
+have to name AUCTeX's modes.
+
+**AUCTeX and texlab together:** AUCTeX for writing (insertion prompts, math keys,
+preview, folding, its compile / view / error keys), texlab for what AUCTeX does not
+do across files: definitions and references of labels, citations and own commands
+in other files, rename, workspace symbols (`M-o`), project-wide diagnostics. Both
+offer completion, building, viewing and diagnostics, so each needs one owner: e.g.
+completion from eglot first, building and viewing from AUCTeX's `C-c C-c` /
+`C-c C-v`, texlab's build unused. Cost: a large submodule (D-006); its git tree has
+generated files (`tex-site.el` and others from `.in` templates), so `make packages`
+may need a step for it (not checked).
+
+**Build triggers** (texlab's build request, measured on the Mac): a 217-page document
+(lipsum) built in 3.7 s; during the build texlab answered every definition request
+in under 1 ms, and eglot sends the build request asynchronously, so Emacs is not
+blocked. On save (`texlab.build.onSave`): every save starts latexmk (CPU for the
+length of a build, each time; diagnostics and the PDF refresh by themselves, Skim
+reloads with `-r`); saves made mid-edit build documents with errors; whether a save
+during a running build cancels or queues it is not measured (`texlab.cancelBuild`
+exists). On a key: builds only when asked.
+
 ## 6. Not checked
 - texlab on a large document (a thesis-sized project), memory and indexing time.
 - chktex diagnostics through eglot (settings needed).
