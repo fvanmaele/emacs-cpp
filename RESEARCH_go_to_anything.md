@@ -325,6 +325,12 @@ Read in clangd 23.1.1 (`packaging/llvm-project-23.1.1.src`, unpacked for T-023):
     `url-path-allowed-chars` but `:` and `%`, so `+ ( ) @ , ; = ! $ & ' *` differ. A
     toy under `c++ (x)@y` listed no project symbols. Decoding each URI with `%`
     instead costs 33 ms per 6673 symbols; a second, clangd-encoded root costs none.
+  - pyright (MacPorts), the config's Python server: leaves only letters, digits and
+    `- . _ ~ /` unescaped, so `:` too (`%3A`, as eglot does; clangd leaves it); U+00E4 as
+    `%C3%A4` like both; reports the directory's real case (`pytoy/` opened as `PYTOY/`).
+    Its `workspace/symbol` lists the workspace's symbols only, so `s` and `l` agree
+    there. A root with both `:` and `+` matched neither eglot's nor clangd's spelling
+    (`py a:b c++`: no symbols); a third, pyright's, fixes it.
   - Case: the toy opened as `TOY/` (macOS, case-insensitive disk) listed none:
     projectile's root keeps the typed case, clangd's URIs the database's.
   - Vendored code: step-1's `fmt/` submodule lies under the root; `for` keeps 146

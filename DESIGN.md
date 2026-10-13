@@ -660,7 +660,14 @@ Known defects: none yet (nothing built).
   opened as `TOY/` and a root `c++ (x)@y` listed 0 project symbols before, 2 after.
   Vendored code under the root counts as the project's (owner): step-1's `fmt/`
   submodule gives 144 of `for`'s 146. Generated files under `build/`: none seen.
-  Built (T-061, 0057).
+  Built (T-061, 0057). Amended 2026-10-13 (owner, tier 1): pyright, the config's
+  other server, escapes `:` like eglot and `+ ( ) @` like clangd, so a root holding
+  both kinds matched neither (`py a:b c++`: no project symbols); pyright's rule is
+  a third spelling of the root. Checked with both servers under `c++ (x)@y`,
+  `a:b` plus U+00E4, `py a:b c++`, other case: all list the project's symbols.
+  Adding a language server to the config (its own D-nnn) includes checking its URI
+  encoding the same way and, if it is a fourth, adding it to
+  `emacs-cpp-go--server-uri-chars`; not a user option (owner question 2026-10-13).
 - DECIDED D-071 (owner 2026-10-10): `which-key-idle-delay` 3 s instead of 1 s. ESC is
   the Meta prefix, so pressing it (e.g. to cancel) brought up the list of every `M-`
   command after 1 s. Chosen over hiding the list after ESC only, making ESC cancel in
