@@ -1044,6 +1044,9 @@ presets, GoogleTest runner.
   O-30 ruled (D-074), S11 measured (0048), O-31 / O-32 ruled (D-076, D-075);
   prompt speed in a terminal Emacs: O-33; narrowed to symbols: O-34 (D-079);
   project-only symbols: O-37 (D-082, D-083); URIs without per-server spellings: O-40.
+- `RESEARCH_latex.md` (owner request 2026-10-13): texlab (and digestif) through
+  eglot in the built-in `latex-mode`; packaging; hands-on on the Mac. Findings in;
+  O-42.
 - `RESEARCH_r_language_servers.md` (owner request 2026-10-13): languageserver, Arity,
   Air, Ark; packaging on Arch and MacPorts; languageserver run through eglot on the
   Mac. Findings in; O-39.
@@ -1189,6 +1192,19 @@ presets, GoogleTest runner.
   (T-059, owner's deal.II project `step-1`, Mac, 40 queries): filtering today's 100
   loses project symbols in 14 queries (373 symbols), 1000 in 2 (30), no limit in
   none, slowest reply 15.9 ms (2458 symbols), median 0.3 ms. To the owner.
+- O-42 (OPEN, owner request 2026-10-13: "research latex (LSP) support, in particular
+  texlab"): findings in `RESEARCH_latex.md`. texlab is packaged on both machines
+  (Arch `extra`, MacPorts) and works through eglot in the built-in `latex-mode`:
+  cross-file `\ref` / `\cite` / `\newcommand` definitions and references, citation
+  hover and completion, workspace symbols, latexindent formatting, and a build
+  request running latexmk (eglot has no command for texlab's build and forward
+  search requests). digestif, eglot's first default, has none of the cross-file
+  features. A colon in the project path breaks texlab's cross-file features. Options:
+  (a) texlab named in `eglot-server-programs` for `latex-mode` / `bibtex-mode`,
+  started for project files as pyright, plus a small build command (or
+  `texlab.build.onSave`) and forward search to Skim / zathura; (b) the same with
+  AUCTeX vendored for editing; (c) eglot's default (digestif first); (d) none.
+  Owner rules.
 - O-41 (OPEN, owner 2026-10-13: "research the stall ... images in the project
   directory as possible cause"): the first `M-o` of a session can freeze while
   consult previews the first file candidate (`RESEARCH_go_to_anything.md` 12): every
