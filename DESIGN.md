@@ -660,7 +660,8 @@ Known defects: none yet (nothing built).
   opened as `TOY/` and a root `c++ (x)@y` listed 0 project symbols before, 2 after.
   Vendored code under the root counts as the project's (owner): step-1's `fmt/`
   submodule gives 144 of `for`'s 146. Generated files under `build/`: none seen.
-  Built (T-061, 0057). Amended 2026-10-13 (owner, tier 1): pyright, the config's
+  Built (T-061, 0057). The spellings below are SUPERSEDED by D-085 (2026-10-13): one
+  matcher for every server. Amended 2026-10-13 (owner, tier 1): pyright, the config's
   other server, escapes `:` like eglot and `+ ( ) @` like clangd, so a root holding
   both kinds matched neither (`py a:b c++`: no project symbols); pyright's rule is
   a third spelling of the root. Checked with both servers under `c++ (x)@y`,
@@ -671,7 +672,21 @@ Known defects: none yet (nothing built).
   Correction 2026-10-13: the shipped filter costs 16.7 ms per 6673 symbols (up to six
   prefixes, interpreted), not about 1 ms as measured with one inline prefix. A
   mechanism without per-server spellings, 4x faster, is researched as O-40
-  (`RESEARCH_go_to_anything.md` 11).
+  (`RESEARCH_go_to_anything.md` 11). Warm (a first call pays `seq-filter`'s setup):
+  13.6 - 14.2 ms.
+- DECIDED D-085 (owner 2026-10-13, O-40: "replace"; done when agreed): `M-o`'s
+  project symbols match a URI against the project root without knowing how its
+  server escapes: the root URI up to its first character other than a letter, digit
+  or `- _ . /` is a prefix every spelling shares (cheap `string-prefix-p`; library
+  URIs fail here); a URI that passes is percent-decoded (UTF-8) when it holds `%` and
+  compared with the root path, as given or true name, ignoring case on macOS
+  (D-083). Replaces D-083's spellings (`emacs-cpp-go--server-uri-chars`, eglot's,
+  clangd's, pyright's); R's languageserver, a fourth spelling, needs nothing. Checked
+  with clangd and pyright under `toy`, `TOY`, `c++ (x)@y`, `a:b` + U+00E4,
+  `py a:b c++`: the project's symbols in each. Filter per 6673-symbol reply, as
+  shipped (interpreted, warm, 64 MB GC threshold): 3.7 - 4.2 ms, D-083's 13.6 -
+  14.2 ms. Not handled: Unicode normalization (NFD from a server; none seen),
+  `file://localhost/` URIs (none seen). Built (T-062, 0058).
 - DECIDED D-084 (owner 2026-10-13, tier 1): in every vertico prompt (`M-o`, `C-x b`,
   `M-x`, `C-x C-f` ...) PgDn / PgUp (`<next>` / `<prior>`) page through the
   candidates (`vertico-scroll-up` / `-down`, as `C-v` / `M-v`); the minibuffer bound
@@ -1151,7 +1166,8 @@ presets, GoogleTest runner.
   (T-059, owner's deal.II project `step-1`, Mac, 40 queries): filtering today's 100
   loses project symbols in 14 queries (373 symbols), 1000 in 2 (30), no limit in
   none, slowest reply 15.9 ms (2458 symbols), median 0.3 ms. To the owner.
-- O-40 (OPEN, owner 2026-10-13: "research more general mechanisms"): D-083 matches
+- O-40 (RESOLVED 2026-10-13 with D-085: (a); owner 2026-10-13: "research more general
+  mechanisms"): D-083 matches
   the project root in one spelling per server encoding (eglot, clangd, pyright); R's
   languageserver would be a fourth. Found (`RESEARCH_go_to_anything.md` 11): every
   encoder leaves letters, digits and `- _ . /` alone, so the root URI up to its
@@ -1170,7 +1186,7 @@ presets, GoogleTest runner.
   languageserver in `ess-r-mode` for project files, as pyright (needs R's CRAN
   packages on Arch); (b) Arity (a binary from outside both package managers); (c)
   Air for formatting only; (d) stay with ESS's session-based completion and xref
-  (D-072). Either (a) or (b) also needs O-40 (a) or a fourth spelling for `M-o`.
+  (D-072). `M-o` needs nothing more for (a) or (b) since D-085.
   Also found: the Mac's R is CRAN's R.framework, not the MacPorts port D-072 names.
   Owner rules.
 - O-38 (OPEN, owner 2026-10-13: "vendor rg.el / ag.el if no downsides"): `C-c p s a`
@@ -1503,6 +1519,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-082 | 2026-10-13 | `M-o` symbols: the project's; all on `l` | 10 | O-37 |
 | D-083 | 2026-10-13 | project symbols capped (10000), URI encoding and case | 10 | owner |
 | D-084 | 2026-10-13 | PgDn / PgUp page through vertico's candidates | 10 | owner |
+| D-085 | 2026-10-13 | project symbols: one URI matcher for every server | 10 | O-40 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.

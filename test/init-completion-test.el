@@ -177,10 +177,8 @@ without, clangd's usual limit and no filter."
           (make-symbolic-link (directory-file-name real) link)
           (let ((uris (emacs-cpp-go--root-uris (file-name-as-directory link))))
             ;; Both spellings, each ending in a slash, so `root-other/' is no match.
-            (should (member (concat (eglot-path-to-uri link :truenamep t) "/") uris))
-            (should (member (concat (eglot-path-to-uri (directory-file-name real) :truenamep t)
-                                    "/")
-                            uris))
+            (should (member (concat "file://" link "/") (mapcar #'cdr uris)))
+            (should (member (concat "file://" real) (mapcar #'cdr uris)))
             (let* ((symbol (lambda (name path)
                              (list :name name :location
                                    (list :uri (eglot-path-to-uri path :truenamep t)))))
@@ -221,31 +219,37 @@ without, clangd's usual limit and no filter."
       (delete-directory real t))))
 
 (ert-deftest init-completion-go-root-encoding-and-case ()
-  "D-083: a root with characters eglot and clangd encode differently matches
-clangd's URIs; on macOS a root in another case does too."
+  "D-085: a root's URI matches however a server escapes it: the four spellings
+seen (eglot, clangd, pyright, R's languageserver; checked 2026-10-13) under three
+awkward roots; not a sibling directory or a library; another case on macOS only;
+a `%' in the root's name."
   (init-test--load)
-  (require 'eglot)
   (let* ((parent (file-name-as-directory (file-truename (make-temp-file "emacs-cpp-root" t))))
-         (root (concat parent "c++ (x)@y/")))
+         (symbol (lambda (uri) (list :name "answer" :location (list :uri uri))))
+         (under (lambda (uri root)
+                  (and (emacs-cpp-go--under-root-p (funcall symbol (concat "file://" parent uri))
+                                                   (emacs-cpp-go--root-uris (concat parent root)))
+                       t))))
     (unwind-protect
-        (let* ((uris (emacs-cpp-go--root-uris root))
-               ;; As clangd 23.1.1 wrote it for such a project (checked 2026-10-13).
-               (clangd-uri (concat "file://" (directory-file-name parent)
-                                   "/c%2B%2B%20%28x%29%40y/include/toy/answer.h"))
-               (symbol (lambda (uri) (list :name "answer" :location (list :uri uri)))))
-          (make-directory root)
-          (should (emacs-cpp-go--under-root-p (funcall symbol clangd-uri) uris))
+        (progn
+          ;; Root, then its spelling by eglot, clangd, pyright, languageserver.
+          (pcase-dolist (`(,root . ,spellings)
+                         '(("c++ (x)@y/" "c++%20(x)@y" "c%2B%2B%20%28x%29%40y"
+                            "c%2B%2B%20%28x%29%40y" "c++%20(x)@y")
+                           ("a:b \u00e4/" "a%3Ab%20%C3%A4" "a:b%20%C3%A4" "a%3Ab%20%C3%A4"
+                            "a:b%20%C3%A4")
+                           ("py a:b c++/" "py%20a%3Ab%20c++" "py%20a:b%20c%2B%2B"
+                            "py%20a%3Ab%20c%2B%2B" "py%20a:b%20c++")))
+            (dolist (spelling spellings)
+              (should (funcall under (concat spelling "/src/a.cc") root))
+              (should-not (funcall under (concat spelling "-other/a.cc") root))
+              (should (eq (funcall under (upcase (concat spelling "/src/a.cc")) root)
+                          (eq system-type 'darwin)))))
+          (should-not (funcall under "c%2B%2B/a.h" "c++ (x)@y/"))
           (should-not (emacs-cpp-go--under-root-p
-                       (funcall symbol (concat "file://" parent "c%2B%2B/a.h")) uris))
-          ;; pyright escapes `:' as well (checked 2026-10-13 with `py a:b c++').
-          (let* ((py-root (concat parent "py a:b c++/"))
-                 (py-uri (concat "file://" (directory-file-name parent)
-                                 "/py%20a%3Ab%20c%2B%2B/pkg/answers.py")))
-            (should (emacs-cpp-go--under-root-p (funcall symbol py-uri)
-                                                (emacs-cpp-go--root-uris py-root))))
-          (should (eq (and (emacs-cpp-go--under-root-p (funcall symbol (upcase clangd-uri)) uris)
-                           t)
-                      (eq system-type 'darwin))))
+                       (funcall symbol "file:///usr/include/c%2B%2B/v1/vector")
+                       (emacs-cpp-go--root-uris (concat parent "c++ (x)@y/"))))
+          (should (funcall under "50%25off/a.R" "50%off/")))
       (delete-directory parent t))))
 
 (ert-deftest init-completion-go-narrowing-drops-hidden-candidates ()
