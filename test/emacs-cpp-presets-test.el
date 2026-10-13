@@ -174,7 +174,8 @@ a parent's null condition is not inherited, a preset's own null enables it."
                     nil (expand-file-name "build/debug/compile_commands.json" root))
       (should (equal (emacs-cpp-presets-clangd-contact nil project)
                      (list "clangd" (concat "--compile-commands-dir="
-                                            (expand-file-name "build/debug" root))))))))
+                                            (expand-file-name "build/debug" root))
+                           "--rename-file-limit=0"))))))
 
 (ert-deftest emacs-cpp-presets-clangd-contact-refuses-every-mistake-loudly ()
   "D-018: unreadable presets, a database still being written and an empty one
@@ -257,6 +258,7 @@ a file not yet saved and a listed source are not; a changed database is re-read.
       (let ((emacs-cpp-clangd-program patched))
         (should (equal (emacs-cpp-presets-clangd-contact nil project)
                        (list patched (concat "--compile-commands-dir=" dir)
+                             "--rename-file-limit=0"
                              "--navigation-from-index" "--header-flags-from-index"))))
       ;; An older patched build, not the patched build, or not there: refused,
       ;; no silent system clangd and no silently missing flag.

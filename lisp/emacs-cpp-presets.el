@@ -432,7 +432,10 @@ packaging/clangd-index-nav (D-026)"
        database name name root))
     (emacs-cpp-presets-check-database database)
     (let ((command (emacs-cpp-presets--clangd-program)))
-      `(,(car command) ,(concat "--compile-commands-dir=" dir) ,@(cdr command)))))
+      ;; Rename across the whole project: clangd's default stops at 50 files
+      ;; ("The number of affected files exceeds the max limit 50") (D-092).
+      `(,(car command) ,(concat "--compile-commands-dir=" dir) "--rename-file-limit=0"
+        ,@(cdr command)))))
 
 (defun emacs-cpp-presets-clangd-contact (_interactive project)
   "Return the clangd command for PROJECT, for `eglot-server-programs'.
