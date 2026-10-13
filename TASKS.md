@@ -102,6 +102,8 @@ with `done when: ...`).
 | T-055 | done 0052 | S | consult patch 0001: hidden sources | D-079 | stand-in measured |
 | T-050 | done | S | research: go to anything speed | owner | RESEARCH 8; O-33 |
 | T-056 | done 0054 | S | narrow keys 0.2 s after `<` | D-080 | test, terminal check |
+| T-057 | done 0055 | S | `C-c p ?` over projectile's files | D-081 | Mac measured |
+| T-058 | open | S | send the projectile find-references report | D-081 | owner sends it |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -260,6 +262,17 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-058 (opened 2026-10-13, D-081): send
+  `docs/upstream/projectile-find-references-file-list.md` to projectile's issue
+  tracker; outward, so the owner sends it. Done when: sent, issue number noted here.
+- T-057 (opened 2026-10-13, D-081): projectile patch 0001, `C-c p ?` over
+  projectile's file list with the platform's search program. Done when: on the Mac,
+  `C-c p ?` for `make_array_view` in deal.II lists its matches in about 12 s or less
+  (from 156 s); a test on a toy project gives tracked and untracked files, not
+  git-ignored ones, and fails without the patch; startup fails loudly without the
+  program; `make test`; owner measures on Arch. Agreed 2026-10-13. Built 2026-10-13
+  (0055): 10.6 - 11.3 s, same 607 / 9429 matches; all met but the owner's Arch
+  measurement and hand check.
 - T-056 (opened 2026-10-12, D-080): which-key lists consult's narrow keys 0.2 s
   after `<` in any prompt that has them. Done when: in such a prompt, `<` lists them
   after about 0.2 s; ESC, `C-x` and other prefixes still wait 3 s, in the prompt and

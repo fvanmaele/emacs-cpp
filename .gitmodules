@@ -2,6 +2,7 @@
 	path = lib/projectile
 	url = https://github.com/bbatsov/projectile
 	ignore = untracked
+	patch = patches/projectile/0001-Search-the-project-s-file-list-in-projectile-find-re.patch
 [submodule "treemacs"]
 	path = lib/treemacs
 	url = https://github.com/Alexander-Miller/treemacs

@@ -176,3 +176,24 @@ nothing run or measured.
 - Summary: Qt Creator hides the cold-index period with a second, approximate parser
   that runs all the time. It does not answer from clangd's index before the parse, and
   it has no counterpart to `--navigation-from-index`.
+
+## 8. A symbol-to-references command (owner question 2026-10-13)
+Question: would a "projectile-find-symbols" (pick a symbol of the project, see it or
+its references) need the patched clangd (D-026), or more JSON parses?
+- Picking a symbol by name is `workspace/symbol`, which clangd answers from the index
+  with no file parsed (section 1, `getWorkspaceSymbols`); stock clangd suffices. One
+  request per input, one reply of at most 100 symbols (`--limit-results` default; the
+  config passes none). It exists: `C-c l s` (consult-eglot) and `M-o` with `< s`.
+- LSP has no "references of a symbol" request; `textDocument/references` takes a file
+  and position. A command would open the chosen symbol's file at its location
+  (eglot's `didOpen` sends the whole text) and ask there. Stock clangd answers through
+  `runWithAST`, so it waits for that file's parse (7 - 13 s for a deal.II file opened
+  first, S1 / S5); the patched clangd answers from the file's shard while the parse
+  runs (`findReferencesFromShard`, section 4). Not needed for correct answers, needed
+  for fast ones.
+- JSON: one request, one reply of at most 1000 locations (`--limit-references`
+  default). Not the cost that matters.
+- The cost that matters on the Mac: eglot reads every file in the reply to show the
+  line of each reference (`eglot--xref-make-match`, `insert-file-contents` once per
+  file), and opening a file there costs about 14 ms (O-24, O-36): 1000 files about
+  14 s. `M-?` pays the same today. Not measured with clangd.

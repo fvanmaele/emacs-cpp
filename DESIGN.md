@@ -874,6 +874,20 @@ Mechanisms, each PROPOSED until measured:
   (network, upkeep; reconsider for many long-lived changes), and Lisp workarounds
   beyond a line or two (they lean on the package's internals). First patch:
   treemacs 0001, T-041, replacing D-067's stand-in timer. Second: consult 0001 (D-079).
+  Third: projectile 0001 (D-081).
+- DECIDED D-081 (owner 2026-10-13, O-36: "patch projectile", "GNU grep on Arch"):
+  `C-c p ?` / `C-c p s x` (`projectile-find-references`, a textual search) searches the
+  files `projectile-project-files` lists with `xref-matches-in-files`, through
+  projectile patch 0001 (D-069, `patches/projectile/0001-...`), instead of
+  `xref-matches-in-directory` (find, then grep one file at a time, whatever
+  `xref-search-program` says). `xref-search-program` comes from the platform's
+  defaults file (D-055): `ripgrep` on macOS, `grep` on Arch (no ripgrep there,
+  DESIGN 3); a missing executable stops startup. git-ignored files (build
+  directories) are no longer searched, as in `C-c p f`. Measured on the Mac, deal.II
+  (33768 files): 130 - 156 s before, 10.6 - 11.3 s after, the same 607 / 9429
+  matches; `rg` alone in the tree 5.5 - 6 s, the floor there, set by about 14 ms per
+  file opened (O-24). Arch not measured (owner). Upstream report drafted
+  (`docs/upstream/projectile-find-references-file-list.md`), the owner sends it.
 - REJECTED: borg (the tool this layout imitates). It assumes the package repository is
   the Emacs directory itself, which contradicts D-003; reconsider if own glue grows past
   about 100 lines. Measured after T-002: `scripts/build-packages.el` has 183 lines of
@@ -1071,7 +1085,18 @@ presets, GoogleTest runner.
 - O-24 (b) data (T-027, 2026-10-09): Mac startup median 0.852 s against the 0.5 s
   budget (Arch 0.151 s); first `M-.` from the index 2.6 s (Arch 1.4 s). If the budgets
   bind on the Mac, startup needs work there first (antivirus and native-code loading
-  are the suspects, not measured).
+  are the suspects, not measured). 2026-10-13 (O-36): on the Mac, reading every file
+  of deal.II (33768) one at a time took 480 s, `stat` on each 0.2 s: about 14 ms per
+  file opened, page cache or not, which points at a scanner checking each open
+  (XProtect and Cisco Secure Client run; not identified).
+- O-36 (RESOLVED 2026-10-13 with D-081: patch projectile, GNU grep on Arch; owner
+  report 2026-10-13): `C-c p ?` ("Find references to:") very slow. Cause: projectile
+  3.4.0 searches with find and grep, one file at a time, ignoring
+  `xref-search-program`; on the Mac each file opened costs about 14 ms. Options: (a)
+  a projectile patch searching projectile's file list through `xref-search-program`;
+  (b) an own command with the same mechanics; (c) clangd's references in C++
+  buffers. Owner's side question (a symbol-to-references command, patched clangd,
+  JSON): `RESEARCH_clangd_index_navigation.md` 8.
 - O-35 (RESOLVED 2026-10-12 with D-080: every prompt with narrow keys, about 0.2 s;
   owner 2026-10-12): which-key lists consult's narrow keys only 3 s after `<`
   (D-071), too late in the go-to-anything prompt. Scope: `M-o` only, every prompt
@@ -1380,6 +1405,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-078 | 2026-10-11 | go to anything without consult's `#` | 10 | owner |
 | D-079 | 2026-10-11 | consult patch: hidden sources leave the list | 12 | O-34 |
 | D-080 | 2026-10-12 | which-key lists narrow keys 0.2 s after `<` in prompts | 10 | O-35 |
+| D-081 | 2026-10-13 | `C-c p ?` searches projectile's files, ripgrep on macOS | 12 | O-36 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
