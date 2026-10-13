@@ -273,7 +273,8 @@ with `done when: ...`).
   macOS only, symlinked root, `%` in the root's name; clangd and pyright under toy,
   TOY, `c++ (x)@y`, `a:b` + U+00E4, `py a:b c++` list the project's symbols; filter
   <= 5 ms per 6673 symbols as shipped; `make test`. Agreed 2026-10-13. Done
-  2026-10-13 (0058): all met, 3.7 - 4.2 ms; 88 tests.
+  2026-10-13 (0058): all met, 3.7 - 4.2 ms; 88 tests. Owner's hand check 2026-10-13
+  (`M-o` `typ` in step-1): pass.
 - T-061 (opened 2026-10-13, D-083): risks of D-082 measured; cap and filter fixes.
   Done when: defcustom `emacs-cpp-go-symbol-limit`, default 10000 (0 = none), sent
   as clangd's limit for `s`; a reply reaching it shows a message; the root also
@@ -288,6 +289,8 @@ with `done when: ...`).
   `C-c l s` unchanged; tests for the request's parameters and filter, the sources
   and keys; `make test`; owner's hand check: `M-o` `opt` and `< l` in step-1. Agreed
   2026-10-13. Built 2026-10-13 (0056): all met but the owner's hand check; 86 tests.
+  The `s` part passed in the owner's checks of D-083 and D-085 (`M-o` `typ`, step-1);
+  `< l` not reported yet.
 - T-059 (opened 2026-10-13, O-37): owner runs S11 run 5
   (`spikes/s11-go-to-anything/scope.sh`, RUN.md run 5) on RMO. Done when:
   `results-run5.log` handed back and RESULTS.md has run 5; O-37 then goes to the
