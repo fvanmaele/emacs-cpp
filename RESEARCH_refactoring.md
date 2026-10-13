@@ -54,7 +54,11 @@ them (as it should not); DefineOutline not for a header without a `.cc` beside i
   build's errors list every call (`C-c p c c`, `M-g n`), or `M-?`, then `C-.` `E`
   (embark exports consult's xref list to an `*xref*` buffer,
   `embark-consult-export-xref`) and `r` there (`xref-query-replace-in-results`) to
-  replace in exactly the files with references (from the sources; not run here).
+  replace in exactly the files with references. Run 2026-10-14 in a terminal Emacs
+  on the 62-source project: the export buffer listed the references, `r` asks only
+  for the new text (it replaces each listed name), `Y` replaces in every file (`!`
+  only in the current one), `C-x s !` saved 63 files, the project built. It rewrites
+  the name only, not the arguments after it.
 - Extract function / variable: yes (clangd), within one file; no extract constant,
   parameter, typedef or define.
 - Inline: no "inline a function or variable at its uses"; DefineInline moves a
@@ -87,6 +91,5 @@ compilation database; none is wired into Emacs here.
   `C-c l r`, build errors, `M-?` -> `E` -> `r`), after running it once.
 
 ## 6. Not checked
-- The `M-?` -> `C-.` `E` -> `r` route by hand.
 - Arch's clang package for the CLI tools.
 - clangd's rename on RMO or deal.II (index coverage; the 50-file limit).
