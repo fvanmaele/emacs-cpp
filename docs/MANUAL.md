@@ -184,7 +184,7 @@ names and deduced types.
 | `M-?` | find usages |
 | `M-,` | back to where you were; `C-M-,` forward again |
 | `C-x 4 .` | definition in the other window |
-| `C-c l s` | search symbols of the project |
+| `C-c l s` | search symbols by name, the libraries' too (`M-o`: the project's only) |
 | `M-g i` | symbols of this file |
 | `C-c l r` | rename everywhere |
 | `C-c l a` | fixes and refactorings offered here |

@@ -128,7 +128,7 @@ REPLY-LATER, after all inputs, newest first."
     (cl-letf (((symbol-function 'consult-eglot--servers) (lambda () '(server)))
               ((symbol-function 'jsonrpc-async-request)
                (lambda (_server _method params &rest _) (push (plist-get params :query) queries))))
-      (let* ((source (emacs-cpp-go--symbol-source))
+      (let* ((source (car (emacs-cpp-go--symbol-sources "/project/")))
              (step (funcall (plist-get source :async) (lambda (_) nil))))
         (should (equal (plist-get source :narrow) ?s))
         (funcall step 'setup)
@@ -139,6 +139,66 @@ REPLY-LATER, after all inputs, newest first."
         (funcall step "vec")
         (accept-process-output nil 0.2)
         (should (equal queries '("vec")))))))
+
+(ert-deftest init-completion-go-symbol-sources ()
+  "D-082: `s' the project's symbols, `l' hidden with every symbol; no root, `s' only."
+  (init-test--load)
+  (require 'consult)
+  (require 'eglot)
+  (require 'consult-eglot)
+  (cl-letf (((symbol-function 'consult-eglot--servers) (lambda () '(server))))
+    (let ((sources (emacs-cpp-go--symbol-sources "/project/")))
+      (should (equal (mapcar (lambda (s) (plist-get s :name)) sources)
+                     '("Symbol" "All Symbols")))
+      (should (equal (mapcar (lambda (s) (plist-get s :narrow)) sources) '(?s ?l)))
+      (should (equal (mapcar (lambda (s) (plist-get s :hidden)) sources) '(nil t))))
+    (should (equal (mapcar (lambda (s) (plist-get s :narrow))
+                           (emacs-cpp-go--symbol-sources nil))
+                   '(?s)))))
+
+(ert-deftest init-completion-go-project-symbols ()
+  "D-082: with root URIs every match is asked for and only the project's kept;
+without, clangd's usual limit and no filter."
+  (init-test--load)
+  (require 'consult)
+  (require 'eglot)
+  (let* ((real (file-name-as-directory (file-truename (make-temp-file "emacs-cpp-root" t))))
+         (link (concat (directory-file-name real) "-link")))
+    (unwind-protect
+        (progn
+          (make-symbolic-link (directory-file-name real) link)
+          (let ((uris (emacs-cpp-go--root-uris (file-name-as-directory link))))
+            ;; Both spellings, each ending in a slash, so `root-other/' is no match.
+            (should (equal uris (list (concat (eglot-path-to-uri link :truenamep t) "/")
+                                      (concat (eglot-path-to-uri (directory-file-name real)
+                                                                 :truenamep t)
+                                              "/"))))
+            (let* ((symbol (lambda (name path)
+                             (list :name name :location
+                                   (list :uri (eglot-path-to-uri path :truenamep t)))))
+                   (reply (vector (funcall symbol "mine" (concat real "src/a.cc"))
+                                  (funcall symbol "linked" (concat link "/include/a.h"))
+                                  (funcall symbol "library" "/usr/include/deal.II/a.h")
+                                  (funcall symbol "sibling"
+                                           (concat (directory-file-name real) "-other/a.cc"))))
+                   (run (lambda (root-uris)
+                          (let (params sunk)
+                            (cl-letf (((symbol-function 'jsonrpc-async-request)
+                                       (lambda (_server _method p &rest args)
+                                         (setq params p)
+                                         (funcall (plist-get args :success-fn) reply))))
+                              (funcall (funcall (emacs-cpp-go--symbol-request '(server) root-uris)
+                                                (lambda (action) (push action sunk) nil))
+                                       "vec"))
+                            (list params
+                                  (mapcar (lambda (s) (plist-get s :name))
+                                          (seq-find #'consp sunk)))))))
+              (should (equal (funcall run uris)
+                             '((:query "vec" :limit 0) ("mine" "linked"))))
+              (should (equal (funcall run nil)
+                             '((:query "vec") ("mine" "linked" "library" "sibling")))))))
+      (delete-file link)
+      (delete-directory real t))))
 
 (ert-deftest init-completion-go-narrowing-drops-hidden-candidates ()
   "consult patch 0001 (D-079): narrowed, a hidden source's candidates leave the list;

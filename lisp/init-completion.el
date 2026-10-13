@@ -112,9 +112,9 @@
 ;;;; Go to anything
 
 ;; CLion's "search everywhere" on `M-o' (D-074 .. D-078): one prompt over buffers,
-;; recent files, bookmarks and the project's files from the first key, clangd's
-;; symbols from the third; commands (`x') and known projects (`p') behind narrow
-;; keys.  Spike S11 measured it on RMO and the deal.II tree: the settings bound in
+;; recent files, bookmarks and the project's files from the first key, the
+;; project's clangd symbols from the third (D-082); all symbols (`l'), commands
+;; (`x') and known projects (`p') behind narrow keys.  Spike S11 measured it on RMO and the deal.II tree: the settings bound in
 ;; `emacs-cpp-go-to-anything' keep each key under 25 ms on RMO (0049).
 
 (defun emacs-cpp-go--highlight-first (limit)
@@ -132,11 +132,28 @@ with `:sort nil' the first hits are the ones on screen."
                    (when (<= count limit)
                      (funcall highlight string))))))))
 
-(defun emacs-cpp-go--symbol-request (servers)
+(defun emacs-cpp-go--root-uris (root)
+  "Return the file URIs a symbol under project ROOT starts with, ending in /.
+Both ROOT as projectile gives it and its true name: clangd's URIs follow the
+paths of the compilation database, which may or may not resolve symlinks."
+  (seq-uniq
+   (mapcar (lambda (dir)
+             ;; `:truenamep t': taken as given, else eglot resolves symlinks.
+             (concat (eglot-path-to-uri (directory-file-name dir) :truenamep t) "/"))
+           (list (expand-file-name root) (file-truename root)))))
+
+(defun emacs-cpp-go--under-root-p (symbol root-uris)
+  "Non-nil when SYMBOL's file URI starts with one of ROOT-URIS."
+  (let ((uri (plist-get (plist-get symbol :location) :uri)))
+    (seq-some (lambda (prefix) (string-prefix-p prefix uri)) root-uris)))
+
+(defun emacs-cpp-go--symbol-request (servers &optional root-uris)
   "Return an async step asking SERVERS for the workspace symbols of each input.
 An empty input sends nothing (D-077): consult-eglot's own source asks for \"\"
 when its prompt opens, which lists 100 arbitrary symbols.  A reply to an input
-that has since changed is dropped."
+that has since changed is dropped.  With ROOT-URIS, each request asks for every
+match (clangd's `limit' 0) and only symbols under one of ROOT-URIS are kept
+(D-082): within clangd's usual 100, library symbols crowd the project's out."
   (lambda (sink)
     (let (latest)
       (lambda (action)
@@ -145,10 +162,15 @@ that has since changed is dropped."
             (setq latest query)
             (dolist (server servers)
               (jsonrpc-async-request
-               server :workspace/symbol `(:query ,query)
+               server :workspace/symbol
+               (if root-uris `(:query ,query :limit 0) `(:query ,query))
                :success-fn
                (lambda (reply)
                  (when (equal query latest)
+                   (when root-uris
+                     (setq reply (seq-filter (lambda (symbol)
+                                               (emacs-cpp-go--under-root-p symbol root-uris))
+                                             reply)))
                    (setq replies (sort (append replies reply nil)
                                        :key (lambda (symbol)
                                               (- (or (plist-get symbol :score) 0)))))
@@ -162,26 +184,38 @@ that has since changed is dropped."
                  (message "emacs-cpp: workspace/symbol %S timed out" query))))))
         (funcall sink action)))))
 
-(defun emacs-cpp-go--symbol-source ()
-  "Return the clangd symbol source, or nil when no server of the project has one.
-The candidates and their preview come from consult-eglot."
+(defun emacs-cpp-go--symbol-sources (root)
+  "Return the clangd symbol sources for project ROOT, nil when no server has one.
+`s': symbols defined under ROOT (D-082).  `l', hidden until narrowed: every
+symbol of clangd's index, deal.II's and the standard library's too, clangd's
+best 100 as `C-c l s' shows them.  Without ROOT, `s' is the latter."
   (when (featurep 'eglot)
     (require 'consult-eglot)
     (when-let* ((servers (consult-eglot--servers)))
-      (list :name "Symbol" :narrow ?s :category 'consult-eglot-symbols
-            :state (lambda ()
-                     (let ((state (consult-eglot--state)))
-                       (lambda (action candidate)
-                         (funcall state action
-                                  (and candidate
-                                       (get-text-property 0 'consult--candidate
-                                                          candidate))))))
-            :emacs-cpp-action (lambda (_) (run-hooks 'consult-after-jump-hook))
-            :async (consult--async-pipeline
-                    (consult--async-min-input 3)
-                    (consult--async-throttle 0.05 0.05)
-                    (emacs-cpp-go--symbol-request servers)
-                    (consult--async-map #'consult-eglot--transformer))))))
+      (if root
+          (list (emacs-cpp-go--symbol-source "Symbol" ?s nil servers
+                                             (emacs-cpp-go--root-uris root))
+                (emacs-cpp-go--symbol-source "All Symbols" ?l t servers nil))
+        (list (emacs-cpp-go--symbol-source "Symbol" ?s nil servers nil))))))
+
+(defun emacs-cpp-go--symbol-source (name narrow hidden servers root-uris)
+  "Return a symbol source NAME on key NARROW, HIDDEN or not, asking SERVERS.
+ROOT-URIS as in `emacs-cpp-go--symbol-request'.  The candidates and their
+preview come from consult-eglot."
+  (list :name name :narrow narrow :hidden hidden :category 'consult-eglot-symbols
+        :state (lambda ()
+                 (let ((state (consult-eglot--state)))
+                   (lambda (action candidate)
+                     (funcall state action
+                              (and candidate
+                                   (get-text-property 0 'consult--candidate
+                                                      candidate))))))
+        :emacs-cpp-action (lambda (_) (run-hooks 'consult-after-jump-hook))
+        :async (consult--async-pipeline
+                (consult--async-min-input 3)
+                (consult--async-throttle 0.05 0.05)
+                (emacs-cpp-go--symbol-request servers root-uris)
+                (consult--async-map #'consult-eglot--transformer))))
 
 (defun emacs-cpp-go--file-source (root)
   "Return the source of ROOT's files, listed now, or nil when ROOT is nil.
@@ -206,26 +240,28 @@ under `while-no-input' and lists again when interrupted (S11 run 2)."
 (defun emacs-cpp-go--sources (buffer root)
   "Return the sources of the go-to-anything prompt for BUFFER in project ROOT."
   (delq nil
-        (list consult-source-buffer
-              ;; consult's recent files narrow with `f', taken here by the project's.
-              (append '(:name "Recent File" :narrow ?r) consult-source-recent-file)
-              consult-source-bookmark
-              (emacs-cpp-go--file-source root)
-              (with-current-buffer buffer (emacs-cpp-go--symbol-source))
-              (list :name "Command" :narrow ?x :hidden t :category 'command
-                    :history 'extended-command-history
-                    :items (lambda () (emacs-cpp-go--commands buffer))
-                    :emacs-cpp-action (lambda (name) (command-execute (intern name) 'record)))
-              (list :name "Project" :narrow ?p :hidden t :category 'file
-                    :items #'projectile-relevant-known-projects
-                    :emacs-cpp-action #'projectile-switch-project-by-name))))
+        (append
+         (list consult-source-buffer
+               ;; consult's recent files narrow with `f', taken here by the project's.
+               (append '(:name "Recent File" :narrow ?r) consult-source-recent-file)
+               consult-source-bookmark
+               (emacs-cpp-go--file-source root))
+         (with-current-buffer buffer (emacs-cpp-go--symbol-sources root))
+         (list (list :name "Command" :narrow ?x :hidden t :category 'command
+                     :history 'extended-command-history
+                     :items (lambda () (emacs-cpp-go--commands buffer))
+                     :emacs-cpp-action (lambda (name) (command-execute (intern name) 'record)))
+               (list :name "Project" :narrow ?p :hidden t :category 'file
+                     :items #'projectile-relevant-known-projects
+                     :emacs-cpp-action #'projectile-switch-project-by-name)))))
 
 (defun emacs-cpp-go-to-anything ()
   "Go to a buffer, recent file, bookmark, project file or clangd symbol.
-Commands (narrow with `x') and known projects (`p') are hidden until narrowed.
-Narrow with `<' and the letter (b r m f s x p), or the letter and SPC; `<' first
-does not filter the files by the letter (D-079).  `< <' widens again.
-Symbols need three characters and a running eglot server.  The settings of
+Symbols are the project's (D-082); every symbol, deal.II's and the standard
+library's too (narrow with `l'), commands (`x') and known projects (`p') are
+hidden until narrowed.  Narrow with `<' and the letter (b r m f s l x p), or the
+letter and SPC; `<' first does not filter the files by the letter (D-079).
+`< <' widens again.  Symbols need three characters and a running eglot server.  The settings of
 D-077 hold only while the prompt is open; the command or project chosen runs
 after it, with the usual ones."
   (interactive)

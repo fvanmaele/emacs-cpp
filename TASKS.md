@@ -105,6 +105,7 @@ with `done when: ...`).
 | T-057 | done 0055 | S | `C-c p ?` over projectile's files | D-081 | Mac measured |
 | T-058 | open | S | send the projectile find-references report | D-081 | owner sends it |
 | T-059 | done | S | S11 run 5: project symbols among clangd's | O-37 | RESULTS run 5 |
+| T-060 | done 0056 | S | `M-o` project symbols, all on `l` | D-082 | toy with clangd |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -263,6 +264,13 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-060 (opened 2026-10-13, D-082): `M-o` `s` lists the project's symbols, hidden
+  `l` all of them. Done when: `s` asks clangd with limit 0 and lists only symbols
+  whose URI is under the project root (as projectile gives it or its true name);
+  hidden `l` ("All Symbols") lists clangd's best 100 of everything, as `s` did;
+  `C-c l s` unchanged; tests for the request's parameters and filter, the sources
+  and keys; `make test`; owner's hand check: `M-o` `opt` and `< l` in step-1. Agreed
+  2026-10-13. Built 2026-10-13 (0056): all met but the owner's hand check; 86 tests.
 - T-059 (opened 2026-10-13, O-37): owner runs S11 run 5
   (`spikes/s11-go-to-anything/scope.sh`, RUN.md run 5) on RMO. Done when:
   `results-run5.log` handed back and RESULTS.md has run 5; O-37 then goes to the
