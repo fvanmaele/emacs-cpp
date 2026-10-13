@@ -15,22 +15,19 @@
 (require 'init-test)
 
 (ert-deftest init-lsp-mouse-bindings ()
-  "D-093: Cmd (Mac) / Ctrl (Arch) clicks; with Opt / Alt implementations, with
-Shift the type."
+  "D-093: Cmd (Mac) / Super (Arch) clicks; with Opt / Alt implementations, with
+Shift the type.  Ctrl's clicks stay Emacs's (buffer menu, rectangle drag)."
   (init-test--load)
-  (should (eq emacs-cpp-default-mouse-modifier
-              (if (eq system-type 'darwin) 'super 'control)))
+  (should (eq emacs-cpp-default-mouse-modifier 'super))
   (pcase-dolist (`(,keys . ,command)
-                 (if (eq system-type 'darwin)
-                     '(("s-<mouse-1>" . emacs-cpp-lsp-mouse-definition-or-references)
-                       ("M-s-<mouse-1>" . emacs-cpp-lsp-mouse-implementation)
-                       ("S-s-<mouse-1>" . emacs-cpp-lsp-mouse-type-definition))
-                   '(("C-<mouse-1>" . emacs-cpp-lsp-mouse-definition-or-references)
-                     ("C-M-<mouse-1>" . emacs-cpp-lsp-mouse-implementation)
-                     ("C-S-<mouse-1>" . emacs-cpp-lsp-mouse-type-definition))))
+                 '(("s-<mouse-1>" . emacs-cpp-lsp-mouse-definition-or-references)
+                   ("M-s-<mouse-1>" . emacs-cpp-lsp-mouse-implementation)
+                   ("S-s-<mouse-1>" . emacs-cpp-lsp-mouse-type-definition)))
     (should (eq (keymap-lookup global-map keys) command))
     (should-not (keymap-lookup global-map
-                               (replace-regexp-in-string "<mouse-1>" "<down-mouse-1>" keys)))))
+                               (replace-regexp-in-string "<mouse-1>" "<down-mouse-1>" keys))))
+  (should (eq (keymap-lookup global-map "C-<down-mouse-1>") #'mouse-buffer-menu))
+  (should (eq (keymap-lookup global-map "C-M-<down-mouse-1>") #'mouse-drag-region-rectangle)))
 
 (ert-deftest init-lsp-mouse-definition-or-references ()
   "D-093: a click on a use goes to the definition, on the definition itself it

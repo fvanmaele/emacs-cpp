@@ -13,9 +13,9 @@ tasks step by step: `docs/MANUAL.md`.
 | `M-?` | find usages (references) |
 | `M-,` | go back to where you were before `M-.` / `M-?` |
 | `C-M-,` | go forward again |
-| Cmd+click (Mac) / Ctrl+click (Arch) | definition of the symbol clicked; on its definition: its usages |
-| Cmd+Opt+click / Ctrl+Alt+click | implementations of the symbol clicked |
-| Cmd+Shift+click / Ctrl+Shift+click | the type of the symbol clicked |
+| Cmd+click (Mac) / Super+click (Arch) | definition of the symbol clicked; on its definition: its usages |
+| Cmd+Opt+click / Super+Alt+click | implementations of the symbol clicked |
+| Cmd+Shift+click / Super+Shift+click | the type of the symbol clicked |
 | right click | menu: Find Definition / References, Rename, Code Actions, Implementation, Format |
 | `C-M-.` | search symbols in the whole project by name |
 | `C-c l s` | the same, with live preview (`consult-eglot-symbols`); libraries' symbols too |
@@ -40,6 +40,8 @@ part to jump (D-043).
 | `M-;` | comment / uncomment the region or line |
 | `M-i` | indent by hand to the next step (`c-ts-indent-offset`, D-066) |
 | `C-x TAB` then `S-<right>` / `S-<left>` | move the selected lines one step right / left |
+| `C-c l T` | apply clang-tidy's fixes to the whole project (asks for the checks) |
+| `C-c l M` | move classes to a new header / source (clang-move); add the source to CMake |
 
 `C-c l f` follows the project's `.clang-format` (LLVM style without one); `TAB` and
 `RET` follow `.dir-locals.el` (Emacs's rules, D-065). Writing both from a file that has the project's style:
@@ -169,6 +171,7 @@ Spyder. `.R` files open in ESS's `ess-r-mode`; R starts in the project root.
 | `C-c C-r` / `C-c C-z` | run the selection / go to the shell (Python and R; R's: back) |
 
 ## LaTeX (AUCTeX and texlab, D-090)
+All of AUCTeX's keys: `docs/CHEATSHEET-AUCTEX.md`.
 `.tex` files open in AUCTeX's `LaTeX-mode`; in a project texlab starts, and `M-.`,
 `M-?` and `C-c l r` follow `\ref`, `\cite` and your own commands across the files;
 `M-o` lists the project's sections and labels. Completion offers labels, citation keys
