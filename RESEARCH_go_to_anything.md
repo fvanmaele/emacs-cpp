@@ -439,6 +439,13 @@ code is what is slow on this Mac:
   0.9 s cold, 0.03 s warm.
 - Arch not measured; O-24's Mac startup (0.85 s against Arch's 0.15 s) may be the
   same cause.
+- After the owner's GDATA exception for `/Applications/MacPorts` (2026-10-13; the
+  GDATA dialog cannot select hidden directories, so `~/.emacs.d/eln-cache` has
+  none): Org native 1.18 - 1.42 s, byte-code 0.27 - 0.33 s; the config in batch
+  native 0.54 - 0.65 s, byte-code 0.21 s. The config's own packages are native code
+  in `~/.emacs.d/eln-cache`; Emacs can keep that cache elsewhere
+  (`startup-redirect-eln-cache` in early-init), e.g. a visible directory under
+  `~/source`, which the exception covers (not tried).
 
 **So images are a cause, but a small one in batch** (about 0.16 s once, plus decoding
 in the GUI, not measured); the large first-use costs come from modes loading for
