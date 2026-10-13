@@ -1116,8 +1116,9 @@ presets, GoogleTest runner.
   Findings in; O-26 ruled (D-054 confirmed, upstream report T-032).
 - `RESEARCH_keys_build_debug_ui.md` (owner questions 2026-10-08): key hints, building
   from any buffer, breakpoint indicators. Findings in; rulings O-16, O-17, O-18.
-- `RESEARCH_refactoring.md`: which CLion refactorings clangd code actions cover in
-  clangd 22 (fills the (R) rows of section 1). After v0.1.
+- `RESEARCH_refactoring.md` (owner request 2026-10-13): CLion's C++ refactorings
+  against clangd 23.1.1's rename and tweaks and the clang command-line tools; rename
+  measured across 63 files. Findings in; O-43.
 
 ## Open questions ledger (LIVING)
 - O-5 (RESOLVED 2026-10-08 with D-028 for headers the index knows): cold-header flags
@@ -1242,6 +1243,16 @@ presets, GoogleTest runner.
   (T-059, owner's deal.II project `step-1`, Mac, 40 queries): filtering today's 100
   loses project symbols in 14 queries (373 symbols), 1000 in 2 (30), no limit in
   none, slowest reply 15.9 ms (2458 symbols), median 0.3 ms. To the owner.
+- O-43 (OPEN, owner request 2026-10-13: "research further C++ refactorings from
+  CLion, e.g. signature change, refactor in project files"): findings in
+  `RESEARCH_refactoring.md`. clangd renames across files from its index but refuses
+  beyond 50 files by default (`--rename-file-limit`; measured: 63 files refused,
+  with 0 renamed in 224 ms); no change signature, inline, safe delete, pull up / push
+  down; extract function / variable, define outline / inline, populate switch,
+  special members, override pure virtuals, scopify enum and more as code actions.
+  Options: (a) `--rename-file-limit=0`; (b) a clangd change-signature tweak, spike
+  first; (c) commands around clang-move, clang-change-namespace, run-clang-tidy -fix;
+  (d) document the by-hand route for signature changes. Owner rules.
 - O-42 (RESOLVED 2026-10-13 with D-090: (b), build on a key; owner request
   2026-10-13: "research latex (LSP) support, in particular
   texlab"): findings in `RESEARCH_latex.md`. texlab is packaged on both machines
