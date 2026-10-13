@@ -60,8 +60,8 @@ under way when the visit returns; the buffer is managed once it ends."
 (ert-deftest init-loads-and-matches-retired-dot-emacs ()
   "init.el loads without error and keeps the behaviour of the retired ~/.emacs."
   (init-test--load)
-  (dolist (feature '(init-ui init-completion init-project init-cpp init-cmake init-debug
-                     init-git init-writing))
+  (dolist (feature '(init-ui init-completion init-project init-lsp init-cpp init-cmake init-debug
+                     init-latex init-git init-writing))
     (should (featurep feature)))
   (should-not package-enable-at-startup)
   (should (equal custom-file (expand-file-name "custom.el" init-test--home)))
@@ -160,7 +160,10 @@ configuration loads and finds its search program."
           (should (re-search-forward "^SEARCH \\(.*\\)" nil t))
           (should (equal (match-string 1)
                          (format "%S t" emacs-cpp-default-xref-search-program))))
-      (delete-directory home t))))
+      (delete-directory home t)))
+  ;; MacTeX's programs for AUCTeX's preview and texlab's build (D-090).
+  (when (eq system-type 'darwin)
+    (should (member "/Library/TeX/texbin" emacs-cpp-default-exec-path-prepend))))
 
 (ert-deftest init-saved-theme-survives-restart ()
   "D-040: a theme saved with customize-themes is the one in effect after startup;

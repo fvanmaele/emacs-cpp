@@ -164,6 +164,24 @@ Spyder. `.R` files open in ESS's `ess-r-mode`; R starts in the project root.
 | `C-c % a` / `C-c % @` | run the cells above / select the cell |
 | `C-c C-r` / `C-c C-z` | run the selection / go to the shell (Python and R; R's: back) |
 
+## LaTeX (AUCTeX and texlab, D-090)
+`.tex` files open in AUCTeX's `LaTeX-mode`; in a project texlab starts, and `M-.`,
+`M-?` and `C-c l r` follow `\ref`, `\cite` and your own commands across the files;
+`M-o` lists the project's sections and labels. Completion offers labels, citation keys
+and environments.
+
+| Key | Does |
+|---|---|
+| `C-c l b` | build with texlab (latexmk), then show this line in Skim / zathura |
+| `C-c C-e` / `C-c ]` | insert an environment (asks its name) / close the open one |
+| `C-c C-m` / `C-c C-s` | insert a macro with its arguments / a section with a label |
+| `C-c C-f` then a letter | font: `C-b` bold, `C-i` italic, `C-e` emphasis |
+| `C-c ~` | math mode keys: `` ` `` then a letter inserts a symbol |
+| `C-c C-p C-p` / `C-c C-p C-b` | preview the formula at point / the whole buffer |
+| `C-c C-o C-f` | fold macros and environments into their text |
+| `C-c C-c` / `C-c C-v` | AUCTeX's own compile step / view |
+| ``C-c ` `` | AUCTeX: next error of its own compile, with help |
+
 ## Git (magit)
 | Key | Does |
 |---|---|
