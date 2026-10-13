@@ -119,6 +119,9 @@ REPLY-LATER, after all inputs, newest first."
     (should-not (member '((:name "vec")) sunk))))
 
 (ert-deftest init-completion-go-symbols-from-third-character ()
+  "D-077: no request before the third character.  consult's timing (D-087) is
+checked in a terminal Emacs: in batch the minibuffer never changes, so consult
+takes every input for initial input and sends it at once."
   (init-test--load)
   (require 'consult)
   (require 'eglot)
@@ -128,7 +131,7 @@ REPLY-LATER, after all inputs, newest first."
     (cl-letf (((symbol-function 'consult-eglot--servers) (lambda () '(server)))
               ((symbol-function 'jsonrpc-async-request)
                (lambda (_server _method params &rest _) (push (plist-get params :query) queries))))
-      (let* ((source (emacs-cpp-go--symbol-source))
+      (let* ((source (car (emacs-cpp-go--symbol-sources "/project/")))
              (step (funcall (plist-get source :async) (lambda (_) nil))))
         (should (equal (plist-get source :narrow) ?s))
         (funcall step 'setup)
@@ -137,8 +140,144 @@ REPLY-LATER, after all inputs, newest first."
           (accept-process-output nil 0.2))
         (should (null queries))
         (funcall step "vec")
-        (accept-process-output nil 0.2)
+        (let ((deadline (+ (float-time) 1.5)))
+          (while (and (null queries) (< (float-time) deadline))
+            (accept-process-output nil 0.05)))
         (should (equal queries '("vec")))))))
+
+(ert-deftest init-completion-page-keys ()
+  "D-084: PgDn / PgUp page through vertico's candidates, not the history."
+  (init-test--load)
+  (should (eq (keymap-lookup vertico-map "<next>") #'vertico-scroll-up))
+  (should (eq (keymap-lookup vertico-map "<prior>") #'vertico-scroll-down))
+  (should (eq (keymap-lookup minibuffer-local-map "M-n") #'next-history-element)))
+
+(ert-deftest init-completion-go-all-symbols-empty-input ()
+  "D-086: `l' asks clangd for an empty input, as `C-c l s' does when it opens, and
+keeps that list for one or two characters; `s' asks nothing for either."
+  (init-test--load)
+  (require 'consult)
+  (let ((steps (lambda (empty inputs)
+                 (let (sunk)
+                   (let ((step (funcall (emacs-cpp-go--min-input 3 empty)
+                                        (lambda (action) (push action sunk) nil))))
+                     (mapc step inputs))
+                   (nreverse sunk)))))
+    (should (equal (funcall steps t '("" "a" "an" "ans")) '("" cancel cancel "ans")))
+    (should (equal (funcall steps nil '("" "a" "an" "ans")) '(cancel cancel cancel "ans"))))
+  (let (queries)
+    (cl-letf (((symbol-function 'jsonrpc-async-request)
+               (lambda (_server _method params &rest _) (push params queries))))
+      (funcall (funcall (emacs-cpp-go--symbol-request '(server) nil t) #'ignore) "")
+      (funcall (funcall (emacs-cpp-go--symbol-request '(server) '(("file:///p/" . "file:///p/")))
+                        #'ignore)
+               ""))
+    (should (equal queries '((:query ""))))))
+
+(ert-deftest init-completion-go-symbol-sources ()
+  "D-082: `s' the project's symbols, `l' hidden with every symbol; no root, `s' only."
+  (init-test--load)
+  (require 'consult)
+  (require 'eglot)
+  (require 'consult-eglot)
+  (cl-letf (((symbol-function 'consult-eglot--servers) (lambda () '(server))))
+    (let ((sources (emacs-cpp-go--symbol-sources "/project/")))
+      (should (equal (mapcar (lambda (s) (plist-get s :name)) sources)
+                     '("Symbol" "All Symbols")))
+      (should (equal (mapcar (lambda (s) (plist-get s :narrow)) sources) '(?s ?l)))
+      (should (equal (mapcar (lambda (s) (plist-get s :hidden)) sources) '(nil t))))
+    (should (equal (mapcar (lambda (s) (plist-get s :narrow))
+                           (emacs-cpp-go--symbol-sources nil))
+                   '(?s)))))
+
+(ert-deftest init-completion-go-project-symbols ()
+  "D-082, D-083: with root URIs up to `emacs-cpp-go-symbol-limit' matches are
+asked for and only the project's kept, a message when a reply reaches the limit;
+without, clangd's usual limit and no filter."
+  (init-test--load)
+  (require 'consult)
+  (require 'eglot)
+  (let* ((real (file-name-as-directory (file-truename (make-temp-file "emacs-cpp-root" t))))
+         (link (concat (directory-file-name real) "-link")))
+    (unwind-protect
+        (progn
+          (make-symbolic-link (directory-file-name real) link)
+          (let ((uris (emacs-cpp-go--root-uris (file-name-as-directory link))))
+            ;; Both spellings, each ending in a slash, so `root-other/' is no match.
+            (should (member (concat "file://" link "/") (mapcar #'cdr uris)))
+            (should (member (concat "file://" real) (mapcar #'cdr uris)))
+            (let* ((symbol (lambda (name path)
+                             (list :name name :location
+                                   (list :uri (eglot-path-to-uri path :truenamep t)))))
+                   (reply (vector (funcall symbol "mine" (concat real "src/a.cc"))
+                                  (funcall symbol "linked" (concat link "/include/a.h"))
+                                  (funcall symbol "library" "/usr/include/deal.II/a.h")
+                                  (funcall symbol "sibling"
+                                           (concat (directory-file-name real) "-other/a.cc"))))
+                   (run (lambda (root-uris)
+                          (let (params sunk messages)
+                            (cl-letf (((symbol-function 'jsonrpc-async-request)
+                                       (lambda (_server _method p &rest args)
+                                         (setq params p)
+                                         (funcall (plist-get args :success-fn) reply)))
+                                      ((symbol-function 'message)
+                                       (lambda (format &rest args)
+                                         (push (apply #'format-message format args) messages))))
+                              (funcall (funcall (emacs-cpp-go--symbol-request '(server) root-uris)
+                                                (lambda (action) (push action sunk) nil))
+                                       "vec"))
+                            (list params
+                                  (mapcar (lambda (s) (plist-get s :name))
+                                          (seq-find #'consp sunk))
+                                  (and messages t))))))
+              (should (= (default-value 'emacs-cpp-go-symbol-limit) 10000))
+              (should (equal (funcall run uris)
+                             '((:query "vec" :limit 10000) ("mine" "linked") nil)))
+              ;; A reply as long as the limit: maybe more matched; said, not hidden.
+              (let ((emacs-cpp-go-symbol-limit 4))
+                (should (equal (funcall run uris)
+                               '((:query "vec" :limit 4) ("mine" "linked") t))))
+              (let ((emacs-cpp-go-symbol-limit 0))
+                (should (equal (funcall run uris)
+                               '((:query "vec" :limit 0) ("mine" "linked") nil))))
+              (should (equal (funcall run nil)
+                             '((:query "vec") ("mine" "linked" "library" "sibling") nil))))))
+      (delete-file link)
+      (delete-directory real t))))
+
+(ert-deftest init-completion-go-root-encoding-and-case ()
+  "D-085: a root's URI matches however a server escapes it: the four spellings
+seen (eglot, clangd, pyright, R's languageserver; checked 2026-10-13) under three
+awkward roots; not a sibling directory or a library; another case on macOS only;
+a `%' in the root's name."
+  (init-test--load)
+  (let* ((parent (file-name-as-directory (file-truename (make-temp-file "emacs-cpp-root" t))))
+         (symbol (lambda (uri) (list :name "answer" :location (list :uri uri))))
+         (under (lambda (uri root)
+                  (and (emacs-cpp-go--under-root-p (funcall symbol (concat "file://" parent uri))
+                                                   (emacs-cpp-go--root-uris (concat parent root)))
+                       t))))
+    (unwind-protect
+        (progn
+          ;; Root, then its spelling by eglot, clangd, pyright, languageserver.
+          (pcase-dolist (`(,root . ,spellings)
+                         '(("c++ (x)@y/" "c++%20(x)@y" "c%2B%2B%20%28x%29%40y"
+                            "c%2B%2B%20%28x%29%40y" "c++%20(x)@y")
+                           ("a:b \u00e4/" "a%3Ab%20%C3%A4" "a:b%20%C3%A4" "a%3Ab%20%C3%A4"
+                            "a:b%20%C3%A4")
+                           ("py a:b c++/" "py%20a%3Ab%20c++" "py%20a:b%20c%2B%2B"
+                            "py%20a%3Ab%20c%2B%2B" "py%20a:b%20c++")))
+            (dolist (spelling spellings)
+              (should (funcall under (concat spelling "/src/a.cc") root))
+              (should-not (funcall under (concat spelling "-other/a.cc") root))
+              (should (eq (funcall under (upcase (concat spelling "/src/a.cc")) root)
+                          (eq system-type 'darwin)))))
+          (should-not (funcall under "c%2B%2B/a.h" "c++ (x)@y/"))
+          (should-not (emacs-cpp-go--under-root-p
+                       (funcall symbol "file:///usr/include/c%2B%2B/v1/vector")
+                       (emacs-cpp-go--root-uris (concat parent "c++ (x)@y/"))))
+          (should (funcall under "50%25off/a.R" "50%off/")))
+      (delete-directory parent t))))
 
 (ert-deftest init-completion-go-narrowing-drops-hidden-candidates ()
   "consult patch 0001 (D-079): narrowed, a hidden source's candidates leave the list;

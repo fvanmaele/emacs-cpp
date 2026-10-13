@@ -42,6 +42,14 @@
     (_ (error "emacs-cpp: no defaults file for platform %s (D-055)" platform))))
 (require (emacs-cpp-defaults-feature system-type))
 
+;; The platform's program directories, also when Emacs was not started from a shell
+;; (D-089): Emacs finds programs through `exec-path', its subprocesses through PATH.
+(dolist (dir (reverse emacs-cpp-default-exec-path-prepend))
+  (unless (member dir exec-path)
+    (push dir exec-path))
+  (unless (member dir (split-string (or (getenv "PATH") "") path-separator))
+    (setenv "PATH" (concat dir path-separator (getenv "PATH")))))
+
 ;; Module order is the contract (DESIGN 5): a module may only use modules above it.
 (require 'init-ui)
 (require 'init-completion)
