@@ -1101,9 +1101,10 @@ presets, GoogleTest runner.
   standard library's too). Options: (a) a larger `limit` per request (clangd
   extension, no patch) and a filter by project root in Emacs, a key showing library
   symbols too (CLion's "Include non-project items"); (b) clangd patch 0010 filtering
-  or ranking by workspace root. Findings: `RESEARCH_go_to_anything.md` 10. Waiting
-  for S11 run 5 on RMO (T-059): project symbols lost at limit 100 / 1000 against
-  none, and the time of each.
+  or ranking by workspace root. Findings: `RESEARCH_go_to_anything.md` 10. S11 run 5
+  (T-059, owner's deal.II project `step-1`, Mac, 40 queries): filtering today's 100
+  loses project symbols in 14 queries (373 symbols), 1000 in 2 (30), no limit in
+  none, slowest reply 15.9 ms (2458 symbols), median 0.3 ms. To the owner.
 - O-38 (OPEN, owner 2026-10-13: "vendor rg.el / ag.el if no downsides"): `C-c p s a`
   (projectile-ag) and `C-c p s r` (projectile-ripgrep) stop with "not available":
   they need the Emacs packages ag.el / rg.el, not vendored. Downsides found: rg.el

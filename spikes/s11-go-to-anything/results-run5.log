@@ -1,0 +1,50 @@
+# S11 run 5 2026-10-13T19:13:18+02:00
+project: /Users/fvanmaele/CLionProjects/step-1 (src/main.cc)
+clangd: /Users/fvanmaele/opt/clangd-index-nav/bin/clangd, clangd version 23.1.1
+load: 
+seeds: 102, project symbol names found: 383
+query                    limit 100 : ms all mine | limit 1000: ms all mine | limit 0   : ms all mine
+"opt"                        1.2    100   12 |     5.0    845   66 |     5.2    845   66
+"optio"                      1.0    100   10 |     3.3    525   53 |     3.4    525   53
+"options"                    1.0    100   23 |     2.2    319   53 |     2.0    319   53
+"options_descent_mg"         0.1      2    2 |     0.1      2    2 |     0.1      2    2
+"options_fas"                0.1      1    1 |     0.1      1    1 |     0.1      1    1
+"options_gd"                 0.1      2    2 |     0.1      2    2 |     0.1      2    2
+"options_solver_mg"          0.1      2    2 |     0.1      2    2 |     0.1      2    2
+"Sol"                        0.8    100   20 |     1.2    200   23 |     1.2    200   23
+"Solve"                      0.4     60   20 |     0.4     60   20 |     0.4     60   20
+"SolverOptions"              0.1      3    3 |     0.1      3    3 |     0.1      3    3
+"GPE"                        0.2     14    7 |     0.2     14    7 |     0.2     14    7
+"GPE_O"                      0.1      2    2 |     0.1      2    2 |     0.1      2    2
+"GPE_Options"                0.1      2    2 |     0.1      2    2 |     0.1      2    2
+"Pro"                        1.1    100    8 |     5.8    899   43 |     5.7    899   43
+"Progr"                      0.3     31    1 |     0.3     31    1 |     0.3     31    1
+"ProgramOptions"             0.1      5    1 |     0.1      5    1 |     0.1      5    1
+"Des"                        1.2    100    3 |     4.6    766   19 |     4.8    766   19
+"Desce"                      0.4     30   11 |     0.3     30   11 |     0.3     30   11
+"DescentOptions"             0.1      2    2 |     0.1      2    2 |     0.1      2    2
+"FAS"                        0.7    100   15 |     1.1    193   22 |     1.0    193   22
+"FAS_O"                      0.2      3    2 |     0.1      3    2 |     0.1      3    2
+"FAS_Options"                0.1      2    2 |     0.1      2    2 |     0.1      2    2
+"MG_"                        0.7    100    3 |     1.1    201    6 |     1.2    201    6
+"MG_Op"                      0.1      2    2 |     0.1      2    2 |     0.1      2    2
+"MG_Options"                 0.1      2    2 |     0.1      2    2 |     0.1      2    2
+"Out"                        0.9    100   21 |     2.1    348   37 |     2.1    348   37
+"Outpu"                      0.9    100   17 |     1.1    139   21 |     1.1    139   21
+"OutputOptions"              0.2      3    2 |     0.1      3    2 |     0.1      3    2
+"dum"                        0.6     86    1 |     0.6     86    1 |     0.5     86    1
+"dump_"                      0.1      6    1 |     0.1      6    1 |     0.1      6    1
+"dump_options"               0.1      1    1 |     0.1      1    1 |     0.1      1    1
+"get"                        1.5    100    4 |     6.2   1000   77 |    15.9   2458  100
+"get_o"                      0.5     27    4 |     0.4     27    4 |     0.3     27    4
+"get_options"                0.2      2    2 |     0.2      2    2 |     0.1      2    2
+"m_o"                        1.0    100   11 |     2.3    345   15 |     2.3    345   15
+"m_opt"                      0.4     20    7 |     0.3     20    7 |     0.3     20    7
+"m_options"                  0.2     11    7 |     0.2     11    7 |     0.1     11    7
+"par"                        1.7    100    2 |     6.9   1000   50 |     9.5   1354   57
+"parse"                      1.0    100   23 |     1.3    163   30 |     1.4    163   30
+"parse_options"              0.3      7    2 |     0.2      7    2 |     0.2      7    2
+limit 100: median 0.3 ms, max 1.7 ms; queries losing project symbols 14 of 40, lost 373
+limit 1000: median 0.3 ms, max 6.9 ms; queries losing project symbols 2 of 40, lost 30
+limit 0: median 0.3 ms, max 15.9 ms; queries losing project symbols 0 of 40, lost 0
+load after: 

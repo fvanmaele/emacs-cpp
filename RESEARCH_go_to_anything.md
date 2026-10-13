@@ -308,7 +308,12 @@ Read in clangd 23.1.1 (`packaging/llvm-project-23.1.1.src`, unpacked for T-023):
   outside the workspace root inside `getWorkspaceSymbols` (a new `limit`-like
   request field or flag); exact, small replies; needs patch 0010 and a rebuild.
 - Toy (2026-10-13): `ans` gave 15 symbols, 2 of the project, the rest from
-  `<vector>` / `<string>`. Measurement on RMO with deal.II: S11 run 5 (`RUN.md`).
+  `<vector>` / `<string>`.
+- S11 run 5 (2026-10-13, owner's deal.II project `step-1` on the Mac, 40 queries;
+  `spikes/s11-go-to-anything/RESULTS.md`): a project-root filter over today's 100
+  loses project symbols in 14 queries (373 symbols; all three-letter queries, e.g.
+  `opt` 12 of 66); over 1000 in 2 (30 symbols); with no limit in none, slowest reply
+  15.9 ms (2458 symbols), median 0.3 ms at every limit.
 
 ## Sources
 - JetBrains, CLion help "Search everywhere":

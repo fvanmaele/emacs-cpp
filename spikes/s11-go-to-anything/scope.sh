@@ -9,7 +9,11 @@
 set -eu
 PROJECT=${1:-$HOME/source/repos/RMO-gross-pitaevskii}
 FILE=${2:-src/main.cc}
-CLANGD=${S11_CLANGD:-/opt/clangd-index-nav/bin/clangd}
+case $(uname) in
+    Darwin) DEFAULT_CLANGD=$HOME/opt/clangd-index-nav/bin/clangd ;;  # D-052
+    *) DEFAULT_CLANGD=/opt/clangd-index-nav/bin/clangd ;;
+esac
+CLANGD=${S11_CLANGD:-$DEFAULT_CLANGD}
 EMACS_D=${S11_EMACS_D:-$HOME/.emacs.d}
 HERE=$(cd "$(dirname "$0")" && pwd)
 REPO=$(cd "$HERE/../.." && pwd)
