@@ -149,46 +149,42 @@ symbols there, 10000 none."
   :type 'natnum
   :group 'tools)
 
-(defun emacs-cpp-go--uri-chars (&rest others)
-  "Return a `url-hexify-string' table: letters, digits and OTHERS unescaped."
-  (let ((chars (make-vector 256 nil)))
-    (dotimes (c 256)
-      (when (or (<= ?a c ?z) (<= ?A c ?Z) (<= ?0 c ?9) (memq c others))
-        (aset chars c t)))
-    chars))
-
-(defconst emacs-cpp-go--server-uri-chars
-  (list (emacs-cpp-go--uri-chars ?- ?_ ?. ?~ ?/ ?:)
-        (emacs-cpp-go--uri-chars ?- ?_ ?. ?~ ?/))
-  "Characters the language servers leave unescaped in a file URI (D-083).
-clangd (URI.cpp, `shouldEscape'); pyright, which escapes `:' too.  eglot
-escapes `:' and leaves `+ ( ) @ , ; = ! $ & \=' *' as they are.")
-
 (defconst emacs-cpp-go--root-ignore-case (eq system-type 'darwin)
   "Non-nil: symbol URIs are compared with the root ignoring case (D-083).
 macOS disks ignore case, so a project opened as TOY/ is clangd's toy/.")
 
 (defun emacs-cpp-go--root-uris (root)
-  "Return the file URIs a symbol under project ROOT starts with, ending in /.
-Both ROOT as projectile gives it and its true name: clangd's URIs follow the
-paths of the compilation database, which may or may not resolve symlinks.
-Each in eglot's, clangd's and pyright's encoding, which differ (D-083)."
+  "Return how the URI of a file under project ROOT begins, as (SAFE . FULL) pairs.
+FULL is file:// and the root directory, unescaped: ROOT as projectile gives it
+and its true name (clangd's URIs follow the compilation database, which may or
+may not resolve symlinks).  SAFE is FULL up to its first character other than a
+letter, digit or `- _ . /': every language server writes that part alike,
+whatever it escapes after it (D-085)."
   (seq-uniq
-   (mapcan (lambda (dir)
-             (let ((dir (directory-file-name dir)))
-               ;; `:truenamep t': taken as given, else eglot resolves symlinks.
-               (cons (concat (eglot-path-to-uri dir :truenamep t) "/")
-                     (mapcar (lambda (chars)
-                               (concat "file://" (url-hexify-string dir chars) "/"))
-                             emacs-cpp-go--server-uri-chars))))
+   (mapcar (lambda (dir)
+             (let ((full (concat "file://" (file-name-as-directory dir))))
+               (cons (substring full 0 (or (string-match-p "[^A-Za-z0-9._/-]" full
+                                                           (length "file://"))
+                                           (length full)))
+                     full)))
            (list (expand-file-name root) (file-truename root)))))
 
 (defun emacs-cpp-go--under-root-p (symbol root-uris)
-  "Non-nil when SYMBOL's file URI starts with one of ROOT-URIS."
-  (let ((uri (plist-get (plist-get symbol :location) :uri)))
-    (seq-some (lambda (prefix)
-                (string-prefix-p prefix uri emacs-cpp-go--root-ignore-case))
-              root-uris)))
+  "Non-nil when SYMBOL's file URI lies under one of ROOT-URIS (D-085).
+Library URIs fail the cheap test against the safe prefix; only URIs that pass
+are percent-decoded and compared with the whole root, so no table of how each
+server escapes is needed."
+  (let ((uri (plist-get (plist-get symbol :location) :uri))
+        (case emacs-cpp-go--root-ignore-case)
+        found)
+    (dolist (root root-uris found)
+      (when (and (not found) (string-prefix-p (car root) uri case))
+        (setq found (string-prefix-p
+                     (cdr root)
+                     (if (string-search "%" uri)
+                         (decode-coding-string (url-unhex-string uri) 'utf-8)
+                       uri)
+                     case))))))
 
 (defun emacs-cpp-go--symbol-request (servers &optional root-uris)
   "Return an async step asking SERVERS for the workspace symbols of each input.

@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0058 | 2026-10-13 | project symbols: one URI matcher for every server | T-062 | D-085 |
 | 0057 | 2026-10-13 | project symbols: cap, URI encoding, case | T-061 | D-083 |
 | 0056 | 2026-10-13 | `M-o` symbols: the project's, all on `l` | T-060 | D-082 |
 | 0055 | 2026-10-13 | `C-c p ?` over projectile's files, ripgrep on macOS | T-057 | D-081 |

@@ -375,6 +375,11 @@ Mechanisms, measured on 6673 symbol URIs (111 under the root), Mac, Emacs 31.1:
   four servers sends them; only `eglot-uri-to-path` handles them); `+` for space
   (form encoding, not URIs; none seen).
 - Prototype: scratch only (`urimatch.el`, this session), not shipped.
+- Shipped as D-085 (2026-10-13): the filter as `M-o` runs it (`seq-filter` over the
+  reply vector, interpreted, 64 MB GC threshold, after one warm-up call): 3.7 - 4.2
+  ms per 6673 symbols; D-083's tables the same way 13.6 - 14.2 ms. The first call
+  in a session costs about 30 ms more (generic `seq-filter` dispatch set up), in
+  both; the cold 16.7 ms above included it.
 
 ## Sources
 - JetBrains, CLion help "Search everywhere":

@@ -107,6 +107,7 @@ with `done when: ...`).
 | T-059 | done | S | S11 run 5: project symbols among clangd's | O-37 | RESULTS run 5 |
 | T-060 | done 0056 | S | `M-o` project symbols, all on `l` | D-082 | toy with clangd |
 | T-061 | done 0057 | S | project symbols: cap, encoding, case | D-083 | step-1, toys |
+| T-062 | done 0058 | S | one URI matcher for every server | D-085 | clangd, pyright |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -265,6 +266,14 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-062 (opened 2026-10-13, D-085): replace D-083's per-server spellings. Done
+  when: the spellings go; a symbol is kept when its URI starts with the root's safe
+  prefix and, decoded, with the root path (as given or true name), ignoring case on
+  macOS; tests: four spellings x three roots, sibling and library not, upper case on
+  macOS only, symlinked root, `%` in the root's name; clangd and pyright under toy,
+  TOY, `c++ (x)@y`, `a:b` + U+00E4, `py a:b c++` list the project's symbols; filter
+  <= 5 ms per 6673 symbols as shipped; `make test`. Agreed 2026-10-13. Done
+  2026-10-13 (0058): all met, 3.7 - 4.2 ms; 88 tests.
 - T-061 (opened 2026-10-13, D-083): risks of D-082 measured; cap and filter fixes.
   Done when: defcustom `emacs-cpp-go-symbol-limit`, default 10000 (0 = none), sent
   as clangd's limit for `s`; a reply reaching it shows a message; the root also
