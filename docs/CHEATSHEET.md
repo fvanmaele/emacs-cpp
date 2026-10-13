@@ -74,7 +74,8 @@ part to jump (D-043).
 | `M-y` | choose from the kill ring (paste history) |
 
 In any list: words separated by space match in any order (`vec tria` finds
-`tria_vector.h`). `M-r` in the minibuffer: history.
+`tria_vector.h`). `M-r` in the minibuffer: history. `PgDn` / `PgUp` (or `C-v` /
+`M-v`): next / previous page of the list (D-084); `M-n` / `M-p`: earlier inputs.
 
 ## Act on things (embark)
 | Key | Does |
