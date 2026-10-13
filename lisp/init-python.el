@@ -6,8 +6,8 @@
 ;; `python-ts-mode' on the system grammar, pyright through eglot in project files,
 ;; and dape's own `debugpy' configuration (`C-x C-a d debugpy RET' debugs the current
 ;; file).  All three come from the Arch packages tree-sitter-python, pyright and
-;; python-debugpy.  The C++ setup is not touched; eglot's pyright entry is in eglot's
-;; form (lisp/init-cpp.el), the debugger's in dape's (lisp/init-debug.el).
+;; python-debugpy.  The C++ setup is not touched; the debugger's entry is in dape's
+;; form (lisp/init-debug.el).
 
 ;;; Code:
 
@@ -15,6 +15,10 @@
 (unless (treesit-language-available-p 'python)
   (error "emacs-cpp: tree-sitter Python grammar missing; install tree-sitter-python \
 \(D-045)"))
+
+;; pyright (D-045), named so that another server eglot knows (pylsp, basedpyright)
+;; does not take over when installed later (D-091).
+(emacs-cpp-lsp-server '(python-ts-mode python-mode) '("pyright-langserver" "--stdio"))
 
 (defun emacs-cpp-python-eglot-ensure ()
   "Start eglot (pyright) for a Python file of a project; not for a loose file.
