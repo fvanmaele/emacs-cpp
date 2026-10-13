@@ -143,3 +143,26 @@ question is whether `M-o` narrowed feels as calm as `C-c l s` there.
 Dry run (2026-10-11; toy, 34583-file stand-in, patched consult, 100 ms per key):
 stand-in pass narrowed 1.4 - 3.3 ms per update; `C-c l s` 2.8 - 3.5 ms per key, one
 request after the pause.
+
+## Run 5: project symbols among clangd's workspace symbols (O-37, T-059)
+Owner request 2026-10-13: `C-c l s` and `M-o` `<` `s` list every symbol of clangd's
+index, deal.II's and the standard library's too; wanted: the project's alone, as
+CLion's Symbols tab without "Include non-project items". Research first. clangd
+23.1.1 takes a `limit` per `workspace/symbol` request (0: none) and ranks without
+regard to where a symbol is defined, so a client that keeps only symbols under the
+project root loses those that ranked below the limit. `scope.el` asks each query
+with limit 100 (today's default), 1000 and 0 and logs the time, the reply's size
+and how many symbols lie under the project root. Queries: the project's C++ file
+base names as seeds, then the 3- and 5-letter prefixes and full names of the project
+symbols they find (at most 40). Own seeds: `S11_SEEDS="Solver Lac ..."`.
+```
+cd ~/source/repos/emacs-cpp
+sh spikes/s11-go-to-anything/scope.sh ~/source/repos/RMO-gross-pitaevskii src/main.cc
+```
+A few minutes; wait for the stored index to load (`S11_SETTLE`, default 20 s). Hand
+back `spikes/s11-go-to-anything/results-run5.log`. Recorded, not judged: per limit,
+the median and slowest time and how many project symbols are lost against no limit.
+
+Dry run (2026-10-13, Mac, toy project with `<vector>` and `<string>`, patched
+clangd): 8 queries, 0.1 - 0.6 ms each, none lost at any limit; `ans` gave 15
+symbols, 2 of them the project's.

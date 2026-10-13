@@ -886,7 +886,12 @@ Mechanisms, each PROPOSED until measured:
   directories) are no longer searched, as in `C-c p f`. Measured on the Mac, deal.II
   (33768 files): 130 - 156 s before, 10.6 - 11.3 s after, the same 607 / 9429
   matches; `rg` alone in the tree 5.5 - 6 s, the floor there, set by about 14 ms per
-  file opened (O-24). Arch not measured (owner). Upstream report drafted
+  file opened (O-24). Arch not measured (owner). After the owner's GDATA exceptions
+  (2026-10-13): 4.8 - 5.5 s; the rest is `rg` given file names, which searches
+  them one after another (7 runs of 5000 by BSD `xargs`: 4.7 s; `xargs -P 4` 3.7 s),
+  while `rg` or `git grep --untracked` searching the directory take 1.1 - 1.4 s
+  (a different file set at the edges: rg's own ignore rules, hidden files). Not
+  changed; a next step if the 5 s matter. Upstream report drafted
   (`docs/upstream/projectile-find-references-file-list.md`), the owner sends it.
 - REJECTED: borg (the tool this layout imitates). It assumes the package repository is
   the Emacs directory itself, which contradicts D-003; reconsider if own glue grows past
@@ -1087,8 +1092,28 @@ presets, GoogleTest runner.
   bind on the Mac, startup needs work there first (antivirus and native-code loading
   are the suspects, not measured). 2026-10-13 (O-36): on the Mac, reading every file
   of deal.II (33768) one at a time took 480 s, `stat` on each 0.2 s: about 14 ms per
-  file opened, page cache or not, which points at a scanner checking each open
-  (XProtect and Cisco Secure Client run; not identified).
+  file opened, page cache or not, which points at a scanner checking each open.
+  The owner added exceptions to the GDATA scanner the same day: 5.2 s for all
+  33768 files (0.15 ms each), `rg` over the tree 5.6 -> 1.07 s. Startup not
+  measured again.
+- O-37 (OPEN, owner 2026-10-13: "research first"): symbols of the project only in
+  `C-c l s` and `M-o` `<` `s` (today every symbol of clangd's index, deal.II's and the
+  standard library's too). Options: (a) a larger `limit` per request (clangd
+  extension, no patch) and a filter by project root in Emacs, a key showing library
+  symbols too (CLion's "Include non-project items"); (b) clangd patch 0010 filtering
+  or ranking by workspace root. Findings: `RESEARCH_go_to_anything.md` 10. Waiting
+  for S11 run 5 on RMO (T-059): project symbols lost at limit 100 / 1000 against
+  none, and the time of each.
+- O-38 (OPEN, owner 2026-10-13: "vendor rg.el / ag.el if no downsides"): `C-c p s a`
+  (projectile-ag) and `C-c p s r` (projectile-ripgrep) stop with "not available":
+  they need the Emacs packages ag.el / rg.el, not vendored. Downsides found: rg.el
+  2.5.0 also needs wgrep (a third new submodule; transient is built in); Arch has
+  no `rg`, and once rg.el loads, projectile's `auto` search backend (`C-c p s s`)
+  picks ripgrep there and fails, so `projectile-search-backend` would need a
+  per-platform value (D-055); ag.el 0.48 needs dash and s (vendored) and the `ag`
+  program (on the Mac in MacPorts, on Arch not surveyed). Each is a new dependency
+  (needs its D-nnn) and a network clone. `M-s r` (consult-ripgrep) and `M-s G`
+  (consult-git-grep) already search. Owner rules.
 - O-36 (RESOLVED 2026-10-13 with D-081: patch projectile, GNU grep on Arch; owner
   report 2026-10-13): `C-c p ?` ("Find references to:") very slow. Cause: projectile
   3.4.0 searches with find and grep, one file at a time, ignoring
