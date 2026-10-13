@@ -56,6 +56,7 @@
                         (setq seen (list :sources sources :options options
                                          :gc gc-cons-threshold
                                          :split consult-async-split-style
+                                         :preview consult-preview-key
                                          :delay consult-async-refresh-delay
                                          :directory default-directory))
                         (let ((command (seq-find (lambda (s) (equal (plist-get s :name) "Command"))
@@ -79,6 +80,12 @@
         (should (= listed-with (* 64 1024 1024)))
         (should (= (plist-get seen :gc) (* 64 1024 1024)))
         (should (null (plist-get seen :split)))
+        ;; D-088: typing previews after 0.3 s, browsing at once.
+        (should (equal (plist-get seen :preview) emacs-cpp-go--preview-key))
+        (let ((keys (consult--preview-key-normalize emacs-cpp-go--preview-key)))
+          (should (equal (alist-get 'any keys) 0.3))
+          (should (equal (cdr (assoc (key-parse "<down>") keys)) 0))
+          (should (equal (cdr (assoc (key-parse "<next>") keys)) 0)))
         (should (= (plist-get seen :delay) 0.05))
         (should (equal (plist-get seen :directory) root))
         (should (equal (plist-get (plist-get seen :options) :sort) nil))

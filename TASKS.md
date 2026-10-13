@@ -109,6 +109,7 @@ with `done when: ...`).
 | T-061 | done 0057 | S | project symbols: cap, encoding, case | D-083 | step-1, toys |
 | T-062 | done 0058 | S | one URI matcher for every server | D-085 | clangd, pyright |
 | T-063 | done 0059 | S | `< l` lists as `C-c l s` | D-086 | terminal check |
+| T-064 | done 0060 | S | `M-o` previews after a pause | D-088 | terminal check |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -267,6 +268,12 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-064 (opened 2026-10-13, D-088, O-41 (b)): `M-o` previews 0.3 s after typing,
+  at once when browsing. Done when: `M-o` binds that preview key; other prompts
+  unchanged; terminal check: `answer` at 50 ms per key on a session's first `M-o`
+  handles every key without the freeze, preview after the pause, `<down>` previews
+  at once; test that the setting is bound; `make test`. Agreed 2026-10-13. Done
+  2026-10-13 (0060): all met; 90 tests.
 - T-063 (opened 2026-10-13, D-086, owner's T-060 hand check): `M-o` `< l` behaves as
   `C-c l s`. Done when: empty input asks clangd for "" and lists its 100; 1 - 2
   characters keep that list; from 3, clangd's matches; `s` unchanged; opening `M-o`

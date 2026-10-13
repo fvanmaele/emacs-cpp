@@ -318,6 +318,14 @@ under `while-no-input' and lists again when interrupted (S11 run 2)."
                      :items #'projectile-relevant-known-projects
                      :emacs-cpp-action #'projectile-switch-project-by-name)))))
 
+(defconst emacs-cpp-go--preview-key
+  '(:debounce 0.3 any
+    :debounce 0 "<up>" "<down>" "C-n" "C-p" "<next>" "<prior>" "C-v" "M-v")
+  "When `M-o' previews the selected candidate (D-088).
+After a typed key, once no other came for 0.3 s: the first preview of a file
+type loads its mode (Org about 1.3 s on the Mac, O-41) and would hold the keys
+typed meanwhile.  After a key moving through the list, at once.")
+
 (defun emacs-cpp-go-to-anything ()
   "Go to a buffer, recent file, bookmark, project file or clangd symbol.
 Symbols are the project's (D-082); every symbol, deal.II's and the standard
@@ -341,7 +349,9 @@ after it, with the usual ones."
                   ;; clangd answers in under 25 ms; consult's 0.2 s was the wait.
                   (consult-async-refresh-delay 0.05)
                   ;; No `#' in front of the input (D-078).
-                  (consult-async-split-style nil))
+                  (consult-async-split-style nil)
+                  ;; Preview after a pause in typing, at once when browsing (D-088).
+                  (consult-preview-key emacs-cpp-go--preview-key))
               (consult--multi sources :prompt "Go to: " :require-match t :sort nil)))))
     (when-let* ((action (plist-get (cdr selected) :emacs-cpp-action)))
       (funcall action (car selected)))))
