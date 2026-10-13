@@ -160,7 +160,10 @@ configuration loads and finds its search program."
           (should (re-search-forward "^SEARCH \\(.*\\)" nil t))
           (should (equal (match-string 1)
                          (format "%S t" emacs-cpp-default-xref-search-program))))
-      (delete-directory home t))))
+      (delete-directory home t)))
+  ;; MacTeX's programs for AUCTeX's preview and texlab's build (D-090).
+  (when (eq system-type 'darwin)
+    (should (member "/Library/TeX/texbin" emacs-cpp-default-exec-path-prepend))))
 
 (ert-deftest init-saved-theme-survives-restart ()
   "D-040: a theme saved with customize-themes is the one in effect after startup;
