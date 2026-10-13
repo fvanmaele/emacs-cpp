@@ -668,6 +668,10 @@ Known defects: none yet (nothing built).
   Adding a language server to the config (its own D-nnn) includes checking its URI
   encoding the same way and, if it is a fourth, adding it to
   `emacs-cpp-go--server-uri-chars`; not a user option (owner question 2026-10-13).
+  Correction 2026-10-13: the shipped filter costs 16.7 ms per 6673 symbols (up to six
+  prefixes, interpreted), not about 1 ms as measured with one inline prefix. A
+  mechanism without per-server spellings, 4x faster, is researched as O-40
+  (`RESEARCH_go_to_anything.md` 11).
 - DECIDED D-084 (owner 2026-10-13, tier 1): in every vertico prompt (`M-o`, `C-x b`,
   `M-x`, `C-x C-f` ...) PgDn / PgUp (`<next>` / `<prior>`) page through the
   candidates (`vertico-scroll-up` / `-down`, as `C-v` / `M-v`); the minibuffer bound
@@ -1000,7 +1004,11 @@ presets, GoogleTest runner.
   files, symbols, bookmarks and commands like CLion's Search Everywhere; consult's
   multi-source prompt with clangd's symbols as an async source; keys. Findings in;
   O-30 ruled (D-074), S11 measured (0048), O-31 / O-32 ruled (D-076, D-075);
-  prompt speed in a terminal Emacs: O-33; narrowed to symbols: O-34 (D-079).
+  prompt speed in a terminal Emacs: O-33; narrowed to symbols: O-34 (D-079);
+  project-only symbols: O-37 (D-082, D-083); URIs without per-server spellings: O-40.
+- `RESEARCH_r_language_servers.md` (owner request 2026-10-13): languageserver, Arity,
+  Air, Ark; packaging on Arch and MacPorts; languageserver run through eglot on the
+  Mac. Findings in; O-39.
 - `RESEARCH_other_languages.md` (owner question 2026-10-08): Python, R, Perl next to
   the C++ setup. Findings in; rulings O-19, O-20.
 - `RESEARCH_notebooks_cells.md` (owner request 2026-10-10, T-045): `# %%` cells for
@@ -1143,6 +1151,28 @@ presets, GoogleTest runner.
   (T-059, owner's deal.II project `step-1`, Mac, 40 queries): filtering today's 100
   loses project symbols in 14 queries (373 symbols), 1000 in 2 (30), no limit in
   none, slowest reply 15.9 ms (2458 symbols), median 0.3 ms. To the owner.
+- O-40 (OPEN, owner 2026-10-13: "research more general mechanisms"): D-083 matches
+  the project root in one spelling per server encoding (eglot, clangd, pyright); R's
+  languageserver would be a fourth. Found (`RESEARCH_go_to_anything.md` 11): every
+  encoder leaves letters, digits and `- _ . /` alone, so the root URI up to its
+  first other character is a prefix all spellings share; only URIs that pass it
+  are percent-decoded and compared with the root path. All four spellings under
+  three awkward roots match, siblings and libraries do not; 3.8 - 5.0 ms per 6673
+  symbols interpreted, against the shipped filter's 16.7 ms. Options: (a) replace
+  D-083's spellings with it (tier 2: tests, toy checks with clangd and pyright);
+  (b) keep the tables. Owner rules.
+- O-39 (OPEN, owner request 2026-10-13: "research R language servers"): findings in
+  `RESEARCH_r_language_servers.md`. Candidates: languageserver (R package, full
+  feature set, cross-file only in a package with `DESCRIPTION`; on the Mac already
+  installed with CRAN's R; Arch: AUR), Arity (standalone Rust binary, navigation
+  and lint, pre-1.0; AUR, no MacPorts), Air (formatting only), Ark (Positron only).
+  None in pacman's repositories or MacPorts (D-053). Options: (a) eglot with
+  languageserver in `ess-r-mode` for project files, as pyright (needs R's CRAN
+  packages on Arch); (b) Arity (a binary from outside both package managers); (c)
+  Air for formatting only; (d) stay with ESS's session-based completion and xref
+  (D-072). Either (a) or (b) also needs O-40 (a) or a fourth spelling for `M-o`.
+  Also found: the Mac's R is CRAN's R.framework, not the MacPorts port D-072 names.
+  Owner rules.
 - O-38 (OPEN, owner 2026-10-13: "vendor rg.el / ag.el if no downsides"): `C-c p s a`
   (projectile-ag) and `C-c p s r` (projectile-ripgrep) stop with "not available":
   they need the Emacs packages ag.el / rg.el, not vendored. Downsides found: rg.el
