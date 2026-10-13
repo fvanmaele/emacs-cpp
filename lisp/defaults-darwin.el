@@ -21,6 +21,10 @@ Emacs started from the Dock or Finder gets launchd's PATH, /usr/bin:/bin:/usr/sb
 latexmk, dvipng for AUCTeX's preview and texlab's build, D-090) were not found.
 Shells get /Library/TeX/texbin from /etc/paths.d, which launchd does not read.")
 
+(defconst emacs-cpp-default-llvm-tools-dir "/opt/local/libexec/llvm-23/bin"
+  "Directory of clang's command-line tools (clang-move, run-clang-tidy ...), or
+nil for exec-path (D-094).  MacPorts keeps them out of /opt/local/bin.")
+
 (defconst emacs-cpp-default-mouse-modifier 'super
   "Modifier of the navigation clicks (D-093): Command, which Emacs calls super on
 the Mac, as CLion's Cmd+Click.")

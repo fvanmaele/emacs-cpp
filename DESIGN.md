@@ -272,6 +272,21 @@ Known defects: none yet (nothing built).
   rename at 50 files ("The number of affected files exceeds the max limit 50").
   Measured on a generated project of 62 sources: refused before, 63 files renamed
   in 284 ms through the shipped config after.
+- DECIDED D-094 (owner 2026-10-13, O-43 (c); done when agreed): refactorings by
+  clang's command-line tools, from `lisp/emacs-cpp-refactor.el` on the active preset's
+  database, each in a compilation buffer from the project root, unmodified buffers
+  reverted afterwards: `C-c l T` run-clang-tidy -fix (checks asked, empty: the
+  project's .clang-tidy); `C-c l M` clang-move (classes to a new header / source,
+  run from the include root so the new `#include` is spelled like the old one, the
+  old header including the new one; the new source must be added to CMakeLists.txt,
+  a message says so). Tools from `emacs-cpp-default-llvm-tools-dir` (D-055: MacPorts'
+  `/opt/local/libexec/llvm-23/bin`; Arch: exec-path, pacman's clang ships them),
+  refused by name when missing. Not built: `C-c l N` clang-change-namespace (agreed):
+  LLVM 23.1.3's crashes (segmentation fault) when given two sources, and run per
+  source it renames the header's namespace but not the uses in main.cc, then fails.
+  Run here on a generated project (namespace `geom`, two classes): tidy replaced
+  both `0`s with `nullptr`; move created `geom/square.h` / `square.cc`, the project
+  built and ran once `square.cc` was in CMakeLists.txt. Built (T-068, 0063).
 - DECIDED D-026 (owner 2026-10-08, after S8 PASS): the config keeps clangd and can run
   the patched clangd that answers navigation from its index (O-11):
   `emacs-cpp-clangd-program` nil = system clangd; a path = that program with
@@ -1288,7 +1303,8 @@ presets, GoogleTest runner.
   Options: (a) `--rename-file-limit=0`; (b) a clangd change-signature tweak, spike
   first; (c) commands around clang-move, clang-change-namespace, run-clang-tidy -fix;
   (d) document the by-hand route for signature changes. Owner 2026-10-13: all four;
-  (a) built as D-092; (b) a spike first; (c) and (d) to be scoped.
+  (a) built as D-092; (b) a spike first (S12); (c) built as D-094 without
+  clang-change-namespace; (d) next.
 - O-42 (RESOLVED 2026-10-13 with D-090: (b), build on a key; owner request
   2026-10-13: "research latex (LSP) support, in particular
   texlab"): findings in `RESEARCH_latex.md`. texlab is packaged on both machines
@@ -1689,6 +1705,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-091 | 2026-10-13 | eglot's form in init-lsp.el; languages register servers | 5 | owner |
 | D-092 | 2026-10-13 | clangd with `--rename-file-limit=0` | 7 | O-43 |
 | D-093 | 2026-10-13 | CLion's navigation clicks; right-click menu | 10 | O-44 |
+| D-094 | 2026-10-13 | clang-tidy fixes, clang-move on `C-c l T` / `M` | 7 | O-43 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.

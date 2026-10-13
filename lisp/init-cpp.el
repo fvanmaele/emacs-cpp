@@ -12,6 +12,7 @@
 
 (require 'emacs-cpp-presets)
 (require 'init-lsp)
+(require 'emacs-cpp-refactor)
 
 ;; Fail loudly (DESIGN 4): without the grammar `c++-ts-mode' cannot work.
 (unless (treesit-language-available-p 'cpp)
@@ -178,6 +179,10 @@ Mode hooks run before a visited file's local variables are read."
 ;; keeps headers in include/rmo/, sources in src/), and the active CMake preset.
 (keymap-set emacs-cpp-code-map "o" #'projectile-find-other-file)
 (keymap-set emacs-cpp-code-map "P" #'emacs-cpp-presets-select)
+;; Refactorings by clang's command-line tools (D-094): clang-tidy's fixes over the
+;; project, classes to other files.
+(keymap-set emacs-cpp-code-map "T" #'emacs-cpp-refactor-tidy-fix)
+(keymap-set emacs-cpp-code-map "M" #'emacs-cpp-refactor-move)
 
 (provide 'init-cpp)
 ;;; init-cpp.el ends here
