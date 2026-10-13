@@ -676,6 +676,14 @@ Known defects: none yet (nothing built).
   mechanism without per-server spellings, 4x faster, is researched as O-40
   (`RESEARCH_go_to_anything.md` 11). Warm (a first call pays `seq-filter`'s setup):
   13.6 - 14.2 ms.
+- DECIDED D-088 (owner 2026-10-13, O-41 (b); done when agreed): `M-o` previews the
+  selected candidate 0.3 s after the last typed key (`consult-preview-key` bound to
+  `(:debounce 0.3 any :debounce 0 <up> <down> C-n C-p <next> <prior> C-v M-v)` while
+  the prompt is open); moving through the list previews at once. Other prompts keep
+  consult's immediate preview. Terminal check on the toy, `answer` at 50 ms per key,
+  a session's first `M-o`: every key handled on time (before: none for about 0.5 s
+  after the third), the first file preview after the pause (812 - 821 ms), `<down>`
+  previewed within 1 ms. Built (T-064, 0060).
 - DECIDED D-087 (owner 2026-10-13, tier 1: "use C-c l s request timing for M-o as
   well"): `M-o`'s symbol sources (`s`, `l`) throttle and debounce with consult's
   defaults, as consult-eglot's `C-c l s`: a request at most every 0.5 s
@@ -1218,7 +1226,8 @@ presets, GoogleTest runner.
   `texlab.build.onSave`) and forward search to Skim / zathura; (b) the same with
   AUCTeX vendored for editing; (c) eglot's default (digestif first); (d) none.
   Owner rules.
-- O-41 (OPEN, owner 2026-10-13: "research the stall ... images in the project
+- O-41 (RESOLVED 2026-10-13 with D-088 for (b); (c1) done by the owner; owner
+  2026-10-13: "research the stall ... images in the project
   directory as possible cause"): the first `M-o` of a session can freeze while
   consult previews the first file candidate (`RESEARCH_go_to_anything.md` 12): every
   session's first preview 0.3 - 0.4 s; first `.org` preview 5.2 s (Org loads, much
@@ -1236,7 +1245,9 @@ presets, GoogleTest runner.
   eln-cache). Then Org native 1.18 - 1.42 s, byte-code 0.27 - 0.33 s; the config in
   batch native 0.54 - 0.65 s, byte-code 0.21 s. Possible next: the eln-cache moved
   to a visible directory under `~/source` (`startup-redirect-eln-cache`), not
-  ruled.
+  ruled. The owner then excepted the eln-cache as well: no further change (config
+  native 0.52 - 0.62 s, byte-code 0.22 s; Org native 1.30 - 1.40 s); the rest is
+  not the scanner (macOS's loading of each native file, not measured further).
 - O-40 (RESOLVED 2026-10-13 with D-085: (a); owner 2026-10-13: "research more general
   mechanisms"): D-083 matches
   the project root in one spelling per server encoding (eglot, clangd, pyright); R's
@@ -1593,6 +1604,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-085 | 2026-10-13 | project symbols: one URI matcher for every server | 10 | O-40 |
 | D-086 | 2026-10-13 | `M-o` `< l` lists clangd's first 100 for empty input | 10 | owner |
 | D-087 | 2026-10-13 | `M-o` symbol requests with `C-c l s`'s timing | 10 | owner |
+| D-088 | 2026-10-13 | `M-o` previews after a pause in typing | 10 | O-41 |
 | D-089 | 2026-10-13 | macOS: MacPorts, /usr/local/bin on exec-path and PATH | 12 | owner |
 
 ## Parity verdicts (from RESEARCH_*.md)
