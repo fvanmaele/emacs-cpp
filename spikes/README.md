@@ -36,6 +36,10 @@ code is written for it. Each spike is a self-contained directory with its own bu
 - **S9 header opened first** - does a header opened as the first file after a restart
   get guessed flags because it asks before the project reaches the background index
   (O-21, D-028)? Owner ruled spike first (tier 3) before patch 0006.
+- **S12 change signature** - can a clangd code action add, reorder and remove a
+  function's parameters at every call across the project's files, from the index,
+  without wrong edits and in under 2 s (O-43 (b))? Planned, `s12-change-signature/RUN.md`
+  (T-069).
 - **S10 deal.II sources index** - does an offline index of deal.II's sources make
   `M-.` reach definitions and `M-?` uses inside the library on RMO, with the patched
   clangd, at what memory (O-12)?
