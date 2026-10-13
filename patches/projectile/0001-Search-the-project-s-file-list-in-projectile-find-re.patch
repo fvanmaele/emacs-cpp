@@ -1,0 +1,74 @@
+From 34fa77ee5cd2b69aa06ac94286e7a6dad1f0987b Mon Sep 17 00:00:00 2001
+From: Ferdinand Vanmaele <ecom@fvanmaele.de>
+Date: Tue, 13 Oct 2026 18:21:03 +0200
+Subject: [PATCH] Search the project's file list in projectile-find-references
+
+xref-matches-in-directory walks the tree with find and searches it with
+grep one file at a time, whatever xref-search-program says.  Search the
+files projectile-project-files lists with xref-matches-in-files
+instead, which honours xref-search-program (e.g. ripgrep, which searches
+in parallel) and the VCS's ignores, as projectile-find-file does.
+---
+ projectile.el | 35 +++++++++++++++++++----------------
+ 1 file changed, 19 insertions(+), 16 deletions(-)
+
+diff --git a/projectile.el b/projectile.el
+index fc704bb..6ddb7f1 100644
+--- a/projectile.el
++++ b/projectile.el
+@@ -8589,14 +8589,16 @@ matches at any depth."
+   "Find textual references to SYMBOL across the current project.
+ 
+ SYMBOL defaults to the active region or the symbol at point.  The search
+-is scoped to the project root and honours Projectile's ignore
+-configuration (`.projectile' and the globally-ignored files and
+-directories), like Projectile's other search commands.
++covers the project's files as `projectile-project-files' lists them, so
++it honours Projectile's ignore configuration (`.projectile' and the
++globally-ignored files and directories) and, with the alien indexing
++method, the VCS's own ignores, like `projectile-find-file'.
+ 
+ This is a backend-agnostic textual search (it greps the project for
+-SYMBOL).  For semantic references from a language server or tags table,
+-use the built-in `xref-find-references', which is scoped to the
+-Projectile project too when `projectile-mode' is enabled."
++SYMBOL) with the program `xref-search-program' names.  For semantic
++references from a language server or tags table, use the built-in
++`xref-find-references', which is scoped to the Projectile project too
++when `projectile-mode' is enabled."
+   (interactive)
+   (require 'xref)
+   (let* ((project-root (projectile-acquire-root))
+@@ -8604,18 +8606,19 @@ Projectile project too when `projectile-mode' is enabled."
+                      (read-string
+                       (projectile-prepend-project-name "Find references to: ")
+                       (projectile-symbol-or-selection-at-point))))
+-         ;; `xref-matches-in-directory' reads its IGNORES in project.el's
+-         ;; format, not gitignore's.
+-         (ignores (mapcar #'projectile--project-el-ignore-glob
+-                          (projectile--project-ignore-globs project-root)))
+-         ;; `xref-matches-in-directory' greps for the pattern (honouring
+-         ;; IGNORES) and re-matches it in-buffer to pin down columns, so a
+-         ;; plain quoted symbol is the portable choice: symbol/word-boundary
+-         ;; constructs (`\\_<', `\\b') don't survive the translation to the
+-         ;; platform grep.
++         ;; `xref-matches-in-files' greps for the pattern and re-matches it
++         ;; in-buffer to pin down columns, so a plain quoted symbol is the
++         ;; portable choice: symbol/word-boundary constructs (`\\_<', `\\b')
++         ;; don't survive the translation to the search program.
+          (regexp (regexp-quote symbol))
+          (fetcher (lambda ()
+-                    (xref-matches-in-directory regexp "*" project-root ignores))))
++                    ;; Listed at each call, so reverting the xref buffer
++                    ;; sees files added since.
++                    (when-let* ((files (projectile-project-files project-root)))
++                      (xref-matches-in-files
++                       regexp
++                       (mapcar (lambda (file) (expand-file-name file project-root))
++                               files))))))
+     (xref-show-xrefs fetcher nil)))
+ 
+ (defmacro projectile-with-default-dir (dir &rest body)
+-- 
+2.56.0
+

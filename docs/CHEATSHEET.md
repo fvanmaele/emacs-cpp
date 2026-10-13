@@ -109,6 +109,7 @@ narrow keys (`M-o`, `C-x b`, `M-g i` ...), `<` shows them after 0.2 seconds (D-0
 | `C-c p t` | toggle between implementation and test |
 | `C-c p !` | shell command in the project root |
 | `C-c p r` | replace text in the whole project |
+| `C-c p ?` | text search for the symbol at point in the project's files (`M-?` asks clangd) |
 | `C-c p k` | kill all buffers of the project |
 
 The commands show at the prompt: add `--target main` to build one target. `M-g n` /

@@ -12,5 +12,10 @@
   "The debug configuration `C-x C-a d' offers first in C++ buffers.
 Apple silicon has no gdb (D-051, D-055).")
 
+(defconst emacs-cpp-default-xref-search-program 'ripgrep
+  "The program textual searches run, `C-c p ?' among them (D-081, D-055).
+ripgrep (MacPorts): opening a file costs about 14 ms here, so BSD grep, one file
+at a time, took 130 - 156 s over deal.II and ripgrep, in parallel, 10 s.")
+
 (provide 'defaults-darwin)
 ;;; defaults-darwin.el ends here

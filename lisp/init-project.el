@@ -11,6 +11,22 @@
 
 (require 'emacs-cpp-presets)
 
+(defun emacs-cpp-search-program-check (program)
+  "Return PROGRAM, a key of `xref-search-program-alist', when its executable is found.
+Signal an error naming the executable otherwise (D-081)."
+  (let ((executable (if (eq program 'ripgrep) "rg" (symbol-name program))))
+    (unless (executable-find executable)
+      (error "emacs-cpp: %s is not on exec-path; textual search (C-c p ?) runs it (D-081)"
+             executable))
+    program))
+
+;; Built in: textual searches run the platform's program (D-081, D-055), also
+;; `C-c p ?', whose search goes through it with patches/projectile/0001 (D-069).
+(use-package xref
+  :init
+  (setq xref-search-program
+        (emacs-cpp-search-program-check emacs-cpp-default-xref-search-program)))
+
 (use-package projectile
   :hook (after-init . projectile-mode)
   :config
