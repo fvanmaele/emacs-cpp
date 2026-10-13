@@ -602,7 +602,8 @@ Known defects: none yet (nothing built).
   request"): the prompt binds, around its `consult--multi` call,
   `gc-cons-threshold` to 64 MB, `consult--regexp-compiler` to one that highlights only
   the first 100 hits per input, and `consult-async-refresh-delay` to 0.05 s; it passes
-  `:sort nil`; its symbol source throttles and debounces at 0.05 s and sends no
+  `:sort nil`; its symbol source throttles and debounces at 0.05 s (SUPERSEDED by
+  D-087: consult's 0.5 s / 0.2 s, as `C-c l s`) and sends no
   `workspace/symbol` request for an empty input (its own request step instead of
   consult-eglot's `setup` request; `< l` asks for it since D-086). Owner asked for
   S11 run 2 first: the whole prompt
@@ -675,6 +676,18 @@ Known defects: none yet (nothing built).
   mechanism without per-server spellings, 4x faster, is researched as O-40
   (`RESEARCH_go_to_anything.md` 11). Warm (a first call pays `seq-filter`'s setup):
   13.6 - 14.2 ms.
+- DECIDED D-087 (owner 2026-10-13, tier 1: "use C-c l s request timing for M-o as
+  well"): `M-o`'s symbol sources (`s`, `l`) throttle and debounce with consult's
+  defaults, as consult-eglot's `C-c l s`: a request at most every 0.5 s
+  (`consult-async-input-throttle`), once typing has paused for 0.2 s
+  (`consult-async-input-debounce`); D-077 had 0.05 s / 0.05 s. The screen refresh
+  delay (0.05 s, D-077) stays. Terminal check on the toy, `answer` typed at 50 ms per
+  key: `C-c l s` one request at 455 ms; `M-o` `< l` one at 456 ms; `M-o` (`s`), second
+  use in the session, one at 460 ms. The first `M-o` of a session froze for about
+  0.5 s at the third key, with either timing: consult's preview opening the first
+  file candidate (`consult--find-file-temporarily`: `c++-ts-mode` setup, and a
+  native-compiled trampoline for its advice, cached in eln-cache after the first
+  time); not changed.
 - DECIDED D-086 (owner 2026-10-13: "the behavior of M-o <l should match C-c l s";
   done when agreed): `M-o` `< l` with no input asks clangd for "" and lists its
   first 100 symbols, as `C-c l s` does when it opens; one or two characters keep
@@ -1531,6 +1544,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-084 | 2026-10-13 | PgDn / PgUp page through vertico's candidates | 10 | owner |
 | D-085 | 2026-10-13 | project symbols: one URI matcher for every server | 10 | O-40 |
 | D-086 | 2026-10-13 | `M-o` `< l` lists clangd's first 100 for empty input | 10 | owner |
+| D-087 | 2026-10-13 | `M-o` symbol requests with `C-c l s`'s timing | 10 | owner |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.

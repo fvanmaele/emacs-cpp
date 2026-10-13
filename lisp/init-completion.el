@@ -274,7 +274,9 @@ their preview come from consult-eglot."
         :emacs-cpp-action (lambda (_) (run-hooks 'consult-after-jump-hook))
         :async (consult--async-pipeline
                 (emacs-cpp-go--min-input 3 empty)
-                (consult--async-throttle 0.05 0.05)
+                ;; consult's own timing, as `C-c l s' (D-087): a request at most every
+                ;; 0.5 s, once typing has paused for 0.2 s.
+                (consult--async-throttle)
                 (emacs-cpp-go--symbol-request servers root-uris empty)
                 (consult--async-map #'consult-eglot--transformer))))
 

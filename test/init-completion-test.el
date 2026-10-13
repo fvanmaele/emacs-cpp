@@ -119,6 +119,9 @@ REPLY-LATER, after all inputs, newest first."
     (should-not (member '((:name "vec")) sunk))))
 
 (ert-deftest init-completion-go-symbols-from-third-character ()
+  "D-077: no request before the third character.  consult's timing (D-087) is
+checked in a terminal Emacs: in batch the minibuffer never changes, so consult
+takes every input for initial input and sends it at once."
   (init-test--load)
   (require 'consult)
   (require 'eglot)
@@ -137,7 +140,9 @@ REPLY-LATER, after all inputs, newest first."
           (accept-process-output nil 0.2))
         (should (null queries))
         (funcall step "vec")
-        (accept-process-output nil 0.2)
+        (let ((deadline (+ (float-time) 1.5)))
+          (while (and (null queries) (< (float-time) deadline))
+            (accept-process-output nil 0.05)))
         (should (equal queries '("vec")))))))
 
 (ert-deftest init-completion-page-keys ()
