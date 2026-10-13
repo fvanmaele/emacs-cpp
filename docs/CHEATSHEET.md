@@ -13,6 +13,10 @@ tasks step by step: `docs/MANUAL.md`.
 | `M-?` | find usages (references) |
 | `M-,` | go back to where you were before `M-.` / `M-?` |
 | `C-M-,` | go forward again |
+| Cmd+click (Mac) / Ctrl+click (Arch) | definition of the symbol clicked; on its definition: its usages |
+| Cmd+Opt+click / Ctrl+Alt+click | implementations of the symbol clicked |
+| Cmd+Shift+click / Ctrl+Shift+click | the type of the symbol clicked |
+| right click | menu: Find Definition / References, Rename, Code Actions, Implementation, Format |
 | `C-M-.` | search symbols in the whole project by name |
 | `C-c l s` | the same, with live preview (`consult-eglot-symbols`); libraries' symbols too |
 | `M-g i` | symbols of this file (functions, classes); `M-g I`: of all open files |

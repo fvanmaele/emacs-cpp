@@ -15,6 +15,10 @@
   "Directories put in front of `exec-path' and PATH at startup when missing (D-089).
 None on Arch: pacman installs into /usr/bin.")
 
+(defconst emacs-cpp-default-mouse-modifier 'control
+  "Modifier of the navigation clicks (D-093): Control, as CLion's Ctrl+Click on
+Linux; desktops often take Super+click.")
+
 (defconst emacs-cpp-default-pdf-viewer
   '("zathura" "--synctex-forward" "%l:1:%f" "%p")
   "Program and arguments texlab runs to show a line of a LaTeX source in its PDF

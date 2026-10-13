@@ -28,9 +28,9 @@ can still set its own."
 
 (use-package eglot
   ;; Not autoloaded by eglot; `C-c l' (below) can come before eglot has loaded.
-  :commands (eglot-rename eglot-code-actions eglot-format eglot-find-implementation
-             eglot-find-declaration eglot-show-call-hierarchy eglot-show-type-hierarchy
-             eglot-inlay-hints-mode)
+  :commands (eglot-rename eglot-code-actions eglot-format eglot-format-buffer
+             eglot-find-implementation eglot-find-typeDefinition eglot-find-declaration
+             eglot-show-call-hierarchy eglot-show-type-hierarchy eglot-inlay-hints-mode)
   :config
   ;; RET indents by Emacs's rules (electric indentation, D-062's rules), not by the
   ;; server: on each newline eglot would ask it to format, and clangd then also
@@ -59,6 +59,84 @@ can still set its own."
 
 (use-package consult-eglot
   :after (consult eglot))
+
+(defun emacs-cpp-lsp--defined-here-p (identifier)
+  "Non-nil when every definition of IDENTIFIER is on the line at point."
+  (let ((definitions (xref-backend-definitions (xref-find-backend) identifier))
+        (file (buffer-file-name))
+        (line (line-number-at-pos)))
+    (and definitions
+         (seq-every-p (lambda (item)
+                        (let ((location (xref-item-location item)))
+                          (and (equal (xref-location-group location) file)
+                               (eql (xref-location-line location) line))))
+                      definitions))))
+
+(defun emacs-cpp-lsp-mouse-definition-or-references (event)
+  "Go to the definition of the symbol clicked, or list its references when the
+click is on its definition, as CLion's Cmd+Click (D-093)."
+  (interactive "e")
+  (require 'xref)
+  (mouse-set-point event)
+  (let ((identifier (xref-backend-identifier-at-point (xref-find-backend))))
+    (unless identifier
+      (user-error "No symbol here"))
+    (if (emacs-cpp-lsp--defined-here-p identifier)
+        (xref-find-references identifier)
+      (xref-find-definitions identifier))))
+
+(defun emacs-cpp-lsp-mouse-implementation (event)
+  "Go to the implementations of the symbol clicked (D-093)."
+  (interactive "e")
+  (mouse-set-point event)
+  (call-interactively #'eglot-find-implementation))
+
+(defun emacs-cpp-lsp-mouse-type-definition (event)
+  "Go to the type of the symbol clicked (D-093)."
+  (interactive "e")
+  (mouse-set-point event)
+  (call-interactively #'eglot-find-typeDefinition))
+
+;; Navigation clicks, CLion's (D-093): Cmd on the Mac, Ctrl on Arch
+;; (`emacs-cpp-default-mouse-modifier', D-055); with Opt / Alt implementations,
+;; with Shift the type.  The press is unbound so the click arrives: on Arch that
+;; drops Emacs's buffer menu (C-down-mouse-1) and its rectangle drag (C-M-).
+(defun emacs-cpp-lsp--mouse-key (modifiers event)
+  "Return the key description of EVENT with MODIFIERS, in Emacs's order."
+  (key-description
+   (vector (event-convert-list
+            (append (cons emacs-cpp-default-mouse-modifier modifiers) (list event))))))
+
+(pcase-dolist (`(,modifiers . ,command)
+               '((() . emacs-cpp-lsp-mouse-definition-or-references)
+                 ((meta) . emacs-cpp-lsp-mouse-implementation)
+                 ((shift) . emacs-cpp-lsp-mouse-type-definition)))
+  (keymap-global-unset (emacs-cpp-lsp--mouse-key modifiers 'down-mouse-1) t)
+  (keymap-global-set (emacs-cpp-lsp--mouse-key modifiers 'mouse-1) command))
+
+(defun emacs-cpp-lsp-context-menu (menu click)
+  "Add the language server's commands for the spot CLICKed to MENU (D-093).
+Only in a buffer eglot manages; each entry first moves point to the click."
+  (when (and (fboundp 'eglot-managed-p) (eglot-managed-p))
+    (let ((at-click (lambda (command)
+                      (lambda ()
+                        (interactive)
+                        (mouse-set-point click)
+                        (call-interactively command)))))
+      (define-key-after menu [emacs-cpp-lsp-separator] menu-bar-separator)
+      (define-key-after menu [emacs-cpp-lsp-rename]
+        `(menu-item "Rename Symbol..." ,(funcall at-click #'eglot-rename)))
+      (define-key-after menu [emacs-cpp-lsp-actions]
+        `(menu-item "Code Actions..." ,(funcall at-click #'eglot-code-actions)))
+      (define-key-after menu [emacs-cpp-lsp-implementation]
+        `(menu-item "Go to Implementation"
+                    ,(funcall at-click #'eglot-find-implementation)))
+      (define-key-after menu [emacs-cpp-lsp-format]
+        `(menu-item "Format Buffer" eglot-format-buffer))))
+  menu)
+
+;; Right click's menu (lisp/init-ui.el) gets them after Emacs's own entries.
+(add-hook 'context-menu-functions #'emacs-cpp-lsp-context-menu 90)
 
 (defvar-keymap emacs-cpp-code-map
   :doc "Code commands on `C-c l' (D-004).  Eglot's need a managed buffer.

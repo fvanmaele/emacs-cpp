@@ -16,6 +16,13 @@
     (load-theme 'modus-vivendi-tritanopia t)))
 (add-hook 'after-init-hook #'emacs-cpp-ui-default-theme -90)
 
+;; Built in: right click opens a menu (D-093): in code, Find Definition and Find
+;; References at the click (Emacs's own), the language server's commands
+;; (lisp/init-lsp.el), and the editing entries.  Shift+Click still extends the
+;; selection (`mouse-save-then-kill'), which right click did before.
+(use-package mouse
+  :hook (after-init . context-menu-mode))
+
 ;; Built in: after a stepping key of the debugger (`C-x C-a n'), plain `n', `s', `o',
 ;; `c' ... repeat it; any other key ends that (D-037).  Emacs's own repeat maps
 ;; (`C-x o o', `C-x u u') come with it.
