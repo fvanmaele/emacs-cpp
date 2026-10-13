@@ -685,9 +685,9 @@ Known defects: none yet (nothing built).
   key: `C-c l s` one request at 455 ms; `M-o` `< l` one at 456 ms; `M-o` (`s`), second
   use in the session, one at 460 ms. The first `M-o` of a session froze for about
   0.5 s at the third key, with either timing: consult's preview opening the first
-  file candidate (`consult--find-file-temporarily`: `c++-ts-mode` setup, and a
-  native-compiled trampoline for its advice, cached in eln-cache after the first
-  time); not changed.
+  file candidate (`consult--find-file-temporarily`: `c++-ts-mode` setup, and the
+  native trampoline for its advice on `run-hooks`, cached but loaded again each
+  session, 60 - 104 ms); not changed here, researched as O-41.
 - DECIDED D-086 (owner 2026-10-13: "the behavior of M-o <l should match C-c l s";
   done when agreed): `M-o` `< l` with no input asks clangd for "" and lists its
   first 100 symbols, as `C-c l s` does when it opens; one or two characters keep
@@ -1189,6 +1189,15 @@ presets, GoogleTest runner.
   (T-059, owner's deal.II project `step-1`, Mac, 40 queries): filtering today's 100
   loses project symbols in 14 queries (373 symbols), 1000 in 2 (30), no limit in
   none, slowest reply 15.9 ms (2458 symbols), median 0.3 ms. To the owner.
+- O-41 (OPEN, owner 2026-10-13: "research the stall ... images in the project
+  directory as possible cause"): the first `M-o` of a session can freeze while
+  consult previews the first file candidate (`RESEARCH_go_to_anything.md` 12): every
+  session's first preview 0.3 - 0.4 s; first `.org` preview 5.2 s (Org loads, much
+  of it as byte-code), first `.R` 0.9 s (ESS), first image 0.16 s plus decoding in
+  the GUI (not measured); step-1 lists 286 `.org` and 111 images, all fully
+  previewed. Options: (a) no preview of images and PDFs; (b) debounced preview in
+  `M-o`; (c) native-compile Emacs's own Org ahead of time; (d) load Org at idle
+  (rejected unless (c) makes it short). Owner rules.
 - O-40 (RESOLVED 2026-10-13 with D-085: (a); owner 2026-10-13: "research more general
   mechanisms"): D-083 matches
   the project root in one spelling per server encoding (eglot, clangd, pyright); R's

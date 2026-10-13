@@ -381,6 +381,71 @@ Mechanisms, measured on 6673 symbol URIs (111 under the root), Mac, Emacs 31.1:
   in a session costs about 30 ms more (generic `seq-filter` dispatch set up), in
   both; the cold 16.7 ms above included it.
 
+## 12. The first-use stall: consult's file preview (owner question 2026-10-13)
+Observed while checking D-087 (terminal Emacs, toy project): the first `M-o` of a
+session took no keys for about 0.5 s after the third character, with either
+throttle; the second use in the same session did not. Owner: research it, images in
+the project directory as a possible cause.
+
+**Where it comes from** (CPU profile of that half second): consult previews the
+selected candidate; at the third key it became a file, so
+`consult--find-file-temporarily` opened it: `c++-ts-mode` set up (tree-sitter
+queries compiled) and `advice-add` on `run-hooks`, a primitive, which needs a
+native-compiled trampoline. The trampoline is cached (`~/.emacs.d/eln-cache`,
+`subr--trampoline-...run_hooks_0.eln`), but loading it still costs 60 - 104 ms in
+each new session. Only the selected candidate is previewed, after each key; with
+`:sort nil` that is the first in source order (buffers, recent files, bookmarks,
+project files, symbols).
+
+**How consult previews a file** (`consult--find-file-temporarily-1`, 3.10): files of
+1 MB or more (`consult-preview-partial-size`) get their first 10 KB in a plain
+buffer and are refused if that holds a NUL byte (cheap). Smaller files are opened
+with `find-file-noselect`, delayed mode hooks, local variables only if safe; the
+binary check runs only in `fundamental-mode` or `hexl-mode`, so images
+(`image-mode`) and PDFs (`doc-view-mode`, which starts gs / mutool) are previewed in
+full. Excluded by default: remote and `.gpg` files only
+(`consult-preview-excluded-files`).
+
+**What step-1 lists** (`M-o`'s project files): 286 `.org`, 100 `.png`, 11 `.svg`, 12
+`.gnuplot`, 8 `.R`, 13 `.py`, 39 `.h`, 12 `.cc`; every image under 1 MB, so all
+fully previewed.
+
+**First and second preview per type** (batch, shipped config, a fresh Emacs per type,
+one `.cc` previewed first to take the session's first-preview cost; real step-1
+files):
+- first preview of a session (`.cc`): 270 - 400 ms;
+- `.org`, first: 5190 ms, then 3 ms;
+- `.R`, first: 910 ms (ESS loads), then 2 ms;
+- `.png`, `.svg`, first: 159 / 163 ms (`image-mode` loads), then 1 ms; decoding and
+  drawing the image happen only in a graphical frame, not measured;
+- `.py`, first: 139 ms, then 18 ms.
+
+**Why Org takes seconds:** `(require 'org)` 1.3 s and the first Org buffer another
+3.4 s even under `emacs -Q`; 174 files load, 93 % of the time in `require`, 86 % in
+byte-code: Emacs.app (MacPorts, native-comp) ships native code for 40 Org files;
+`org-element`, much of Org and `cl-extra` run as byte-code, and the eln-cache holds
+one Org file. Reading the 174 files costs 0.9 s cold, 0.03 s warm (scanner; the
+GDATA exceptions cover `~/source`, not Emacs.app).
+
+**So images are a cause, but a small one in batch** (about 0.16 s once, plus decoding
+in the GUI, not measured); the large first-use costs come from modes loading for
+the first time: Org 5.2 s, ESS 0.9 s, and every session's first preview 0.3 - 0.4 s.
+
+**Options** (not ruled, O-41):
+- (a) Exclude images and PDFs from preview (`consult-preview-excluded-files`, a
+  regexp of extensions): no image-mode / doc-view in the prompt; the candidate still
+  opens on RET.
+- (b) Debounce previews in `M-o` (consult's `:preview-key '(:debounce 0.3 any)` for
+  the command): no preview while typing, one after a pause; the first-load cost
+  remains, but not between keys.
+- (c) Native-compile Emacs's own Org (and the other byte-code files) ahead of time:
+  `native-compile-async` on Emacs.app's `lisp/` into the eln-cache, once per Emacs
+  build (owner runs it); expected to cut Org's load, not measured.
+- (d) Load Org at idle after startup: moves 1.3 - 4.5 s into idle time, but a load
+  cannot be interrupted; rejected unless (c) makes it short.
+- Not checked: the stall in a graphical frame with real images; PDF previews (step-1
+  lists none).
+
 ## Sources
 - JetBrains, CLion help "Search everywhere":
   https://www.jetbrains.com/help/clion/searching-everywhere.html
