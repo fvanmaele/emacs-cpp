@@ -15,7 +15,8 @@ Project Detection), Arch's package search and the AUR's JSON interface, MacPorts
   (`eglot-alternatives`; without a prompt it takes the first found, digestif).
 - The Mac: texlab 5.25.1 (MacPorts, installed); TeX Live 2026 under
   `/Library/TeX/texbin` (MacTeX, not MacPorts) with digestif, latexmk, chktex,
-  latexindent, biber. No PDF viewer with SyncTeX installed.
+  latexindent, biber. Skim 1.7.17 installed by the owner 2026-10-13 (outside
+  MacPorts).
 
 ## 2. Candidates and packaging
 - **texlab** (Rust; MIT): Arch `extra/texlab` 5.25.1 (official), MacPorts `texlab`
@@ -27,8 +28,10 @@ Project Detection), Arch's package search and the AUR's JSON interface, MacPorts
   structure server; not looked at further.
 - **Tectonic** (self-contained TeX engine): Arch `extra/tectonic` 0.17.0; texlab
   supports it as builder.
-- PDF viewers with SyncTeX: Arch `extra/zathura`, `extra/okular`; MacPorts `skim`
-  5.7.4, `zathura` 0.4.4.
+- PDF viewers with SyncTeX: Arch `extra/zathura`, `extra/okular`; MacPorts
+  `zathura` 0.4.4. Skim (the macOS viewer) is not in MacPorts: MacPorts' `skim` 5.7.4
+  is an unrelated fuzzy finder (corrected 2026-10-13); the owner installed Skim 1.7.17
+  from its own download, `/Applications/Skim.app`.
 
 ## 3. texlab: protocol surface (wiki, 2026-10-13)
 - Standard: completion, definition, references, rename, hover, document and
@@ -67,6 +70,15 @@ Toy project: `main.tex` (`\input{chapters/intro}`, `\ref`, `\cite`, `\newcommand
   across files, no hover or completion for the citation, no workspace symbols, no
   formatting ("Unknown method textDocument/formatting"); definition of `\answer` and
   references in the same file work.
+- Forward search to Skim (2026-10-13): `texlab.forwardSearch.executable`
+  `/Applications/Skim.app/Contents/SharedSupport/displayline`, args `-r -g %l %p
+  %f`; after a build (SyncTeX written), `textDocument/forwardSearch` on line 6:
+  status 0, Skim showed the line; 6.9 s at Skim's first start after installing,
+  then 154 - 234 ms. The settings reach texlab only from the global or directory-local
+  `eglot-workspace-configuration` (eglot reads it in the project's directory-local
+  context); a buffer-local value gave status 3, "Unconfigured". Inverse search
+  (Skim -> Emacs: Skim's Sync preset "Emacs", `emacsclient`, a running Emacs server)
+  not tested.
 - A colon in the project path breaks texlab's cross-file features: under `tex a:b`
   definition of `\ref` and `\cite`, hover and completion of the citation return
   nothing, while `tex a b`, `tex c++`, `tex x@y`, `tex (x)` work. eglot sends `:` as
@@ -92,5 +104,5 @@ Toy project: `main.tex` (`\input{chapters/intro}`, `\ref`, `\cite`, `\newcommand
 ## 6. Not checked
 - texlab on a large document (a thesis-sized project), memory and indexing time.
 - chktex diagnostics through eglot (settings needed).
-- Forward / inverse search with a real viewer.
+- Inverse search (Skim -> Emacs), and zathura on Arch.
 - Arch: texlab and TeX Live there.
