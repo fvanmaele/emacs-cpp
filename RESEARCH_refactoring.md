@@ -91,6 +91,13 @@ compilation database; none is wired into Emacs here.
   re-qualifies references inside the moved code; uses outside the old namespace
   (`geom::Circle` in `main()`) are not changed. Run on one source it changed only
   the header. So a fixed tool still needs the qualified uses replaced as text.
+- Patched (2026-10-14): `MoveNamespaces.clear()` and `InsertFwdDecls.clear()` at the
+  end of `onEndOfTranslationUnit`. Built standalone from the two 23.1.1 source files
+  against MacPorts' llvm-23 headers and libraries (`llvm-config --cxxflags`,
+  `-fno-rtti`, `-lclang-cpp -lLLVM-23`), 10 s. On the generated project: two sources
+  and three (one more defining code in `geom`) exit 0; `shapes.h`, `shapes.cc`,
+  `extra.cc` each in `namespace shapes` once; both sources compile; `main.cc`'s two
+  `geom::` uses unchanged (the tool's scope).
 
 ## 5. Options (for O-43)
 - (a) Pass `--rename-file-limit=0` to clangd (the preset contact): project-wide

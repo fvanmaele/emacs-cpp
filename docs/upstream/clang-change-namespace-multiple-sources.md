@@ -41,9 +41,33 @@ Result.SourceManager` and a `FileID` into the member map `MoveNamespaces`.
 entries of the first one are still there, and their `SourceManager` was destroyed
 with the first translation unit's AST: a dangling pointer.
 
-### Possible fix
+### Fix
 Clear `MoveNamespaces` and `InsertFwdDecls` at the end of
-`onEndOfTranslationUnit` (their replacements are already merged into
-`FileToReplacements`). Not tried here; a header moved in several translation units
-then gets its replacements computed more than once, which `addOrMergeReplacement`
-would have to absorb.
+`onEndOfTranslationUnit`; their replacements are merged into `FileToReplacements` by
+then.
+
+```diff
+--- a/clang-tools-extra/clang-change-namespace/ChangeNamespace.cpp
++++ b/clang-tools-extra/clang-change-namespace/ChangeNamespace.cpp
+@@ -1003,6 +1003,13 @@
+   for (auto &Entry : FileToReplacements)
+     if (!FilePatternRE.match(Entry.first))
+       Entry.second.clear();
++
++  // The moves and insertions above refer to this translation unit's
++  // SourceManager and FileIDs; they are merged into FileToReplacements now and
++  // must not be replayed at the end of the next translation unit, whose
++  // SourceManager is a different one (the previous one is gone).
++  MoveNamespaces.clear();
++  InsertFwdDecls.clear();
+ }
+ 
+ } // namespace change_namespace
+```
+
+Tested (2026-10-14): the tool built from 23.1.1's sources with this change, linked
+against MacPorts' LLVM 23.1.3 libraries, on the reproduction above with two and with
+three sources (a third one also defining code in `geom`): exit 0, the header and each
+source moved to `namespace shapes` once, no duplicated edits, the changed sources
+compile. (Uses outside the old namespace, `geom::Circle` in `main()`, are not changed,
+which is the tool's documented scope, not part of this report.)
