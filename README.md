@@ -30,9 +30,9 @@ sudo pacman -S --needed emacs git make texinfo \
   loads (D-013). **clang** provides clangd, clang-tidy and clang-format.
 - **texinfo** provides `makeinfo` and `install-info`; `make packages` fails without
   them (D-039).
-- **LaTeX** (D-090): texlab is the language server, `texlive-binextra` brings latexmk,
-  zathura shows the line `C-c l b` built. Leave these out if you write no LaTeX; only
-  `.tex` buffers use them.
+- **LaTeX** (D-090): texlab is the language server, `texlive-binextra` brings latexmk
+  and latexindent (`C-c l f`, D-101), zathura shows the line `C-c l b` built. Leave
+  these out if you write no LaTeX; only `.tex` buffers use them.
 
 ### 2. Clone and build the packages
 All packages are git submodules pinned in `lib/` (D-006). Nothing is downloaded when

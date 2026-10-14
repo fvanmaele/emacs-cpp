@@ -37,7 +37,8 @@ projectile's files, ripgrep on macOS (D-081, 0055). `M-o` symbols: the project's
 on `< l` (D-082, 0056), capped at 10000 (D-083, 0057), any server's URIs (D-085);
 `< l` as `C-c l s` (D-086),
 preview after a pause (D-088); macOS PATH from MacPorts at startup (D-089). LaTeX:
-AUCTeX from GNU ELPA and texlab, `C-c l b` (D-090); eglot in init-lsp.el (D-091).
+AUCTeX from GNU ELPA and texlab, `C-c l b` (D-090), `C-c l f` by latexindent (D-101);
+eglot in init-lsp.el (D-091).
 Rename without file limit (D-092); CLion's navigation clicks, right-click menu (D-093);
 clang-tidy fixes, clang-move (D-094); snippets: yasnippet, its collection on `C-c y`
 (D-095); a click shows no tooltip (D-096); patched clang-change-namespace, `C-c l N`

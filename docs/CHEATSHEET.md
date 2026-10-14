@@ -193,6 +193,7 @@ and environments.
 | Key | Does |
 |---|---|
 | `C-c l b` | build with texlab (latexmk), then show this line in Skim / zathura |
+| `C-c l f` | latexindent: indent the region's lines, or the whole file (D-101) |
 | `C-c C-e` / `C-c ]` | insert an environment (asks its name) / close the open one |
 | `C-c C-m` / `C-c C-s` | insert a macro with its arguments / a section with a label |
 | `C-c C-f` then a letter | font: `C-b` bold, `C-i` italic, `C-e` emphasis |
