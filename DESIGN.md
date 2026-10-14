@@ -1417,7 +1417,14 @@ presets, GoogleTest runner.
   `--path-mappings` does not. Options (2.5): (a) warn loudly at eglot's start; (b)
   hand clangd a real-path copy of the database; (c) clangd patch 0010, spike first;
   (d) document, maybe `find-file-visit-truename`; (e) report on #503 (owner). Arch
-  check for the owner: 2.6. Owner rules.
+  (owner's run of 2.6, 2026-10-14): 3 results (`src/combine.cpp`,
+  `include/calc/api.h`), the same loss. Owner 2026-10-14: research (c); findings in
+  2.8: the background index asks for each command by the database's spelling, so the
+  include graph names the main file that way while the symbol collector names its
+  symbols by the real path, and the main file's real-path shard is never stored. A
+  patch 0010 in `index/Background.cpp` only: real paths for the index's translation
+  units (one lookup per directory), `Cmd->Filename` set to the requested path; one
+  re-index per project after the update. Tier 3, spike first. Owner rules.
 - O-51 (RESOLVED 2026-10-14 with D-101: option (a), buffers too; found 2026-10-14,
   owner: "verify region/buffer formatting for LaTeX documents"): `C-c l f`
   (`eglot-format`) formats a whole LaTeX buffer through texlab (latexindent 4.0 on the
