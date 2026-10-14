@@ -289,7 +289,11 @@ Known defects: none yet (nothing built).
   report drafted, `docs/upstream/clang-change-namespace-multiple-sources.md`). And
   by design the tool only re-qualifies references inside the moved code, never the
   uses outside the old namespace, so even fixed it would leave those broken: the
-  text route (MANUAL 8, "Renaming a namespace") stays the way.
+  text route (MANUAL 8, "Renaming a namespace") stays the way. Patched 2026-10-14
+  (owner): clearing both maps at the end of each translation unit; built in scratch
+  from 23.1.1's two sources against MacPorts' LLVM 23.1.3 libraries (10 s): two and
+  three sources run, header and sources moved once, they compile; the patch is in
+  the report draft. Not shipped (packaging and `C-c l N` to be ruled).
   Run here on a generated project (namespace `geom`, two classes): tidy replaced
   both `0`s with `nullptr`; move created `geom/square.h` / `square.cc`, the project
   built and ran once `square.cc` was in CMakeLists.txt. Built (T-068, 0063).
