@@ -1,0 +1,63 @@
+--- a/clang-tools-extra/clangd/index/Background.cpp	2026-10-14 21:57:32.093398709 +0200
++++ b/clang-tools-extra/clangd/index/Background.cpp	2026-10-14 21:57:43.760108082 +0200
+@@ -88,6 +88,41 @@
+   return digest(Buf->get()->getBuffer()) != LS.Digest;
+ }
+ 
++// S13 spike: name each main file by its directory's real path plus its own name,
++// the spelling getCanonicalPath() gives the symbol collector.  The database's
++// spelling (a symlink above the file) would name the main file one way in the
++// include graph and another in its symbols, and update() would drop the latter.
++// One real-path lookup per distinct directory.
++std::vector<std::string> realMainFiles(std::vector<std::string> Files,
++                                       llvm::vfs::FileSystem &FS) {
++  llvm::StringMap<std::string> RealDirs;
++  size_t Renamed = 0;
++  for (std::string &File : Files) {
++    llvm::StringRef Dir = llvm::sys::path::parent_path(File);
++    auto [It, Inserted] = RealDirs.try_emplace(Dir);
++    if (Inserted) {
++      llvm::SmallString<256> Real;
++      if (auto EC = FS.getRealPath(Dir, Real)) {
++        elog("Background-index: no real path for {0}: {1}", Dir, EC.message());
++        It->second = Dir.str();
++      } else {
++        It->second = Real.str().str();
++      }
++    }
++    if (It->second == Dir)
++      continue;
++    llvm::SmallString<256> Path(It->second);
++    llvm::sys::path::append(Path, llvm::sys::path::filename(File));
++    File = Path.str().str();
++    ++Renamed;
++  }
++  if (Renamed)
++    log("Background-index: {0} of {1} main files named by their real path "
++        "({2} directories)",
++        Renamed, Files.size(), RealDirs.size());
++  return Files;
++}
++
+ } // namespace
+ 
+ BackgroundIndex::BackgroundIndex(
+@@ -134,7 +169,8 @@
+     log("Enqueueing {0} commands for indexing", ChangedFiles.size());
+     SPAN_ATTACH(Tracer, "files", int64_t(ChangedFiles.size()));
+ 
+-    auto NeedsReIndexing = loadProject(std::move(ChangedFiles));
++    auto NeedsReIndexing = loadProject(
++        realMainFiles(ChangedFiles, *TFS.view(/*CWD=*/std::nullopt)));
+     // Run indexing for files that need to be updated.
+     std::shuffle(NeedsReIndexing.begin(), NeedsReIndexing.end(),
+                  std::mt19937(std::random_device{}()));
+@@ -165,6 +201,8 @@
+     auto Cmd = CDB.getCompileCommand(Path);
+     if (!Cmd)
+       return;
++    // S13: the database's spelling would come back as the main file.
++    Cmd->Filename = Path;
+     if (auto Error = index(std::move(*Cmd)))
+       elog("Indexing {0} failed: {1}", Path, std::move(Error));
+   });

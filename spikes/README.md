@@ -40,6 +40,11 @@ code is written for it. Each spike is a self-contained directory with its own bu
   function's parameters at every call across the project's files, from the index,
   without wrong edits and in under 2 s (O-43 (b))? FAIL (runs 1, 2): no wrong edit,
   calls in templates left to the user (T-069, `s12-change-signature/RESULTS.md`).
+- **S13 symlinked paths** - does a clangd patch naming the background index's main
+  files by their real directory restore the references a project reached through a
+  symlink loses, with shards still loading on a restart and header flags from an
+  includer (O-50 (c))? PASS on Arch (criteria 1 - 4); macOS under `/tmp` the owner's
+  (T-077, `s13-symlinked-paths/RESULTS.md`).
 - **S10 deal.II sources index** - does an offline index of deal.II's sources make
   `M-.` reach definitions and `M-?` uses inside the library on RMO, with the patched
   clangd, at what memory (O-12)?
