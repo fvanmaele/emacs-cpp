@@ -1293,11 +1293,12 @@ presets, GoogleTest runner.
   under the mouse in eglot buffers, always; (b) (a) plus the server's hover text as
   a tooltip; (c) none. Owner rules.
 - O-46 (OPEN, owner request 2026-10-14: "keybindings/shortcuts similar to LyX"):
-  findings in `RESEARCH_latex.md` 8 (LyX: Ctrl+M math, Ctrl+Shift+M display math,
-  Ctrl+B / Ctrl+E / Ctrl+K fonts, Ctrl+L TeX code; Command on the Mac). Emacs's
-  `C-m`, `C-b`, `C-e`, `C-k`, `C-l` are taken. Options: (a) LyX's keys on Command
-  in `LaTeX-mode` on the Mac; (b) under a prefix on both machines; (c) AUCTeX's only.
-  Owner rules.
+  findings in `RESEARCH_latex.md` 8 (LyX's bind files: Ctrl+M math, Ctrl+Shift+M display
+  math, Ctrl+Alt+B bold, Ctrl+E emphasis, Ctrl+L TeX code, Ctrl+R view; Mac: Command+M,
+  Command+Shift+M, Command+B, Command+Ctrl+E, Command+L, Command+R). Emacs's `C-m`,
+  `C-b`, `C-e`, `C-k`, `C-l` are taken; Emacs.app's `s-m`, `s-e`, `s-l` too. Options:
+  (a) LyX's keys on Command in `LaTeX-mode` on the Mac; (b) under a prefix on both
+  machines; (c) AUCTeX's only. Owner rules.
 - O-45 (OPEN, owner request 2026-10-14: "research yasnippet"): findings in
   `RESEARCH_snippets.md`. With yasnippet eglot announces snippet support: clangd
   then completes calls with argument placeholders, texlab environments with

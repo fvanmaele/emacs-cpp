@@ -2,9 +2,9 @@
 
 Question (owner, 2026-10-14): research yasnippet. Findings only; verdicts go to DESIGN.
 
-Sources: GNU ELPA's package pages for yasnippet and tempel (read 2026-10-14), Emacs
-31.1's eglot (`eglot--snippet-expansion-fn`); the NonGNU ELPA page of
-yasnippet-snippets timed out (not read).
+Sources: GNU ELPA's package pages for yasnippet, yasnippet-classic-snippets and
+tempel, NonGNU ELPA's for yasnippet-snippets, its GitHub repository's `snippets/`
+(read 2026-10-14); Emacs 31.1's eglot (`eglot--snippet-expansion-fn`).
 
 ## 1. What a snippet package changes here
 - **eglot:** `eglot--snippet-expansion-fn` returns a function only when
@@ -21,12 +21,15 @@ yasnippet-snippets timed out (not read).
   GNU ELPA's `externals/yasnippet`, upstream github.com/joaotavora/yasnippet).
   Snippets in the TextMate-like format (`$1`, `${2:default}`), one file per
   snippet in a directory per mode. Since 0.13 no snippets are bundled.
-- **Snippet collections:** `yasnippet-snippets` (AndreaCrotti; MELPA, NonGNU ELPA
-  not confirmed here) with directories for C++, LaTeX, Python, Markdown ...;
-  `yasnippet-classic-snippets` (GNU ELPA) with the old bundled set. Mode names
-  matter: snippets live under `c++-mode`, `latex-mode`; this config uses
-  `c++-ts-mode` and AUCTeX's `LaTeX-mode`, which reach them only through
-  `.yas-parents` or `yas-parents` settings (not checked).
+- **Snippet collections:** `yasnippet-snippets` (AndreaCrotti; NonGNU ELPA 1.0,
+  2024-03-31, git: NonGNU ELPA's `elpa/yasnippet-snippets`; upstream master has
+  directories for `c++-mode`, `c++-ts-mode`, `c-ts-mode`, `python-ts-mode`,
+  `cmake-mode`, `latex-mode`, `bibtex-mode`, `markdown-mode`, ...; whether the 1.0
+  release has the `-ts-mode` ones is not checked); `yasnippet-classic-snippets`
+  (GNU ELPA 1.0.2, 2024-04-24, Noam Postavsky) with the set yasnippet once bundled.
+  AUCTeX's `LaTeX-mode` has `latex-mode` among its parents (checked:
+  `derived-mode-all-parents` gives `LaTeX-mode TeX-mode text-mode latex-mode
+  tex-mode`), so `latex-mode` snippets are expected to apply there (not tried).
 - **tempel** (GNU ELPA 1.14, 2026-07-05, Daniel Mendler, the author of consult,
   vertico, corfu): templates as Lisp data in Tempo's syntax, expanded through
   `completion-at-point` (corfu shows them); no LSP snippet expansion of its own:
@@ -52,5 +55,4 @@ yasnippet-snippets timed out (not read).
 ## 5. Not checked
 - yasnippet with corfu and TAB in this config; clangd's snippet completions through
   eglot with yasnippet.
-- yasnippet-snippets' packaging (NonGNU ELPA) and its use under `c++-ts-mode` /
-  `LaTeX-mode`.
+- yasnippet-snippets 1.0's mode directories and its snippets in `LaTeX-mode`.
