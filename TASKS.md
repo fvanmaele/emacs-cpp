@@ -122,6 +122,7 @@ with `done when: ...`).
 | T-074 | done 0068 | S | LaTeX: `C-c l f` by latexindent | D-101 | tests, real texlab |
 | T-075 | done | S | research: clangd path filter for symbols | owner | RESEARCH 13; O-52 |
 | T-076 | done | S | research: clangd patch, symlinked paths | owner | RESEARCH 2.8; O-50 |
+| T-077 | open 0069 | M | spike S13: symlinked paths | O-50 (c) | PASS Arch; Mac |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -280,6 +281,12 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-077 (opened 2026-10-14, owner: "spike for (c)"): spike S13, clangd patch naming
+  the background index's main files by their real directory
+  (`spikes/s13-symlinked-paths/RUN.md`, pass criteria proposed 2026-10-14). Done
+  when: RESULTS.md has a verdict on criteria 1 - 5. Arch 2026-10-14 (0069): criteria
+  1 - 4 PASS. Left: the owner confirms the criteria; criterion 5, the owner's Mac run
+  under `/tmp`.
 - T-076 (opened 2026-10-14, owner, O-50 (c)): research a clangd patch for projects
   reached through a symlink. Done when: `RESEARCH_platform_differences.md` 2.8 with
   the comparison that drops the main file, the patch's place and cost, what a spike

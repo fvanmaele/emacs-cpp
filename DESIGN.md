@@ -1424,7 +1424,12 @@ presets, GoogleTest runner.
   symbols by the real path, and the main file's real-path shard is never stored. A
   patch 0010 in `index/Background.cpp` only: real paths for the index's translation
   units (one lookup per directory), `Cmd->Filename` set to the requested path; one
-  re-index per project after the update. Tier 3, spike first. Owner rules.
+  re-index per project after the update. Tier 3, spike first. Owner 2026-10-14:
+  "spike for (c)": S13 (T-077, `spikes/s13-symlinked-paths`, 0069), PASS on Arch:
+  through a symlink 201 references in 26 files (without the patch 3 in 2), restarts
+  index nothing, a header opened first keeps its includer's flags; one re-index from
+  unpatched shards. Left: the owner confirms the criteria and runs criterion 5
+  (macOS under `/tmp`); then patch 0010 written fresh (tier 3). Owner rules.
 - O-51 (RESOLVED 2026-10-14 with D-101: option (a), buffers too; found 2026-10-14,
   owner: "verify region/buffer formatting for LaTeX documents"): `C-c l f`
   (`eglot-format`) formats a whole LaTeX buffer through texlab (latexindent 4.0 on the
