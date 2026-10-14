@@ -1393,6 +1393,16 @@ presets, GoogleTest runner.
   hand clangd a real-path copy of the database; (c) clangd patch 0010, spike first;
   (d) document, maybe `find-file-visit-truename`; (e) report on #503 (owner). Arch
   check for the owner: 2.6. Owner rules.
+- O-51 (OPEN, found 2026-10-14, owner: "verify region/buffer formatting for LaTeX
+  documents"): `C-c l f` (`eglot-format`) formats a whole LaTeX buffer through texlab
+  (latexindent 4.0 on the Mac: environment bodies indented by one tab), but refuses a
+  region: texlab 5.25.1 announces no `documentRangeFormattingProvider` ("[eglot]
+  Unsupported or ignored LSP capability ':documentRangeFormattingProvider'"). AUCTeX's
+  `indent-region` (`C-M-\`) indents by other rules (spaces; `\item` at the
+  environment's column, `LaTeX-item-indent` -2), so region and buffer disagree.
+  Checked in batch with the shipped config, real texlab, a git project. Options:
+  (a) a region through latexindent itself (`--lines MIN-MAX`); (b) region by AUCTeX,
+  its variables set to latexindent's defaults; (c) document the gap. Owner rules.
 - O-49 (RESOLVED 2026-10-14 with D-099: (a); found 2026-10-14 checking order
   dependencies, D-098): `M-o`
   (`emacs-cpp-go-to-anything`, init-completion) calls projectile
