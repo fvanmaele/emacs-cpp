@@ -11,6 +11,8 @@
 
 ;;; Code:
 
+(require 'init-lsp)
+
 ;; Fail loudly (DESIGN 4), as for C++ (D-008).
 (unless (treesit-language-available-p 'python)
   (error "emacs-cpp: tree-sitter Python grammar missing; install tree-sitter-python \

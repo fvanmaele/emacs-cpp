@@ -59,6 +59,54 @@ under way when the visit returns; the buffer is managed once it ends."
   (should (file-exists-p (expand-file-name "lib/autoloads.el" build-packages-root)))
   (should-not (init-test--stale-elc-files)))
 
+;; init.el's part before the modules, for a module loaded on its own: the root, the
+;; generated load path and autoloads, use-package's defaults, the platform defaults.
+(defconst init-test--prelude
+  '(progn
+     (defconst emacs-cpp-root (file-name-as-directory build-packages-root))
+     (load (expand-file-name "lib/load-path.el" emacs-cpp-root) nil t)
+     (load (expand-file-name "lib/autoloads.el" emacs-cpp-root) nil t)
+     (add-to-list 'load-path (expand-file-name "lisp" emacs-cpp-root))
+     (require 'use-package)
+     (setq use-package-always-defer t use-package-expand-minimally t)
+     (require (emacs-cpp-defaults-feature system-type)))
+  "What init.el sets up before its first module, minus `emacs-cpp-defaults-feature'.")
+
+(defun init-test--modules ()
+  "Return the modules init.el requires, in its order."
+  (with-temp-buffer
+    (insert-file-contents (expand-file-name "init.el" build-packages-root))
+    (let (modules)
+      (while (re-search-forward "^(require '\\(init-[a-z-]+\\))" nil t)
+        (push (intern (match-string 1)) modules))
+      (nreverse modules))))
+
+(ert-deftest init-modules-load-alone ()
+  "D-098: each module loads after init.el's prelude alone: what it needs from
+another module it requires itself, so no module works only by init.el's order."
+  (let ((modules (init-test--modules))
+        (defaults (with-temp-buffer
+                    (insert-file-contents (expand-file-name "init.el" build-packages-root))
+                    (re-search-forward "^(defun emacs-cpp-defaults-feature")
+                    (goto-char (match-beginning 0))
+                    (read (current-buffer)))))
+    (should (> (length modules) 10))
+    (dolist (module modules)
+      (let* ((home (make-temp-file "emacs-cpp-alone" t))
+             (form `(let ((user-emacs-directory ,(file-name-as-directory home)))
+                      ,defaults ,init-test--prelude
+                      (require ',module)))
+             (output (with-temp-buffer
+                       (list (call-process (expand-file-name invocation-name invocation-directory)
+                                           nil t nil "-Q" "--batch"
+                                           "-L" (expand-file-name "scripts" build-packages-root)
+                                           "--eval" "(require 'build-packages)"
+                                           "--eval" (prin1-to-string form))
+                             (buffer-string)))))
+        (delete-directory home t)
+        (should (equal (list module (car output))
+                       (list module 0)))))))
+
 (ert-deftest init-loads-and-matches-retired-dot-emacs ()
   "init.el loads without error and keeps the behaviour of the retired ~/.emacs."
   (init-test--load)

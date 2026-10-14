@@ -159,6 +159,16 @@ Observed on the owner's Mac, 2026-10-09 (D-050):
   and sets its defaults, then `require`s `lisp/init-*.el` in a fixed, listed order.
   Module order is the contract; a module may depend only on modules loaded before it.
 - Each module ends with `(provide 'init-<name>)`; a missing module is a load error.
+- DECIDED D-098 (owner 2026-10-14, O-48 (e)): no switch for turning modules on or off;
+  every module loads on both machines, DESIGN 2's "no Doom / Spacemacs layer" stays.
+  Checked the same day for dependencies that only init.el's order satisfied (each
+  module loaded alone after init.el's prelude; each file byte-compiled alone):
+  init-python called init-lsp's `emacs-cpp-lsp-server` without requiring it; it now
+  does, as init-cpp and init-latex do, and the test `init-modules-load-alone` loads
+  every module of init.el on its own in a child Emacs. At run time, not load time,
+  init-completion's `M-o` calls projectile and eglot, configured by init-project and
+  init-lsp below it: O-49. Everything else a module uses is its own packages, init.el's
+  prelude (`emacs-cpp-root`, the platform defaults) or a module above it.
 - `use-package-expand-minimally` t: use-package then does not wrap forms in its own
   error catching, so a broken package form stops startup (principle 1).
 - Packages: section 12 (D-006). `package.el` is not used at startup.
@@ -1221,7 +1231,7 @@ presets, GoogleTest runner.
 - `RESEARCH_modules.md` (owner request 2026-10-14): turning modules on and off as Doom
   Emacs (`doom!`, flags, `doom sync`), Prelude and Spacemacs do; this config's module
   dependencies, startup cost per module, autoloads that act without their module.
-  Findings in; O-48.
+  Findings in; O-48 ruled (D-098).
 - `RESEARCH_snippets.md` (owner request 2026-10-14): yasnippet, its collections,
   tempel; what eglot does with snippets. Findings in; O-45 ruled (D-095).
 - `RESEARCH_mouse.md` (owner request 2026-10-13): CLion's mouse and modifier-click
@@ -1354,7 +1364,16 @@ presets, GoogleTest runner.
   (T-059, owner's deal.II project `step-1`, Mac, 40 queries): filtering today's 100
   loses project symbols in 14 queries (373 symbols), 1000 in 2 (30), no limit in
   none, slowest reply 15.9 ms (2458 symbols), median 0.3 ms. To the owner.
-- O-48 (OPEN, owner request 2026-10-14: "research a separate configuration for
+- O-49 (OPEN, found 2026-10-14 checking order dependencies, D-098): `M-o`
+  (`emacs-cpp-go-to-anything`, init-completion) calls projectile
+  (`projectile-project-root`, `-project-files`, `-relevant-known-projects`) and
+  eglot / consult-eglot when run, packages configured by init-project and init-lsp,
+  which load after init-completion; DESIGN 5 says a module may only use modules
+  above it. It works because every module has loaded before a command runs.
+  Options: (a) move go-to-anything into its own module after init-lsp; (b) DESIGN 5
+  binds load time only, commands may use any module; (c) leave it. Owner rules.
+- O-48 (RESOLVED 2026-10-14 with D-098: (e), none; owner request 2026-10-14:
+  "research a separate configuration for
   enabling/disabling modules, similar to doom emacs"): findings in
   `RESEARCH_modules.md`. Doom: a `doom!` block outside its directory, modules with
   flags, `doom sync` after each change (installs and removes packages, regenerates
@@ -1827,6 +1846,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-095 | 2026-10-14 | yasnippet, yasnippet-snippets; expand on `C-c y` | 12 | O-45 |
 | D-096 | 2026-10-14 | a plain click shows no tooltip; eldoc as before | 10 | O-47 |
 | D-097 | 2026-10-14 | patched clang-change-namespace, `C-c l N` | 7 | O-43 |
+| D-098 | 2026-10-14 | no module switch; modules load alone (test) | 5 | O-48 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
