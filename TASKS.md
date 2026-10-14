@@ -121,6 +121,7 @@ with `done when: ...`).
 | T-073 | done 0067 | S | macOS: patched clangd at LLVM 23.1.3 | D-100 | Mac build |
 | T-074 | done 0068 | S | LaTeX: `C-c l f` by latexindent | D-101 | tests, real texlab |
 | T-075 | done | S | research: clangd path filter for symbols | owner | RESEARCH 13; O-52 |
+| T-076 | done | S | research: clangd patch, symlinked paths | owner | RESEARCH 2.8; O-50 |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -279,6 +280,10 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-076 (opened 2026-10-14, owner, O-50 (c)): research a clangd patch for projects
+  reached through a symlink. Done when: `RESEARCH_platform_differences.md` 2.8 with
+  the comparison that drops the main file, the patch's place and cost, what a spike
+  checks. Done 2026-10-14; the Arch run of 2.6 recorded there.
 - T-075 (opened 2026-10-12, owner): research a server-side path filter for `M-o`
   symbols (project files only, `a` for all). Done when: `RESEARCH_go_to_anything.md`
   13 with clangd's request path, why existing knobs do not fit, options. Done

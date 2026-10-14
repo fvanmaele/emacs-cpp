@@ -5,8 +5,8 @@ Findings only; verdicts go to DESIGN. Supersedes `RESEARCH_file_watches_macos.md
 request 2026-10-14: "do proper research for the /tmp/ vs /private/tmp paths and other
 platform differences such as file watches". Measured on the owner's Mac (Apple
 silicon, Darwin 27, MacPorts Emacs 31.1, MacPorts CMake 3.31.12, clangd 23.1.3 stock
-and 23.1.1 patched pkgrel 7), 2026-10-14, unless a section says otherwise. Nothing was
-measured on Arch in this round; section 2.6 lists what to run there.
+and 23.1.1 patched pkgrel 7), 2026-10-14, unless a section says otherwise. Arch
+(owner's run of 2.6, and 2.8): 2026-10-14, clangd 23.1.1 stock, CMake 4.4.4.
 
 ## 1. Summary
 - clangd's background index drops what each translation unit's own main file
@@ -62,8 +62,8 @@ Where it comes from, from clangd 23.1.1's code (`index/`, `SourceCode.cpp`): the
 symbol collector names files by `getCanonicalPath`, which resolves the directory to
 its real name ("We always want to the real file path (instead of the symlink path)").
 The indexer's include graph names them by `tryGetRealPathName`. The background index
-receives the main file under the database's spelling. A clangd developer would have
-to confirm which comparison drops the shard. The measurements stand either way.
+receives the main file under the database's spelling. Which comparison drops it:
+section 2.8 (2026-10-14), read in the code and checked on Arch.
 
 ### 2.2 Who spells the path how
 - **CMake 3.31** (MacPorts' version): `cmsys::SystemTools::ClassInitialize` calls
@@ -103,7 +103,8 @@ to confirm which comparison drops the shard. The measurements stand either way.
   (the setup of clangd/clangd#503).
 - Arch: none of the system directories; any user symlink (a project directory linked
   into `~/src`, a home directory on another disk linked from `/home`) behaves the
-  same, as the `~/.cache/s12link` row shows on the Mac. Not measured on Arch.
+  same, as the `~/.cache/s12link` row shows on the Mac. Arch, measured 2026-10-14
+  (2.6, the owner's run, and 2.8): the same loss, 3 results through the symlink.
 
 ### 2.4 Upstream
 clangd/clangd#503 "Indexing issues when root dir is symlinked" (opened 2020-08-22,
@@ -165,6 +166,85 @@ normalization in file names while preserving them. ext4 on Arch distinguishes bo
 `#include "Foo.h"` for `foo.h` compiles on the Mac only, and two spellings of one
 file could split the index as symlinks do. CMake 4 loads the on-disk spelling on
 macOS (`ToNormalizedPathOnDisk`); 3.31 does not.
+
+### 2.8 A clangd patch (owner request 2026-10-14, after the Arch run)
+Owner, running 2.6 on Arch: 3 results (`src/combine.cpp`, `include/calc/api.h`).
+Owner: research a clangd patch (option (c) of 2.5). Read in clangd 23.1.1 with
+patches 0001 - 0009 applied (`packaging/clangd-index-nav/src/llvm-project-23.1.1.src`);
+none of the patches touches the lines named here. Nothing built.
+
+**Arch check** (stock `/usr/bin/clangd` 23.1.1, CMake 4.4.4, the S12 project with 24
+calling files, the client of 2.1 in a scratch directory, the file opened by its real
+path): configured through a symlinked directory, 3 references in 2 files
+(`api.h`, `combine.cpp`); configured at its real path, 201 in 26. The stored shard of
+`use_00.cpp` is 442 bytes through the symlink, 1266 at the real path; `combine.cpp`'s
+350 against 652. The shards were not decoded.
+
+**Which comparison drops the main file** (the files are clangd's unless named):
+- The background index asks for each translation unit's command by the database's
+  spelling: `loadProject` gets the database's file list from the broadcast, and
+  `indexFileTask(Path)` calls `CDB.getCompileCommand(Path)` with it.
+- clangd's command mangler (`CompileCommands.cpp`, `CommandMangler::operator()`)
+  drops the database's input file and appends the requested path after `--`. So the
+  compiler's main file is the database's spelling.
+- `prepareCompilerInstance` (`Compiler.cpp`) hands the file's text as a remapped
+  buffer under that name. clang's `FileManager::getVirtualFileRef` fills
+  `RealPathName` with `fillRealPathName`, which only makes the name absolute and
+  removes dots ("This is not the same as `VFS::getRealPath()`, which resolves
+  symlinks"). Headers are opened as real files, and their `RealPathName` comes from
+  the operating system (`openNativeFileForRead`), so it is resolved.
+- The include graph (`index/IndexAction.cpp`, `toURI`) names files by
+  `tryGetRealPathName`: the main file under the database's spelling, headers under
+  their real paths.
+- The symbol collector (`index/SymbolCollector.cpp`, through `getCanonicalPath` in
+  `SourceCode.cpp`) names every file by its directory's real path plus its file
+  name. The main file's symbols and references thus carry the real path.
+- `FileShardedIndex` (`index/FileIndex.cpp`) groups symbols and references by these
+  URIs, and `BackgroundIndex::update` stores only the shards named in the include
+  graph. The real-path shard of the main file, holding its definitions and
+  references, is never stored or loaded into the index; the database-spelled one
+  holds the include graph only.
+- An opened file is unaffected (its references come from the dynamic index, as eglot
+  opens it under its real path): hence `combine.cpp`'s own results in the 3.
+
+**A patch (0010), in `index/Background.cpp` only:**
+- Give the background index real paths for its translation units: in
+  `changedFilesTask` (or `loadProject`), map each file of the database to its
+  directory's real path plus its file name, the spelling `getCanonicalPath` gives
+  the symbol collector. Everything downstream then uses that spelling: the shard
+  loader's lookups and the `DependentTU` it records, `indexFileTask`, the mangler's
+  input file, the remapped buffer, the include graph, and the includer table of
+  patches 0005 - 0008.
+- In `indexFileTask`, set `Cmd->Filename` to the requested path after
+  `getCompileCommand`, since the JSON database returns its own spelling there and
+  `index()` uses it as the main file for `update` (the `Path != MainFile` checks that
+  keep a main file's command in its shard and count its references).
+- The command lookup by real path already works: `JSONCompilationDatabase` finds
+  files through `FileMatchTrie::findEquivalent`, which compares a candidate sharing
+  the path's last components with `sys::fs::equivalent`. That is how eglot's
+  real-path files get their flags today.
+- Cost: one real-path lookup per distinct directory of the database, cached by
+  directory. Measured on Arch in Python (`os.path.realpath`, slower than C's): 92990
+  files under `/usr/include` take 1.03 s one by one, their 4205 directories 0.04 s.
+  The upstream objection (2.4) was to resolving every path in libTooling, which this
+  patch leaves alone.
+- Shards written before the patch are stored under the database's spelling and are
+  not found under the real one: one full re-index per project after the update.
+
+**Left open (for the spike, tier 3):**
+- A main file that is itself a symlink (not its directory): the symbol collector
+  keeps the link's file name, the include graph would then resolve it fully. The
+  patch's spelling matches the symbol collector, so only the include graph's could
+  differ; not checked.
+- Headers reached through a symlinked `-I` directory are already resolved on both
+  sides (above); not checked.
+- Whether `findEquivalent` stays unambiguous when the database lists two files that
+  share their last components; `sys::fs::equivalent` decides then.
+- Spike: build the patched clangd, run the 2.1 client through the symlink (expect
+  201 in 26 files) and under `/tmp` on the Mac; restart and count the `Indexed` log
+  lines (expect none: shards loaded, not re-indexed); a clangd unit test in
+  `BackgroundIndexTests.cpp` with a symlinked directory (`InMemoryFileSystem`
+  supports symbolic links).
 
 ## 3. File watches (carried over from RESEARCH_file_watches_macos.md, T-029)
 Measured 2026-10-09 on the owner's Mac (MacPorts Emacs 31.1, `emacs-app` with kqueue).
@@ -335,7 +415,12 @@ Measured or read in this round:
   `Source/cmSystemTools.cxx`, `Source/cmPathResolver.h`.
 - clangd 23.1.1 sources: `index/Background.cpp` (`BackgroundIndex::update`),
   `index/SymbolCollector.cpp` (`toURI`), `index/IndexAction.cpp` (`toURI`),
-  `SourceCode.cpp` (`getCanonicalPath`).
+  `SourceCode.cpp` (`getCanonicalPath`), `index/FileIndex.cpp`
+  (`FileShardedIndex`), `CompileCommands.cpp` (`CommandMangler`), `Compiler.cpp`
+  (`prepareCompilerInstance`), `GlobalCompilationDatabase.cpp` (`OverlayCDB`);
+  clang's `lib/Basic/FileManager.cpp` (`getVirtualFileRef`, `fillRealPathName`),
+  `lib/Tooling/JSONCompilationDatabase.cpp`, LLVM's
+  `lib/Support/VirtualFileSystem.cpp` (`RealFile`).
 - Emacs 31 `lisp/progmodes/eglot.el` (`eglot-path-to-uri`).
 - Linux commit 92890123749b, "inotify: Increase default inotify.max_user_watches
   limit to 1048576",
