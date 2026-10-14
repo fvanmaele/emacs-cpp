@@ -250,6 +250,7 @@ Load order is the contract: a module may only use modules loaded before it (DESI
 | `lisp/init-completion.el` | vertico, orderless, consult, embark, corfu, ...; yasnippet |
 | `lisp/init-project.el` | projectile, treemacs (`C-c t`) |
 | `lisp/init-lsp.el` | eglot for every language, the `C-c l` map (D-091) |
+| `lisp/init-go-to-anything.el` | `M-o`: buffers, files, symbols in one prompt (D-099) |
 | `lisp/init-cpp.el` | `c++-ts-mode`, clangd, breadcrumb, its `C-c l` keys |
 | `lisp/emacs-cpp-presets.el` | presets: active preset, clangd command, build commands |
 | `lisp/init-cmake.el` | `cmake-mode` from the system cmake package |
