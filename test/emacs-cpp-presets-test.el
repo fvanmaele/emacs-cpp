@@ -7,6 +7,15 @@
 ;;; Code:
 
 (require 'ert)
+
+;; project.el writes every project it finds to `project-list-file', named when
+;; project.el loads; these tests load it before init-test redirects the home, so
+;; the list goes to a temporary file, not the owner's ~/.emacs.d/projects.eld.
+(defvar project-list-file)
+(let ((dir (make-temp-file "emacs-cpp-test-projects" t)))
+  (setq project-list-file (expand-file-name "projects.eld" dir))
+  (add-hook 'kill-emacs-hook (lambda () (delete-directory dir t))))
+
 (require 'emacs-cpp-presets)
 
 (defconst emacs-cpp-presets-test--presets
