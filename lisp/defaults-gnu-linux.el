@@ -19,9 +19,9 @@ None on Arch: pacman installs into /usr/bin.")
   "Directory of clang's command-line tools (clang-move, run-clang-tidy ...), or
 nil for exec-path (D-094): pacman's `clang' puts them in /usr/bin.")
 
-(defconst emacs-cpp-default-mouse-modifier 'control
-  "Modifier of the navigation clicks (D-093): Control, as CLion's Ctrl+Click on
-Linux; desktops often take Super+click.")
+(defconst emacs-cpp-default-mouse-modifier 'super
+  "Modifier of the navigation clicks (D-093): Super, where the Mac has Command, so
+Ctrl's clicks keep Emacs's buffer menu and rectangle drag (owner 2026-10-14).")
 
 (defconst emacs-cpp-default-pdf-viewer
   '("zathura" "--synctex-forward" "%l:1:%f" "%p")

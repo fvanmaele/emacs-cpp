@@ -598,11 +598,12 @@ Known defects: none yet (nothing built).
   src/); inlay hints are on by default (eglot 31), `I` hides them.
 - DECIDED D-093 (owner 2026-10-13, O-44 (a), (b2); done when agreed): navigation
   clicks as CLion's, on the platform's modifier (`emacs-cpp-default-mouse-modifier`,
-  D-055: Command (`super`) on the Mac, Control on Arch): click = definition of the
+  D-055: Command (`super`) on the Mac, Super on Arch (amended 2026-10-14, owner:
+  "don't give up Ctrl clicks"; was Control)): click = definition of the
   symbol clicked, or its references when the click is on its definition; with Opt /
   Alt = implementations; with Shift = type definition. The press of each is unbound
-  so the click arrives; on Arch that drops Emacs's buffer menu (C-down-mouse-1) and
-  its rectangle drag with Ctrl+Alt (to be ruled if missed). Right click opens a menu
+  so the click arrives; Ctrl's clicks keep Emacs's buffer menu and rectangle drag.
+  Whether the Arch desktop takes Super+click is the owner's check. Right click opens a menu
   (`context-menu-mode`): Emacs's Find Definition / Find References at the click and
   editing entries, plus in eglot buffers Rename Symbol, Code Actions, Go to
   Implementation (each at the click) and Format Buffer. Shift+click extends the

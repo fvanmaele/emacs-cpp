@@ -97,10 +97,10 @@ click is on its definition, as CLion's Cmd+Click (D-093)."
   (mouse-set-point event)
   (call-interactively #'eglot-find-typeDefinition))
 
-;; Navigation clicks, CLion's (D-093): Cmd on the Mac, Ctrl on Arch
+;; Navigation clicks, CLion's (D-093): Cmd on the Mac, Super on Arch
 ;; (`emacs-cpp-default-mouse-modifier', D-055); with Opt / Alt implementations,
-;; with Shift the type.  The press is unbound so the click arrives: on Arch that
-;; drops Emacs's buffer menu (C-down-mouse-1) and its rectangle drag (C-M-).
+;; with Shift the type.  The press is unbound so the click arrives (none of these
+;; presses is bound by Emacs).
 (defun emacs-cpp-lsp--mouse-key (modifiers event)
   "Return the key description of EVENT with MODIFIERS, in Emacs's order."
   (key-description
