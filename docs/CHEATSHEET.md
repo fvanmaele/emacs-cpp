@@ -42,6 +42,7 @@ part to jump (D-043).
 | `C-x TAB` then `S-<right>` / `S-<left>` | move the selected lines one step right / left |
 | `C-c l T` | apply clang-tidy's fixes to the whole project (asks for the checks) |
 | `C-c l M` | move classes to a new header / source (clang-move); add the source to CMake |
+| `C-c l N` | rename a namespace; then a list of the `old::` left, already changed: `C-x s` |
 
 `C-c l f` follows the project's `.clang-format` (LLVM style without one); `TAB` and
 `RET` follow `.dir-locals.el` (Emacs's rules, D-065). Writing both from a file that has the project's style:

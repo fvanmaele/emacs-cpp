@@ -55,6 +55,7 @@
 (require 'init-completion)
 (require 'init-project)
 (require 'init-lsp)
+(require 'init-go-to-anything)
 (require 'init-cpp)
 (require 'init-cmake)
 (require 'init-debug)
