@@ -43,7 +43,7 @@ clang-tidy fixes, clang-move (D-094); snippets: yasnippet, its collection on `C-
 (D-097). No module switch, modules load alone (D-098); `M-o` its own module (D-099).
 S12 change signature: FAIL, calls in templates (0066), O-43 (b) to the owner.
 Open: O-12; O-38 rg.el / ag.el; O-39 R server; O-46 LyX keys; O-47 hover;
-O-50 `/tmp` paths on macOS; T-025 round 2, T-026 queued.
+O-50 symlinked paths lose clangd references (research in); T-025 round 2, T-026 queued.
 
 ## Hard rules (each with its reason)
 - Change-size ladder: tier 1 trivial = commit with Reasoning only; tier 2 feature = `done
