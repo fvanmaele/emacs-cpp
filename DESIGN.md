@@ -1071,19 +1071,19 @@ Mechanisms, each PROPOSED until measured:
   adds its own `C-c l` keys: clangd, `o`, `P` in init-cpp; pyright in init-python;
   texlab, `b` in init-latex. DESIGN 4 principle 3 holds: eglot is configured in
   one form, the languages only register data.
-- DECIDED D-101 (owner 2026-10-14, O-51 (a), then "use latexindent for both buffers
-  and regions, not a mix of texlab and latexindent"; done when agreed): in LaTeX
-  buffers `C-c l f` and the menu's Format Buffer run latexindent itself
-  (`emacs-cpp-latex-indent-program`), not texlab. The buffer's text goes to a
-  temporary directory; with a region latexindent indents only its lines (`--lines
-  MIN-MAX`, reading the whole document), without one the whole document; `-c` keeps
-  its log out of the project; only what differs is replaced
-  (`replace-region-contents`), in one undo step. latexindent's defaults, as texlab
-  calls it (no local settings, no line-break changes): on the sample both give the
-  same text. A missing program or a non-zero exit stops with the fix or
-  latexindent's message, the buffer unchanged. Dependency: latexindent, already
-  texlab's (TeX Live: Arch `texlive-binextra`, MacTeX). `.bib` files keep texlab's
-  format. Built (T-074, 0068).
+- DECIDED D-101 (owner 2026-10-14, O-51 (a), then "use latexindent for both buffers and
+  regions, not a mix of texlab and latexindent"; done when agreed): in LaTeX buffers
+  `C-c l f` and the menu's Format Buffer run latexindent itself
+  (`emacs-cpp-latex-indent-program`), not texlab. The buffer's text goes to a temporary
+  directory; with a region latexindent indents only its lines (`--lines MIN-MAX`,
+  reading the whole document), without one the whole document; `-c` keeps its log out of
+  the project; only what differs is replaced (`replace-region-contents`), in one undo
+  step. latexindent's defaults, as texlab calls it (no local settings, no line-break
+  changes): on the sample both give the same text. (Wrong, O-53: texlab passes
+  `--local`, so it reads a project's `.latexindent.yaml`; this call does not.) A missing
+  program or a non-zero exit stops with the fix or latexindent's message, the buffer
+  unchanged. Dependency: latexindent, already texlab's (TeX Live: Arch
+  `texlive-binextra`, MacTeX). `.bib` files keep texlab's format. Built (T-074, 0068).
 - DECIDED D-102 (owner 2026-10-14, O-46: "none"): no LyX keys. LaTeX buffers keep
   AUCTeX's own keys (option (c)); Emacs's and Emacs.app's bindings stay as they are
   on both machines (`RESEARCH_latex.md` 8). Options (a) and (b) closed.
@@ -1452,6 +1452,31 @@ presets, GoogleTest runner.
   cap off while set; (c) as (b), a list per directory set built in `Dex` and
   intersected; tier 3, spike first. Also open: definition or declaration decides;
   build directory; `C-c l s`.
+- O-53 (OPEN, found 2026-10-14, owner: "revisit the errors with texlab that led to
+  problems with region/buffer formatting"). texlab 5.25.1 (Mac; source read at tag
+  v5.25.1 and v5.26.0, events logged with the shipped config):
+  (1) no range formatting in either version (`documentFormattingProvider` only), the
+  cause of O-51.
+  (2) texlab runs `latexindent --local file.tex` (copy in a temporary directory) from
+  the nearest directory upward with `.latexmkrc` / `latexmkrc` / `.texlabroot` /
+  `texlabroot`, else the document's (5.26.0: texlab's own working directory), so a
+  project's `.latexindent.yaml` applies. D-101's call passes no `--local`: with
+  `defaultIndent: "  "` in the project texlab indents two spaces, `C-c l f` a tab.
+  A defect in D-101 as built.
+  (3) the request's `insertSpaces` / `tabSize` are ignored for LaTeX (only texlab's own
+  BibTeX formatter reads them): eglot sent `insertSpaces: true`, texlab answered with
+  tabs (latexindent's `defaultIndent`), while AUCTeX's `TAB` indents with spaces; so
+  one file gets both. D-101 inherits this.
+  (4) texlab drops latexindent's stderr and returns no edits on any failure,
+  latexindent missing included: a silent no-op. D-101 already fails loudly.
+  (5) not formatting: within about 1 s of opening a document texlab delays `exit`
+  until its "Parsing Dependencies" job ends (up to 0.4 s measured), past jsonrpc's
+  0.3 s grace, so eglot kills it: "Sentinel ... still hasn't run, deleting it!",
+  "Server exited with status 9". Harmless (closing a LaTeX buffer at once).
+  Options: (2) (a) `--local`, run from texlab's directory (5.25.1 rule); (3) (b)
+  without a project yaml pass `-y=defaultIndent:` with `LaTeX-indent-level` spaces
+  (tab when `indent-tabs-mode`), (c) leave latexindent's tab; (5) (d) nothing, (e)
+  report upstream (owner). Owner rules.
 - O-49 (RESOLVED 2026-10-14 with D-099: (a); found 2026-10-14 checking order
   dependencies, D-098): `M-o`
   (`emacs-cpp-go-to-anything`, init-completion) calls projectile
