@@ -157,20 +157,29 @@ exists). On a key: builds only when asked.
 - Arch: texlab and TeX Live there.
 
 ## 8. Keys like LyX's (owner question 2026-10-14)
-LyX's default bindings (its `cua.bind`; Command on the Mac where Linux has Ctrl),
-from the LyX wiki's "Frequently used shortcuts", a LyX shortcut sheet (2014) and
-LyX 1.0.3's `cua.bind`, as summarised by a web search 2026-10-14 (the pages
-themselves timed out, so details beyond these are not verified):
-- Ctrl+M: math mode, inline; Ctrl+Shift+M: display math (in math: toggles
-  inline / display); Ctrl+Alt+N: numbered display math.
-- Ctrl+B: bold; Ctrl+E: emphasis (LyX 2.4 on the Mac: Command+Ctrl+E); Ctrl+K:
-  small capitals ("noun"); Ctrl+L: TeX code (ERT).
-- In the Mac's LyX the Alt in its docs is Control.
+LyX's bind files, current master, read from its Codeberg mirror 2026-10-14
+(codeberg.org/LyX-org/lyx, `lib/bind/cua.bind` and `lib/bind/mac.bind`; LyX's own
+git server no longer serves files, "due to massive AI bot abuse"):
+- `cua.bind` (Linux, Windows): Ctrl+M math mode (inline); Ctrl+Shift+M display
+  math; Ctrl+Alt+B bold (`font-bold`; Ctrl+B is `font-boldsymbol`); Ctrl+E
+  emphasis; Ctrl+Shift+P typewriter; Ctrl+L TeX code (ERT); Ctrl+R view;
+  Ctrl+Shift+R update (build); Ctrl+K deletes to the end of the line (the small
+  capitals binding is commented out).
+- `mac.bind`: its C- is Command, M- is Control (Qt's swap): Command+M math;
+  Command+Shift+M display math; Command+B bold; Command+Ctrl+E emphasis;
+  Command+Shift+P typewriter; Command+L TeX code; Command+R view; Command+Shift+R
+  update.
+- The LyX wiki ("Frequently used shortcuts", read 2026-10-14) adds: Alt+M F a
+  fraction, Alt+M S a square root, Alt+M G and a letter a Greek letter, `^` / `_`
+  super- / subscript, Ctrl+Alt+N numbered display math, Alt+P then Space the
+  paragraph styles (sections, lists); label, reference and citation keys are not
+  bound by default.
 
 **Against AUCTeX** (`docs/CHEATSHEET-AUCTEX.md`): inline math has no key of its own
 (`$` types it; `C-c C-e` `equation` / `displaymath` for display math); fonts are
-`C-c C-f C-b` (bold), `C-c C-f C-e` (emph), `C-c C-f C-c` (small caps); no ERT (all
-of it is TeX code).
+`C-c C-f C-b` (bold), `C-c C-f C-e` (emph), `C-c C-f C-t` (typewriter); fractions,
+roots and Greek letters by the math keys (`` ` `` then a letter, `C-c ~`); view
+`C-c C-v`, build `C-c C-c` or `C-c l b`; no ERT (all of it is TeX code).
 
 **Emacs's own keys in the way:** `C-m` is RET, `C-b` / `C-e` move backward / to the
 end of the line, `C-k` kills, `C-l` recenters; LyX's Ctrl keys on Arch would take
@@ -179,7 +188,7 @@ them. On the Mac, Emacs.app binds most of LyX's Command keys itself (checked):
 kill, `s-k` kills the buffer, `s-l` goes to a line; `s-b` and `s-i` are free. LyX's
 keys in `LaTeX-mode`'s own map would override those in LaTeX buffers only.
 
-**Options (for O-46):** (a) LyX's keys on Command in `LaTeX-mode` on the Mac only
-(`s-m` inline math `\( \)`, `s-M` display math, `s-b` / `s-e` / `s-k` fonts),
-Arch keeping AUCTeX's; (b) the same set under a prefix on both machines (e.g.
-`C-c l` letters free there); (c) AUCTeX's keys only.
+**Options (for O-46):** (a) LyX's Mac keys on Command in `LaTeX-mode` on the Mac only
+(`s-m` inline math `\( \)`, `s-M` display math, `s-b` bold, `C-s-e` emphasis, `s-P`
+typewriter, `s-r` view, `s-R` build), Arch keeping AUCTeX's; (b) the same set under a
+prefix on both machines (e.g. `C-c l` letters free there); (c) AUCTeX's keys only.
