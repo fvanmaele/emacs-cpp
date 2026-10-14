@@ -39,7 +39,8 @@ preview after a pause (D-088); macOS PATH from MacPorts at startup (D-089). LaTe
 AUCTeX from GNU ELPA and texlab, `C-c l b` (D-090); eglot in init-lsp.el (D-091).
 Rename without file limit (D-092); CLion's navigation clicks, right-click menu (D-093);
 clang-tidy fixes, clang-move (D-094); snippets: yasnippet, its collection on `C-c y`
-(D-095). Open: O-12; O-38 rg.el / ag.el; O-39 R server; O-46 LyX keys; O-47 hover;
+(D-095); a click shows no tooltip (D-096); patched clang-change-namespace, `C-c l N`
+(D-097). Open: O-12; O-38 rg.el / ag.el; O-39 R server; O-46 LyX keys; O-47 hover;
 T-025 round 2, T-026 queued.
 
 ## Hard rules (each with its reason)

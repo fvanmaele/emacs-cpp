@@ -5,8 +5,10 @@
 ;; Tests in the shipped profile (D-094): `C-c l T' and `C-c l M' build their command
 ;; lines from the active preset's database and the platform's tool directory; a
 ;; missing tool is refused by name; clang-move runs where the old source's #include
-;; of the old header starts.  The process is a stub; real runs on a generated
-;; project are in journal 0063.
+;; of the old header starts.  `C-c l N' (D-097): the patched clang-change-namespace's
+;; command line, refused when missing or for a name that is not a namespace; the
+;; uses left are replaced in their buffers through an editable list.  The process
+;; is a stub; real runs on a generated project are in journals 0063 and 0065.
 
 ;;; Code:
 
@@ -24,11 +26,13 @@ split back into its arguments."
           (default-directory root)
           (emacs-cpp-presets-state-file (expand-file-name "state.eld" root))
           (emacs-cpp-default-llvm-tools-dir tools)
+          (emacs-cpp-refactor-change-namespace-program
+           (expand-file-name "clang-change-namespace" tools))
           ran)
      (unwind-protect
          (progn
            (dolist (tool '("run-clang-tidy" "clang-tidy" "clang-apply-replacements"
-                           "clang-move"))
+                           "clang-move" "clang-change-namespace"))
              (let ((file (expand-file-name tool tools)))
                (write-region "#!/bin/sh\n" nil file)
                (set-file-modes file #o755)))
@@ -104,11 +108,66 @@ header including the new one."
                                            (concat root "src/b.cc"))
                   :type 'user-error)))
 
+(ert-deftest emacs-cpp-refactor-change-namespace-command ()
+  "D-097: the patched tool in place on every source of the database, limited to
+the project's files; refused when missing or for a name that is no namespace."
+  (init-test--load)
+  (emacs-cpp-refactor-test--with-project
+    (emacs-cpp-refactor-change-namespace "geom" "shapes::two")
+    (pcase-let ((`(,dir ,args) (car ran)))
+      (should (equal dir root))
+      (should (equal args
+                     (list emacs-cpp-refactor-change-namespace-program
+                           "-old_namespace=geom" "-new_namespace=shapes::two"
+                           (concat "-file_pattern=^("
+                                   (emacs-cpp-refactor--ere-quote
+                                    (directory-file-name root))
+                                   ")/")
+                           "-i" "-p" (concat root "build/debug")
+                           (concat root "src/a.cc")))))
+    (dolist (name '("" "a b" "::geom" "geom::" "1geom" "a::::b"))
+      (should-error (emacs-cpp-refactor-change-namespace name "shapes") :type 'user-error)
+      (should-error (emacs-cpp-refactor-change-namespace "geom" name) :type 'user-error))
+    (delete-file emacs-cpp-refactor-change-namespace-program)
+    (should-error (emacs-cpp-refactor-change-namespace "geom" "shapes") :type 'user-error)))
+
+(ert-deftest emacs-cpp-refactor-ere-quote ()
+  "D-097: a root with regular expression characters matches only itself."
+  (init-test--load)
+  (should (equal (emacs-cpp-refactor--ere-quote "/a.b/c++ (x)/[y]|z$^{1}?*")
+                 "/a\\.b/c\\+\\+ \\(x\\)/\\[y\\]\\|z\\$\\^\\{1\\}\\?\\*")))
+
+(ert-deftest emacs-cpp-refactor-namespace-uses ()
+  "D-097: the uses `geom::' left become `shapes::' in their buffers, not on disk,
+through a grep-edit list; a longer name, a nested namespace and the namespace's
+name without `::' stay; nothing left, no list."
+  (init-test--load)
+  (emacs-cpp-refactor-test--with-project
+    (let* ((file (expand-file-name "src/use.cc" root))
+           (text "geom::X a; mygeom::Y b; outer::geom::Z c;\n::geom::W d;\nusing namespace geom;\nint e;\n")
+           (list (progn (write-region text nil file)
+                        (emacs-cpp-refactor--namespace-uses root "geom" "shapes"))))
+      (unwind-protect
+          (progn
+            (should (eq (buffer-local-value 'major-mode list) 'grep-edit-mode))
+            (with-current-buffer (find-buffer-visiting file)
+              (should (equal (buffer-string)
+                             (concat "shapes::X a; mygeom::Y b; outer::geom::Z c;\n"
+                                     "::shapes::W d;\nusing namespace geom;\nint e;\n")))
+              (should (buffer-modified-p)))
+            (should (equal (with-temp-buffer (insert-file-contents file) (buffer-string))
+                           text))
+            (should-not (emacs-cpp-refactor--namespace-uses root "nowhere" "shapes")))
+        (with-current-buffer (find-buffer-visiting file) (set-buffer-modified-p nil))
+        (kill-buffer (find-buffer-visiting file))
+        (kill-buffer list)))))
+
 (ert-deftest emacs-cpp-refactor-keys ()
-  "D-094: `C-c l T' and `C-c l M'."
+  "D-094, D-097: `C-c l T', `C-c l M' and `C-c l N'."
   (init-test--load)
   (should (eq (keymap-lookup emacs-cpp-code-map "T") #'emacs-cpp-refactor-tidy-fix))
-  (should (eq (keymap-lookup emacs-cpp-code-map "M") #'emacs-cpp-refactor-move)))
+  (should (eq (keymap-lookup emacs-cpp-code-map "M") #'emacs-cpp-refactor-move))
+  (should (eq (keymap-lookup emacs-cpp-code-map "N") #'emacs-cpp-refactor-change-namespace)))
 
 (provide 'emacs-cpp-refactor-test)
 ;;; emacs-cpp-refactor-test.el ends here

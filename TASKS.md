@@ -117,6 +117,7 @@ with `done when: ...`).
 | T-069 | open | L | spike S12: change signature in clangd | O-43 (b) | RUN.md planned |
 | T-070 | open | S | send the clang-change-namespace report | D-094 | owner sends it |
 | T-071 | done 0064 | S | yasnippet, collection; `C-c y` | D-095 | tests; Mac hand check |
+| T-072 | done 0065 | S | patched clang-change-namespace, `C-c l N` | D-097 | generated |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -275,6 +276,16 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-072 (opened 2026-10-14, D-097): clang-change-namespace with the crash fix. Done
+  when: packaging/clang-change-namespace/: the patch file and a build script (Mac:
+  against MacPorts' llvm-23 into ~/opt/clang-change-namespace; Arch: against the
+  system clang, same script) with the program path as a defcustom (refused loudly
+  when missing). `C-c l N` asks old and new namespace, runs the tool on all sources
+  of the database in a compilation buffer, then replaces `old::` with `new::` in the
+  project's files through an editable list (as MANUAL 8's namespace route) for
+  review. Run on a generated project: compiles after; tests with stubbed processes;
+  make test. Agreed 2026-10-14. Done 2026-10-14 (0065): met on the Mac; the script
+  not run on Arch (owner); 108 tests.
 - T-071 (opened 2026-10-14, D-095, O-45 (b)): snippets. Done when: yasnippet 0.14.3
   (GNU ELPA git) and yasnippet-snippets 1.0 (NonGNU ELPA git) as pinned submodules;
   yasnippet on in code and LaTeX buffers; `C-c y` expands a snippet key before point;
