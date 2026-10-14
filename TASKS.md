@@ -293,7 +293,8 @@ with `done when: ...`).
   a menu with the server's entries; tests for the bindings per platform, the
   definition / references choice, the menu; owner's hand check in the GUI, Arch by
   the owner. Agreed 2026-10-13. Built 2026-10-13 (0062): all met but the owner's
-  checks; 96 tests.
+  checks; 96 tests. 2026-10-14 (owner): Super instead of Ctrl on Arch, Ctrl's clicks
+  kept.
 - T-065 (opened 2026-10-13, D-090, O-42 (b)): LaTeX with AUCTeX and texlab. Done
   when: AUCTeX 14.2.0 as a submodule from GNU ELPA's git (pinned to the 14.2.0
   commit), built by `make packages` with its manual, one `use-package` form; `.tex`
