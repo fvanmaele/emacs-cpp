@@ -171,6 +171,7 @@ Spyder. `.R` files open in ESS's `ess-r-mode`; R starts in the project root.
 | `C-c C-r` / `C-c C-z` | run the selection / go to the shell (Python and R; R's: back) |
 
 ## LaTeX (AUCTeX and texlab, D-090)
+All of AUCTeX's keys: `docs/CHEATSHEET-AUCTEX.md`.
 `.tex` files open in AUCTeX's `LaTeX-mode`; in a project texlab starts, and `M-.`,
 `M-?` and `C-c l r` follow `\ref`, `\cite` and your own commands across the files;
 `M-o` lists the project's sections and labels. Completion offers labels, citation keys
