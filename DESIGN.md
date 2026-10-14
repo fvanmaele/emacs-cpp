@@ -1233,9 +1233,13 @@ presets, GoogleTest runner.
 - `RESEARCH_python_macos.md` (owner request 2026-10-09, T-025): pyright and five
   alternatives through eglot, debugpy's start against dape's wait. First round in;
   no ruling asked yet.
-- `RESEARCH_file_watches_macos.md` (owner question 2026-10-09, T-029): kqueue's
-  descriptor per watch, Emacs's limits on the Mac, who watches in a C++ session.
-  Findings in; O-26 ruled (D-054 confirmed, upstream report T-032).
+- `RESEARCH_platform_differences.md` (owner request 2026-10-14, O-50): symlinked
+  paths (`/tmp` on macOS) and clangd's index, who spells which path (CMake 3.31 /
+  4, Emacs, eglot), measured with stock and patched clangd; file watches (kqueue,
+  inotify; section 3, T-029's findings carried over, O-26 ruled: D-054 confirmed,
+  upstream report T-032); other platform differences. Findings in; O-50 open.
+  Supersedes `RESEARCH_file_watches_macos.md` (T-029, 2026-10-09), removed
+  2026-10-14.
 - `RESEARCH_keys_build_debug_ui.md` (owner questions 2026-10-08): key hints, building
   from any buffer, breakpoint indicators. Findings in; rulings O-16, O-17, O-18.
 - `RESEARCH_modules.md` (owner request 2026-10-14): turning modules on and off as Doom
@@ -1379,7 +1383,16 @@ presets, GoogleTest runner.
   patched and the stock clangd 23.1.3 alike: CMake writes `/tmp/...` into the compile
   database, Emacs opens the true name `/private/tmp/...`. Owner 2026-10-14: research
   this and the other platform differences (file watches among them) in one
-  RESEARCH document superseding `RESEARCH_file_watches_macos.md`.
+  RESEARCH document superseding `RESEARCH_file_watches_macos.md`. Findings in
+  `RESEARCH_platform_differences.md` 2: clangd's background index drops each TU's
+  main-file symbols and references when the database's spelling of a file differs
+  from its real path (any symlink; upstream clangd/clangd#503, open since 2020);
+  CMake 3.31 always writes `/tmp`, CMake 4 and Emacs keep `$PWD`'s spelling, eglot
+  sends true names; a database rewritten to real paths restores every reference,
+  `--path-mappings` does not. Options (2.5): (a) warn loudly at eglot's start; (b)
+  hand clangd a real-path copy of the database; (c) clangd patch 0010, spike first;
+  (d) document, maybe `find-file-visit-truename`; (e) report on #503 (owner). Arch
+  check for the owner: 2.6. Owner rules.
 - O-49 (RESOLVED 2026-10-14 with D-099: (a); found 2026-10-14 checking order
   dependencies, D-098): `M-o`
   (`emacs-cpp-go-to-anything`, init-completion) calls projectile
@@ -1648,8 +1661,9 @@ presets, GoogleTest runner.
 - O-26 (RESOLVED 2026-10-09: (a) D-054 confirmed, (d) upstream report, T-032; T-029,
   revisited 2026-10-09): what D-054 should be. Revisit: the premise of a 207-watch limit
   for an Emacs started from the Dock was wrong; Emacs.app started through Launch
-  Services holds 975 watches, as a terminal start does (`RESEARCH_file_watches_macos.md`
-  1). New: at eglot's cap eglot fails the whole watch request and pyright exits,
+  Services holds 975 watches, as a terminal start does (then
+  `RESEARCH_file_watches_macos.md` 1, now `RESEARCH_platform_differences.md` 3.1).
+  New: at eglot's cap eglot fails the whole watch request and pyright exits,
   measured with D-054 on a 600-directory project; "project files only" is what keeps
   pyright up at all (with the library watched it exits on any project); without eglot's
   watches pyright does not see changes made outside Emacs (research 5). Options

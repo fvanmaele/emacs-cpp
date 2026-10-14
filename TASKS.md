@@ -549,7 +549,8 @@ with `done when: ...`).
   the limit. PROPOSED done when: `RESEARCH_file_watches_macos.md` with the mechanism
   (kqueue, Emacs's limit), descriptor counts measured in a C++ session on RMO on the
   Mac, and a proposal to keep or change D-054. Done 2026-10-09:
-  `RESEARCH_file_watches_macos.md`; options for D-054 put to the owner as O-26.
+  `RESEARCH_file_watches_macos.md` (superseded 2026-10-14 by
+  `RESEARCH_platform_differences.md` 3); options for D-054 put to the owner as O-26.
   Revisited 2026-10-09 (owner): the Dock-start limit of 207 was wrong (975, real
   Launch Services start); at eglot's cap pyright exits; pyright does not watch by
   itself; O-26 options revised.
