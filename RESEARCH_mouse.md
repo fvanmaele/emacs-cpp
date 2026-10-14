@@ -72,3 +72,22 @@ side buttons, after `C-h k` on each machine; (d) none.
 - Whether macOS gives Emacs Cmd+Click at all on the owner's setup (no system shortcut
   is known to take it).
 - Arch: the desktop's use of Super+click and Ctrl+click.
+
+## 5. Hover indicator, pointer on a modifier (owner question 2026-10-14)
+- **What Emacs can show on hover** (Elisp manual, "Special Properties"): a text or
+  overlay property `mouse-face` highlights the text under the mouse; `pointer`
+  sets the pointer's shape there (e.g. `hand`); `help-echo` (a string or a
+  function) shows a tooltip. Links in help buffers use these.
+- **A modifier alone:** Emacs's input events are keys and mouse actions with
+  modifiers attached; pressing Command or Control by itself delivers no event to
+  Lisp, so the pointer cannot change while a modifier is held and the mouse is
+  still (from Emacs's input model; the manual has no statement of it; not
+  demonstrated). CLion's "hold Cmd, the symbol under the mouse becomes a link" is
+  therefore not reachable as is.
+- **What is reachable:** (a) in eglot buffers, symbols under the mouse highlighted
+  with a hand pointer at all times (a `mouse-face` and `pointer` on the symbol the
+  mouse is over, set when the mouse moves, `track-mouse` / `mouse-movement` events,
+  or on all identifiers of the visible part through font-lock); (b) (a) plus a
+  tooltip with the server's hover text (`help-echo` function asking eglot; a
+  blocking request per hover, clangd answers in milliseconds, others slower); (c)
+  none. Cost of (a) / (b) not measured (motion events in Emacs are frequent).
