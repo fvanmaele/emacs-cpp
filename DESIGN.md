@@ -284,6 +284,12 @@ Known defects: none yet (nothing built).
   refused by name when missing. Not built: `C-c l N` clang-change-namespace (agreed):
   LLVM 23.1.3's crashes (segmentation fault) when given two sources, and run per
   source it renames the header's namespace but not the uses in main.cc, then fails.
+  Debugged 2026-10-14: a use-after-free, `MoveNamespaces` keeps each translation
+  unit's `SourceManager` pointer and is never cleared (still so on LLVM `main`;
+  report drafted, `docs/upstream/clang-change-namespace-multiple-sources.md`). And
+  by design the tool only re-qualifies references inside the moved code, never the
+  uses outside the old namespace, so even fixed it would leave those broken: the
+  text route (MANUAL 8, "Renaming a namespace") stays the way.
   Run here on a generated project (namespace `geom`, two classes): tidy replaced
   both `0`s with `nullptr`; move created `geom/square.h` / `square.cc`, the project
   built and ran once `square.cc` was in CMakeLists.txt. Built (T-068, 0063).

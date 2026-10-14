@@ -79,6 +79,19 @@ In MacPorts' llvm-23 (`/opt/local/libexec/llvm-23/bin`, checked): `clang-move`,
 e.g. `modernize-*`, with `-fix`). Arch's `clang` package: not checked. Each takes the
 compilation database; none is wired into Emacs here.
 
+## 4a. clang-change-namespace, debugged (2026-10-14)
+- Crash: with two or more sources, SIGSEGV in `SourceManager::getBufferData` from
+  `ChangeNamespaceTool::onEndOfTranslationUnit`. `moveOldNamespace` stores each
+  move with the translation unit's `SourceManager` pointer and `FileID` in the
+  member map `MoveNamespaces`, which is never cleared; at the end of the second
+  unit the first unit's entries point at its destroyed `SourceManager`. Unchanged
+  in LLVM `main`. Report drafted:
+  `docs/upstream/clang-change-namespace-multiple-sources.md`.
+- Scope, by design (`ChangeNamespace.h`): it moves the namespace's contents and
+  re-qualifies references inside the moved code; uses outside the old namespace
+  (`geom::Circle` in `main()`) are not changed. Run on one source it changed only
+  the header. So a fixed tool still needs the qualified uses replaced as text.
+
 ## 5. Options (for O-43)
 - (a) Pass `--rename-file-limit=0` to clangd (the preset contact): project-wide
   rename beyond 50 files; measured above.
