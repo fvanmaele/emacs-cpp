@@ -24,7 +24,7 @@
 (require 'grep)
 (require 'xref)
 
-(defcustom emacs-cpp-refactor-change-namespace-program
+(defcustom emacs-cpp-namespace-program
   "~/opt/clang-change-namespace/bin/clang-change-namespace"
   "Patched clang-change-namespace from packaging/clang-change-namespace (D-097).
 `C-c l N' refuses to run when it is missing; LLVM 23's own crashes on two or
@@ -158,11 +158,11 @@ still be added to the build (CMakeLists.txt); a message says so."
 
 (defun emacs-cpp-refactor--change-namespace-program ()
   "Return the patched clang-change-namespace, or signal an error when missing."
-  (let ((file (expand-file-name emacs-cpp-refactor-change-namespace-program)))
+  (let ((file (expand-file-name emacs-cpp-namespace-program)))
     (unless (file-executable-p file)
       (user-error "emacs-cpp: %s not found; build it with \
 packaging/clang-change-namespace/build.sh, or set \
-`emacs-cpp-refactor-change-namespace-program' (D-097)" file))
+`emacs-cpp-namespace-program' (D-097)" file))
     file))
 
 (defun emacs-cpp-refactor--ere-quote (string)

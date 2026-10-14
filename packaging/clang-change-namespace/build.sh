@@ -25,7 +25,7 @@
 # sha256 sums below; a wrong sum, a patch that does not apply, a missing tool or an
 # LLVM other than 23 stops the script with the reason. Afterwards the tool runs once
 # on two generated sources (the crash's reproduction). In Emacs, `C-c l N' runs it
-# (`emacs-cpp-refactor-change-namespace-program', default the installed file).
+# (`emacs-cpp-namespace-program', default the installed file).
 set -eu
 export LC_ALL=C
 
@@ -165,6 +165,6 @@ echo "$prefix/lib/clang -> $(dirname "$resource")"
 cat <<EOF
 
 Done. C-c l N runs it; if you chose another --prefix:
-  M-x customize-variable RET emacs-cpp-refactor-change-namespace-program RET
+  M-x customize-variable RET emacs-cpp-namespace-program RET
 and set it to $prefix/bin/clang-change-namespace.
 EOF

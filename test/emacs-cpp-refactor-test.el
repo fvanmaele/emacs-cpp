@@ -26,8 +26,7 @@ split back into its arguments."
           (default-directory root)
           (emacs-cpp-presets-state-file (expand-file-name "state.eld" root))
           (emacs-cpp-default-llvm-tools-dir tools)
-          (emacs-cpp-refactor-change-namespace-program
-           (expand-file-name "clang-change-namespace" tools))
+          (emacs-cpp-namespace-program (expand-file-name "clang-change-namespace" tools))
           ran)
      (unwind-protect
          (progn
@@ -117,7 +116,7 @@ the project's files; refused when missing or for a name that is no namespace."
     (pcase-let ((`(,dir ,args) (car ran)))
       (should (equal dir root))
       (should (equal args
-                     (list emacs-cpp-refactor-change-namespace-program
+                     (list emacs-cpp-namespace-program
                            "-old_namespace=geom" "-new_namespace=shapes::two"
                            (concat "-file_pattern=^("
                                    (emacs-cpp-refactor--ere-quote
@@ -128,7 +127,7 @@ the project's files; refused when missing or for a name that is no namespace."
     (dolist (name '("" "a b" "::geom" "geom::" "1geom" "a::::b"))
       (should-error (emacs-cpp-refactor-change-namespace name "shapes") :type 'user-error)
       (should-error (emacs-cpp-refactor-change-namespace "geom" name) :type 'user-error))
-    (delete-file emacs-cpp-refactor-change-namespace-program)
+    (delete-file emacs-cpp-namespace-program)
     (should-error (emacs-cpp-refactor-change-namespace "geom" "shapes") :type 'user-error)))
 
 (ert-deftest emacs-cpp-refactor-ere-quote ()
