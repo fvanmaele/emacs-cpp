@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0067 | 2026-10-14 | T-073: patched clangd on macOS at LLVM 23.1.3 | T-073 | D-100 |
 | 0066 | 2026-10-14 | S12: change signature, FAIL; calls in templates | S12, T-069 | none |
 | 0065 | 2026-10-14 | patched clang-change-namespace, `C-c l N` | T-072 | D-097 |
 | 0064 | 2026-10-14 | snippets: yasnippet, its collection on `C-c y` | T-071 | D-095 |

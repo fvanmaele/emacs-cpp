@@ -17,8 +17,9 @@ through D-073. clangd stays (T-004); a locally patched clangd
 includer's flags, also when opened first (D-026 .. D-028, D-046, D-047, D-059), and
 re-indexes sources whose shards had errors (D-060). Python rides along (D-045). macOS
 supported, MacPorts only (D-050, D-053): starts and tests there (T-021, D-054),
-`lldb-preset` (D-051), patched clangd from `build-macos.sh` (D-052); per-platform defaults
-files (D-055, T-031); debug targets from CMake's file API (D-056, T-030). Budgets bind on
+`lldb-preset` (D-051), patched clangd 23.1.3 from `build-macos.sh` (D-052, D-100);
+per-platform defaults files (D-055, T-031); debug targets from CMake's file API (D-056,
+T-030). Budgets bind on
 Arch only (D-057); `make test` on the machine at hand (D-058). Owner runs left: S10
 (O-12), build-macos.sh to ~/opt (T-023); owner sends the eglot watch report (T-032)
 and the three c-ts-mode reports (T-036, T-037, T-039). RET and TAB indent by Emacs's
