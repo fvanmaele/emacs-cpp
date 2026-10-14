@@ -116,6 +116,7 @@ with `done when: ...`).
 | T-068 | done 0063 | S | clang-tidy fixes, clang-move | D-094 | generated project |
 | T-069 | open | L | spike S12: change signature in clangd | O-43 (b) | RUN.md planned |
 | T-070 | open | S | send the clang-change-namespace report | D-094 | owner sends it |
+| T-071 | done 0064 | S | yasnippet, collection; `C-c y` | D-095 | tests; Mac hand check |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -274,6 +275,17 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-071 (opened 2026-10-14, D-095, O-45 (b)): snippets. Done when: yasnippet 0.14.3
+  (GNU ELPA git) and yasnippet-snippets 1.0 (NonGNU ELPA git) as pinned submodules;
+  yasnippet on in code and LaTeX buffers; `C-c y` expands a snippet key before point;
+  TAB / S-TAB next / previous field only while a snippet is active, corfu's popup
+  keeping TAB; TAB elsewhere unchanged (D-020); clangd completions insert argument
+  placeholders (eglot announces snippets). Tests: keys, TAB unchanged without a
+  snippet, field moves, a collection snippet expanding in c++-ts-mode,
+  python-ts-mode, LaTeX-mode; startup cost measured (snippets loaded on first use if
+  > ~20 ms); Mac hand check; make test. Agreed 2026-10-14. Done 2026-10-14 (0064):
+  all met but the owner's Mac hand check; the collection pinned to the branch tip,
+  not the 1.0 commit (D-095); it loads on first use (130 - 150 ms); 105 tests.
 - T-070 (opened 2026-10-14, D-094): send
   `docs/upstream/clang-change-namespace-multiple-sources.md` to LLVM's issue
   tracker; outward, so the owner sends it. Done when: sent, issue number noted here.

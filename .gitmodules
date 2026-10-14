@@ -155,3 +155,16 @@
 	info = doc/preview-latex.texi
 	patch = patches/auctex/0001-Add-the-generated-Texinfo-files-of-the-manuals.patch
 	build-exclude = lpath.el
+[submodule "yasnippet"]
+	path = lib/yasnippet
+	url = https://git.savannah.gnu.org/git/emacs/elpa.git
+	branch = externals/yasnippet
+	shallow = true
+	ignore = untracked
+[submodule "yasnippet-snippets"]
+	path = lib/yasnippet-snippets
+	url = https://git.savannah.gnu.org/git/emacs/nongnu.git
+	branch = elpa/yasnippet-snippets
+	shallow = true
+	ignore = untracked
+	patch = patches/yasnippet-snippets/0001-Load-the-snippets-when-the-package-is-loaded-not-wit.patch

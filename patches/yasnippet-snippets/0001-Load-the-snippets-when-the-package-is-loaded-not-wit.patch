@@ -1,0 +1,32 @@
+From b83f77a354065b178ecb49ee2d50732d6836b118 Mon Sep 17 00:00:00 2001
+From: Ferdinand Vanmaele <info@fvanmaele.de>
+Date: Wed, 14 Oct 2026 11:26:46 +0200
+Subject: [PATCH] Load the snippets when the package is loaded, not with
+ yasnippet
+
+The autoload cookie on the eval-after-load form copied it into the
+autoloads file, so loading yasnippet scanned the whole collection
+(124 directories, 130 - 150 ms on a Mac whose virus scanner slows each
+file read).  Without the cookie the same form runs when
+yasnippet-snippets itself is loaded, so a configuration can load the
+collection when a snippet is first asked for.  The other autoload,
+yasnippet-snippets-initialize, stays.
+---
+ yasnippet-snippets.el | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/yasnippet-snippets.el b/yasnippet-snippets.el
+index 958f6da..da8afe3 100644
+--- a/yasnippet-snippets.el
++++ b/yasnippet-snippets.el
+@@ -67,7 +67,6 @@ See Info node `(elisp)Customization Types'."
+   "Set `yas-indent-line' to nil."
+   (set (make-local-variable 'yas-indent-line) nil))
+ 
+-;;;###autoload
+ (eval-after-load 'yasnippet
+    '(yasnippet-snippets-initialize))
+ 
+-- 
+2.56.0
+

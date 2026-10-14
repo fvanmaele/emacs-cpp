@@ -64,6 +64,18 @@ part to jump (D-043).
 | `RET` | insert the candidate; `C-g` cancels |
 | `M-h` | documentation of the candidate; `M-g`: its location |
 
+## Snippets (yasnippet, D-095)
+| Key | Does |
+|---|---|
+| `C-c y` | expand the snippet key before point (`for`, `class`, `def`, `begin` ...) |
+| `C-c & C-s` | choose a snippet by name and insert it |
+| `TAB` / `S-TAB` | inside a snippet: next / previous field (`TAB` completes while the popup is open) |
+| `C-d` | inside a snippet: clear the field |
+
+A clangd completion of a function brings its parameters as fields; `TAB` moves on.
+`TAB` outside a snippet indents and completes as before. Own snippets:
+`M-x yas-new-snippet`, saved under `~/.emacs.d/snippets/<mode>/`.
+
 ## Jump to anything / search
 | Key | Does |
 |---|---|
