@@ -114,7 +114,7 @@ with `done when: ...`).
 | T-066 | done 0062 | S | navigation clicks, right-click menu | D-093 | tests, clangd |
 | T-067 | open | S | side buttons: back / forward | O-44 (c) | owner's `C-h k` |
 | T-068 | done 0063 | S | clang-tidy fixes, clang-move | D-094 | generated project |
-| T-069 | open | L | spike S12: change signature in clangd | O-43 (b) | RUN.md planned |
+| T-069 | done 0066 | L | spike S12: change signature | O-43 (b) | FAIL; to owner |
 | T-070 | open | S | send the clang-change-namespace report | D-094 | owner sends it |
 | T-071 | done 0064 | S | yasnippet, collection; `C-c y` | D-095 | tests; Mac hand check |
 | T-072 | done 0065 | S | patched clang-change-namespace, `C-c l N` | D-097 | generated |
@@ -302,7 +302,9 @@ with `done when: ...`).
   tracker; outward, so the owner sends it. Done when: sent, issue number noted here.
 - T-069 (opened 2026-10-14, O-43 (b)): spike S12, a change-signature code action in
   clangd (`spikes/s12-change-signature/RUN.md`, pass criteria agreed 2026-10-13).
-  Done when: RESULTS.md with a verdict against them.
+  Done when: RESULTS.md with a verdict against them. Done 2026-10-14 (0066): FAIL;
+  0 wrong edits, but 5 of 9 operations break on calls in templates the index cannot
+  settle (reported, not edited); clangd 57 - 259 ms, the whole command 1.7 - 5.1 s.
 - T-068 (opened 2026-10-13, D-094, O-43 (c)): commands around clang's tools. Done
   when: `C-c l T` run-clang-tidy -fix (checks asked), `C-c l N` clang-change-namespace,
   `C-c l M` clang-move, each in a compilation buffer on the active preset's
