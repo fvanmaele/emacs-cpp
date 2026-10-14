@@ -7,7 +7,8 @@
 ;; (`c++-ts-mode-hook' -> `emacs-cpp-presets-eglot-ensure' -> `eglot-ensure', which
 ;; connects after the next command), with clangd given the preset's build directory.
 ;; Go-to-definition must reach another file, a library header reached that way must
-;; join the same server (D-019), and a clang-tidy finding must reach flymake.
+;; join the same server (D-019), and a clang-tidy finding must reach flymake;
+;; a chosen completion fills in its parameters as snippet fields (D-095).
 ;; Needs cmake, ninja, c++, clangd and git.
 
 ;;; Code:
@@ -125,6 +126,57 @@ any eglot server shut down."
           (while (and (not (init-cpp-test--tidy-diagnostic)) (< (float-time) deadline))
             (accept-process-output nil 0.2)))
         (should (init-cpp-test--tidy-diagnostic))))))
+
+(defun init-cpp-test--complete (prefix)
+  "Complete PREFIX before point through eglot with its first candidate.
+Return the candidate, or nil when clangd offers none."
+  ;; Batch runs no command loop, so the edits are sent to clangd by hand.
+  (eglot--signal-textDocument/didChange)
+  (let* ((capf (eglot-completion-at-point))
+         (candidate (car (all-completions prefix (nth 2 capf)))))
+    (when candidate
+      (delete-region (nth 0 capf) (nth 1 capf))
+      (insert candidate)
+      (funcall (plist-get (nthcdr 3 capf) :exit-function) candidate 'finished)
+      candidate)))
+
+(ert-deftest init-cpp-completion-inserts-argument-placeholders ()
+  "D-095: with yasnippet, eglot asks clangd for snippets; a chosen function
+arrives with a field per parameter, TAB going from one to the next."
+  (init-test--load)
+  (init-cpp-test--with-project init-cpp-test--files
+    (should (eql 0 (call-process "cmake" nil nil nil "--preset" "debug")))
+    (with-current-buffer (init-cpp-test--visit (expand-file-name "src/main.cc" root))
+      (should (init-test--wait-managed))
+      (should (eq t (plist-get (plist-get (plist-get (plist-get (eglot-client-capabilities
+                                                                  (eglot-current-server))
+                                                                 :textDocument)
+                                                      :completion)
+                                           :completionItem)
+                               :snippetSupport)))
+      ;; While its first parse runs clangd completes from a word list, without
+      ;; snippets; its clang-tidy finding says the parse is done.
+      (flymake-start)
+      (let ((deadline (+ (float-time) 30)))
+        (while (and (not (init-cpp-test--tidy-diagnostic)) (< (float-time) deadline))
+          (accept-process-output nil 0.2)))
+      (should (init-cpp-test--tidy-diagnostic))
+      (save-window-excursion
+        (switch-to-buffer (current-buffer))
+        (goto-char (point-min))
+        (forward-line 2)
+        (insert "int area(double scale, int n);\n")
+        (search-forward "values;")
+        (insert "\n  are")
+        (should (init-cpp-test--complete "are"))
+        (should (equal (buffer-substring-no-properties (line-beginning-position)
+                                                       (line-end-position))
+                       "  area(double scale, int n)"))
+        (should (yas-active-snippets))
+        (should (looking-at "double scale"))
+        (execute-kbd-macro (kbd "TAB"))
+        (should (looking-at "int n"))
+        (set-buffer-modified-p nil)))))
 
 (ert-deftest init-cpp-code-map-on-c-c-l ()
   "T-007, D-004: every proposed letter under `C-c l' runs its command, and

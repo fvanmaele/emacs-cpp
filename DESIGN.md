@@ -1011,6 +1011,27 @@ Mechanisms, each PROPOSED until measured:
   adds its own `C-c l` keys: clangd, `o`, `P` in init-cpp; pyright in init-python;
   texlab, `b` in init-latex. DESIGN 4 principle 3 holds: eglot is configured in
   one form, the languages only register data.
+- DECIDED D-095 (owner 2026-10-14, O-45 (b), keys (k2); done when agreed): yasnippet
+  (GNU ELPA's `externals/yasnippet`, pinned dd570a6 = 0.14.3) and yasnippet-snippets
+  (NonGNU ELPA's `elpa/yasnippet-snippets`, pinned 606ee92, the branch's tip of
+  2025-12-15: its 1.0 release commit 39e640c has no `c++-ts-mode` / `python-ts-mode`
+  directories, added upstream 2024-01), two submodules (network fetch at clone,
+  D-014). yasnippet is on in `prog-mode`, `LaTeX-mode` and `bibtex-mode` buffers
+  (`lisp/init-completion.el`); with it eglot announces snippet support, so a chosen
+  clangd completion arrives with a field per parameter (`area(double scale, int n)`),
+  texlab's environments with their `\end`. A snippet key expands on `C-c y`
+  (`emacs-cpp-snippets-expand`; none before point: an error saying so), never on
+  TAB, which indents and completes as before (D-020); inside a snippet TAB / S-TAB
+  go to the next / previous field, except while corfu's popup is open
+  (`yas-keymap-disable-hook`), so TAB completes there. Load cost (Mac, batch):
+  yasnippet 8.5 - 11 ms at the first code or LaTeX buffer, nothing at startup; the
+  collection's 124 directories 130 - 150 ms (mostly reading each `.yas-parents`), so
+  it loads at the first `C-c y` or `C-c & C-s` (yasnippet's insert by name; first
+  `C-c y` 213 ms), not with yasnippet: patch 0001 (D-069) drops the autoload that
+  loaded it with yasnippet. Own snippets: yasnippet's default directory, `snippets/`
+  in `user-emacs-directory` (yasnippet creates it), loaded with the collection. A
+  `.tex` file with no LaTeX in it opens in AUCTeX's plain TeX mode, without
+  yasnippet. Built (T-071, 0064).
 - SUPERSEDED by D-039 (2026-10-08): "Known gap: package Info manuals (magit,
   projectile) are not built; T-010."
 - DECIDED D-039 (owner 2026-10-08, T-010): `make packages` builds the Texinfo manuals
@@ -1035,7 +1056,8 @@ Mechanisms, each PROPOSED until measured:
   (network, upkeep; reconsider for many long-lived changes), and Lisp workarounds
   beyond a line or two (they lean on the package's internals). First patch:
   treemacs 0001, T-041, replacing D-067's stand-in timer. Second: consult 0001 (D-079).
-  Third: projectile 0001 (D-081).
+  Third: projectile 0001 (D-081). Later: auctex 0001 (D-090), yasnippet-snippets 0001
+  (D-095).
 - DECIDED D-089 (owner report 2026-10-13, tier 1): on macOS the config puts
   `/opt/local/bin`, `/opt/local/sbin` (MacPorts, D-053) and `/usr/local/bin` (CRAN's
   R) in front of `exec-path` and PATH at startup when missing
@@ -1166,7 +1188,7 @@ presets, GoogleTest runner.
 - `RESEARCH_keys_build_debug_ui.md` (owner questions 2026-10-08): key hints, building
   from any buffer, breakpoint indicators. Findings in; rulings O-16, O-17, O-18.
 - `RESEARCH_snippets.md` (owner request 2026-10-14): yasnippet, its collections,
-  tempel; what eglot does with snippets. Findings in; O-45.
+  tempel; what eglot does with snippets. Findings in; O-45 ruled (D-095).
 - `RESEARCH_mouse.md` (owner request 2026-10-13): CLion's mouse and modifier-click
   bindings against Emacs 31.1's (`xref-...-at-mouse`, `context-menu-mode`). Findings
   in; O-44.
@@ -1313,7 +1335,8 @@ presets, GoogleTest runner.
   `C-b`, `C-e`, `C-k`, `C-l` are taken; Emacs.app's `s-m`, `s-e`, `s-l` too. Options:
   (a) LyX's keys on Command in `LaTeX-mode` on the Mac; (b) under a prefix on both
   machines; (c) AUCTeX's only. Owner rules.
-- O-45 (OPEN, owner request 2026-10-14: "research yasnippet"): findings in
+- O-45 (RESOLVED 2026-10-14 with D-095: (b), keys (k2); owner request 2026-10-14:
+  "research yasnippet"): findings in
   `RESEARCH_snippets.md`. With yasnippet eglot announces snippet support: clangd
   then completes calls with argument placeholders, texlab environments with
   `\end`. Options: (a) yasnippet for the servers' snippets; (b) plus
@@ -1321,7 +1344,8 @@ presets, GoogleTest runner.
   (`RESEARCH_snippets.md` 6): yasnippet works with eglot as it is; tempel completes
   through corfu but needs eglot-tempel (MELPA only, patches eglot, conflicts with
   yasnippet); collections: yasnippet-snippets on NonGNU ELPA, tempel-collection
-  MELPA only. Owner rules.
+  MELPA only. Keys (`RESEARCH_snippets.md` 7): (k1) TAB expands, (k2) a key of its
+  own, (k3) from the completion popup, (k4) no TAB at all.
 - O-44 (OPEN, owner request 2026-10-13: "research additional mouse bindings, e.g.
   Command+M1 for going to symbol (M-.), compare to Clion key+mouse bindings"):
   findings in `RESEARCH_mouse.md`. Cmd+Click (`s-<mouse-1>`) is unbound; Emacs has
@@ -1746,6 +1770,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-092 | 2026-10-13 | clangd with `--rename-file-limit=0` | 7 | O-43 |
 | D-093 | 2026-10-13 | CLion's navigation clicks; right-click menu | 10 | O-44 |
 | D-094 | 2026-10-13 | clang-tidy fixes, clang-move on `C-c l T` / `M` | 7 | O-43 |
+| D-095 | 2026-10-14 | yasnippet, yasnippet-snippets; expand on `C-c y` | 12 | O-45 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.

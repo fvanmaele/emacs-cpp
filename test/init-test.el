@@ -3,8 +3,8 @@
 ;;; Commentary:
 
 ;; Tests the profile that ships: the real lib/ packages and init.el, with only
-;; `user-emacs-directory' redirected so the owner's history and bookmarks are not
-;; touched.  The configuration is loaded once and shared by the tests below.
+;; `user-emacs-directory' redirected so the owner's history, bookmarks and snippets
+;; are not touched.  The configuration is loaded once and shared by the tests below.
 ;; Needs `make packages' first.
 
 ;;; Code:
@@ -17,7 +17,9 @@
 
 (defun init-test--load ()
   "Load early-init.el and init.el once, then run `after-init-hook'.
-The temporary home is deleted when Emacs exits."
+`user-emacs-directory' stays the temporary home for the rest of the run, as
+packages loaded later name their files from it (yasnippet makes its snippet
+directory there).  The temporary home is deleted when Emacs exits."
   (unless init-test--home
     (setq init-test--home (file-name-as-directory
                            (make-temp-file "emacs-cpp-init-test" t)))
@@ -26,10 +28,10 @@ The temporary home is deleted when Emacs exits."
                 (when (bound-and-true-p projectile-mode)
                   (projectile-mode -1))
                 (delete-directory init-test--home t)))
-    (let ((user-emacs-directory init-test--home))
-      (load (expand-file-name "early-init.el" build-packages-root) nil t)
-      (load (expand-file-name "init.el" build-packages-root) nil t)
-      (run-hooks 'after-init-hook))))
+    (setq user-emacs-directory init-test--home)
+    (load (expand-file-name "early-init.el" build-packages-root) nil t)
+    (load (expand-file-name "init.el" build-packages-root) nil t)
+    (run-hooks 'after-init-hook)))
 
 (defun init-test--wait-managed (&optional seconds)
   "Wait up to SECONDS (default 10) until eglot manages the current buffer.

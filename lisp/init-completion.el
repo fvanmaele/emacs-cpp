@@ -12,6 +12,8 @@
 ;;   embark      actions on the candidate at point (`C-.'); loads embark-consult itself
 ;;   corfu       completion popup in buffers on TAB or C-M-i, fed by completion-at-point
 ;;   cape        extra completion sources; here file names
+;;   yasnippet   snippets: the servers' argument placeholders, templates on `C-c y'
+;;               from yasnippet-snippets (D-095)
 ;;
 ;; Go to anything on `M-o' (D-074 .. D-078) combines them in one prompt.
 ;;
@@ -376,6 +378,45 @@ after it, with the usual ones."
 
 (setopt tab-always-indent 'complete     ; TAB indents, then completes
         text-mode-ispell-word-completion nil)
+
+;;;; Snippets
+
+(defun emacs-cpp-snippets--completing-p ()
+  "Non-nil while completion is offered in the buffer (corfu's popup is open).
+yasnippet's field keys step aside then, so TAB completes there (D-095)."
+  completion-in-region-mode)
+
+(defun emacs-cpp-snippets-expand ()
+  "Expand the snippet key before point, or say there is none (D-095).
+The first call loads yasnippet-snippets' collection."
+  (interactive)
+  (require 'yasnippet-snippets)
+  (unless (yas-maybe-expand-abbrev-key-filter t)
+    (user-error "No snippet key before point (%s)" major-mode))
+  (yas-expand))
+
+(defun emacs-cpp-snippets-insert ()
+  "Choose a snippet by name and insert it, as `yas-insert-snippet' (D-095).
+The first call loads yasnippet-snippets' collection."
+  (interactive)
+  (require 'yasnippet-snippets)
+  (call-interactively #'yas-insert-snippet))
+
+;; yasnippet (D-095): the language servers' snippets (clangd's argument placeholders
+;; when a completion is chosen, texlab's environments; eglot announces snippet
+;; support once yasnippet is there) and yasnippet-snippets' templates.  A snippet's
+;; key expands on `C-c y', never on TAB, so TAB indents and completes as before
+;; (D-020); inside an expanded snippet TAB / S-TAB move to the next / previous field.
+;; The collection takes 130 - 150 ms to scan (Mac), so it loads at the first `C-c y'
+;; or `C-c & C-s', not with yasnippet (patch 0001 drops its autoload).
+(use-package yasnippet
+  :hook ((prog-mode LaTeX-mode bibtex-mode) . yas-minor-mode)
+  :config
+  (keymap-unset yas-minor-mode-map "TAB" t)
+  (keymap-unset yas-minor-mode-map "<tab>" t)
+  (keymap-set yas-minor-mode-map "C-c y" #'emacs-cpp-snippets-expand)
+  (keymap-set yas-minor-mode-map "<remap> <yas-insert-snippet>" #'emacs-cpp-snippets-insert)
+  (add-hook 'yas-keymap-disable-hook #'emacs-cpp-snippets--completing-p))
 
 (provide 'init-completion)
 ;;; init-completion.el ends here
