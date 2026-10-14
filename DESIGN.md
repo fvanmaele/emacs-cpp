@@ -1310,7 +1310,11 @@ presets, GoogleTest runner.
   `RESEARCH_snippets.md`. With yasnippet eglot announces snippet support: clangd
   then completes calls with argument placeholders, texlab environments with
   `\end`. Options: (a) yasnippet for the servers' snippets; (b) plus
-  yasnippet-snippets; (c) tempel with eglot-tempel; (d) none. Owner rules.
+  yasnippet-snippets; (c) tempel with eglot-tempel; (d) none. Compared 2026-10-14
+  (`RESEARCH_snippets.md` 6): yasnippet works with eglot as it is; tempel completes
+  through corfu but needs eglot-tempel (MELPA only, patches eglot, conflicts with
+  yasnippet); collections: yasnippet-snippets on NonGNU ELPA, tempel-collection
+  MELPA only. Owner rules.
 - O-44 (OPEN, owner request 2026-10-13: "research additional mouse bindings, e.g.
   Command+M1 for going to symbol (M-.), compare to Clion key+mouse bindings"):
   findings in `RESEARCH_mouse.md`. Cmd+Click (`s-<mouse-1>`) is unbound; Emacs has

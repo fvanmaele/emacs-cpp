@@ -56,3 +56,47 @@ tempel, NonGNU ELPA's for yasnippet-snippets, its GitHub repository's `snippets/
 - yasnippet with corfu and TAB in this config; clangd's snippet completions through
   eglot with yasnippet.
 - yasnippet-snippets 1.0's mode directories and its snippets in `LaTeX-mode`.
+
+## 6. yasnippet against tempel (owner question 2026-10-14)
+Sources: the projects' READMEs (github.com/joaotavora/yasnippet, github.com/minad/tempel,
+github.com/fejfighter/eglot-tempel), MELPA's generated READMEs, NonGNU ELPA (404 for
+eglot-tempel and tempel-collection), all read 2026-10-14; eglot 31.1's code.
+
+- **package:** yasnippet: GNU ELPA 0.14.3 (2025-06-02). tempel: GNU ELPA 1.14
+  (2026-07-05).
+- **template format:** yasnippet: text files, TextMate-like (`$1`, `${2:x}`), one per
+  snippet, a directory per mode. tempel: Lisp data, Tempo's elements (`p`, `(s name)`,
+  `r`, `n`), one file of templates per mode group.
+- **fields:** yasnippet: numbered, mirrors and transformations, embedded Lisp. tempel:
+  placeholders, named fields that update each other, Lisp forms, `:pre` / `:post`.
+- **expansion:** yasnippet: a key (TAB, `yas-expand`); listing snippets in
+  `completion-at-point` needs an extra package (not checked which). tempel:
+  `completion-at-point` (`tempel-complete`, `tempel-expand`): corfu lists templates like
+  other candidates; `tempel-insert` by name.
+- **servers' snippets (eglot):** yasnippet: built in: eglot 31.1 announces snippet
+  support when yasnippet is loaded and expands with it. tempel: needs `eglot-tempel`
+  (MELPA only), which patches eglot's yasnippet check and converts the server's snippet
+  to tempel; "conflicts with yasnippet".
+- **ready-made templates:** yasnippet: `yasnippet-snippets` (NonGNU ELPA 1.0; C++, C++
+  ts, Python ts, LaTeX, CMake ...). tempel: `tempel-collection` (MELPA only; modes not
+  listed in its README).
+- **author / family:** yasnippet: repository joaotavora/yasnippet (Joao Tavora also
+  wrote eglot), GNU ELPA's maintainer Noam Postavsky. tempel: Daniel Mendler (consult,
+  vertico, corfu, cape, already vendored).
+- **size:** yasnippet: large (snippet tables, menus). tempel: small ("small and simple
+  packages").
+
+What decides it here:
+- The servers' snippets (clangd's argument placeholders, texlab's environments) work
+  with yasnippet out of the box in eglot; with tempel they need eglot-tempel, a
+  MELPA-only package (DESIGN 4 principle 2 puts MELPA last) that patches eglot.
+- Own templates fit tempel better in this config: they complete through corfu
+  like everything else, in Lisp; yasnippet's need a key or an extra capf package.
+- Ready-made C++ and LaTeX templates: yasnippet-snippets (NonGNU ELPA); tempel's
+  collection is MELPA only.
+- Both together: eglot-tempel says it conflicts with yasnippet; tempel for own
+  templates and yasnippet only for eglot's snippets (no eglot-tempel) would be two
+  template systems.
+- Not measured: load time of either (neither is vendored), TAB's interplay with
+  corfu and indentation (`tab-always-indent`, D-020).
+
