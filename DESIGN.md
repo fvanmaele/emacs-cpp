@@ -1302,7 +1302,10 @@ presets, GoogleTest runner.
   `RESEARCH_mouse.md` 5. A modifier alone gives Emacs no event, so no pointer
   change while it is held. Options: (a) hand pointer and highlight on symbols
   under the mouse in eglot buffers, always; (b) (a) plus the server's hover text as
-  a tooltip; (c) none. Owner rules.
+  a tooltip; (c) none. Owner 2026-10-14: research (a) and a plain click: section 6
+  (tree-sitter tagging 5.9 ms for a 4927-line header; a click already shows eglot's
+  hover in the echo area after 0.5 s; options c1 tooltip, c2 child frame (posframe),
+  c3 shorter delay). Owner rules.
 - O-46 (OPEN, owner request 2026-10-14: "keybindings/shortcuts similar to LyX"):
   findings in `RESEARCH_latex.md` 8 (LyX's bind files: Ctrl+M math, Ctrl+Shift+M display
   math, Ctrl+Alt+B bold, Ctrl+E emphasis, Ctrl+L TeX code, Ctrl+R view; Mac: Command+M,

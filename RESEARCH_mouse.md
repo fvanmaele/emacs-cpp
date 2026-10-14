@@ -91,3 +91,38 @@ side buttons, after `C-h k` on each machine; (d) none.
   tooltip with the server's hover text (`help-echo` function asking eglot; a
   blocking request per hover, clangd answers in milliseconds, others slower); (c)
   none. Cost of (a) / (b) not measured (motion events in Emacs are frequent).
+
+## 6. Hover highlight measured; a plain click on a symbol (owner 2026-10-14)
+**(a) Highlight and hand pointer on hover, how it would be built.** Emacs highlights
+text carrying `mouse-face` while the mouse is over it and shows the `pointer` shape
+there, in redisplay, without running Lisp per mouse movement. So the cost is
+putting the two properties on the identifiers, once per part of the buffer shown
+(jit-lock, as fontification). Measured on deal.II's `grid/tria.h` (4927 lines,
+c++-ts-mode, Mac, batch):
+- tree-sitter query for identifier nodes (`identifier`, `field_identifier`,
+  `type_identifier`, `namespace_identifier`) over the whole file: 5.9 ms; over its
+  first 123 lines 4.0 ms (most of it the query's fixed cost);
+- a regexp for identifiers: 29.8 ms whole file, but it also tags words in comments
+  and strings; with a `syntax-ppss` check per hit to skip those it ran for more than
+  two minutes and was stopped.
+So: tree-sitter, per shown chunk, well under a millisecond per screen. Languages
+without a tree-sitter mode here (LaTeX, CMake) would need their own rule; eglot's
+semantic tokens (clangd sends them) are another source, not measured.
+Tracking the mouse instead (`track-mouse`, `mouse-movement` events) runs a command
+for every movement: not measured, avoided by the above.
+
+**A plain click (no modifier) on a symbol.** A click sets point; eglot's hover is
+already one of eldoc's sources (`eglot-hover-eldoc-function` first in
+`eldoc-documentation-functions`), so 0.5 s after a click (`eldoc-idle-delay`) the
+echo area shows the symbol's signature and documentation. clangd answers a hover
+request in 0.4 - 3.7 ms (toy project, five tries each). Ways to show it at the click:
+- (c1) a tooltip at the mouse after a click on a symbol, from eldoc's text or a hover
+  request (`tooltip-show`, the system's tooltip; plain text);
+- (c2) the same in a child frame at the click (posframe, vendored, as ace-window and
+  cfrs use it), with Markdown rendered as eldoc's buffer is;
+- (c3) the echo area as now, with a shorter eldoc delay after a click;
+- (c4) double click: Emacs selects the word there, so a tooltip on double click
+  would change that; not proposed.
+A tooltip on every click (c1, c2) also appears when placing the cursor to type; it
+would need to vanish at the next key or movement. Not built or tried in the GUI.
+
