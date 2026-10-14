@@ -1222,7 +1222,7 @@ presets, GoogleTest runner.
   tempel; what eglot does with snippets. Findings in; O-45 ruled (D-095).
 - `RESEARCH_mouse.md` (owner request 2026-10-13): CLion's mouse and modifier-click
   bindings against Emacs 31.1's (`xref-...-at-mouse`, `context-menu-mode`). Findings
-  in; O-44.
+  in; O-44; sections 5 - 7: hover highlight and its cost, a plain click (O-47).
 - `RESEARCH_refactoring.md` (owner request 2026-10-13): CLion's C++ refactorings
   against clangd 23.1.1's rename and tweaks and the clang command-line tools; rename
   measured across 63 files. Findings in; O-43.
@@ -1359,7 +1359,12 @@ presets, GoogleTest runner.
   (tree-sitter tagging 5.9 ms for a 4927-line header; a click already shows eglot's
   hover in the echo area after 0.5 s; options c1 tooltip, c2 child frame (posframe),
   c3 shorter delay). Owner 2026-10-14: (c2) asked, then closed as it is (D-096);
-  (a): further research on its performance first.
+  (a): further research on its performance first. Measured 2026-10-14
+  (`RESEARCH_mouse.md` 7): per 1500-character chunk shown, tagging adds 0.02 - 0.09
+  ms median (font-lock itself 0.16 - 0.59 ms); 0.08 ms after an edit against
+  font-lock's 3 - 8.5 ms; query compilation 10 ms once per session; 56 bytes per
+  tagged identifier, shown parts only (0.7 MB for all of deal.II's largest header);
+  mouse movement itself not measured (needs a graphical session). Owner rules.
 - O-46 (OPEN, owner request 2026-10-14: "keybindings/shortcuts similar to LyX"):
   findings in `RESEARCH_latex.md` 8 (LyX's bind files: Ctrl+M math, Ctrl+Shift+M display
   math, Ctrl+Alt+B bold, Ctrl+E emphasis, Ctrl+L TeX code, Ctrl+R view; Mac: Command+M,

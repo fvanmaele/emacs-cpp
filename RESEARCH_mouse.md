@@ -126,3 +126,43 @@ request in 0.4 - 3.7 ms (toy project, five tries each). Ways to show it at the c
 A tooltip on every click (c1, c2) also appears when placing the cursor to type; it
 would need to vanish at the next key or movement. Not built or tried in the GUI.
 
+
+## 7. Hover highlight (a): performance (owner 2026-10-14)
+Question: what (a) costs, in time and memory, before it is ruled. Measured with a
+scratch prototype (not shipped): a jit-lock function that runs a tree-sitter query
+for identifier nodes (`identifier`, `field_identifier`, `type_identifier`,
+`namespace_identifier`) on the chunk being shown and puts `mouse-face` and
+`pointer` on each, removing old ones in the chunk first. Mac, batch, the shipped
+config, Emacs 31.1, `c++-ts-mode`, `jit-lock-chunk-size` 1500 characters; deal.II
+9.7.1's `grid/tria.h` (4963 lines, mostly comments), `matrix_free/fe_evaluation.h`
+(8470 lines, its largest header) and that header ten times over (84700 lines,
+3.4 MB). Per chunk, median / 95th percentile, in ms:
+
+| file | font-lock | tagging | identifiers | intervals added (MB) |
+|---|---|---|---|---|
+| tria.h | 0.16 / 0.57 | 0.02 / 0.08 | 1659 | 386 (0.02) |
+| fe_evaluation.h | 0.52 / 0.77 | 0.08 / 0.12 | 11184 | 12910 (0.7) |
+| ten times over | 0.59 / 0.89 | 0.08 / 0.12 | 111898 | 129158 (6.9) |
+
+- **Showing text:** the tagging adds about 15 % to what the mode's own fontification
+  already costs per chunk, under 0.15 ms at the 95th percentile; a screen is one or
+  two chunks.
+- **Once per session:** the query's compilation, 9.7 - 10.3 ms, at the first chunk
+  (or at mode start if compiled eagerly).
+- **Typing:** after an edit the changed chunk is shown again: font-lock (tree-sitter's
+  reparse included) 3.0 / 7.9 / 8.5 ms median for the three files, tagging 0.02 /
+  0.09 / 0.08 ms (300 edits each).
+- **Memory:** a text-property interval per tagged run, 56 bytes each: 0.7 MB for all
+  of fe_evaluation.h, 6.9 MB for the 3.4 MB file, but only for the parts shown:
+  `jit-lock-stealth-time` is nil here, so nothing fontifies (or tags) text never
+  shown. font-lock's faces already add more intervals than the tagging (217327
+  against 129158 in the large file).
+- **Mouse movement:** not measured. Emacs draws the highlight in redisplay (C) when
+  the mouse enters a run with `mouse-face`, without running Lisp per movement; its
+  cost is redrawing the rows under the mouse. Needs a graphical session to measure
+  (profiler while sweeping the mouse over a large file).
+- **Another source:** eglot 31 turns on `eglot-semantic-tokens-mode` in managed
+  buffers (clangd sends tokens; eglot applies them as a font-lock keyword). Their
+  ranges would also mark identifiers, macros included, but only through eglot's
+  internal functions; tree-sitter's query is public API. Not measured.
+- **Not covered:** LaTeX and CMake buffers (no tree-sitter mode here), as in 6.
