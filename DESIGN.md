@@ -357,15 +357,24 @@ Known defects: none yet (nothing built).
 - DECIDED D-052 (owner 2026-10-09, O-23): on macOS the patched clangd is built by a
   script in the repository (NEW, T-023) that follows the self-contained build in
   `docs/CHEATSHEET.md` (macOS item 6): the 23.1.1 release tarball, checked against the
-  PKGBUILD's sha256; the same patches; clang and clang-tools-extra built with CMake and
-  Ninja from MacPorts (D-053); clangd and its builtin headers installed to
-  `~/opt/clangd-index-nav`, a directory outside the repository. Self-contained, not
+  PKGBUILD's sha256 (since D-100: 23.1.3, the script's own sha256); the same patches;
+  clang and clang-tools-extra built with CMake and Ninja from MacPorts (D-053);
+  clangd and its builtin headers installed to `~/opt/clangd-index-nav`, a directory
+  outside the repository. Self-contained, not
   built against the system LLVM as D-027: MacPorts' `llvm-23` is 23.1.3, not 23.1.1.
   Extends D-014: the script downloads the tarball, only when the owner runs it.
   Built in T-023 (0036, 2026-10-09): `packaging/clangd-index-nav/build-macos.sh` reads
-  version, patches and checksums from the PKGBUILD; `--tarball` uses a downloaded
-  file. Test run on the Mac: 14 min wall, 3.3 GB build tree; the clangd links
-  MacPorts' libedit, zlib and zstd.
+  version, patches and checksums from the PKGBUILD (the version and the tarball's
+  checksum no longer, D-100); `--tarball` uses a downloaded file. Test run on the Mac:
+  14 min wall, 3.3 GB build tree; the clangd links MacPorts' libedit, zlib and zstd.
+- DECIDED D-100 (owner 2026-10-14: "update llvm/clangd to 23.1.3 on macOS", macOS
+  only): on macOS the patched clangd is built from LLVM 23.1.3, the release of
+  MacPorts' `llvm-23`. `build-macos.sh` names the release and its tarball's sha256 (the
+  one github.com lists) itself and still takes the patches and their checksums from
+  the PKGBUILD. Arch stays at 23.1.1, pacman's LLVM (D-027): each platform follows its
+  system's LLVM, so the two releases can differ. Amends D-052. Patches 0001 - 0009
+  apply to 23.1.3 without fuzz; clangd's sources differ from 23.1.1 only in
+  `CodeComplete.cpp` and its test. Built (T-073, 0067).
 - DECIDED D-060 (owner 2026-10-09, O-27 (b)): patch 0009 for the local clangd: at
   startup the background index also re-indexes the sources whose stored shards carry
   `HadErrors` (through each flagged shard's `DependentTU`, as for stale shards), so a
@@ -1898,6 +1907,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-097 | 2026-10-14 | patched clang-change-namespace, `C-c l N` | 7 | O-43 |
 | D-098 | 2026-10-14 | no module switch; modules load alone (test) | 5 | O-48 |
 | D-099 | 2026-10-14 | `M-o` in its own module after init-lsp | 5 | O-49 |
+| D-100 | 2026-10-14 | macOS: patched clangd at LLVM 23.1.3, own release | 7 | owner |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.

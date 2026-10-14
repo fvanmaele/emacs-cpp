@@ -5,10 +5,10 @@
 #                                             [--workdir DIR]
 #
 # The PKGBUILD next to this file is Arch-only (makepkg, pacman's LLVM 23.1.1). This
-# script builds the same release with the same patches, read from the PKGBUILD, but
-# self-contained: clang and clang-tools-extra are compiled from the release sources,
-# because MacPorts' llvm-23 is 23.1.3, not 23.1.1. Tools: cmake and ninja from MacPorts
-# (D-053), the compiler from the Xcode Command Line Tools.
+# script builds the release named below, MacPorts' LLVM 23.1.3 (D-100), with the same
+# patches, read from the PKGBUILD, and self-contained: clang and clang-tools-extra are
+# compiled from the release sources. Tools: cmake and ninja from MacPorts (D-053), the
+# compiler from the Xcode Command Line Tools.
 #
 # --prefix DIR    install clangd and its builtin headers here
 #                 (default ~/opt/clangd-index-nav)
@@ -16,12 +16,17 @@
 # --workdir DIR   sources and build tree (default src/ next to this file, git-ignored)
 #
 # Downloads the release tarball from github.com unless --tarball names one (D-052).
-# Every file is checked against the PKGBUILD's sha256sums; a wrong checksum, a patch
-# that does not apply or a missing tool stops the script with the reason. A rerun with
-# the same sources keeps the build tree and resumes. About 30 - 60 min the first time.
+# The tarball is checked against the script's sha256, each patch against the PKGBUILD;
+# a wrong checksum, a patch that does not apply or a missing tool stops the script
+# with the reason. A rerun with the same sources keeps the build tree and resumes.
 # Afterwards set `emacs-cpp-clangd-program' to DIR/bin/clangd (the script prints how).
 set -eu
 export LC_ALL=C
+
+# The release built here (D-100); it follows MacPorts' llvm-23, not the PKGBUILD's
+# pkgver. Change both lines together; the sha256 is the one github.com lists.
+version=23.1.3
+tarball_sha256=c44186a7762ed28954be72e5ff6df9808e0779d4f1bf014ecc4e7e211d31ee34
 
 here=$(cd "$(dirname "$0")" && pwd)
 prefix=$HOME/opt/clangd-index-nav
@@ -54,21 +59,23 @@ need shasum "it ships with macOS"
 need tar "it ships with macOS"
 [ -n "$tarball" ] || need curl "it ships with macOS"
 
-# Version, tarball URL, patches and checksums: the PKGBUILD is the one source.
+# Patches and their checksums: the PKGBUILD is the one source. Its first source is
+# Arch's tarball, replaced here by the release above.
 # shellcheck source=/dev/null
 . "$here/PKGBUILD"
 [ "${#source[@]}" -eq "${#sha256sums[@]}" ] \
     || die "PKGBUILD lists ${#source[@]} sources but ${#sha256sums[@]} checksums"
-name=llvm-project-$pkgver.src
-url=${source[0]}
-case $url in
-    */$name.tar.xz) ;;
-    *) die "PKGBUILD's first source is not $name.tar.xz: $url" ;;
+case ${source[0]} in
+    */llvm-project-$pkgver.src.tar.xz) ;;
+    *) die "PKGBUILD's first source is not llvm-project-$pkgver.src.tar.xz: ${source[0]}" ;;
 esac
+name=llvm-project-$version.src
+url=https://github.com/llvm/llvm-project/releases/download/llvmorg-$version/$name.tar.xz
+sums=("$tarball_sha256" "${sha256sums[@]:1}")
 
-check_sum() {  # file, expected sha256
+check_sum() {  # file, expected sha256, who says so
     actual=$(shasum -a 256 "$1" | cut -d' ' -f1)
-    [ "$actual" = "$2" ] || die "$1: sha256 is $actual, the PKGBUILD says $2"
+    [ "$actual" = "$2" ] || die "$1: sha256 is $actual, $3 says $2"
 }
 
 step "Sources ($name, ${#source[@]} files)"
@@ -83,13 +90,13 @@ else
         mv "$archive.part" "$archive"
     fi
 fi
-check_sum "$archive" "${sha256sums[0]}"
+check_sum "$archive" "$tarball_sha256" "build-macos.sh"
 patches=()
 i=1
 while [ "$i" -lt "${#source[@]}" ]; do
     patch_file=$here/${source[$i]}
     [ -f "$patch_file" ] || die "patch ${source[$i]} listed in the PKGBUILD is missing"
-    check_sum "$patch_file" "${sha256sums[$i]}"
+    check_sum "$patch_file" "${sha256sums[$i]}" "the PKGBUILD"
     patches+=("$patch_file")
     i=$((i + 1))
 done
@@ -99,7 +106,7 @@ for patch_file in "$here"/[0-9][0-9][0-9][0-9]-*.patch; do
         *) die "$(basename "$patch_file") is not listed in the PKGBUILD" ;;
     esac
 done
-echo "checksums match the PKGBUILD"
+echo "checksums match"
 
 # The extracted, patched tree is kept while the sources are unchanged, so a rerun
 # resumes the build instead of compiling everything again.
@@ -107,7 +114,7 @@ tree=$workdir/$name
 build=$workdir/build
 stamp=$workdir/.prepared
 step "Patched tree in $tree"
-if [ -f "$stamp" ] && [ -d "$tree" ] && [ "$(cat "$stamp")" = "${sha256sums[*]}" ]; then
+if [ -f "$stamp" ] && [ -d "$tree" ] && [ "$(cat "$stamp")" = "${sums[*]}" ]; then
     echo "unchanged since the last run, kept"
 else
     rm -rf "$tree" "$build" "$stamp"
@@ -118,7 +125,7 @@ else
         patch -d "$tree" -Np1 --quiet -i "$patch_file" \
             || die "$(basename "$patch_file") does not apply to $name"
     done
-    printf '%s\n' "${sha256sums[*]}" > "$stamp"
+    printf '%s\n' "${sums[*]}" > "$stamp"
 fi
 
 step "Configure ($build)"

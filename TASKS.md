@@ -118,6 +118,7 @@ with `done when: ...`).
 | T-070 | open | S | send the clang-change-namespace report | D-094 | owner sends it |
 | T-071 | done 0064 | S | yasnippet, collection; `C-c y` | D-095 | tests; Mac hand check |
 | T-072 | done 0065 | S | patched clang-change-namespace, `C-c l N` | D-097 | generated |
+| T-073 | done 0067 | S | macOS: patched clangd at LLVM 23.1.3 | D-100 | Mac build |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -276,6 +277,13 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-073 (opened 2026-10-14, D-100): the patched clangd on macOS at LLVM 23.1.3.
+  Done when: build-macos.sh builds 23.1.3 with patches 0001 - 0009, checksum-checked;
+  run on the Mac it installs to ~/opt/clangd-index-nav a clangd whose `--version`
+  says 23.1.3 and that lists both hidden flags; `init-cpp-patched-clangd-navigates`
+  and make test pass on the Mac; DESIGN (D-100), README and a journal entry updated.
+  Agreed 2026-10-14. Done 2026-10-14 (0067): installed, 23.1.3 with both flags;
+  make test 107 / 109, 2 skipped (gdb); one flaky lldb timeout on a first run.
 - T-072 (opened 2026-10-14, D-097): clang-change-namespace with the crash fix. Done
   when: packaging/clang-change-namespace/: the patch file and a build script (Mac:
   against MacPorts' llvm-23 into ~/opt/clang-change-namespace; Arch: against the

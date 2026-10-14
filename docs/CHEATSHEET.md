@@ -268,10 +268,10 @@ macOS is supported since 2026-10-09 (D-050), with tools from MacPorts only (D-05
    `sudo port select --set clang mp-clang-23`. `/opt/local/bin` must be on the `PATH`
    Emacs sees (an Emacs started from the Dock does not read the shell profile).
    Pointing the variable at the MacPorts clangd is refused: it lacks the patched flags.
-6. Patched clangd (D-052): `packaging/clangd-index-nav/build-macos.sh` builds the same
-   release with the same patches as the Arch package, checks them against the
-   PKGBUILD, and installs to `~/opt/clangd-index-nav` (about 15 min on the owner's
-   Mac; `--help` lists the options). Then set `emacs-cpp-clangd-program` to
+6. Patched clangd (D-052): `packaging/clangd-index-nav/build-macos.sh` builds LLVM
+   23.1.3 (MacPorts' release, D-100) with the same patches as the Arch package,
+   checks them against the PKGBUILD, and installs to `~/opt/clangd-index-nav`
+   (about 15 min on the owner's Mac; `--help` lists the options). Then set `emacs-cpp-clangd-program` to
    `~/opt/clangd-index-nav/bin/clangd` (expanded path). clangd finds its builtin
    headers in `../lib/clang` next to the binary.
 7. Untested: if clangd reports standard headers (`<vector>`) as not found, let it ask
