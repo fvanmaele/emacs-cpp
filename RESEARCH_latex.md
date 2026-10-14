@@ -155,3 +155,31 @@ exists). On a key: builds only when asked.
 - chktex diagnostics through eglot (settings needed).
 - Inverse search (Skim -> Emacs), and zathura on Arch.
 - Arch: texlab and TeX Live there.
+
+## 8. Keys like LyX's (owner question 2026-10-14)
+LyX's default bindings (its `cua.bind`; Command on the Mac where Linux has Ctrl),
+from the LyX wiki's "Frequently used shortcuts", a LyX shortcut sheet (2014) and
+LyX 1.0.3's `cua.bind`, as summarised by a web search 2026-10-14 (the pages
+themselves timed out, so details beyond these are not verified):
+- Ctrl+M: math mode, inline; Ctrl+Shift+M: display math (in math: toggles
+  inline / display); Ctrl+Alt+N: numbered display math.
+- Ctrl+B: bold; Ctrl+E: emphasis (LyX 2.4 on the Mac: Command+Ctrl+E); Ctrl+K:
+  small capitals ("noun"); Ctrl+L: TeX code (ERT).
+- In the Mac's LyX the Alt in its docs is Control.
+
+**Against AUCTeX** (`docs/CHEATSHEET-AUCTEX.md`): inline math has no key of its own
+(`$` types it; `C-c C-e` `equation` / `displaymath` for display math); fonts are
+`C-c C-f C-b` (bold), `C-c C-f C-e` (emph), `C-c C-f C-c` (small caps); no ERT (all
+of it is TeX code).
+
+**Emacs's own keys in the way:** `C-m` is RET, `C-b` / `C-e` move backward / to the
+end of the line, `C-k` kills, `C-l` recenters; LyX's Ctrl keys on Arch would take
+them. On the Mac, Emacs.app binds most of LyX's Command keys itself (checked):
+`s-m` minimizes the frame, `s-M` opens a man page, `s-e` searches for the last
+kill, `s-k` kills the buffer, `s-l` goes to a line; `s-b` and `s-i` are free. LyX's
+keys in `LaTeX-mode`'s own map would override those in LaTeX buffers only.
+
+**Options (for O-46):** (a) LyX's keys on Command in `LaTeX-mode` on the Mac only
+(`s-m` inline math `\( \)`, `s-M` display math, `s-b` / `s-e` / `s-k` fonts),
+Arch keeping AUCTeX's; (b) the same set under a prefix on both machines (e.g.
+`C-c l` letters free there); (c) AUCTeX's keys only.

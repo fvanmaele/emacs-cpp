@@ -1154,6 +1154,8 @@ presets, GoogleTest runner.
   Findings in; O-26 ruled (D-054 confirmed, upstream report T-032).
 - `RESEARCH_keys_build_debug_ui.md` (owner questions 2026-10-08): key hints, building
   from any buffer, breakpoint indicators. Findings in; rulings O-16, O-17, O-18.
+- `RESEARCH_snippets.md` (owner request 2026-10-14): yasnippet, its collections,
+  tempel; what eglot does with snippets. Findings in; O-45.
 - `RESEARCH_mouse.md` (owner request 2026-10-13): CLion's mouse and modifier-click
   bindings against Emacs 31.1's (`xref-...-at-mouse`, `context-menu-mode`). Findings
   in; O-44.
@@ -1284,6 +1286,23 @@ presets, GoogleTest runner.
   (T-059, owner's deal.II project `step-1`, Mac, 40 queries): filtering today's 100
   loses project symbols in 14 queries (373 symbols), 1000 in 2 (30), no limit in
   none, slowest reply 15.9 ms (2458 symbols), median 0.3 ms. To the owner.
+- O-47 (OPEN, owner request 2026-10-14: "visual indicator when hovering over a
+  symbol, and/or mouse pointer that changes when pressing a modifier"): findings in
+  `RESEARCH_mouse.md` 5. A modifier alone gives Emacs no event, so no pointer
+  change while it is held. Options: (a) hand pointer and highlight on symbols
+  under the mouse in eglot buffers, always; (b) (a) plus the server's hover text as
+  a tooltip; (c) none. Owner rules.
+- O-46 (OPEN, owner request 2026-10-14: "keybindings/shortcuts similar to LyX"):
+  findings in `RESEARCH_latex.md` 8 (LyX: Ctrl+M math, Ctrl+Shift+M display math,
+  Ctrl+B / Ctrl+E / Ctrl+K fonts, Ctrl+L TeX code; Command on the Mac). Emacs's
+  `C-m`, `C-b`, `C-e`, `C-k`, `C-l` are taken. Options: (a) LyX's keys on Command
+  in `LaTeX-mode` on the Mac; (b) under a prefix on both machines; (c) AUCTeX's only.
+  Owner rules.
+- O-45 (OPEN, owner request 2026-10-14: "research yasnippet"): findings in
+  `RESEARCH_snippets.md`. With yasnippet eglot announces snippet support: clangd
+  then completes calls with argument placeholders, texlab environments with
+  `\end`. Options: (a) yasnippet for the servers' snippets; (b) plus
+  yasnippet-snippets; (c) tempel with eglot-tempel; (d) none. Owner rules.
 - O-44 (OPEN, owner request 2026-10-13: "research additional mouse bindings, e.g.
   Command+M1 for going to symbol (M-.), compare to Clion key+mouse bindings"):
   findings in `RESEARCH_mouse.md`. Cmd+Click (`s-<mouse-1>`) is unbound; Emacs has
