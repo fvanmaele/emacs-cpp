@@ -124,6 +124,7 @@ with `done when: ...`).
 | T-076 | done | S | research: clangd patch, symlinked paths | owner | RESEARCH 2.8; O-50 |
 | T-077 | open 0069 | M | spike S13: symlinked paths | O-50 (c) | PASS Arch; Mac |
 | T-078 | done 0070 | S | latexindent: project settings, indent | D-103 | tests, texlab |
+| T-079 | open | S | send the texlab range formatting report | D-101 | owner sends it |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -282,6 +283,10 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-079 (opened 2026-10-14, D-101, D-103): send
+  `docs/upstream/texlab-range-formatting.md` to texlab's issue tracker (github.com/
+  latex-lsp/texlab); outward, so the owner sends it. Done when: sent, issue number
+  noted here.
 - T-078 (opened 2026-10-14, D-103, O-53 (a), (b)): latexindent as texlab runs it.
   Done when: C-c l f (buffer and region) passes --local and runs latexindent from the
   nearest directory upward (within the project) with .latexmkrc / latexmkrc /

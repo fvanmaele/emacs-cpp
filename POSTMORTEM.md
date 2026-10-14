@@ -7,7 +7,10 @@ failure is fresh.
 
 Entries below were written on 2026-10-08 from the git history (79 commits, v0.1.0 to
 v0.4.1) and the journal; oldest first. Not entries: spikes that failed as designed (S1
-run 1, S5, S8 run 1), which is the process working.
+run 1, S5, S8 run 1), which is the process working. Entries from 2026-10-09 on were
+added on 2026-10-14 from the 129 commits after 10e676e (journal 0034 - 0070), followed
+by a list of smaller issues that reopened nothing; again not entries: S11 run 1 and
+S12, which failed as designed.
 
 ## 2026-10-07 - Startup figures that measured the wrong thing
 
@@ -235,6 +238,242 @@ D-049 supersedes D-048; D-029's "not opened at startup" in force again.
 - For a change of visible behaviour, ask for the trigger and the default before
   building, even at tier 1.
 - Let a behaviour change be used for a while before tagging a milestone with it.
+
+## 2026-10-09 - The config assumed Arch Linux (D-050, D-054, D-089)
+
+### Trigger / symptom
+On the owner's Mac startup stopped in `init-cmake.el` (`cmake-mode` looked for
+`/usr/share/emacs/site-lisp`) and `make test` failed 17 of 45. pyright exited:
+Emacs ran out of file descriptors at 975 watches (kqueue, one per directory). Four days
+later an Emacs started from the Dock stopped with "emacs-cpp: rg is not on exec-path"
+while `which rg` found it, and AUCTeX's preview said "LaTeX found no preview images".
+
+### Timeline
+- 0102577 (T-021, 0034, 2026-10-09): platform paths, `${hostSystemName}`, CMake 3.31's
+  `build.ninja`, eglot watches only project files, at most 500 (D-054); tests by true
+  name and waiting for eglot's handshake.
+- D-055 (T-031, 0039): per-platform defaults files instead of `if`s in the modules.
+- d7bc180, 7c70dd0 (D-089, 2026-10-13): launchd's PATH lacks `/opt/local/bin` and
+  `/Library/TeX/texbin`; the config puts them in front of `exec-path` and PATH.
+
+### Root cause
+Everything was written and tested on one machine, from a terminal: paths, program
+versions and the process environment were Arch's, and a graphical launch (Dock,
+Finder) has a different environment from a shell's even on the same machine.
+
+### Which assumptions broke
+None was in a ledger; all were implicit. Written down since: 0034 "**Assumed:**
+MacPorts' prefix is `/opt/local`" and "500 watched directories leave enough
+descriptors on macOS" (D-054).
+
+### Blast radius / recovery
+- Arch unaffected throughout; nothing to revert. Keep: D-055's defaults files, the
+  test `init-starts-with-launchd-path`.
+
+### DESIGN updates
+D-050 (macOS supported), D-053 (MacPorts only), D-054, D-055, D-057, D-058, D-089.
+
+### Lessons
+- A second platform is a second test run before its first commit: `make test` on the
+  machine at hand (D-058).
+- Test the way the owner starts the program: the owner found the Dock failure; a
+  child Emacs with launchd's PATH reproduces it, a terminal never would.
+
+## 2026-10-10 - RET indented by clangd (D-061), superseded by D-065
+
+### Trigger / symptom
+Owner report: "symbols are copied/inserted". With RMO's `.clang-format`
+(`BraceWrapping: AfterFunction`), `double value() {}` RET left an extra `{}` line.
+
+### Timeline
+- 28dc924, 83d3d9a (D-061, T-035, 0043): RET asks clangd's on-type formatting for the
+  new line's indentation and restores the line above as typed.
+- Same day, owner report; 5592b4e restores everything from the saved line to the new
+  line (tier 1).
+- a8f4798 (D-065): RET by Emacs's rules again; eglot ignores on-type formatting.
+
+### Root cause
+clangd's reply to a newline reformats the whole statement it ended, splitting and
+joining lines by `.clang-format`; D-061 took part of that reply and assumed the rest
+stayed on one line.
+
+### Which assumptions broke
+- 0043: "**Assumed:** clangd's edits on newline touch only the line above and the new
+  line, and do not join or split lines." (D-061). Checked on toy files in LLVM style,
+  not with the project's `.clang-format`.
+
+### Blast radius / recovery
+- One day; no tag contained D-061. Keep D-062's rules, which place RET's line as
+  `.clang-format` would in RMO's cases; `C-c l f` remains for exact formatting.
+
+### DESIGN updates
+D-065 supersedes D-061 (b); 0043 marked superseded.
+
+### Lessons
+- Before taking part of a server's edit, test with the owner's project settings, not
+  only the server's defaults.
+- A server edit is all or nothing; a partial one needs a reason the server documents.
+
+## 2026-10-10 - eglot refused quietly (D-018 half built)
+
+### Trigger / symptom
+A mistyped `CMakePresets.json`, a preset without `binaryDir` or a half-written
+`compile_commands.json` showed one echo-area line from eglot, nothing in view; an empty
+database (`[]`) started clangd silently on fallback flags, giving false errors in every
+file.
+
+### Timeline
+- D-018 (2026-10-07): eglot refuses loudly when the database or `-std` is missing.
+- 8ebacfc (2026-10-10): every error on the way to clangd's command gets D-018's
+  error-level warning; invalid JSON names the file; an empty database is refused.
+
+### Root cause
+D-018 was built for the two failures known when it was written. Other errors raised
+inside eglot's contact function reached only eglot's own log level, which does not pop
+up. The hard rule "fail loudly" was met for listed cases, not for the path.
+
+### Which assumptions broke
+Not in a ledger: that a raised error in the contact function is seen. Found by a batch
+probe of seven broken projects with the real config (3 refused quietly, 1 connected).
+
+### Blast radius / recovery
+- Since T-004 (c0a3142, 2026-10-07); misleading, not destructive. Keep the probe as the test
+  `emacs-cpp-presets-clangd-contact-refuses-every-mistake-loudly`.
+
+### DESIGN updates
+D-018 extended 2026-10-10 (any preset or database error, an empty database); D-068
+(a source missing from the database warns).
+
+### Lessons
+- "Fail loudly" is tested against a list of broken inputs through the real entry
+  point, and the refusal goes through one function that cannot be quiet.
+
+## 2026-10-13 - Project symbols matched by URI spelling (D-082, D-083, D-085)
+
+### Trigger / symptom
+`M-o` listed no project symbols for a project under a path with `+ ( ) @`, opened in
+another case on the Mac, or, for pyright, under a path holding `:` and `+`.
+
+### Timeline
+- d605e09 (D-082, T-060, 0056): project symbols kept by comparing each symbol's URI
+  with the project root's URI, as eglot spells it.
+- 31b8948 (D-083, T-061, 0057): clangd's spelling and case added.
+- 0304078 (D-083): pyright's third spelling added.
+- 0619b4b (D-085, T-062, 0058): one rule for every server, from the characters any
+  encoder leaves unescaped.
+
+### Root cause
+Percent-encoded URIs compared as strings: each server escapes a different set of
+characters, so each new server or path was a new spelling to add.
+
+### Which assumptions broke
+- 0056: "**Assumed:** clangd and eglot percent-encode a path the same way." (D-082)
+- 0056: "a file system's case matches between the compilation database and
+  projectile's root."
+- 0057: "**Assumed:** other language servers in `M-o` (pyright for Python) encode like
+  eglot or like clangd." (D-083), broken the same day.
+
+### Blast radius / recovery
+- Three commits in one day before the owner's hand check passed; `< l` (all symbols)
+  worked throughout.
+
+### DESIGN updates
+D-083, then D-085 (one matcher; owner's hand check 30c48bd).
+
+### Lessons
+- Compare identifiers in a form independent of who encoded them; test with hostile
+  paths (space, `+ ( ) @ :`, non-ASCII, another case) against every shipped server
+  before the first commit.
+- A ledger risk with a cheap check (a toy path) is checked, not only written down.
+
+## 2026-10-14 - Tests wrote into the owner's ~/.emacs.d
+
+### Trigger / symptom
+`~/.emacs.d/projects.eld` grew by the temporary preset projects of every `make test`.
+
+### Timeline
+- Since the presets tests (c0a3142, 2026-10-07): project.el fixes `project-list-file`
+  when it loads, before `init-test` redirects `user-emacs-directory`.
+- 7416ce8 (2026-10-14): the presets test file points it into a temporary directory.
+
+### Root cause
+The same as the tmux leak of 2026-10-07: the test environment was assumed to be
+isolated without a check that it was. A library computed its file name from the real
+home before the redirect.
+
+### Which assumptions broke
+Not in a ledger: that `init-test`'s temporary `user-emacs-directory` covers every file
+a package writes.
+
+### Blast radius / recovery
+- Extra entries in `projects.eld` pointing at deleted temporary directories; nothing
+  lost, the stray lines can be removed by hand.
+
+### DESIGN updates
+None yet; proposed in O-54: `make test` fails when it changes `~/.emacs.d`.
+
+### Lessons
+- The 2026-10-07 lesson recurred: isolation needs a check that fails, here a
+  before/after comparison of the real home, run by the suite itself.
+
+## 2026-10-14 - LaTeX formatting: a parity claim nobody checked (D-101, D-103)
+
+### Trigger / symptom
+`C-c l f` on a region in LaTeX failed: "[eglot] Unsupported or ignored LSP capability
+':documentRangeFormattingProvider'". The replacement, latexindent called directly,
+then indented with a tab where texlab gave two spaces in a project with a
+`.latexindent.yaml`, and with tabs where AUCTeX's `TAB` uses spaces.
+
+### Timeline
+- 8df56f8 (O-51): texlab 5.25.1 has no range formatting.
+- c0b0c15 (D-101, T-074, 0068): latexindent for regions, then, by the owner's ruling,
+  for buffers too; DESIGN said "latexindent's defaults, as texlab calls it".
+- 5ae4bf9 (O-53): texlab's source read: it passes `--local` from its own directory and
+  ignores `insertSpaces`; D-101's claim marked wrong.
+- f5559fc (D-103, T-078, 0070): `--local`, texlab's directory, the buffer's indent.
+
+### Root cause
+D-101 replaced a server feature by a direct tool call and claimed the same result
+from one sample in a project without settings, without reading how the server calls
+the tool (arguments, working directory).
+
+### Which assumptions broke
+- 0068: "**Assumed:** latexindent's defaults are what texlab used, so nothing changes
+  for anyone who formatted whole buffers before." (D-101)
+
+### Blast radius / recovery
+- Same day, no tag; only projects with latexindent settings affected.
+
+### DESIGN updates
+D-101 marked, D-103; upstream report `docs/upstream/texlab-range-formatting.md`
+(T-079, owner sends).
+
+### Lessons
+- Replacing a server's call of a tool starts with reading that call; a parity claim
+  names the cases checked, including one with project settings.
+
+## Smaller issues, 2026-10-09 .. 2026-10-14
+Fixed once, no decision reopened; listed so the pattern stays visible.
+- 2e778ee: `M-o` listed files before binding the GC threshold; deal.II-sized projects
+  collected garbage while the prompt opened (S11 run 3 on RMO's 2673 files missed it).
+  Lesson as 2026-10-07: measure at the target scale (D-010).
+- 8121303 (D-070): the tree followed `M-.` into deal.II's install directory, which
+  projectile took for a project (a Makefile).
+- f35ba4b (D-073): the line number column changed width while scrolling.
+- 94626cc, b8e0918 (D-062, T-039, T-040): `c-ts-mode` indentation gaps (member after a
+  blank line, constructor initializers), worked around, three upstream reports drafted
+  (T-036, T-037, T-039).
+- a36c149 (D-079): consult kept hidden sources in the candidate list; patch 0001.
+- b30a5a2 (D-093): navigation clicks on Ctrl took Emacs's own Ctrl clicks on Arch; Super
+  on both platforms.
+- 9782c0e (D-098): `init-python` worked only because `init.el` loaded `init-lsp` first;
+  every module is now loaded alone in a test.
+- D-094: LLVM 23's `clang-change-namespace` crashes on two sources; patched (D-097),
+  upstream report T-070.
+- O-50: clangd's index loses cross-file references when the database spells a path
+  through a symlink (`/tmp`); open.
+- 0067: `init-debug-lldb-preset-builds-stops-and-steps` timed out once (121 s) in a full
+  run, passed alone and in the next run; flaky, watched.
 
 ## Template
 

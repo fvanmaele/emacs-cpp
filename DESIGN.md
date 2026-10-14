@@ -1488,6 +1488,12 @@ presets, GoogleTest runner.
   without a project yaml pass `-y=defaultIndent:` with `LaTeX-indent-level` spaces
   (tab when `indent-tabs-mode`), (c) leave latexindent's tab; (5) (d) nothing, (e)
   report upstream (owner). Owner rules.
+- O-54 (OPEN, from POSTMORTEM 2026-10-14, "Tests wrote into the owner's ~/.emacs.d"):
+  `make test` appended its temporary projects to `~/.emacs.d/projects.eld` (fixed in
+  7416ce8), the second isolation leak after the tmux one (2026-10-07). Proposed: the
+  suite records the real `~/.emacs.d`'s file list, sizes and times before the run and
+  fails when they changed after it. Options: (a) that check in `make test`; (b) run the
+  tests with `HOME` set to a temporary directory; (c) neither. Owner rules.
 - O-49 (RESOLVED 2026-10-14 with D-099: (a); found 2026-10-14 checking order
   dependencies, D-098): `M-o`
   (`emacs-cpp-go-to-anything`, init-completion) calls projectile
