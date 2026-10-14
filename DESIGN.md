@@ -309,9 +309,9 @@ Known defects: none yet (nothing built).
   clang's builtin headers. Mac: 31 s. Arch: not run yet. `C-c l N`
   (`emacs-cpp-refactor-change-namespace`, `lisp/emacs-cpp-refactor.el`) asks the old
   and the new name (`a` or `a::b`, anything else refused), refuses loudly when
-  `emacs-cpp-refactor-change-namespace-program` (default the installed file) is
-  missing, runs the tool in place on every source of the active preset's database
-  in a compilation buffer, limited to files under the project root
+  `emacs-cpp-namespace-program` (default the installed file) is missing, runs the
+  tool in place on every source of the active preset's database in a compilation
+  buffer, limited to files under the project root
   (`-file_pattern`), then lists the lines still using `old::` in the project's files
   in a grep buffer in Emacs 31's grep-edit mode with `new::` already put in: the
   edits are in the files' buffers, not saved, `C-/` in the list takes one back,
