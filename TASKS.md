@@ -119,6 +119,7 @@ with `done when: ...`).
 | T-071 | done 0064 | S | yasnippet, collection; `C-c y` | D-095 | tests; Mac hand check |
 | T-072 | done 0065 | S | patched clang-change-namespace, `C-c l N` | D-097 | generated |
 | T-073 | done 0067 | S | macOS: patched clangd at LLVM 23.1.3 | D-100 | Mac build |
+| T-074 | done 0068 | S | LaTeX: `C-c l f` by latexindent | D-101 | tests, real texlab |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -277,6 +278,16 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-074 (opened 2026-10-14, D-101, O-51 (a)): LaTeX formatting by latexindent.
+  Done when: `C-c l f` in a LaTeX buffer with an active region writes the buffer to a
+  temporary directory, runs `latexindent -c DIR --lines A-B` (the region's lines) and
+  replaces only those lines (the rest and point kept, one undo step); without a
+  region latexindent formats the whole buffer (owner, amended: latexindent for both,
+  not texlab); latexindent missing or exit != 0: user-error with the fix or its
+  stderr, buffer untouched. Tests: real latexindent (skipped if absent) changes only
+  the region's lines and matches the buffer result there; stubbed failure and missing
+  program; make test on the Mac. DESIGN D-101, CHEATSHEET, journal. Agreed
+  2026-10-14. Done 2026-10-14 (0068): met on the Mac; 111 tests.
 - T-073 (opened 2026-10-14, D-100): the patched clangd on macOS at LLVM 23.1.3.
   Done when: build-macos.sh builds 23.1.3 with patches 0001 - 0009, checksum-checked;
   run on the Mac it installs to ~/opt/clangd-index-nav a clangd whose `--version`

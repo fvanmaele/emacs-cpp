@@ -1071,6 +1071,19 @@ Mechanisms, each PROPOSED until measured:
   adds its own `C-c l` keys: clangd, `o`, `P` in init-cpp; pyright in init-python;
   texlab, `b` in init-latex. DESIGN 4 principle 3 holds: eglot is configured in
   one form, the languages only register data.
+- DECIDED D-101 (owner 2026-10-14, O-51 (a), then "use latexindent for both buffers
+  and regions, not a mix of texlab and latexindent"; done when agreed): in LaTeX
+  buffers `C-c l f` and the menu's Format Buffer run latexindent itself
+  (`emacs-cpp-latex-indent-program`), not texlab. The buffer's text goes to a
+  temporary directory; with a region latexindent indents only its lines (`--lines
+  MIN-MAX`, reading the whole document), without one the whole document; `-c` keeps
+  its log out of the project; only what differs is replaced
+  (`replace-region-contents`), in one undo step. latexindent's defaults, as texlab
+  calls it (no local settings, no line-break changes): on the sample both give the
+  same text. A missing program or a non-zero exit stops with the fix or
+  latexindent's message, the buffer unchanged. Dependency: latexindent, already
+  texlab's (TeX Live: Arch `texlive-binextra`, MacTeX). `.bib` files keep texlab's
+  format. Built (T-074, 0068).
 - DECIDED D-095 (owner 2026-10-14, O-45 (b), keys (k2); done when agreed): yasnippet
   (GNU ELPA's `externals/yasnippet`, pinned dd570a6 = 0.14.3) and yasnippet-snippets
   (NonGNU ELPA's `elpa/yasnippet-snippets`, pinned 606ee92, the branch's tip of
@@ -1402,16 +1415,17 @@ presets, GoogleTest runner.
   hand clangd a real-path copy of the database; (c) clangd patch 0010, spike first;
   (d) document, maybe `find-file-visit-truename`; (e) report on #503 (owner). Arch
   check for the owner: 2.6. Owner rules.
-- O-51 (OPEN, found 2026-10-14, owner: "verify region/buffer formatting for LaTeX
-  documents"): `C-c l f` (`eglot-format`) formats a whole LaTeX buffer through texlab
-  (latexindent 4.0 on the Mac: environment bodies indented by one tab), but refuses a
-  region: texlab 5.25.1 announces no `documentRangeFormattingProvider` ("[eglot]
-  Unsupported or ignored LSP capability ':documentRangeFormattingProvider'"). AUCTeX's
-  `indent-region` (`C-M-\`) indents by other rules (spaces; `\item` at the
-  environment's column, `LaTeX-item-indent` -2), so region and buffer disagree.
-  Checked in batch with the shipped config, real texlab, a git project. Options:
-  (a) a region through latexindent itself (`--lines MIN-MAX`); (b) region by AUCTeX,
-  its variables set to latexindent's defaults; (c) document the gap. Owner rules.
+- O-51 (RESOLVED 2026-10-14 with D-101: option (a), buffers too; found 2026-10-14,
+  owner: "verify region/buffer formatting for LaTeX documents"): `C-c l f`
+  (`eglot-format`) formats a whole LaTeX buffer through texlab (latexindent 4.0 on the
+  Mac: environment bodies indented by one tab), but refuses a region: texlab 5.25.1
+  announces no `documentRangeFormattingProvider` ("[eglot] Unsupported or ignored LSP
+  capability ':documentRangeFormattingProvider'"). AUCTeX's `indent-region` (`C-M-\`)
+  indents by other rules (spaces; `\item` at the environment's column,
+  `LaTeX-item-indent` -2), so region and buffer disagree. Checked in batch with the
+  shipped config, real texlab, a git project. Options: (a) a region through latexindent
+  itself (`--lines MIN-MAX`); (b) region by AUCTeX, its variables set to latexindent's
+  defaults; (c) document the gap. Owner rules.
 - O-49 (RESOLVED 2026-10-14 with D-099: (a); found 2026-10-14 checking order
   dependencies, D-098): `M-o`
   (`emacs-cpp-go-to-anything`, init-completion) calls projectile
@@ -1908,6 +1922,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-098 | 2026-10-14 | no module switch; modules load alone (test) | 5 | O-48 |
 | D-099 | 2026-10-14 | `M-o` in its own module after init-lsp | 5 | O-49 |
 | D-100 | 2026-10-14 | macOS: patched clangd at LLVM 23.1.3, own release | 7 | owner |
+| D-101 | 2026-10-14 | LaTeX: `C-c l f` by latexindent, buffer and region | 12 | O-51 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.

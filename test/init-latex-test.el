@@ -6,7 +6,9 @@
 ;; in `bibtex-mode', both start eglot in a project, and eglot's program for them is
 ;; texlab; texlab's settings send the line to the platform's PDF viewer after a build;
 ;; `C-c l b' sends texlab's build request and reports its result.  The request is a
-;; stub here; the real build with texlab and Skim is a hand check (0061).  Needs git.
+;; stub here; the real build with texlab and Skim is a hand check (0061).  `C-c l f'
+;; formats a buffer or a region with latexindent, the real one when installed.
+;; Needs git.
 
 ;;; Code:
 
@@ -81,6 +83,116 @@ and reports texlab's result; without texlab it says so."
           (set-buffer-modified-p nil)
           (kill-buffer))
       (delete-file file))))
+
+(defconst init-latex-test--unformatted
+  "\\documentclass{article}\n\\begin{document}\n\\begin{itemize}\n\\item one
+\\item two\n\\end{itemize}\n\\begin{enumerate}\n\\item three\n\\end{enumerate}
+\\end{document}\n"
+  "A document latexindent indents in two places: both lists' items.")
+
+(defmacro init-latex-test--with-document (&rest body)
+  "Run BODY in a LaTeX buffer of `init-latex-test--unformatted', eglot off."
+  (declare (indent 0))
+  `(let ((file (make-temp-file "emacs-cpp-tex" nil ".tex" init-latex-test--unformatted)))
+     (unwind-protect
+         (cl-letf (((symbol-function 'eglot-ensure) #'ignore))
+           (with-current-buffer (find-file-noselect file)
+             (unwind-protect
+                 (progn ,@body)
+               (set-buffer-modified-p nil)
+               (kill-buffer))))
+       (delete-file file))))
+
+(defun init-latex-test--select-lines (first last)
+  "Make the region the lines FIRST to LAST, active, as a user marks them."
+  ;; Off in batch Emacs; without it no region counts as active.
+  (setq-local transient-mark-mode t)
+  (goto-char (point-min))
+  (forward-line (1- first))
+  (push-mark (point) t t)
+  (forward-line (1+ (- last first))))
+
+(defun init-latex-test--latexindent (file)
+  "latexindent's indentation of the whole FILE, as a list of lines."
+  (let ((dir (make-temp-file "emacs-cpp-tex" t)))
+    (unwind-protect
+        (with-temp-buffer
+          (call-process emacs-cpp-latex-indent-program nil '(t nil) nil
+                        "-c" (file-name-as-directory dir) file)
+          (split-string (buffer-string) "\n"))
+      (delete-directory dir t))))
+
+(ert-deftest init-latex-format-region ()
+  "D-101: `C-c l f' with a region indents only its lines, as the buffer format
+would (latexindent on the whole document), in one undo step; point stays."
+  (skip-unless (executable-find emacs-cpp-latex-indent-program))
+  (init-test--load)
+  (init-latex-test--with-document
+    (should (eq (key-binding (kbd "C-c l f")) #'emacs-cpp-latex-format))
+    (let*((original (buffer-string))
+           (whole (init-latex-test--latexindent file))
+           (lines (split-string original "\n")))
+      (buffer-enable-undo)
+      ;; The itemize list, lines 3 - 6; the enumerate list stays as it is.
+      (init-latex-test--select-lines 3 6)
+      (call-interactively (key-binding (kbd "C-c l f")))
+      (let ((result (split-string (buffer-string) "\n")))
+        (should-not (equal result lines))
+        (should (equal (seq-subseq result 2 6) (seq-subseq whole 2 6)))
+        (should (equal (seq-take result 2) (seq-take lines 2)))
+        (should (equal (seq-drop result 6) (seq-drop lines 6))))
+      (should (equal (line-number-at-pos) 7))
+      ;; One undo record set, no boundary inside: one step brings it all back.
+      (should-not (memq nil buffer-undo-list))
+      (primitive-undo 1 buffer-undo-list)
+      (should (equal (buffer-string) original)))))
+
+(ert-deftest init-latex-format-buffer ()
+  "D-101: without a region `C-c l f' formats the whole buffer with latexindent,
+not texlab; the menu's Format Buffer does so also with a region."
+  (skip-unless (executable-find emacs-cpp-latex-indent-program))
+  (init-test--load)
+  (init-latex-test--with-document
+    (let ((original (buffer-string))
+          (whole (init-latex-test--latexindent file)))
+      (should-not (equal (split-string original "\n") whole))
+      (cl-letf (((symbol-function 'eglot-format)
+                 (lambda (&rest _) (interactive) (error "texlab asked"))))
+        (deactivate-mark)
+        (call-interactively (key-binding (kbd "C-c l f")))
+        (should (equal (split-string (buffer-string) "\n") whole))
+        (erase-buffer)
+        (insert original)
+        (should (eq (key-binding [remap eglot-format-buffer])
+                    #'emacs-cpp-latex-format-buffer))
+        (init-latex-test--select-lines 3 6)
+        (call-interactively #'emacs-cpp-latex-format-buffer)
+        (should (equal (split-string (buffer-string) "\n") whole))))))
+
+(ert-deftest init-latex-format-refusals ()
+  "D-101: a missing or failing latexindent stops with the reason and leaves the
+buffer as it was."
+  (init-test--load)
+  (init-latex-test--with-document
+    (let ((original (buffer-string)))
+      (init-latex-test--select-lines 3 6)
+      (let ((emacs-cpp-latex-indent-program "emacs-cpp-no-such-latexindent"))
+        (should (string-match-p
+                 "not found"
+                 (cadr (should-error (call-interactively #'emacs-cpp-latex-format)
+                                     :type 'user-error))))
+        (should-error (emacs-cpp-latex-format-buffer) :type 'user-error))
+      (cl-letf (((symbol-function 'executable-find) (lambda (_) "/bin/latexindent"))
+                ((symbol-function 'call-process)
+                 (lambda (_program _infile destination &rest _)
+                   (insert "half a document")
+                   (with-temp-file (cadr destination) (insert "Cannot read file\n"))
+                   2)))
+        (should (string-match-p
+                 "latexindent failed (2): Cannot read file"
+                 (cadr (should-error (call-interactively #'emacs-cpp-latex-format)
+                                     :type 'user-error)))))
+      (should (equal (buffer-string) original)))))
 
 (provide 'init-latex-test)
 ;;; init-latex-test.el ends here
