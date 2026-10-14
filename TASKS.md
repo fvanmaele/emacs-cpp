@@ -125,6 +125,7 @@ with `done when: ...`).
 | T-077 | open 0069 | M | spike S13: symlinked paths | O-50 (c) | PASS Arch; Mac |
 | T-078 | done 0070 | S | latexindent: project settings, indent | D-103 | tests, texlab |
 | T-079 | open | S | send the texlab range formatting report | D-101 | owner sends it |
+| T-080 | done 0071 | S | `make test` in a temporary HOME | D-104 | real home unchanged |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -283,6 +284,17 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-080 (opened 2026-10-14, D-104, O-54 (b)): tests in a temporary HOME. Done when:
+  `make test` creates an empty temporary HOME (mktemp -d), runs ERT with HOME set to
+  it, deletes it afterwards, keeps ERT's exit status. The runner checks first, in that
+  Emacs, that HOME is not the real home (`~` vs `~USER`) and stops with an error
+  otherwise. `make test REAL_HOME=1` runs in the real HOME as before, no check. Test
+  files unchanged; they still run by hand in any HOME; the 7416ce8 project-list-file
+  redirect stays. Evidence: make test on the Mac leaves the real home unchanged
+  (snapshot before/after, ~/.python_history included), REAL_HOME=1 still passes, the
+  check refuses when the temporary HOME is bypassed. Arch run by the owner. DESIGN
+  D-104 resolves O-54; CLAUDE.md Tests and README note REAL_HOME; journal. Agreed
+  2026-10-14. Done 2026-10-14 (0071): met on the Mac; Arch run left (owner).
 - T-079 (opened 2026-10-14, D-101, D-103): send
   `docs/upstream/texlab-range-formatting.md` to texlab's issue tracker (github.com/
   latex-lsp/texlab); outward, so the owner sends it. Done when: sent, issue number

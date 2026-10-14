@@ -90,7 +90,7 @@ T-025 round 2, T-026 queued.
 ## Tests
 - New logic ships with tests. `make test` before committing code, on the machine at
   hand, Arch or the Mac (D-058). Docs-only commits skip it. Test in the profile you
-  ship.
+  ship. `make test` runs in a temporary HOME; `REAL_HOME=1` uses the real one (D-104).
 
 ## Docs-sync
 A change that affects DESIGN, README, TASKS, spikes/README or the journal updates them in
