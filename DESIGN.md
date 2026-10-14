@@ -151,6 +151,16 @@ Observed on the owner's Mac, 2026-10-09 (D-050):
    the number it moved, or with the source that justifies it.
 8. DECIDED D-058 (owner 2026-10-09, O-24 c): `make test` passes on the machine at hand
    (Arch or the Mac) before a commit; the other platform is not required.
+9. DECIDED D-104 (owner 2026-10-14, O-54 (b); "let test files run in real HOME, if
+   desired; move the check to the runner"): `make test` runs ERT with HOME set to an
+   empty temporary directory (`mktemp -d`, deleted afterwards, ERT's exit status
+   kept), so no test can write to the owner's home. In that Emacs the runner first
+   checks that HOME is not the real home (`~` against `~USER`, which the user database
+   answers whatever HOME says) and stops otherwise. `make test REAL_HOME=1` runs in
+   the real HOME, without the check. The test files do not check: a hand run works in
+   any HOME, so per-file guards such as the presets tests' `project-list-file`
+   (7416ce8) stay. Built (T-080, 0071): on the Mac the real home stayed unchanged
+   (`~/.python_history`, which a real-HOME run rewrites, included).
 
 ## 5. Load model (the core contract)
 - `early-init.el`: frame / UI settings, startup garbage-collection threshold,
@@ -1488,12 +1498,13 @@ presets, GoogleTest runner.
   without a project yaml pass `-y=defaultIndent:` with `LaTeX-indent-level` spaces
   (tab when `indent-tabs-mode`), (c) leave latexindent's tab; (5) (d) nothing, (e)
   report upstream (owner). Owner rules.
-- O-54 (OPEN, from POSTMORTEM 2026-10-14, "Tests wrote into the owner's ~/.emacs.d"):
-  `make test` appended its temporary projects to `~/.emacs.d/projects.eld` (fixed in
-  7416ce8), the second isolation leak after the tmux one (2026-10-07). Proposed: the
-  suite records the real `~/.emacs.d`'s file list, sizes and times before the run and
-  fails when they changed after it. Options: (a) that check in `make test`; (b) run the
-  tests with `HOME` set to a temporary directory; (c) neither. Owner rules.
+- O-54 (RESOLVED 2026-10-14 with D-104, (b); from POSTMORTEM, "Tests wrote into the
+  owner's ~/.emacs.d"): `make test` appended its temporary projects to
+  `~/.emacs.d/projects.eld` (fixed in 7416ce8), the second isolation leak after the tmux
+  one (2026-10-07). Proposed: the suite records the real `~/.emacs.d`'s file list, sizes
+  and times before the run and fails when they changed after it. Options: (a) that check
+  in `make test`; (b) run the tests with `HOME` set to a temporary directory; (c)
+  neither. Owner rules.
 - O-49 (RESOLVED 2026-10-14 with D-099: (a); found 2026-10-14 checking order
   dependencies, D-098): `M-o`
   (`emacs-cpp-go-to-anything`, init-completion) calls projectile
@@ -1994,6 +2005,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-101 | 2026-10-14 | LaTeX: `C-c l f` by latexindent, buffer and region | 12 | O-51 |
 | D-102 | 2026-10-14 | LaTeX: no LyX keys, AUCTeX's own only | 12 | O-46 |
 | D-103 | 2026-10-14 | latexindent as texlab runs it; indent as AUCTeX's TAB | 12 | O-53 |
+| D-104 | 2026-10-14 | `make test` in a temporary HOME; REAL_HOME=1 opts out | 4 | O-54 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.

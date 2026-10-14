@@ -410,7 +410,7 @@ a package writes.
   lost, the stray lines can be removed by hand.
 
 ### DESIGN updates
-None yet; proposed in O-54: `make test` fails when it changes `~/.emacs.d`.
+D-104 (O-54 (b)): `make test` runs in a temporary HOME and checks it got one.
 
 ### Lessons
 - The 2026-10-07 lesson recurred: isolation needs a check that fails, here a

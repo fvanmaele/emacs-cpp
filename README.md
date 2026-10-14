@@ -42,7 +42,7 @@ git clone --recurse-submodules git@github.com:fvanmaele/emacs-cpp \
     ~/source/repos/emacs-cpp
 cd ~/source/repos/emacs-cpp
 make packages    # byte-compile lib/, write lib/load-path.el, lib/autoloads.el, lib/info/
-make test        # optional: the ERT suite, loads init.el in batch
+make test        # optional: the ERT suite, in a temporary HOME (REAL_HOME=1: yours)
 ```
 AUCTeX comes from GNU ELPA's repository, which holds every ELPA package (D-090):
 `--recurse-submodules` fetches about 217 MB for it. To fetch only its branch
