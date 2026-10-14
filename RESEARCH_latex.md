@@ -188,7 +188,8 @@ them. On the Mac, Emacs.app binds most of LyX's Command keys itself (checked):
 kill, `s-k` kills the buffer, `s-l` goes to a line; `s-b` and `s-i` are free. LyX's
 keys in `LaTeX-mode`'s own map would override those in LaTeX buffers only.
 
-**Options (for O-46):** (a) LyX's Mac keys on Command in `LaTeX-mode` on the Mac only
-(`s-m` inline math `\( \)`, `s-M` display math, `s-b` bold, `C-s-e` emphasis, `s-P`
-typewriter, `s-r` view, `s-R` build), Arch keeping AUCTeX's; (b) the same set under a
-prefix on both machines (e.g. `C-c l` letters free there); (c) AUCTeX's keys only.
+**Options (for O-46, verdict D-102):** (a) LyX's Mac keys on Command in `LaTeX-mode`
+on the Mac only (`s-m` inline math `\( \)`, `s-M` display math, `s-b` bold, `C-s-e`
+emphasis, `s-P` typewriter, `s-r` view, `s-R` build), Arch keeping AUCTeX's; (b) the
+same set under a prefix on both machines (e.g. `C-c l` letters free there); (c)
+AUCTeX's keys only.

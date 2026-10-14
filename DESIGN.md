@@ -1084,6 +1084,9 @@ Mechanisms, each PROPOSED until measured:
   latexindent's message, the buffer unchanged. Dependency: latexindent, already
   texlab's (TeX Live: Arch `texlive-binextra`, MacTeX). `.bib` files keep texlab's
   format. Built (T-074, 0068).
+- DECIDED D-102 (owner 2026-10-14, O-46: "none"): no LyX keys. LaTeX buffers keep
+  AUCTeX's own keys (option (c)); Emacs's and Emacs.app's bindings stay as they are
+  on both machines (`RESEARCH_latex.md` 8). Options (a) and (b) closed.
 - DECIDED D-095 (owner 2026-10-14, O-45 (b), keys (k2); done when agreed): yasnippet
   (GNU ELPA's `externals/yasnippet`, pinned dd570a6 = 0.14.3) and yasnippet-snippets
   (NonGNU ELPA's `elpa/yasnippet-snippets`, pinned 606ee92, the branch's tip of
@@ -1475,7 +1478,8 @@ presets, GoogleTest runner.
   font-lock's 3 - 8.5 ms; query compilation 10 ms once per session; 56 bytes per
   tagged identifier, shown parts only (0.7 MB for all of deal.II's largest header);
   mouse movement itself not measured (needs a graphical session). Owner rules.
-- O-46 (OPEN, owner request 2026-10-14: "keybindings/shortcuts similar to LyX"):
+- O-46 (RESOLVED 2026-10-14 with D-102: (c), none; owner request 2026-10-14:
+  "keybindings/shortcuts similar to LyX"):
   findings in `RESEARCH_latex.md` 8 (LyX's bind files: Ctrl+M math, Ctrl+Shift+M display
   math, Ctrl+Alt+B bold, Ctrl+E emphasis, Ctrl+L TeX code, Ctrl+R view; Mac: Command+M,
   Command+Shift+M, Command+B, Command+Ctrl+E, Command+L, Command+R). Emacs's `C-m`,
@@ -1934,6 +1938,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-099 | 2026-10-14 | `M-o` in its own module after init-lsp | 5 | O-49 |
 | D-100 | 2026-10-14 | macOS: patched clangd at LLVM 23.1.3, own release | 7 | owner |
 | D-101 | 2026-10-14 | LaTeX: `C-c l f` by latexindent, buffer and region | 12 | O-51 |
+| D-102 | 2026-10-14 | LaTeX: no LyX keys, AUCTeX's own only | 12 | O-46 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
