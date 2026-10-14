@@ -619,6 +619,11 @@ Known defects: none yet (nothing built).
   Implementation (each at the click) and Format Buffer. Shift+click extends the
   selection (Emacs's `mouse-save-then-kill`, as right click did; a quick second
   Shift+click on the same spot cuts). Built (T-066, 0062).
+- DECIDED D-096 (owner 2026-10-14, O-47 (c2) asked, then "leave as-is, close"): a
+  plain click on a symbol gets no tooltip or child frame; as before, eglot's hover
+  for the symbol at point reaches the echo area through eldoc 0.5 s after the click
+  (`RESEARCH_mouse.md` 6). Options c1 - c4 closed. O-47 (a), the hover highlight,
+  stays open for further research on its performance.
 - DECIDED D-034 (owner 2026-10-08, O-16): built-in `which-key-mode` is on: after any
   prefix (`C-c p`, `C-x C-a`, `C-c l`) its keys appear once you pause 1 s
   (`which-key-idle-delay` default; 3 s since D-071); `C-h` after a prefix still
@@ -1327,7 +1332,8 @@ presets, GoogleTest runner.
   a tooltip; (c) none. Owner 2026-10-14: research (a) and a plain click: section 6
   (tree-sitter tagging 5.9 ms for a 4927-line header; a click already shows eglot's
   hover in the echo area after 0.5 s; options c1 tooltip, c2 child frame (posframe),
-  c3 shorter delay). Owner rules.
+  c3 shorter delay). Owner 2026-10-14: (c2) asked, then closed as it is (D-096);
+  (a): further research on its performance first.
 - O-46 (OPEN, owner request 2026-10-14: "keybindings/shortcuts similar to LyX"):
   findings in `RESEARCH_latex.md` 8 (LyX's bind files: Ctrl+M math, Ctrl+Shift+M display
   math, Ctrl+Alt+B bold, Ctrl+E emphasis, Ctrl+L TeX code, Ctrl+R view; Mac: Command+M,
@@ -1771,6 +1777,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-093 | 2026-10-13 | CLion's navigation clicks; right-click menu | 10 | O-44 |
 | D-094 | 2026-10-13 | clang-tidy fixes, clang-move on `C-c l T` / `M` | 7 | O-43 |
 | D-095 | 2026-10-14 | yasnippet, yasnippet-snippets; expand on `C-c y` | 12 | O-45 |
+| D-096 | 2026-10-14 | a plain click shows no tooltip; eldoc as before | 10 | O-47 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
