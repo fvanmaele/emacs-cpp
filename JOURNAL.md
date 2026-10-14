@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0065 | 2026-10-14 | patched clang-change-namespace, `C-c l N` | T-072 | D-097 |
 | 0064 | 2026-10-14 | snippets: yasnippet, its collection on `C-c y` | T-071 | D-095 |
 | 0063 | 2026-10-14 | clang-tidy fixes and clang-move on `C-c l` | T-068 | D-094 |
 | 0062 | 2026-10-13 | navigation clicks, right-click menu | T-066 | D-093 |

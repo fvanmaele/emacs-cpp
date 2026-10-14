@@ -1,0 +1,42 @@
+From 6ebd3c2be3e64635794766584914db6f2fac9bda Mon Sep 17 00:00:00 2001
+From: Ferdinand Vanmaele <info@fvanmaele.de>
+Date: Wed, 14 Oct 2026 11:44:55 +0200
+Subject: [PATCH] [clang-change-namespace] Clear the moves at the end of each
+ translation unit
+
+moveOldNamespace stores, per file, a MoveNamespace holding the
+translation unit's SourceManager and a FileID in MoveNamespaces;
+onEndOfTranslationUnit replays every entry through the stored
+SourceManager.  Neither MoveNamespaces nor InsertFwdDecls was ever
+cleared, so at the end of the second translation unit the first one's
+entries were replayed through its SourceManager, destroyed with its
+AST: a use-after-free, and a crash (SIGSEGV) whenever the tool was
+given two or more source files.
+
+Clear both maps once their replacements are merged into
+FileToReplacements.
+---
+ .../clang-change-namespace/ChangeNamespace.cpp             | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/clang-tools-extra/clang-change-namespace/ChangeNamespace.cpp b/clang-tools-extra/clang-change-namespace/ChangeNamespace.cpp
+index 471ca45..a765916 100644
+--- a/clang-tools-extra/clang-change-namespace/ChangeNamespace.cpp
++++ b/clang-tools-extra/clang-change-namespace/ChangeNamespace.cpp
+@@ -1003,6 +1003,13 @@ void ChangeNamespaceTool::onEndOfTranslationUnit() {
+   for (auto &Entry : FileToReplacements)
+     if (!FilePatternRE.match(Entry.first))
+       Entry.second.clear();
++
++  // The moves and insertions above refer to this translation unit's
++  // SourceManager and FileIDs; they are merged into FileToReplacements now and
++  // must not be replayed at the end of the next translation unit, whose
++  // SourceManager is a different one (the previous one is gone).
++  MoveNamespaces.clear();
++  InsertFwdDecls.clear();
+ }
+ 
+ } // namespace change_namespace
+-- 
+2.56.0
+

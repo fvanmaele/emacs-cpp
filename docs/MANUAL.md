@@ -199,7 +199,18 @@ names and deduced types.
 clangd refuses ("Cannot rename symbol: symbol is not a supported kind"), by design,
 as it refuses macros and overloaded operators. `M-?` on a namespace does not help
 either: clangd lists its uses but not the `namespace name { ... }` lines in other
-files. Rename it as text, seeing every place first (checked 2026-10-10):
+files.
+
+`C-c l N` does it in two steps (D-097; build the tool once with
+`packaging/clang-change-namespace/build.sh`): clang-change-namespace moves the
+namespace's code in every source of the active preset and the headers they
+include; then a list shows each line still using `old::`, with `new::` already put
+in the file's buffer. Read the list, `C-/` there takes a line back, `C-c C-c` ends
+editing, `C-x s` saves. Lines it leaves (`using namespace old;`, `namespace a =
+old;`, comments naming it without `::`) are for the route below. The tool formats the code it moved in LLVM style; `C-c l f`
+gives it the project's.
+
+By hand, as text, seeing every place first (checked 2026-10-10):
 
 1. `M-s r` and `\bgpe\b` (the old name as a whole word): ripgrep lists every hit.
 2. `C-.` then `E`: the list goes into a buffer; `e` there makes it editable.

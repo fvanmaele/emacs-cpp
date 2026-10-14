@@ -293,10 +293,36 @@ Known defects: none yet (nothing built).
   (owner): clearing both maps at the end of each translation unit; built in scratch
   from 23.1.1's two sources against MacPorts' LLVM 23.1.3 libraries (10 s): two and
   three sources run, header and sources moved once, they compile; the patch is in
-  the report draft. Not shipped (packaging and `C-c l N` to be ruled).
+  the report draft. Shipped as D-097.
   Run here on a generated project (namespace `geom`, two classes): tidy replaced
   both `0`s with `nullptr`; move created `geom/square.h` / `square.cc`, the project
   built and ran once `square.cc` was in CMakeLists.txt. Built (T-068, 0063).
+- DECIDED D-097 (owner 2026-10-14, "package + `C-c l N`"; done when agreed):
+  `packaging/clang-change-namespace/` holds D-094's fix as a patch file (0001,
+  `git format-patch` form) and `build.sh`, one script for both machines: the tool's
+  three files of LLVM 23.1.1 (downloaded from github.com's llvm-project at tag
+  llvmorg-23.1.1, or taken from the release tarball with `--tarball`; sha256-checked
+  either way), patched, compiled and linked against the installed LLVM 23 (macOS:
+  MacPorts' llvm-23, with the SDK passed explicitly; Arch: pacman's llvm and clang),
+  then run once on two generated sources (the unpatched tool: exit 139 there), and
+  installed to `~/opt/clang-change-namespace` with `lib/clang` linked to the installed
+  clang's builtin headers. Mac: 31 s. Arch: not run yet. `C-c l N`
+  (`emacs-cpp-refactor-change-namespace`, `lisp/emacs-cpp-refactor.el`) asks the old
+  and the new name (`a` or `a::b`, anything else refused), refuses loudly when
+  `emacs-cpp-refactor-change-namespace-program` (default the installed file) is
+  missing, runs the tool in place on every source of the active preset's database
+  in a compilation buffer, limited to files under the project root
+  (`-file_pattern`), then lists the lines still using `old::` in the project's files
+  in a grep buffer in Emacs 31's grep-edit mode with `new::` already put in: the
+  edits are in the files' buffers, not saved, `C-/` in the list takes one back,
+  `C-x s` saves (MANUAL 8's route, without the typing). A `x::old::` nested
+  namespace, `myold::`, `using namespace old;` and `namespace a = old;` are left
+  alone. No `-style`: the tool takes the same value as its fallback style, where
+  `file` is refused and its clean-up skipped (an empty `namespace old {}` left), so
+  it formats its edits in LLVM style, not the project's `.clang-format`. Run here on
+  a generated project (header, two sources, `geom` to `shapes`): header and source
+  moved, `geom::` and `::geom::` in main.cc replaced through the list; saved, it built
+  and ran. Built (T-072, 0065).
 - DECIDED D-026 (owner 2026-10-08, after S8 PASS): the config keeps clangd and can run
   the patched clangd that answers navigation from its index (O-11):
   `emacs-cpp-clangd-program` nil = system clangd; a path = that program with
@@ -1372,9 +1398,9 @@ presets, GoogleTest runner.
   first; (c) commands around clang-move, clang-change-namespace, run-clang-tidy -fix;
   (d) document the by-hand route for signature changes. Owner 2026-10-13: all four;
   (a) built as D-092; (b) a spike first (S12, T-069, `spikes/s12-change-signature`);
-  (c) built as D-094 without
-  clang-change-namespace; (d) done 2026-10-14: MANUAL 8, "Changing a function's
-  signature by hand", after running the route on 63 files.
+  (c) built as D-094 without clang-change-namespace, which came with D-097
+  (patched); (d) done 2026-10-14: MANUAL 8, "Changing a function's signature by
+  hand", after running the route on 63 files.
 - O-42 (RESOLVED 2026-10-13 with D-090: (b), build on a key; owner request
   2026-10-13: "research latex (LSP) support, in particular
   texlab"): findings in `RESEARCH_latex.md`. texlab is packaged on both machines
@@ -1778,6 +1804,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-094 | 2026-10-13 | clang-tidy fixes, clang-move on `C-c l T` / `M` | 7 | O-43 |
 | D-095 | 2026-10-14 | yasnippet, yasnippet-snippets; expand on `C-c y` | 12 | O-45 |
 | D-096 | 2026-10-14 | a plain click shows no tooltip; eldoc as before | 10 | O-47 |
+| D-097 | 2026-10-14 | patched clang-change-namespace, `C-c l N` | 7 | O-43 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.

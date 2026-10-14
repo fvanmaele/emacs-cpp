@@ -190,8 +190,9 @@ which-key lists all of them."
                     ("I" . eglot-inlay-hints-mode) ("P" . emacs-cpp-presets-select)
                     ;; LaTeX build through texlab (D-090).
                     ("b" . emacs-cpp-latex-build)
-                    ;; clang's command-line refactorings (D-094).
-                    ("T" . emacs-cpp-refactor-tidy-fix) ("M" . emacs-cpp-refactor-move))))
+                    ;; clang's command-line refactorings (D-094, D-097).
+                    ("T" . emacs-cpp-refactor-tidy-fix) ("M" . emacs-cpp-refactor-move)
+                    ("N" . emacs-cpp-refactor-change-namespace))))
     (pcase-dolist (`(,key . ,command) expected)
       (should (eq (keymap-lookup global-map (concat "C-c l " key)) command))
       (should (commandp command)))

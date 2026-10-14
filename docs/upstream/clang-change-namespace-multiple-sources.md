@@ -2,7 +2,8 @@
 
 Draft for https://github.com/llvm/llvm-project/issues (component clang-tools-extra).
 Not sent; the owner sends it (D-094). Checked 2026-10-14: `main`'s
-`ChangeNamespace.cpp` still never clears `MoveNamespaces` / `InsertFwdDecls`.
+`ChangeNamespace.cpp` still never clears `MoveNamespaces` / `InsertFwdDecls`. The
+fix below ships as `packaging/clang-change-namespace/0001-...patch` (D-097).
 
 ---
 

@@ -64,7 +64,7 @@ ln -s ~/source/repos/emacs-cpp/early-init.el ~/.emacs.d/early-init.el
 Start Emacs. A missing package, grammar or generated file stops startup with an error
 that names the fix (DESIGN 4).
 
-### 4. Optional: the patched clangd
+### 4. Optional: the patched clangd and clang-change-namespace
 `packaging/clangd-index-nav` builds clangd 23.1.1 with local patches. It answers
 go-to-definition and find-usages from its index before a file is parsed, and gives a
 header the flags of a source file that includes it (D-026 .. D-028, D-046, D-047). It
@@ -78,6 +78,15 @@ Then set `emacs-cpp-clangd-program` to `/opt/clangd-index-nav/bin/clangd` with
 `M-x customize-variable`. Nil, the default, uses the system clangd. A configured
 program that is missing or lacks the patched flags refuses to start, it never falls
 back silently. An LLVM upgrade needs a rebuild of this package.
+
+`C-c l N` renames a namespace with clang-change-namespace, whose LLVM 23 release
+crashes on two or more sources (D-094). `packaging/clang-change-namespace/build.sh`
+builds it with the fix against the installed LLVM 23 (pacman's `llvm` and `clang`,
+or MacPorts' `clang-23`) into `~/opt/clang-change-namespace`, in under a minute
+(D-097):
+```sh
+packaging/clang-change-namespace/build.sh   # --help lists the options
+```
 
 ### 5. What a C++ project needs
 - **A git root and a `CMakePresets.json`.** eglot starts only for C++ files of such a
@@ -269,6 +278,7 @@ history and caches.
 | `scripts/measure-startup.sh` | startup time measurement (DESIGN 11) |
 | `test/*-test.el` | ERT tests, one file per module |
 | `packaging/clangd-index-nav/` | patched clangd: patches, PKGBUILD, `build-macos.sh` |
+| `packaging/clang-change-namespace/` | its crash fix and `build.sh`, for `C-c l N` |
 | `spikes/` | throwaway prototypes with PASS / FAIL verdicts, listed in their README |
 
 ### Documents

@@ -179,10 +179,11 @@ Mode hooks run before a visited file's local variables are read."
 ;; keeps headers in include/rmo/, sources in src/), and the active CMake preset.
 (keymap-set emacs-cpp-code-map "o" #'projectile-find-other-file)
 (keymap-set emacs-cpp-code-map "P" #'emacs-cpp-presets-select)
-;; Refactorings by clang's command-line tools (D-094): clang-tidy's fixes over the
-;; project, classes to other files.
+;; Refactorings by clang's command-line tools (D-094, D-097): clang-tidy's fixes over
+;; the project, classes to other files, a namespace renamed.
 (keymap-set emacs-cpp-code-map "T" #'emacs-cpp-refactor-tidy-fix)
 (keymap-set emacs-cpp-code-map "M" #'emacs-cpp-refactor-move)
+(keymap-set emacs-cpp-code-map "N" #'emacs-cpp-refactor-change-namespace)
 
 (provide 'init-cpp)
 ;;; init-cpp.el ends here
