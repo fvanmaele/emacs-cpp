@@ -398,7 +398,8 @@ with `done when: ...`).
   documented. Done when (from O-34 (a), (c)): narrowed to symbols on the stand-in
   tree, updates at most about 5 ms per key; widening brings the files back; a test
   fails without the patch. Done 2026-10-11 (0052): 0.2 - 4.2 ms; widening about 30 ms;
-  `init-completion-go-narrowing-drops-hidden-candidates` fails unpatched.
+  `init-completion-go-narrowing-drops-hidden-candidates` fails unpatched (renamed
+  `init-go-to-anything-narrowing-drops-hidden-candidates`, D-099).
 - T-054 (opened 2026-10-11, owner): S11 run 4, `M-o` narrowed to symbols against
   `C-c l s` at 100 ms per key, in a deal.II project (RUN.md run 4). Done when:
   `results-run4.log` handed back and RESULTS.md has run 4. Done 2026-10-11 (0053),

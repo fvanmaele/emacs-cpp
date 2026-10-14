@@ -110,7 +110,8 @@ another module it requires itself, so no module works only by init.el's order."
 (ert-deftest init-loads-and-matches-retired-dot-emacs ()
   "init.el loads without error and keeps the behaviour of the retired ~/.emacs."
   (init-test--load)
-  (dolist (feature '(init-ui init-completion init-project init-lsp init-cpp init-cmake init-debug
+  (dolist (feature '(init-ui init-completion init-project init-lsp init-go-to-anything
+                     init-cpp init-cmake init-debug
                      init-latex init-git init-writing))
     (should (featurep feature)))
   (should-not package-enable-at-startup)

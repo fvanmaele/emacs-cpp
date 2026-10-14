@@ -167,8 +167,16 @@ Observed on the owner's Mac, 2026-10-09 (D-050):
   does, as init-cpp and init-latex do, and the test `init-modules-load-alone` loads
   every module of init.el on its own in a child Emacs. At run time, not load time,
   init-completion's `M-o` calls projectile and eglot, configured by init-project and
-  init-lsp below it: O-49. Everything else a module uses is its own packages, init.el's
-  prelude (`emacs-cpp-root`, the platform defaults) or a module above it.
+  init-lsp below it: O-49, moved by D-099. Everything else a module uses is its own
+  packages, init.el's prelude (`emacs-cpp-root`, the platform defaults) or a module
+  above it.
+- DECIDED D-099 (owner 2026-10-14, O-49 (a)): go to anything (`M-o`,
+  `emacs-cpp-go-*`) moves unchanged from init-completion to its own module,
+  `lisp/init-go-to-anything.el`, loaded after init-lsp and requiring init-completion,
+  init-project and init-lsp, whose packages it uses (consult; projectile's files and
+  projects; eglot's servers through consult-eglot). Its tests move to
+  `test/init-go-to-anything-test.el` (renamed `init-go-to-anything-...`). After the
+  move, byte-compiling init-completion alone names only its own packages.
 - `use-package-expand-minimally` t: use-package then does not wrap forms in its own
   error catching, so a broken package form stops startup (principle 1).
 - Packages: section 12 (D-006). `package.el` is not used at startup.
@@ -240,6 +248,7 @@ Observed on the owner's Mac, 2026-10-09 (D-050):
 | completion UI | `lisp/init-completion.el` | KEEP | T-003, owner-confirmed |
 | project, tree | `lisp/init-project.el` | KEEP | T-002: projectile, treemacs |
 | LSP | `lisp/init-lsp.el` | PROTOTYPE | eglot's form, `C-c l` (D-091) |
+| go to anything | `lisp/init-go-to-anything.el` | KEEP | `M-o` (D-074, D-099) |
 | C++ | `lisp/init-cpp.el` | PROTOTYPE | T-004: c++-ts-mode, clangd |
 | presets | `lisp/emacs-cpp-presets.el` | PROTOTYPE | T-004: D-016 - D-018 |
 | CMake build | `lisp/emacs-cpp-presets.el`, projectile form | PROTOTYPE | T-005 (D-035) |
@@ -667,17 +676,17 @@ Known defects: none yet (nothing built).
   projectile's own menu stays on `C-c p m`. Turning it on costs about 11 ms at start.
 - DECIDED D-074 (owner 2026-10-11, O-30 (b): "(b) measure first"): one go-to-anything
   prompt, a new command built with consult's `consult--multi`, in
-  `lisp/init-completion.el`: buffers, project files (projectile), recent files and
-  bookmarks from the first key; clangd symbols (`workspace/symbol`, through
-  consult-eglot's functions) from the third; commands and project roots behind
-  narrow keys. `C-x b` stays `consult-buffer`. Spike S11 measures each source on RMO
-  and the deal.II tree first (`spikes/s11-go-to-anything/RUN.md`); code (T-049)
-  after S11 and the key (O-31). No new package.
-  S11 run 1 (0048, FAIL in one part): file listing RMO 51 ms (2765 files), deal.II
-  66 ms (34602), no cache needed; symbols from the index median 5.5 ms, slowest
-  16.3 ms, but none until the stored index has loaded; filtering every input over
-  RMO 1.5 - 6.7 ms; over deal.II the first letter 31.8 ms (criterion 20 ms), then
-  13.1 ms and less. Handling: O-32 -> D-075; speed: O-33.
+  `lisp/init-completion.el` (`lisp/init-go-to-anything.el` since D-099): buffers,
+  project files (projectile), recent files and bookmarks from the first key; clangd
+  symbols (`workspace/symbol`, through consult-eglot's functions) from the third;
+  commands and project roots behind narrow keys. `C-x b` stays `consult-buffer`. Spike
+  S11 measures each source on RMO and the deal.II tree first
+  (`spikes/s11-go-to-anything/RUN.md`); code (T-049) after S11 and the key (O-31). No
+  new package. S11 run 1 (0048, FAIL in one part): file listing RMO 51 ms (2765 files),
+  deal.II 66 ms (34602), no cache needed; symbols from the index median 5.5 ms, slowest
+  16.3 ms, but none until the stored index has loaded; filtering every input over RMO
+  1.5 - 6.7 ms; over deal.II the first letter 31.8 ms (criterion 20 ms), then 13.1 ms
+  and less. Handling: O-32 -> D-075; speed: O-33.
 - DECIDED D-075 (owner 2026-10-11, O-32 (b)): the first letter's cost in a
   deal.II-sized tree is accepted; project files join from the first key. T-049's hand
   check on the deal.II tree decides whether O-32 (a) follows.
@@ -702,7 +711,8 @@ Known defects: none yet (nothing built).
 - DECIDED D-078 (owner 2026-10-11, "hide the #"): the prompt binds
   `consult-async-split-style` to nil, so its input starts without consult's `#`;
   a second filter over symbol results (`#vec#push`) is given up.
-  Built (T-049, 0050): `emacs-cpp-go-to-anything` in `lisp/init-completion.el`, on
+  Built (T-049, 0050): `emacs-cpp-go-to-anything` in `lisp/init-completion.el` (moved
+  by D-099), on
   `M-o`. Narrow keys: `b` buffers, `r` recent files (consult's `f` taken), `m`
   bookmarks, `f` project files, `s` symbols, `x` commands, `p` projects (the last two
   hidden until narrowed). A chosen command or project runs after the prompt's
@@ -1364,7 +1374,8 @@ presets, GoogleTest runner.
   (T-059, owner's deal.II project `step-1`, Mac, 40 queries): filtering today's 100
   loses project symbols in 14 queries (373 symbols), 1000 in 2 (30), no limit in
   none, slowest reply 15.9 ms (2458 symbols), median 0.3 ms. To the owner.
-- O-49 (OPEN, found 2026-10-14 checking order dependencies, D-098): `M-o`
+- O-49 (RESOLVED 2026-10-14 with D-099: (a); found 2026-10-14 checking order
+  dependencies, D-098): `M-o`
   (`emacs-cpp-go-to-anything`, init-completion) calls projectile
   (`projectile-project-root`, `-project-files`, `-relevant-known-projects`) and
   eglot / consult-eglot when run, packages configured by init-project and init-lsp,
@@ -1847,6 +1858,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-096 | 2026-10-14 | a plain click shows no tooltip; eldoc as before | 10 | O-47 |
 | D-097 | 2026-10-14 | patched clang-change-namespace, `C-c l N` | 7 | O-43 |
 | D-098 | 2026-10-14 | no module switch; modules load alone (test) | 5 | O-48 |
+| D-099 | 2026-10-14 | `M-o` in its own module after init-lsp | 5 | O-49 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
