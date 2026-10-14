@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0070 | 2026-10-14 | T-078: latexindent as texlab runs it | T-078 | D-103 |
 | 0069 | 2026-10-14 | S13: index through a symlink, PASS on Arch | S13, T-077 | none |
 | 0068 | 2026-10-14 | T-074: LaTeX buffers and regions by latexindent | T-074 | D-101 |
 | 0067 | 2026-10-14 | T-073: patched clangd on macOS at LLVM 23.1.3 | T-073 | D-100 |

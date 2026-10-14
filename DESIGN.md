@@ -1079,14 +1079,24 @@ Mechanisms, each PROPOSED until measured:
   reading the whole document), without one the whole document; `-c` keeps its log out of
   the project; only what differs is replaced (`replace-region-contents`), in one undo
   step. latexindent's defaults, as texlab calls it (no local settings, no line-break
-  changes): on the sample both give the same text. (Wrong, O-53: texlab passes
-  `--local`, so it reads a project's `.latexindent.yaml`; this call does not.) A missing
-  program or a non-zero exit stops with the fix or latexindent's message, the buffer
-  unchanged. Dependency: latexindent, already texlab's (TeX Live: Arch
+  changes): on the sample both give the same text. (Wrong, fixed by D-103, O-53: texlab
+  passes `--local`, so it reads a project's `.latexindent.yaml`; this call does not.) A
+  missing program or a non-zero exit stops with the fix or latexindent's message, the
+  buffer unchanged. Dependency: latexindent, already texlab's (TeX Live: Arch
   `texlive-binextra`, MacTeX). `.bib` files keep texlab's format. Built (T-074, 0068).
 - DECIDED D-102 (owner 2026-10-14, O-46: "none"): no LyX keys. LaTeX buffers keep
   AUCTeX's own keys (option (c)); Emacs's and Emacs.app's bindings stay as they are
   on both machines (`RESEARCH_latex.md` 8). Options (a) and (b) closed.
+- DECIDED D-103 (owner 2026-10-14, O-53 (a), (b), (d); done when agreed; amends D-101):
+  latexindent for `C-c l f` and Format Buffer gets `--local` and runs in the directory
+  texlab 5.25.1 uses: the nearest directory upward, within the project, with
+  `.latexmkrc`, `latexmkrc`, `.texlabroot` or `texlabroot`, else the file's own; so a
+  project's `localSettings.yaml` / `latexindent.yaml` (dotted or not) applies as it does
+  through texlab. With neither such a file there nor a user `indentconfig.yaml` (`~/`,
+  `~/.`, `~/.config/latexindent/`) it adds `-y=defaultIndent:` with `LaTeX-indent-level`
+  spaces, a tab with `indent-tabs-mode`, so `C-c l f` indents with the characters
+  AUCTeX's `TAB` uses (texlab ignores the request's `insertSpaces`). texlab's slow
+  `exit` right after opening stays as it is (O-53 (5), (d)). Built (T-078, 0070).
 - DECIDED D-095 (owner 2026-10-14, O-45 (b), keys (k2); done when agreed): yasnippet
   (GNU ELPA's `externals/yasnippet`, pinned dd570a6 = 0.14.3) and yasnippet-snippets
   (NonGNU ELPA's `elpa/yasnippet-snippets`, pinned 606ee92, the branch's tip of
@@ -1452,9 +1462,10 @@ presets, GoogleTest runner.
   cap off while set; (c) as (b), a list per directory set built in `Dex` and
   intersected; tier 3, spike first. Also open: definition or declaration decides;
   build directory; `C-c l s`.
-- O-53 (OPEN, found 2026-10-14, owner: "revisit the errors with texlab that led to
-  problems with region/buffer formatting"). texlab 5.25.1 (Mac; source read at tag
-  v5.25.1 and v5.26.0, events logged with the shipped config):
+- O-53 (RESOLVED 2026-10-14 with D-103: (a), (b), (d); found 2026-10-14, owner: "revisit
+  the errors with texlab that led to problems with region/buffer formatting"). texlab
+  5.25.1 (Mac; source read at tag v5.25.1 and v5.26.0, events logged with the shipped
+  config):
   (1) no range formatting in either version (`documentFormattingProvider` only), the
   cause of O-51.
   (2) texlab runs `latexindent --local file.tex` (copy in a temporary directory) from
@@ -1976,6 +1987,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-100 | 2026-10-14 | macOS: patched clangd at LLVM 23.1.3, own release | 7 | owner |
 | D-101 | 2026-10-14 | LaTeX: `C-c l f` by latexindent, buffer and region | 12 | O-51 |
 | D-102 | 2026-10-14 | LaTeX: no LyX keys, AUCTeX's own only | 12 | O-46 |
+| D-103 | 2026-10-14 | latexindent as texlab runs it; indent as AUCTeX's TAB | 12 | O-53 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
