@@ -38,8 +38,8 @@ code is written for it. Each spike is a self-contained directory with its own bu
   (O-21, D-028)? Owner ruled spike first (tier 3) before patch 0006.
 - **S12 change signature** - can a clangd code action add, reorder and remove a
   function's parameters at every call across the project's files, from the index,
-  without wrong edits and in under 2 s (O-43 (b))? Planned, `s12-change-signature/RUN.md`
-  (T-069).
+  without wrong edits and in under 2 s (O-43 (b))? FAIL (runs 1, 2): no wrong edit,
+  calls in templates left to the user (T-069, `s12-change-signature/RESULTS.md`).
 - **S10 deal.II sources index** - does an offline index of deal.II's sources make
   `M-.` reach definitions and `M-?` uses inside the library on RMO, with the patched
   clangd, at what memory (O-12)?
@@ -68,3 +68,4 @@ code is written for it. Each spike is a self-contained directory with its own bu
 | S8 | PASS (run 2) | s8-clangd-index-navigation/RESULTS.md |
 | S2 | PASS (run 1) | s2-dape-gdb/RESULTS.md |
 | S11 | runs 2, 3 PASS; run 4 recorded; run 1 FAIL in part | s11-go-to-anything/RESULTS.md |
+| S12 | FAIL (runs 1, 2); owner rules O-43 (b) | s12-change-signature/RESULTS.md |

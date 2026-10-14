@@ -1,0 +1,101 @@
+diff -ru a/clang-tools-extra/clangd/ClangdLSPServer.cpp b/clang-tools-extra/clangd/ClangdLSPServer.cpp
+--- a/clang-tools-extra/clangd/ClangdLSPServer.cpp	2026-10-14 15:44:31
++++ b/clang-tools-extra/clangd/ClangdLSPServer.cpp	2026-10-14 15:44:32
+@@ -838,7 +838,7 @@
+     return applyEdit(std::move(WE), "Tweak applied.", std::move(Reply));
+   };
+   Server->applyTweak(Args.file.file(), Args.selection, Args.tweakID,
+-                     std::move(Action));
++                     Args.input, std::move(Action));
+ }
+ 
+ void ClangdLSPServer::onCommandApplyRename(const RenameParams &R,
+diff -ru a/clang-tools-extra/clangd/ClangdServer.cpp b/clang-tools-extra/clangd/ClangdServer.cpp
+--- a/clang-tools-extra/clangd/ClangdServer.cpp	2026-10-14 15:44:31
++++ b/clang-tools-extra/clangd/ClangdServer.cpp	2026-10-14 15:44:32
+@@ -800,7 +800,7 @@
+ }
+ 
+ void ClangdServer::applyTweak(PathRef File, Range Sel, StringRef TweakID,
+-                              Callback<Tweak::Effect> CB) {
++                              StringRef Input, Callback<Tweak::Effect> CB) {
+   // Tracks number of times a tweak has been attempted.
+   static constexpr trace::Metric TweakAttempt(
+       "tweak_attempt", trace::Metric::Counter, "tweak_id");
+@@ -809,7 +809,7 @@
+       "tweak_failed", trace::Metric::Counter, "tweak_id");
+   TweakAttempt.record(1, TweakID);
+   auto Action = [File = File.str(), Sel, TweakID = TweakID.str(),
+-                 CB = std::move(CB),
++                 Input = Input.str(), CB = std::move(CB),
+                  this](Expected<InputsAndAST> InpAST) mutable {
+     if (!InpAST)
+       return CB(InpAST.takeError());
+@@ -821,6 +821,7 @@
+     // Try each selection, take the first one that prepare()s.
+     // If they all fail, Effect will hold get the last error.
+     for (const auto &Selection : *Selections) {
++      Selection->Input = Input;
+       auto T = prepareTweak(TweakID, *Selection, FeatureModules);
+       if (T) {
+         Effect = (*T)->apply(*Selection);
+diff -ru a/clang-tools-extra/clangd/ClangdServer.h b/clang-tools-extra/clangd/ClangdServer.h
+--- a/clang-tools-extra/clangd/ClangdServer.h	2026-10-14 15:44:31
++++ b/clang-tools-extra/clangd/ClangdServer.h	2026-10-14 15:44:32
+@@ -426,7 +426,7 @@
+                   Callback<CodeActionResult> CB);
+ 
+   /// Apply the code tweak with a specified \p ID.
+-  void applyTweak(PathRef File, Range Sel, StringRef ID,
++  void applyTweak(PathRef File, Range Sel, StringRef ID, StringRef Input,
+                   Callback<Tweak::Effect> CB);
+ 
+   /// Called when an event occurs for a watched file in the workspace.
+diff -ru a/clang-tools-extra/clangd/Protocol.cpp b/clang-tools-extra/clangd/Protocol.cpp
+--- a/clang-tools-extra/clangd/Protocol.cpp	2026-10-14 15:44:31
++++ b/clang-tools-extra/clangd/Protocol.cpp	2026-10-14 15:44:32
+@@ -1011,7 +1011,7 @@
+               llvm::json::Path P) {
+   llvm::json::ObjectMapper O(Params, P);
+   return O && O.map("file", A.file) && O.map("selection", A.selection) &&
+-         O.map("tweakID", A.tweakID);
++         O.map("tweakID", A.tweakID) && O.mapOptional("input", A.input);
+ }
+ 
+ llvm::json::Value toJSON(const TweakArgs &A) {
+diff -ru a/clang-tools-extra/clangd/Protocol.h b/clang-tools-extra/clangd/Protocol.h
+--- a/clang-tools-extra/clangd/Protocol.h	2026-10-14 15:44:31
++++ b/clang-tools-extra/clangd/Protocol.h	2026-10-14 15:44:32
+@@ -1066,6 +1066,8 @@
+   Range selection;
+   /// ID of the tweak that should be executed. Corresponds to Tweak::id().
+   std::string tweakID;
++  /// What the editor asked the user for the tweak, if it asks (S12 spike).
++  std::string input;
+ };
+ bool fromJSON(const llvm::json::Value &, TweakArgs &, llvm::json::Path);
+ llvm::json::Value toJSON(const TweakArgs &A);
+diff -ru a/clang-tools-extra/clangd/refactor/Tweak.h b/clang-tools-extra/clangd/refactor/Tweak.h
+--- a/clang-tools-extra/clangd/refactor/Tweak.h	2026-10-14 15:44:32
++++ b/clang-tools-extra/clangd/refactor/Tweak.h	2026-10-14 15:44:32
+@@ -68,6 +68,9 @@
+     /// File system used to access source code (for cross-file tweaks).
+     /// This is only populated when applying a tweak, not during prepare.
+     llvm::vfs::FileSystem *FS = nullptr;
++    /// What the editor asked the user for this tweak (S12 spike), else empty.
++    /// Only populated when applying a tweak.
++    std::string Input;
+     // FIXME: provide a way to get sources and ASTs for other files.
+   };
+ 
+diff -ru a/clang-tools-extra/clangd/refactor/tweaks/CMakeLists.txt b/clang-tools-extra/clangd/refactor/tweaks/CMakeLists.txt
+--- a/clang-tools-extra/clangd/refactor/tweaks/CMakeLists.txt	2026-10-14 15:44:32
++++ b/clang-tools-extra/clangd/refactor/tweaks/CMakeLists.txt	2026-10-14 15:44:32
+@@ -14,6 +14,7 @@
+ add_clang_library(clangDaemonTweaks OBJECT
+   AddUsing.cpp
+   AnnotateHighlightings.cpp
++  ChangeSignature.cpp
+   DefineInline.cpp
+   DefineOutline.cpp
+   DumpAST.cpp

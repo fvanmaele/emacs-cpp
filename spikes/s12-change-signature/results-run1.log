@@ -1,0 +1,495 @@
+# S12 run 2026-10-14T16:17:23 on Darwin arm64, generated project, 24 calling files
+clangd: /tmp/s12/clangd/build/bin/clangd (clangd version 23.1.1)
+calls in the project: combine 205, adjust 78, weigh 63 (text matches, overloads and templates included)
+combine-add: index 809 shards after 13554 ms
+combine-add: 2 code actions in 17 ms: Change signature, Move function body to declaration
+combine-add: apply (base, scale, int extra = 7, offset, tag) in 2686 ms (eglot applying the edit: 2545 ms)
+combine-add: eglot asked: [eglot] Server wants to:
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_23.cpp (4 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_22.cpp (8 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_21.cpp (6 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_20.cpp (6 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_19.cpp (8 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_18.cpp (5 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_17.cpp (7 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_16.cpp (8 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_15.cpp (4 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_14.cpp (8 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_13.cpp (6 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_12.cpp (6 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_11.cpp (8 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_10.cpp (5 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_09.cpp (7 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_08.cpp (8 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_07.cpp (4 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_06.cpp (8 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_05.cpp (6 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_04.cpp (6 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_03.cpp (8 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_02.cpp (5 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_01.cpp (7 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_00.cpp (8 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/combine.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/include/calc/api.h (2 changes)
+Proceed?
+combine-add: clangd: I[16:17:27.127] <-- reply(0)
+combine-add: clangd: I[16:17:27.170] <-- reply(1)
+combine-add: clangd: I[16:17:39.984] <-- workspace/executeCommand(3)
+combine-add: clangd: I[16:17:40.118] S12 Change signature of combine: 2 declarations and 166 calls (1 in macro bodies) in 26 files changed, 25 reported; 201 index refs, 26 files read, 134 ms
+combine-add: clangd: I[16:17:40.119] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/include/calc/api.h:24: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-add: clangd: I[16:17:40.119] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_00.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-add: clangd: I[16:17:40.119] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_01.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-add: clangd: I[16:17:40.119] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_02.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-add: clangd: I[16:17:40.119] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_03.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-add: clangd: I[16:17:40.119] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_04.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-add: clangd: I[16:17:40.119] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_05.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-add: clangd: I[16:17:40.119] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_06.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-add: clangd: I[16:17:40.119] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_07.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-add: clangd: I[16:17:40.119] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_08.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-add: clangd: I[16:17:40.119] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_09.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-add: clangd: I[16:17:40.119] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_10.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-add: clangd: I[16:17:40.119] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_11.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-add: clangd: I[16:17:40.119] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_12.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-add: clangd: I[16:17:40.119] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_13.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-add: clangd: I[16:17:40.119] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_14.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-add: clangd: I[16:17:40.119] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_15.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-add: clangd: I[16:17:40.119] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_16.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-add: clangd: I[16:17:40.119] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_17.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-add: clangd: I[16:17:40.119] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_18.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-add: clangd: I[16:17:40.119] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_19.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-add: clangd: I[16:17:40.119] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_20.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-add: clangd: I[16:17:40.119] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_21.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-add: clangd: I[16:17:40.119] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_22.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-add: clangd: I[16:17:40.119] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/src/use_23.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-add: clangd: I[16:17:40.120] --> workspace/applyEdit(2)
+combine-add: clangd: I[16:17:42.667] <-- reply(2)
+combine-add: clangd: I[16:17:42.667] --> reply:workspace/executeCommand(3) 2683 ms
+combine-add: 26 buffers edited
+combine-add: diff  26 files changed, 159 insertions(+), 159 deletions(-)
+combine-add: builds, TESTS FAIL (see /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-add/tests.out)
+combine-reorder: index 809 shards after 15956 ms
+combine-reorder: 2 code actions in 16 ms: Change signature, Move function body to declaration
+combine-reorder: apply (scale, base, offset, tag) in 2743 ms (eglot applying the edit: 2590 ms)
+combine-reorder: eglot asked: [eglot] Server wants to:
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_23.cpp (4 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_22.cpp (8 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_21.cpp (6 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_20.cpp (6 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_19.cpp (8 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_18.cpp (5 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_17.cpp (7 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_16.cpp (8 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_15.cpp (4 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_14.cpp (8 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_13.cpp (6 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_12.cpp (6 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_11.cpp (8 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_10.cpp (5 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_09.cpp (7 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_08.cpp (8 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_07.cpp (4 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_06.cpp (8 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_05.cpp (6 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_04.cpp (6 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_03.cpp (8 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_02.cpp (4 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_01.cpp (7 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_00.cpp (8 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/combine.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/include/calc/api.h (1 change)
+Proceed?
+combine-reorder: clangd: I[16:17:51.954] <-- reply(0)
+combine-reorder: clangd: I[16:17:51.965] <-- reply(1)
+combine-reorder: clangd: I[16:18:07.211] <-- workspace/executeCommand(3)
+combine-reorder: clangd: I[16:18:07.358] S12 Change signature of combine: 2 declarations and 166 calls (1 in macro bodies) in 26 files changed, 25 reported; 201 index refs, 26 files read, 147 ms
+combine-reorder: clangd: I[16:18:07.358] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/include/calc/api.h:24: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-reorder: clangd: I[16:18:07.358] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_00.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-reorder: clangd: I[16:18:07.358] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_01.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-reorder: clangd: I[16:18:07.358] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_02.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-reorder: clangd: I[16:18:07.358] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_03.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-reorder: clangd: I[16:18:07.358] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_04.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-reorder: clangd: I[16:18:07.358] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_05.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-reorder: clangd: I[16:18:07.358] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_06.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-reorder: clangd: I[16:18:07.358] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_07.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-reorder: clangd: I[16:18:07.358] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_08.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-reorder: clangd: I[16:18:07.358] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_09.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-reorder: clangd: I[16:18:07.358] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_10.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-reorder: clangd: I[16:18:07.358] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_11.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-reorder: clangd: I[16:18:07.358] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_12.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-reorder: clangd: I[16:18:07.358] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_13.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-reorder: clangd: I[16:18:07.358] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_14.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-reorder: clangd: I[16:18:07.358] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_15.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-reorder: clangd: I[16:18:07.358] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_16.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-reorder: clangd: I[16:18:07.358] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_17.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-reorder: clangd: I[16:18:07.358] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_18.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-reorder: clangd: I[16:18:07.358] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_19.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-reorder: clangd: I[16:18:07.358] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_20.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-reorder: clangd: I[16:18:07.358] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_21.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-reorder: clangd: I[16:18:07.358] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_22.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-reorder: clangd: I[16:18:07.358] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/src/use_23.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-reorder: clangd: I[16:18:07.360] --> workspace/applyEdit(2)
+combine-reorder: clangd: I[16:18:09.951] <-- reply(2)
+combine-reorder: clangd: I[16:18:09.951] --> reply:workspace/executeCommand(3) 2740 ms
+combine-reorder: 26 buffers edited
+combine-reorder: diff  26 files changed, 166 insertions(+), 166 deletions(-)
+combine-reorder: builds, TESTS FAIL (see /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-reorder/tests.out)
+combine-remove: index 809 shards after 17656 ms
+combine-remove: 2 code actions in 2 ms: Change signature, Move function body to declaration
+combine-remove: apply (base, scale, offset) in 2090 ms (eglot applying the edit: 1943 ms)
+combine-remove: eglot asked: [eglot] Server wants to:
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/use_23.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/use_21.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/use_20.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/use_19.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/use_17.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/use_16.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/use_15.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/use_13.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/use_12.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/use_11.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/use_09.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/use_08.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/use_07.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/use_05.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/use_04.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/use_03.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/use_01.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/use_00.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/combine.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/include/calc/api.h (1 change)
+Proceed?
+combine-remove: clangd: I[16:18:22.004] <-- reply(0)
+combine-remove: clangd: I[16:18:22.018] <-- reply(1)
+combine-remove: clangd: I[16:18:38.826] <-- workspace/executeCommand(3)
+combine-remove: clangd: I[16:18:38.968] S12 Change signature of combine: 2 declarations and 166 calls (1 in macro bodies) in 20 files changed, 25 reported; 201 index refs, 26 files read, 141 ms
+combine-remove: clangd: I[16:18:38.968] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/include/calc/api.h:24: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-remove: clangd: I[16:18:38.968] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/use_00.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-remove: clangd: I[16:18:38.968] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/use_01.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-remove: clangd: I[16:18:38.968] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/use_02.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-remove: clangd: I[16:18:38.968] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/use_03.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-remove: clangd: I[16:18:38.968] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/use_04.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-remove: clangd: I[16:18:38.968] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/use_05.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-remove: clangd: I[16:18:38.968] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/use_06.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-remove: clangd: I[16:18:38.968] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/use_07.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-remove: clangd: I[16:18:38.968] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/use_08.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-remove: clangd: I[16:18:38.968] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/use_09.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-remove: clangd: I[16:18:38.968] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/use_10.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-remove: clangd: I[16:18:38.968] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/use_11.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-remove: clangd: I[16:18:38.968] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/use_12.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-remove: clangd: I[16:18:38.968] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/use_13.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-remove: clangd: I[16:18:38.968] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/use_14.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-remove: clangd: I[16:18:38.968] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/use_15.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-remove: clangd: I[16:18:38.968] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/use_16.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-remove: clangd: I[16:18:38.968] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/use_17.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-remove: clangd: I[16:18:38.968] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/use_18.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-remove: clangd: I[16:18:38.968] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/use_19.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-remove: clangd: I[16:18:38.968] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/use_20.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-remove: clangd: I[16:18:38.968] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/use_21.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-remove: clangd: I[16:18:38.968] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/use_22.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-remove: clangd: I[16:18:38.968] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/combine-remove/src/use_23.cpp:15: a call the index also lists for another overload (a dependent call in a template?); not changed, check it
+combine-remove: clangd: I[16:18:38.969] --> workspace/applyEdit(2)
+combine-remove: clangd: I[16:18:40.914] <-- reply(2)
+combine-remove: clangd: I[16:18:40.914] --> reply:workspace/executeCommand(3) 2087 ms
+combine-remove: 20 buffers edited
+combine-remove: diff  20 files changed, 20 insertions(+), 20 deletions(-)
+combine-remove: builds, tests pass (output equals the baseline)
+adjust-add: index 809 shards after 15016 ms
+adjust-add: 2 code actions in 9 ms: Change signature, Move function body to declaration
+adjust-add: apply (delta, times, clamp, reserved, int extra = 7) in 2232 ms (eglot applying the edit: 2087 ms)
+adjust-add: eglot asked: [eglot] Server wants to:
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_22.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_21.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_20.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_19.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_18.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_17.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_16.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_14.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_13.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_12.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_11.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_10.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_09.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_08.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_06.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_05.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_04.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_03.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_02.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_01.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_00.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/meter.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/include/calc/api.h (2 changes)
+Proceed?
+adjust-add: clangd: I[16:18:53.093] <-- reply(0)
+adjust-add: clangd: I[16:18:53.105] <-- reply(1)
+adjust-add: clangd: I[16:19:07.348] <-- workspace/executeCommand(3)
+adjust-add: clangd: I[16:19:07.490] S12 Change signature of adjust: 2 declarations and 47 calls (1 in macro bodies) in 23 files changed, 24 reported; 57 index refs, 26 files read, 141 ms
+adjust-add: clangd: I[16:19:07.490] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_01.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-add: clangd: I[16:19:07.490] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_20.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-add: clangd: I[16:19:07.490] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_09.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-add: clangd: I[16:19:07.490] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_22.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-add: clangd: I[16:19:07.490] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_12.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-add: clangd: I[16:19:07.490] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_13.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-add: clangd: I[16:19:07.490] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_02.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-add: clangd: I[16:19:07.490] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_16.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-add: clangd: I[16:19:07.490] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_03.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-add: clangd: I[16:19:07.490] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_10.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-add: clangd: I[16:19:07.490] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_06.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-add: clangd: I[16:19:07.490] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_07.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-add: clangd: I[16:19:07.490] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_08.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-add: clangd: I[16:19:07.490] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_18.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-add: clangd: I[16:19:07.490] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_04.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-add: clangd: I[16:19:07.490] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_23.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-add: clangd: I[16:19:07.490] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_15.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-add: clangd: I[16:19:07.490] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_17.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-add: clangd: I[16:19:07.490] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_05.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-add: clangd: I[16:19:07.490] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_00.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-add: clangd: I[16:19:07.490] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_11.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-add: clangd: I[16:19:07.490] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_21.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-add: clangd: I[16:19:07.490] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_14.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-add: clangd: I[16:19:07.490] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-add/src/use_19.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-add: clangd: I[16:19:07.490] --> workspace/applyEdit(2)
+adjust-add: 23 buffers edited
+adjust-add: diff  23 files changed, 49 insertions(+), 49 deletions(-)
+adjust-add: BUILD FAILS: 7 errors, first:
+  src/use_02.cpp:19:32: error: too few arguments to function call, expected 5, have 4
+  src/use_04.cpp:19:32: error: too few arguments to function call, expected 5, have 4
+  src/use_07.cpp:19:32: error: too few arguments to function call, expected 5, have 4
+adjust-reorder: index 809 shards after 13838 ms
+adjust-reorder: 2 code actions in 1 ms: Change signature, Move function body to declaration
+adjust-reorder: apply (times, delta, clamp, reserved) in 1659 ms (eglot applying the edit: 1539 ms)
+adjust-reorder: eglot asked: [eglot] Server wants to:
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-reorder/src/use_22.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-reorder/src/use_21.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-reorder/src/use_19.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-reorder/src/use_18.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-reorder/src/use_16.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-reorder/src/use_14.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-reorder/src/use_13.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-reorder/src/use_11.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-reorder/src/use_10.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-reorder/src/use_08.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-reorder/src/use_06.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-reorder/src/use_05.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-reorder/src/use_03.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-reorder/src/use_02.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-reorder/src/use_00.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-reorder/src/meter.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-reorder/include/calc/api.h (1 change)
+Proceed?
+adjust-reorder: clangd: I[16:19:19.357] <-- reply(0)
+adjust-reorder: clangd: I[16:19:19.371] <-- reply(1)
+adjust-reorder: clangd: I[16:19:32.470] <-- workspace/executeCommand(3)
+adjust-reorder: clangd: I[16:19:32.589] S12 Change signature of adjust: 2 declarations and 47 calls (1 in macro bodies) in 17 files changed, 24 reported; 57 index refs, 26 files read, 118 ms
+adjust-reorder: clangd: I[16:19:32.589] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-reorder/src/use_13.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-reorder: clangd: I[16:19:32.589] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-reorder/src/use_00.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-reorder: clangd: I[16:19:32.589] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-reorder/src/use_10.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-reorder: clangd: I[16:19:32.589] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-reorder/src/use_20.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-reorder: clangd: I[16:19:32.589] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-reorder/src/use_14.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-reorder: clangd: I[16:19:32.589] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-reorder/src/use_09.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-reorder: clangd: I[16:19:32.589] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-reorder/src/use_08.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-reorder: clangd: I[16:19:32.589] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-reorder/src/use_11.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-reorder: clangd: I[16:19:32.589] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-reorder/src/use_21.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-reorder: clangd: I[16:19:32.589] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-reorder/src/use_04.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-reorder: clangd: I[16:19:32.589] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-reorder/src/use_05.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-reorder: clangd: I[16:19:32.589] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-reorder/src/use_16.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-reorder: clangd: I[16:19:32.589] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-reorder/src/use_07.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-reorder: clangd: I[16:19:32.589] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-reorder/src/use_06.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-reorder: clangd: I[16:19:32.589] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-reorder/src/use_23.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-reorder: clangd: I[16:19:32.589] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-reorder/src/use_19.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-reorder: clangd: I[16:19:32.589] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-reorder/src/use_03.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-reorder: clangd: I[16:19:32.589] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-reorder/src/use_22.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-reorder: clangd: I[16:19:32.589] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-reorder/src/use_18.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-reorder: clangd: I[16:19:32.589] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-reorder/src/use_17.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-reorder: clangd: I[16:19:32.589] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-reorder/src/use_02.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-reorder: clangd: I[16:19:32.589] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-reorder/src/use_12.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-reorder: clangd: I[16:19:32.589] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-reorder/src/use_15.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-reorder: clangd: I[16:19:32.589] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-reorder/src/use_01.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-reorder: clangd: I[16:19:32.589] --> workspace/applyEdit(2)
+adjust-reorder: 17 buffers edited
+adjust-reorder: diff  17 files changed, 30 insertions(+), 30 deletions(-)
+adjust-reorder: builds, TESTS FAIL (see /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-reorder/tests.out)
+adjust-remove: index 809 shards after 15368 ms
+adjust-remove: 2 code actions in 1 ms: Change signature, Move function body to declaration
+adjust-remove: apply (delta, times, clamp) in 2275 ms (eglot applying the edit: 2111 ms)
+adjust-remove: eglot asked: [eglot] Server wants to:
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_22.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_21.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_20.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_19.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_18.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_17.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_16.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_14.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_13.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_12.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_11.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_10.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_09.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_08.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_06.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_05.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_04.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_03.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_02.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_01.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_00.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/meter.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/include/calc/api.h (2 changes)
+Proceed?
+adjust-remove: clangd: I[16:19:42.645] <-- reply(0)
+adjust-remove: clangd: I[16:19:42.659] <-- reply(1)
+adjust-remove: clangd: I[16:19:57.276] <-- workspace/executeCommand(3)
+adjust-remove: clangd: I[16:19:57.437] S12 Change signature of adjust: 2 declarations and 47 calls (1 in macro bodies) in 23 files changed, 24 reported; 57 index refs, 26 files read, 160 ms
+adjust-remove: clangd: I[16:19:57.437] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_01.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-remove: clangd: I[16:19:57.437] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_23.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-remove: clangd: I[16:19:57.437] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_04.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-remove: clangd: I[16:19:57.437] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_15.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-remove: clangd: I[16:19:57.437] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_16.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-remove: clangd: I[16:19:57.437] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_06.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-remove: clangd: I[16:19:57.437] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_14.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-remove: clangd: I[16:19:57.437] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_21.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-remove: clangd: I[16:19:57.437] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_00.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-remove: clangd: I[16:19:57.437] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_03.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-remove: clangd: I[16:19:57.437] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_07.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-remove: clangd: I[16:19:57.437] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_10.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-remove: clangd: I[16:19:57.437] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_18.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-remove: clangd: I[16:19:57.437] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_19.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-remove: clangd: I[16:19:57.437] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_02.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-remove: clangd: I[16:19:57.437] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_11.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-remove: clangd: I[16:19:57.437] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_20.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-remove: clangd: I[16:19:57.437] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_17.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-remove: clangd: I[16:19:57.437] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_08.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-remove: clangd: I[16:19:57.437] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_12.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-remove: clangd: I[16:19:57.437] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_05.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-remove: clangd: I[16:19:57.437] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_09.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-remove: clangd: I[16:19:57.437] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_13.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-remove: clangd: I[16:19:57.437] S12 reported: /Users/fvanmaele/.cache/emacs-cpp-s12/runs/adjust-remove/src/use_22.cpp:19: a call by this name the index lists for no overload (through a template parameter?); not changed, check it
+adjust-remove: clangd: I[16:19:57.438] --> workspace/applyEdit(2)
+adjust-remove: 23 buffers edited
+adjust-remove: diff  23 files changed, 49 insertions(+), 49 deletions(-)
+adjust-remove: BUILD FAILS: 5 errors, first:
+  src/use_10.cpp:19:31: error: too many arguments to function call, expected 3, have 4
+  src/use_02.cpp:19:31: error: too many arguments to function call, expected 3, have 4
+  src/use_04.cpp:19:31: error: too many arguments to function call, expected 3, have 4
+weigh-add: index 809 shards after 13657 ms
+weigh-add: 1 code actions in 1 ms: Change signature
+weigh-add: apply (value, factor, int extra = 7, shift, unused) in 2460 ms (eglot applying the edit: 2344 ms)
+weigh-add: eglot asked: [eglot] Server wants to:
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-add/src/use_23.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-add/src/use_22.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-add/src/use_21.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-add/src/use_20.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-add/src/use_19.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-add/src/use_18.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-add/src/use_17.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-add/src/use_16.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-add/src/use_15.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-add/src/use_14.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-add/src/use_13.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-add/src/use_12.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-add/src/use_11.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-add/src/use_10.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-add/src/use_09.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-add/src/use_08.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-add/src/use_07.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-add/src/use_06.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-add/src/use_05.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-add/src/use_04.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-add/src/use_03.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-add/src/use_02.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-add/src/use_01.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-add/src/use_00.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-add/include/calc/api.h (1 change)
+Proceed?
+weigh-add: clangd: I[16:20:06.943] <-- reply(0)
+weigh-add: clangd: I[16:20:06.955] <-- reply(1)
+weigh-add: clangd: I[16:20:19.907] <-- workspace/executeCommand(3)
+weigh-add: clangd: I[16:20:20.018] S12 Change signature of weigh: 1 declarations and 63 calls (0 in macro bodies) in 25 files changed, 0 reported; 64 index refs, 25 files read, 110 ms
+weigh-add: clangd: I[16:20:20.019] --> workspace/applyEdit(2)
+weigh-add: 25 buffers edited
+weigh-add: diff  25 files changed, 64 insertions(+), 64 deletions(-)
+weigh-add: builds, tests pass (output equals the baseline)
+weigh-reorder: index 809 shards after 15048 ms
+weigh-reorder: 1 code actions in 1 ms: Change signature
+weigh-reorder: apply (value, shift, factor, unused) in 2608 ms (eglot applying the edit: 2451 ms)
+weigh-reorder: eglot asked: [eglot] Server wants to:
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-reorder/src/use_23.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-reorder/src/use_22.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-reorder/src/use_21.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-reorder/src/use_20.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-reorder/src/use_19.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-reorder/src/use_18.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-reorder/src/use_17.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-reorder/src/use_16.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-reorder/src/use_15.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-reorder/src/use_14.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-reorder/src/use_13.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-reorder/src/use_12.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-reorder/src/use_11.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-reorder/src/use_10.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-reorder/src/use_09.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-reorder/src/use_08.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-reorder/src/use_07.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-reorder/src/use_06.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-reorder/src/use_05.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-reorder/src/use_04.cpp (1 change)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-reorder/src/use_03.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-reorder/src/use_02.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-reorder/src/use_01.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-reorder/src/use_00.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-reorder/include/calc/api.h (1 change)
+Proceed?
+weigh-reorder: clangd: I[16:20:31.328] <-- reply(0)
+weigh-reorder: clangd: I[16:20:31.338] <-- reply(1)
+weigh-reorder: clangd: I[16:20:45.627] <-- workspace/executeCommand(3)
+weigh-reorder: clangd: I[16:20:45.779] S12 Change signature of weigh: 1 declarations and 63 calls (0 in macro bodies) in 25 files changed, 0 reported; 64 index refs, 25 files read, 151 ms
+weigh-reorder: clangd: I[16:20:45.780] --> workspace/applyEdit(2)
+weigh-reorder: 25 buffers edited
+weigh-reorder: diff  25 files changed, 55 insertions(+), 55 deletions(-)
+weigh-reorder: builds, tests pass (output equals the baseline)
+weigh-remove: index 809 shards after 16302 ms
+weigh-remove: 1 code actions in 3 ms: Change signature
+weigh-remove: apply (value, factor, shift) in 2415 ms (eglot applying the edit: 2273 ms)
+weigh-remove: eglot asked: [eglot] Server wants to:
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-remove/src/use_23.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-remove/src/use_22.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-remove/src/use_21.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-remove/src/use_20.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-remove/src/use_19.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-remove/src/use_18.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-remove/src/use_17.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-remove/src/use_16.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-remove/src/use_15.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-remove/src/use_14.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-remove/src/use_13.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-remove/src/use_12.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-remove/src/use_11.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-remove/src/use_10.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-remove/src/use_09.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-remove/src/use_08.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-remove/src/use_07.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-remove/src/use_06.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-remove/src/use_05.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-remove/src/use_04.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-remove/src/use_03.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-remove/src/use_02.cpp (2 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-remove/src/use_01.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-remove/src/use_00.cpp (3 changes)
+  Change /Users/fvanmaele/.cache/emacs-cpp-s12/runs/weigh-remove/include/calc/api.h (1 change)
+Proceed?
+weigh-remove: clangd: I[16:21:01.392] <-- reply(0)
+weigh-remove: clangd: I[16:21:01.404] <-- reply(1)
+weigh-remove: clangd: I[16:21:16.925] <-- workspace/executeCommand(3)
+weigh-remove: clangd: I[16:21:17.062] S12 Change signature of weigh: 1 declarations and 63 calls (0 in macro bodies) in 25 files changed, 0 reported; 64 index refs, 25 files read, 136 ms
+weigh-remove: clangd: I[16:21:17.063] --> workspace/applyEdit(2)
+weigh-remove: 25 buffers edited
+weigh-remove: diff  25 files changed, 64 insertions(+), 64 deletions(-)
+weigh-remove: builds, tests pass (output equals the baseline)
+# appended after the run (same check as the end of results-run2.log):
+combine-add: 12 of 24 lines differ; unexplained: none
+combine-reorder: 9 of 24 lines differ; unexplained: none
+adjust-reorder: 9 of 24 lines differ; unexplained: none
+adjust-add: errors only in poke lines: 19
+adjust-remove: errors only in poke lines: 19

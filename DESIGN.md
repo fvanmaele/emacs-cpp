@@ -1374,6 +1374,12 @@ presets, GoogleTest runner.
   (T-059, owner's deal.II project `step-1`, Mac, 40 queries): filtering today's 100
   loses project symbols in 14 queries (373 symbols), 1000 in 2 (30), no limit in
   none, slowest reply 15.9 ms (2458 symbols), median 0.3 ms. To the owner.
+- O-50 (OPEN, found 2026-10-14 in S12, finding 6): in a project under `/tmp` on
+  macOS the index loses every cross-file reference (3 instead of 201), with the
+  patched and the stock clangd 23.1.3 alike: CMake writes `/tmp/...` into the compile
+  database, Emacs opens the true name `/private/tmp/...`. Owner 2026-10-14: research
+  this and the other platform differences (file watches among them) in one
+  RESEARCH document superseding `RESEARCH_file_watches_macos.md`.
 - O-49 (RESOLVED 2026-10-14 with D-099: (a); found 2026-10-14 checking order
   dependencies, D-098): `M-o`
   (`emacs-cpp-go-to-anything`, init-completion) calls projectile
@@ -1449,7 +1455,16 @@ presets, GoogleTest runner.
   Options: (a) `--rename-file-limit=0`; (b) a clangd change-signature tweak, spike
   first; (c) commands around clang-move, clang-change-namespace, run-clang-tidy -fix;
   (d) document the by-hand route for signature changes. Owner 2026-10-13: all four;
-  (a) built as D-092; (b) a spike first (S12, T-069, `spikes/s12-change-signature`);
+  (a) built as D-092; (b) a spike first (S12, T-069, `spikes/s12-change-signature`):
+  FAIL 2026-10-14 (0066): a tweak edits every call the index lists precisely (0 wrong
+  edits in 2502 over two runs, macros' bodies included, from raw tokens in 57 - 259
+  ms), but calls depending on a template parameter cannot be settled: a dependent
+  call of an overloaded name is listed for every overload, a member call through a
+  template parameter not at all; both reported, not edited; 5 of 9 operations then
+  fail to build or change the output. eglot opens each edited file, about 95 ms
+  each (1.7 - 5.1 s in all). Options (b1) a patch along the spike, with the list of
+  reported calls for the user; (b2) a second round settling reported calls by
+  parsing their files; (b3) stop, MANUAL 8 stays. Owner rules;
   (c) built as D-094 without clang-change-namespace, which came with D-097
   (patched); (d) done 2026-10-14: MANUAL 8, "Changing a function's signature by
   hand", after running the route on 63 files.
