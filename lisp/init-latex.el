@@ -78,6 +78,7 @@ It comes with TeX Live (Arch: texlive-binextra) and MacTeX."
   :group 'tools)
 
 (defvar LaTeX-mode-map)                 ; latex.el, AUCTeX
+(defvar LaTeX-indent-level)
 
 (defun emacs-cpp-latex-format (&optional beg end)
   "Format the lines of the region with latexindent, else the buffer (D-101).
@@ -99,12 +100,57 @@ latexindent changes is replaced, in one undo step."
   (interactive)
   (emacs-cpp-latex--indent))
 
+(defconst emacs-cpp-latex--root-files
+  '(".latexmkrc" "latexmkrc" ".texlabroot" "texlabroot")
+  "Files that mark the directory texlab 5.25.1 runs latexindent in (D-103).")
+
+(defconst emacs-cpp-latex--local-settings
+  '("localSettings.yaml" ".localSettings.yaml" "latexindent.yaml" ".latexindent.yaml")
+  "The settings latexindent's `--local' reads from its working directory.")
+
+(defconst emacs-cpp-latex--user-settings
+  '("~/indentconfig.yaml" "~/.indentconfig.yaml" "~/.config/latexindent/indentconfig.yaml")
+  "latexindent's own per-user settings files.")
+
+(defun emacs-cpp-latex--indent-directory ()
+  "The directory latexindent runs in, as texlab 5.25.1 chooses it (D-103).
+The nearest directory upward, within the project, with one of
+`emacs-cpp-latex--root-files'; else the file's own."
+  (let* ((start (file-name-as-directory
+                 (expand-file-name (if buffer-file-name
+                                       (file-name-directory buffer-file-name)
+                                     default-directory))))
+         (project (project-current))
+         (top (and project (expand-file-name (project-root project))))
+         (found (locate-dominating-file
+                 start (lambda (dir)
+                         (seq-some (lambda (name) (file-exists-p (expand-file-name name dir)))
+                                   emacs-cpp-latex--root-files)))))
+    (if (and found top (file-in-directory-p found top))
+        (file-name-as-directory (expand-file-name found))
+      start)))
+
+(defun emacs-cpp-latex--indent-arguments (directory)
+  "latexindent's settings arguments when run in DIRECTORY (D-103).
+`--local' reads the project's settings, as texlab does.  Without project or
+user settings the indentation follows the buffer, as AUCTeX's `TAB' does:
+`LaTeX-indent-level' spaces, a tab with `indent-tabs-mode'."
+  (cons "--local"
+        (unless (or (seq-some (lambda (name) (file-exists-p (expand-file-name name directory)))
+                              emacs-cpp-latex--local-settings)
+                    (seq-some (lambda (name) (file-exists-p (expand-file-name name)))
+                              emacs-cpp-latex--user-settings))
+          (list (format "-y=defaultIndent:\"%s\""
+                        (if indent-tabs-mode "\\t" (make-string LaTeX-indent-level ?\s)))))))
+
 (defun emacs-cpp-latex--indent (&optional first last)
   "Replace the buffer with latexindent's indentation of it.
 With FIRST and LAST, latexindent indents only those lines."
   (let* ((program (or (executable-find emacs-cpp-latex-indent-program)
                       (user-error "emacs-cpp: %s not found; it comes with TeX Live \
 \(Arch: texlive-binextra) and MacTeX (D-101)" emacs-cpp-latex-indent-program)))
+         (working-directory (emacs-cpp-latex--indent-directory))
+         (settings (emacs-cpp-latex--indent-arguments working-directory))
          (directory (make-temp-file "emacs-cpp-latexindent" t))
          (file (expand-file-name "document.tex" directory))
          (errors (expand-file-name "stderr" directory))
@@ -119,10 +165,12 @@ With FIRST and LAST, latexindent indents only those lines."
                 (widen)
                 (write-region nil nil file nil 'silent)))
             ;; -c: latexindent's log goes to the temporary directory, not the project.
-            (let ((status (apply #'call-process program nil (list output errors) nil
-                                 "-c" (file-name-as-directory directory)
-                                 (append (and first (list (format "--lines=%d-%d" first last)))
-                                         (list file)))))
+            (let* ((default-directory working-directory)
+                   (status (apply #'call-process program nil (list output errors) nil
+                                  "-c" (file-name-as-directory directory)
+                                  (append settings
+                                          (and first (list (format "--lines=%d-%d" first last)))
+                                          (list file)))))
               (unless (eql status 0)
                 (user-error "emacs-cpp: latexindent failed (%s): %s" status
                             (with-temp-buffer

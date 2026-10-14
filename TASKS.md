@@ -123,6 +123,7 @@ with `done when: ...`).
 | T-075 | done | S | research: clangd path filter for symbols | owner | RESEARCH 13; O-52 |
 | T-076 | done | S | research: clangd patch, symlinked paths | owner | RESEARCH 2.8; O-50 |
 | T-077 | open 0069 | M | spike S13: symlinked paths | O-50 (c) | PASS Arch; Mac |
+| T-078 | done 0070 | S | latexindent: project settings, indent | D-103 | tests, texlab |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -281,6 +282,18 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-078 (opened 2026-10-14, D-103, O-53 (a), (b)): latexindent as texlab runs it.
+  Done when: C-c l f (buffer and region) passes --local and runs latexindent from the
+  nearest directory upward (within the project) with .latexmkrc / latexmkrc /
+  .texlabroot / texlabroot, else the file's directory. Without a yaml there
+  (localSettings.yaml, .localSettings.yaml, latexindent.yaml, .latexindent.yaml) and
+  without a user indentconfig.yaml (~/indentconfig.yaml, ~/.indentconfig.yaml,
+  ~/.config/latexindent/indentconfig.yaml) it adds -y=defaultIndent: with
+  LaTeX-indent-level spaces, a tab when indent-tabs-mode. Tests: project yaml
+  defaultIndent "    " gives 4 spaces (also from a subdirectory with .latexmkrc
+  above); no yaml gives 2 spaces (AUCTeX's level); indent-tabs-mode gives a tab;
+  existing tests adjusted; make test on the Mac. DESIGN D-103 (amends D-101, resolves
+  O-53), journal. Agreed 2026-10-14. Done 2026-10-14 (0070): met on the Mac.
 - T-077 (opened 2026-10-14, owner: "spike for (c)"): spike S13, clangd patch naming
   the background index's main files by their real directory
   (`spikes/s13-symlinked-paths/RUN.md`, pass criteria proposed 2026-10-14). Done

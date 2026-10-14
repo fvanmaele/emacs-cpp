@@ -90,10 +90,25 @@ and reports texlab's result; without texlab it says so."
 \\end{document}\n"
   "A document latexindent indents in two places: both lists' items.")
 
+(defun init-latex-test--formatted (indent &optional first last)
+  "`init-latex-test--unformatted' with the items indented by INDENT.
+With FIRST and LAST (line numbers), only the items on those lines."
+  (let ((line 0))
+    (mapconcat (lambda (text)
+                 (setq line (1+ line))
+                 (if (and (string-prefix-p "\\item" text)
+                          (or (not first) (<= first line last)))
+                     (concat indent text)
+                   text))
+               (split-string init-latex-test--unformatted "\n")
+               "\n")))
+
 (defmacro init-latex-test--with-document (&rest body)
-  "Run BODY in a LaTeX buffer of `init-latex-test--unformatted', eglot off."
+  "Run BODY in a LaTeX buffer of `init-latex-test--unformatted', eglot off.
+No user settings of latexindent's are read, whatever the machine has."
   (declare (indent 0))
-  `(let ((file (make-temp-file "emacs-cpp-tex" nil ".tex" init-latex-test--unformatted)))
+  `(let ((file (make-temp-file "emacs-cpp-tex" nil ".tex" init-latex-test--unformatted))
+         (emacs-cpp-latex--user-settings nil))
      (unwind-protect
          (cl-letf (((symbol-function 'eglot-ensure) #'ignore))
            (with-current-buffer (find-file-noselect file)
@@ -112,62 +127,81 @@ and reports texlab's result; without texlab it says so."
   (push-mark (point) t t)
   (forward-line (1+ (- last first))))
 
-(defun init-latex-test--latexindent (file)
-  "latexindent's indentation of the whole FILE, as a list of lines."
-  (let ((dir (make-temp-file "emacs-cpp-tex" t)))
-    (unwind-protect
-        (with-temp-buffer
-          (call-process emacs-cpp-latex-indent-program nil '(t nil) nil
-                        "-c" (file-name-as-directory dir) file)
-          (split-string (buffer-string) "\n"))
-      (delete-directory dir t))))
-
 (ert-deftest init-latex-format-region ()
   "D-101: `C-c l f' with a region indents only its lines, as the buffer format
-would (latexindent on the whole document), in one undo step; point stays."
+would, in one undo step; point stays."
   (skip-unless (executable-find emacs-cpp-latex-indent-program))
   (init-test--load)
   (init-latex-test--with-document
     (should (eq (key-binding (kbd "C-c l f")) #'emacs-cpp-latex-format))
-    (let*((original (buffer-string))
-           (whole (init-latex-test--latexindent file))
-           (lines (split-string original "\n")))
-      (buffer-enable-undo)
-      ;; The itemize list, lines 3 - 6; the enumerate list stays as it is.
-      (init-latex-test--select-lines 3 6)
-      (call-interactively (key-binding (kbd "C-c l f")))
-      (let ((result (split-string (buffer-string) "\n")))
-        (should-not (equal result lines))
-        (should (equal (seq-subseq result 2 6) (seq-subseq whole 2 6)))
-        (should (equal (seq-take result 2) (seq-take lines 2)))
-        (should (equal (seq-drop result 6) (seq-drop lines 6))))
-      (should (equal (line-number-at-pos) 7))
-      ;; One undo record set, no boundary inside: one step brings it all back.
-      (should-not (memq nil buffer-undo-list))
-      (primitive-undo 1 buffer-undo-list)
-      (should (equal (buffer-string) original)))))
+    (buffer-enable-undo)
+    ;; The itemize list, lines 3 - 6; the enumerate list stays as it is.
+    (init-latex-test--select-lines 3 6)
+    (call-interactively (key-binding (kbd "C-c l f")))
+    (should (equal (buffer-string) (init-latex-test--formatted "  " 3 6)))
+    (should (equal (line-number-at-pos) 7))
+    ;; One undo record set, no boundary inside: one step brings it all back.
+    (should-not (memq nil buffer-undo-list))
+    (primitive-undo 1 buffer-undo-list)
+    (should (equal (buffer-string) init-latex-test--unformatted))))
 
 (ert-deftest init-latex-format-buffer ()
-  "D-101: without a region `C-c l f' formats the whole buffer with latexindent,
-not texlab; the menu's Format Buffer does so also with a region."
+  "D-101, D-103: without a region `C-c l f' formats the whole buffer with
+latexindent, not texlab, indenting as AUCTeX's `TAB' (`LaTeX-indent-level'
+spaces, a tab with `indent-tabs-mode'); the menu's Format Buffer formats the
+whole buffer also with a region."
   (skip-unless (executable-find emacs-cpp-latex-indent-program))
   (init-test--load)
   (init-latex-test--with-document
-    (let ((original (buffer-string))
-          (whole (init-latex-test--latexindent file)))
-      (should-not (equal (split-string original "\n") whole))
-      (cl-letf (((symbol-function 'eglot-format)
-                 (lambda (&rest _) (interactive) (error "texlab asked"))))
-        (deactivate-mark)
-        (call-interactively (key-binding (kbd "C-c l f")))
-        (should (equal (split-string (buffer-string) "\n") whole))
-        (erase-buffer)
-        (insert original)
-        (should (eq (key-binding [remap eglot-format-buffer])
-                    #'emacs-cpp-latex-format-buffer))
-        (init-latex-test--select-lines 3 6)
-        (call-interactively #'emacs-cpp-latex-format-buffer)
-        (should (equal (split-string (buffer-string) "\n") whole))))))
+    (cl-letf (((symbol-function 'eglot-format)
+               (lambda (&rest _) (interactive) (error "texlab asked"))))
+      (should (equal LaTeX-indent-level 2))
+      (deactivate-mark)
+      (call-interactively (key-binding (kbd "C-c l f")))
+      (should (equal (buffer-string) (init-latex-test--formatted "  ")))
+      (erase-buffer)
+      (insert init-latex-test--unformatted)
+      (should (eq (key-binding [remap eglot-format-buffer])
+                  #'emacs-cpp-latex-format-buffer))
+      (init-latex-test--select-lines 3 6)
+      (call-interactively #'emacs-cpp-latex-format-buffer)
+      (should (equal (buffer-string) (init-latex-test--formatted "  ")))
+      (erase-buffer)
+      (insert init-latex-test--unformatted)
+      (setq-local indent-tabs-mode t)
+      (emacs-cpp-latex-format-buffer)
+      (should (equal (buffer-string) (init-latex-test--formatted "\t"))))))
+
+(ert-deftest init-latex-format-project-settings ()
+  "D-103: a project's `.latexindent.yaml' wins, read where texlab reads it: the
+nearest directory upward with `.latexmkrc' (or texlabroot), else the file's."
+  (skip-unless (executable-find emacs-cpp-latex-indent-program))
+  (init-test--load)
+  (let* ((root (file-name-as-directory (file-truename (make-temp-file "emacs-cpp-tex" t))))
+         (default-directory root)
+         (emacs-cpp-latex--user-settings nil))
+    (unwind-protect
+        (cl-letf (((symbol-function 'eglot-ensure) #'ignore))
+          (call-process "git" nil nil nil "init" "-q")
+          (make-directory (expand-file-name "chapters" root))
+          (write-region "defaultIndent: \"    \"\n" nil (expand-file-name ".latexindent.yaml" root))
+          (dolist (case '(("main.tex" nil . "    ")             ; the file's own directory
+                          ("chapters/one.tex" nil . "  ")     ; not read from below
+                          ("chapters/one.tex" t . "    ")))   ; .latexmkrc at the root
+            (when (cadr case)
+              (write-region "" nil (expand-file-name ".latexmkrc" root)))
+            (let ((file (expand-file-name (car case) root)))
+              (write-region init-latex-test--unformatted nil file)
+              (with-current-buffer (find-file-noselect file)
+                (unwind-protect
+                    (progn
+                      (emacs-cpp-latex-format-buffer)
+                      (should (equal (cons (car case) (buffer-string))
+                                     (cons (car case)
+                                           (init-latex-test--formatted (cddr case))))))
+                  (set-buffer-modified-p nil)
+                  (kill-buffer))))))
+      (delete-directory root t))))
 
 (ert-deftest init-latex-format-refusals ()
   "D-101: a missing or failing latexindent stops with the reason and leaves the
