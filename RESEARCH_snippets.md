@@ -100,3 +100,39 @@ What decides it here:
 - Not measured: load time of either (neither is vendored), TAB's interplay with
   corfu and indentation (`tab-always-indent`, D-020).
 
+## 7. Keys: TAB or another (owner question 2026-10-14)
+yasnippet 0.14.3's keys (its source, read 2026-10-14):
+- `yas-minor-mode-map`: `TAB` is `yas-maybe-expand`, a conditional definition: it
+  expands only when a snippet key is before point, otherwise TAB runs what it ran
+  before (here indent or complete, D-020); `C-c & C-s` inserts a snippet by name,
+  `C-c & C-n` / `C-c & C-v` make / visit one.
+- `yas-keymap`, active only while a snippet's fields are being filled: `TAB` next
+  field (or expand a nested snippet), `S-TAB` previous field, `C-g` abort, `C-d`
+  clear the field, `DEL` clear it when at its start. Every one goes through
+  `yas-keymap-disable-hook`, which can switch them off, e.g. while corfu's popup is
+  open, so that TAB completes there.
+- Snippets from the servers (clangd, texlab) need no expansion key: eglot expands
+  them when a completion is chosen; only the field keys matter for them.
+- Elsewhere: CLion's live templates expand with Tab after the abbreviation (Space or
+  Enter selectable) and move with Tab / Shift+Tab; VS Code the same.
+
+What the keys collide with here: TAB indents and, on an indented line, completes
+(D-020, `tab-always-indent`); a snippet key typed by chance (`for`, `if`, `cls`)
+would expand on TAB instead of completing. `M-n` / `M-p` move between cells in
+Python and R (D-072).
+
+Options (for D-095's done when):
+- (k1) yasnippet's own: TAB expands a key before point, else indents / completes;
+  TAB / S-TAB move between fields (CLion's and VS Code's way). Corfu's popup takes
+  TAB while open (`yas-keymap-disable-hook`).
+- (k2) Expansion on a key of its own, TAB / S-TAB only for fields: TAB never expands,
+  so indent / complete stay as they are; e.g. `C-c y` (free in C++ and LaTeX
+  buffers, checked), or `M-/` (`dabbrev-expand` there now).
+- (k3) Expansion from the completion popup: snippet keys offered with the other
+  candidates (`C-M-i` / TAB on an indented line), RET inserts; needs a small
+  completion function or a package (`yasnippet-capf`, not checked); TAB / S-TAB for
+  fields.
+- (k4) No TAB at all: expansion as (k2), fields on other keys (e.g. `C-<return>` /
+  `C-S-<return>`, free in C++ and LaTeX buffers; not `C-c C-n` / `C-c C-p`, AUCTeX's
+  normal mode and preview prefix), TAB left entirely to indentation and completion.
+
