@@ -288,7 +288,31 @@ with `done when: ...`).
   qualifier) and 0012 (mid-word matches), written fresh from S14's findings,
   switched per request and announced as a capability (D-113), with clangd unit
   tests; built with O-50's 0010; the Emacs side (`M-o` and `C-c l s` options, the
-  capability warning). Tier: 2. Done when: to agree.
+  capability warning). Tier: 2. Done when (proposed 2026-10-15, not yet agreed):
+  clangd: `packaging/clangd-index-nav/0011-...` (loose qualifier) and `0012-...`
+  (mid-word), written fresh on 0001 - 0009 (0010 stays O-50's): request fields
+  `looseScope` (bool) and `middleMatch` (minimum length, 0 off) in
+  `WorkspaceSymbolParams` next to `limit` (`Protocol.h` / `.cpp`), passed through
+  `ClangdLSPServer::onWorkspaceSymbol`, `ClangdServer::workspaceSymbols` and
+  `getWorkspaceSymbols`; `FuzzyFindRequest` gets the mid-word length (also in `==`
+  and its JSON); Dex and MemIndex as S14 found (identifier before `<`, negative
+  score); `getWorkspaceSymbols` ranks them after every fuzzy match; the
+  `initialize` reply announces `workspaceSymbolMatchesProvider`; off unless sent.
+  clangd unit tests in `FindSymbolsTests.cpp` and `DexTests.cpp` (each rule, off by
+  default, ranked last, template arguments not matched, completion's request
+  unchanged). `PKGBUILD` pkgrel 8 with both patches and checksums, and its
+  `prepare()` glob `000*.patch` widened to four digits (it would skip 0011 / 0012);
+  `build-macos.sh` builds them (it reads the PKGBUILD); the Mac build installed to
+  ~/opt. Emacs: `emacs-cpp-symbol-loose-scope` (t) and
+  `emacs-cpp-symbol-middle-match` (3; nil off) sent by `M-o`'s symbol request and,
+  through consult-eglot patch 0001 extended (a variable of extra request
+  parameters), by `C-c l s`; a server whose `serverInfo` names clangd but lacks the
+  capability gets one warning naming the options (pyright and texlab are not
+  warned about). ERT: the fields sent or not per option, in both prompts; the
+  warning. Terminal check on a toy with the Mac build: `M-o` and `C-c l s` find
+  `GeometryInfo::vertices_per_cell` for `gi::vert` and `TangentVector` for `ector`;
+  the owner's hand check on step-1. `make test` on the Mac; the Arch package and
+  `make test` by the owner. DESIGN D-113, journal.
 - T-103 (opened 2026-10-15, D-112): spike S14, CLion's mid-word and loose-scope
   symbol matches in clangd (`spikes/s14-symbol-matches/RUN.md`, pass criteria
   proposed 2026-10-15). Done when: RESULTS.md has a verdict on criteria 1 - 5 from
