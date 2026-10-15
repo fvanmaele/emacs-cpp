@@ -422,6 +422,80 @@ Options (not ruled, O-59):
 - (d) Raise the cap (3.6 (b)): 1811 directories times three registrations is far
   above the 975 the Mac allows; does not help here.
 
+Owner 2026-10-15: (a) with `build*/`; asked whether eglot still runs on untracked
+`.py` buffers under (b); (c) research a patch for eglot. Section 3.8.
+
+### 3.8 Untracked buffers, and a patch for eglot (owner 2026-10-15, T-089, O-60)
+**(a) in step-1** (read-only count): with `build*/` added to `.gitignore`, the file
+list holds 478 files in 22 directories; no tracked file lies under a `build*`
+directory (`build/`, `build_cpu/`, `build_lumping/`, `interpolate_test/build/`, two
+under `.qtcreator/`), so nothing tracked changes. The pattern covers `build/` and
+`build-*/` too.
+
+**(b) untracked `.py` buffers** (batch, shipped config, toy git project with
+`vec.py` untracked, pyright, 2026-10-15):
+- Which list eglot watches: projectile's. projectile adds `project-projectile` to
+  `project-find-functions` ahead of project.el's VC backend, so `project-files`
+  is projectile's file list, listed by `fd` when it is installed
+  (`projectile-git-use-fd`, on here; `fd -H -E .git`, honouring `.gitignore`), else
+  `git ls-files -zco --exclude-standard`. project.el's
+  `project-vc-include-untracked` (option (b) as worded in 3.7) has no effect: with
+  it nil the list still held `vec.py` (6 files either way).
+- The equivalent knob: `projectile-git-use-fd` nil and `projectile-git-command`
+  `git ls-files -zc` (tracked only): the list drops `vec.py` (5 files).
+- Either way `vec.py` is managed by eglot, pyright runs, and `workspace/symbol`
+  lists its symbols (`Vector`, `vector_norm`): eglot manages a buffer by its
+  project (the directory), not by the file list, and pyright reads the workspace
+  itself. What tracked-only costs: a directory holding only untracked files is not
+  watched (pyright misses changes made there outside Emacs), and untracked files
+  leave `M-o`'s and `C-c p f`'s lists until `git add` (same list).
+- With (a) done, step-1 is at 22 directories; (b) is not needed for it.
+
+**(c) a patch for eglot:**
+- Upstream unchanged: Emacs master's `eglot.el` (GitHub mirror, fetched 2026-10-15)
+  has the same watch code as 31.1's eglot 1.24.31, from `eglot-watch-files-outside-
+  project-root` to `eglot-unregister-capability` (no difference); its other parts
+  differ by 182 lines. The GNU ELPA package mirror `emacs-straight/eglot` equals
+  master.
+- The change (`docs/upstream/eglot-watch-cap-partial-watches.patch`, 13 lines in, 9
+  out, one function): at the cap, warn once and stop adding watches instead of
+  signalling `jsonrpc-error`; a watch the system refuses (`file-notify-error`, e.g.
+  kqueue's "no file descriptor left") the same. The registration then succeeds
+  with the watches added so far. Under the GNU maintainers' "around 15 lines" for
+  a change without copyright paperwork (`Copyright-paperwork-exempt: yes`,
+  Emacs's CONTRIBUTE).
+- Checked with `docs/upstream/eglot_watch_cap_repro.sh` (a copy loading the
+  patched `eglot.el` after eglot; Mac, pyright 1.1.414):
+
+  | Case | eglot 1.24.31 | patched |
+  |---|---|---|
+  | 600 directories, cap 500 | pyright exits | runs; 3 warnings |
+  | 1100 directories, no cap | pyright exits (1) | runs; a warning per refusal |
+
+  (1) kqueue refuses at 975: "Error running timer: (file-notify-error ...)". The 3
+  warnings: one per pyright registration.
+
+  Not checked: that pyright sees changes in the watched directories with the patch
+  (batch Emacs delivers no file events, 3.5 method note); a terminal run would.
+- Side effect without a cap: the patched eglot keeps the 975 descriptors it took,
+  leaving none for auto-revert and treemacs; D-054's cap of 500 stops it first.
+- Not prototyped: one watch per directory shared by a server's registrations
+  (the report's suggestion 2), which would divide pyright's watches by three;
+  larger, needs paperwork.
+- How the config could carry it:
+  - (a) Upstream only: the owner sends the report (T-032) with the patch; the fix
+    arrives with a later Emacs or GNU ELPA eglot; nothing here.
+  - (b) Vendor eglot: `emacs-straight/eglot` as a submodule (D-006) plus the patch
+    file (D-069). It shadows the built-in eglot (`lib/load-path.el` puts `lib/`
+    first). Its Package-Requires are met by Emacs 31.1's bundled versions (jsonrpc
+    1.0.29, flymake 1.4.6, eldoc 1.16.0, project 0.12.0, xref 1.7.0,
+    external-completion 0.1, seq 2.24). Brings master's other 182 changed lines to
+    both machines: a new dependency, D-nnn, tests.
+  - (c) Override in the config: redefine `eglot--watch-globs` (an internal
+    function, about 70 lines copied) after eglot loads, failing loudly at startup
+    when eglot's version is not 1.24.31; breaks on any Emacs update by design.
+  - (d) None: (a) of 3.7 holds step-1; the next large untracked tree repeats it.
+
 ## 4. Other differences met so far
 Decided already; listed so that one document points at all of them.
 

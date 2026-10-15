@@ -284,6 +284,11 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-089 (opened 2026-10-15, owner with D-107): can eglot run on untracked `.py`
+  buffers with tracked-only lists, and research a patch for eglot's watch cap.
+  Done when: `RESEARCH_platform_differences.md` 3.8 with both answered by checks,
+  the patch in `docs/upstream/` checked with the repro script, options. Done
+  2026-10-15: options as O-60.
 - T-088 (opened 2026-10-15, owner: "verify" a `*Messages*` excerpt from step-1):
   why pyright exits there, and the auto-save message. Done when:
   `RESEARCH_platform_differences.md` 3.7 with the cause, checked in the project

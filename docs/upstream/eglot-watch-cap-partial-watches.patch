@@ -1,0 +1,48 @@
+Keep eglot's partial file watches when the limit is reached or a watch is refused
+
+Proposed for the report eglot-watch-cap-partial-watches.md (T-032, O-60); against
+lisp/progmodes/eglot.el of Emacs 31.1 (eglot 1.24.31); the hunk applies to Emacs master
+of 2026-10-15 unchanged (same code). Not applied in this configuration.
+
+--- a/lisp/progmodes/eglot.el
++++ b/lisp/progmodes/eglot.el
+@@ -4846,7 +4846,7 @@
+ 
+ (cl-defun eglot--watch-globs (server id globs dir in-root
+                                      &aux (project (eglot--project server))
+-                                     success
++                                     success full
+                                      (watch-count (eglot--count-file-watches)))
+   "Set up file watching for relative file names matching GLOBS under DIR.
+ GLOBS is a list of (COMPILED-GLOB . KIND) pairs, where COMPILED-GLOB is
+@@ -4890,18 +4890,22 @@
+              (handle-event `(,desc deleted ,file))
+              (handle-event `(,desc created ,file1))))))
+        (add-watch (subdir)
+-         (cond ((not (file-readable-p subdir)))
++         (cond ((or full (not (file-readable-p subdir))))
+                ((and eglot-max-file-watches
+                      (>= watch-count eglot-max-file-watches))
++                (setq full t)
+                 (eglot--warn "Reached `eglot-max-file-watches' limit of %d, \
+-not watching some directories" eglot-max-file-watches)
+-                ;; Could `(setq success t)' here to keep partial watches.
+-                (jsonrpc-error "Reached `eglot-max-file-watches' limit of %d"
+-                               eglot-max-file-watches))
++not watching some directories" eglot-max-file-watches))
+                (t
+-                (push (file-notify-add-watch subdir '(change) #'handle-event)
+-                      (gethash id (eglot--file-watches server)))
+-                (cl-incf watch-count)))))
++                (condition-case err
++                    (progn
++                      (push (file-notify-add-watch subdir '(change) #'handle-event)
++                            (gethash id (eglot--file-watches server)))
++                      (cl-incf watch-count))
++                  (file-notify-error
++                   (setq full t)
++                   (eglot--warn "Cannot watch %s: %s, not watching some directories"
++                                subdir (error-message-string err))))))))
+     (let ((subdirs (if (or (null dir) in-root)
+                        (subdirs-using-project)
+                      (condition-case _ (subdirs-using-find)

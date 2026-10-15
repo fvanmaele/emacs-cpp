@@ -476,6 +476,13 @@ Known defects: none yet (nothing built).
   entry (in RMO `fmt/src/format.cc`, wrong include paths). S1 live check: once an
   including `.cc` is open, clangd reuses its flags and the header is clean; opened
   first, it shows errors. The patched clangd takes an includer from its index (D-028).
+- DECIDED D-107 (owner 2026-10-15, O-59 (a): "build*/ to .gitignore"): a project's
+  large untracked output trees belong in its `.gitignore`; eglot's watches and
+  projectile's file lists follow git's ignore rules, and the config does not list
+  them separately. For deal.II's step-1, `build*/` (the owner's project; the owner
+  edits and commits it): 478 files in 22 directories instead of 14782 in 1811,
+  below D-054's cap (`RESEARCH_platform_differences.md` 3.7, 3.8). Tracked-only
+  listing (O-59 (b)) and an eglot patch (O-59 (c)) researched as O-60.
 - DECIDED D-054 (2026-10-09, T-021; confirmed by the owner 2026-10-09, O-26 (a)): on
   macOS eglot watches files only inside the project root
   (`eglot-watch-files-outside-project-root` nil) and at most 500 directories
@@ -1551,7 +1558,21 @@ presets, GoogleTest runner.
   a loose qualifier (`geom::vec`); `count() const` first in both, re-sorted away
   here; no typo seen. Search Everywhere's files: case ignored, humps, space in
   order.
-- O-59 (OPEN, owner report 2026-10-15, T-088): pyright exits in deal.II's step-1 at
+- O-60 (OPEN, owner 2026-10-15 with D-107, T-089): (b) tracked-only file lists and
+  (c) an eglot patch keeping partial watches (`RESEARCH_platform_differences.md`
+  3.8). Found: eglot watches projectile's list (projectile is project.el's backend
+  here; `project-vc-include-untracked` has no effect); tracked-only is
+  `projectile-git-use-fd` nil plus `git ls-files -zc`, and an untracked `.py` buffer
+  still gets eglot, pyright and its symbols, but untracked files leave `M-o` and
+  `C-c p f`. The eglot change (`docs/upstream/eglot-watch-cap-partial-watches.patch`,
+  13 lines in, 9 out) keeps pyright running at the cap and at kqueue's refusal
+  (repro: exits before, runs after); upstream eglot is unchanged. Options for the
+  patch: (a) upstream only, with T-032's report; (b) vendor eglot
+  (`emacs-straight/eglot`) with the patch; (c) override `eglot--watch-globs` in the
+  config, loud on another eglot version; (d) none. For (b) of O-59: adopt
+  tracked-only, or not. Owner rules.
+- O-59 (RESOLVED 2026-10-15 with D-107: (a), `build*/`; (b) and (c) continue as
+  O-60; owner report 2026-10-15, T-088): pyright exits in deal.II's step-1 at
   eglot's watch cap (`RESEARCH_platform_differences.md` 3.7). Found: `project-files`
   includes untracked files git does not ignore; `build_cpu/` (results, 14244 files,
   1787 directories) is such, so 1811 directories against D-054's cap of 500; the
@@ -2090,6 +2111,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-104 | 2026-10-14 | `make test` in a temporary HOME; REAL_HOME=1 opts out | 4 | O-54 |
 | D-105 | 2026-10-15 | symbols in clangd's order; `M-o` ignores case | 10 | O-55 |
 | D-106 | 2026-10-15 | `M-o` symbols per server; `C-c l s` keeps kind groups | 10 | O-58 |
+| D-107 | 2026-10-15 | untracked output trees in the project's `.gitignore` | 7 | O-59 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
