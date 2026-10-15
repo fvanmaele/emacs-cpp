@@ -45,6 +45,10 @@ code is written for it. Each spike is a self-contained directory with its own bu
   symlink loses, with shards still loading on a restart and header flags from an
   includer (O-50 (c))? PASS on Arch (criteria 1 - 4); macOS under `/tmp` the owner's
   (T-077, `s13-symlinked-paths/RESULTS.md`).
+- **S14 symbol matches** - do CLion's mid-word (`ector`) and abbreviated-qualifier
+  (`geom::vert`) symbol matches work in clangd on deal.II's index without changing
+  today's fuzzy replies or slowing them (O-57 (b), (c))? Set up 2026-10-15 (T-103,
+  `s14-symbol-matches/RUN.md`).
 - **S10 deal.II sources index** - does an offline index of deal.II's sources make
   `M-.` reach definitions and `M-?` uses inside the library on RMO, with the patched
   clangd, at what memory (O-12)?

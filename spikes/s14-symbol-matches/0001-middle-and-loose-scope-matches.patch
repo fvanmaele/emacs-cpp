@@ -1,0 +1,119 @@
+--- a/clang-tools-extra/clangd/FindSymbols.cpp	2026-10-06 09:38:51
++++ b/clang-tools-extra/clangd/FindSymbols.cpp	2026-10-15 18:59:36
+@@ -253,6 +253,22 @@
+   return Query.empty();
+ }
+ 
++// S14 spike: each segment of the query's scope fuzzy-matches a segment of the
++// symbol's scope, in order, so geom:: matches GeometryInfo::.
++bool fuzzyScopeMatch(llvm::StringRef Scope, llvm::StringRef Query) {
++  llvm::SmallVector<llvm::StringRef> Want, Have;
++  Query.split(Want, "::", -1, /*KeepEmpty=*/false);
++  Scope.split(Have, "::", -1, /*KeepEmpty=*/false);
++  size_t I = 0;
++  for (llvm::StringRef Segment : Have) {
++    if (I == Want.size())
++      break;
++    if (FuzzyMatcher(Want[I]).match(Segment))
++      ++I;
++  }
++  return I == Want.size();
++}
++
+ } // namespace
+ 
+ llvm::Expected<Location> indexToLSPLocation(const SymbolLocation &Loc,
+@@ -294,6 +310,7 @@
+ 
+   FuzzyFindRequest Req;
+   Req.Query = std::string(Names.second);
++  Req.AllowMiddleMatch = Req.Query.size() >= 3; // S14 spike
+ 
+   // FuzzyFind doesn't want leading :: qualifier.
+   auto HasLeadingColons = Names.first.consume_front("::");
+@@ -313,12 +330,13 @@
+       Req.Limit.value_or(std::numeric_limits<size_t>::max()));
+   FuzzyMatcher Filter(Req.Query);
+ 
+-  Index->fuzzyFind(Req, [HintPath, &Top, &Filter, AnyScope = Req.AnyScope,
++  Index->fuzzyFind(Req, [HintPath, &Top, &Filter, &Req, AnyScope = Req.AnyScope,
+                          ReqScope = Names.first](const Symbol &Sym) {
+     llvm::StringRef Scope = Sym.Scope;
+     // Fuzzyfind might return symbols from irrelevant namespaces if query was
+     // not fully-qualified, drop those.
+-    if (AnyScope && !approximateScopeMatch(Scope, ReqScope))
++    if (AnyScope && !approximateScopeMatch(Scope, ReqScope) &&
++        !fuzzyScopeMatch(Scope, ReqScope)) // S14 spike
+       return;
+ 
+     auto Loc = symbolToLocation(Sym, HintPath);
+@@ -334,7 +352,10 @@
+     Relevance.Query = SymbolRelevanceSignals::Generic;
+     // If symbol and request scopes do not match exactly, apply a penalty.
+     Relevance.InBaseClass = AnyScope && Scope != ReqScope;
+-    if (auto NameMatch = Filter.match(Sym.Name))
++    auto NameMatch = Filter.match(Sym.Name);
++    if (!NameMatch && Req.AllowMiddleMatch) // S14 spike
++      NameMatch = middleMatch(Req.Query, Sym.Name);
++    if (NameMatch)
+       Relevance.NameMatch = *NameMatch;
+     else {
+       log("Workspace symbol: {0} didn't match query {1}", Sym.Name,
+--- a/clang-tools-extra/clangd/FuzzyMatch.h	2026-10-06 09:38:51
++++ b/clang-tools-extra/clangd/FuzzyMatch.h	2026-10-15 18:59:28
+@@ -68,6 +68,15 @@
+ 
+ // A matcher capable of matching and scoring strings against a single pattern.
+ // It's optimized for matching against many strings - match() does not allocate.
++// S14 spike: Pattern (3 or more characters) inside Word, in any case; the score
++// sits below every match FuzzyMatcher gives, so such symbols rank last.
++inline std::optional<float> middleMatch(llvm::StringRef Pattern,
++                                        llvm::StringRef Word) {
++  if (Pattern.size() >= 3 && Word.contains_insensitive(Pattern))
++    return 0.01f;
++  return std::nullopt;
++}
++
+ class FuzzyMatcher {
+ public:
+   // Characters beyond MaxPat are ignored.
+--- a/clang-tools-extra/clangd/index/Index.h	2026-10-06 09:38:51
++++ b/clang-tools-extra/clangd/index/Index.h	2026-10-15 18:59:28
+@@ -42,6 +42,10 @@
+   std::optional<uint32_t> Limit;
+   /// If set to true, only symbols for completion support will be considered.
+   bool RestrictForCodeCompletion = false;
++  /// S14 spike: a symbol whose name contains Query as a substring, in any case,
++  /// matches too, scored below fuzzy matches (FuzzyMatch.h, middleMatch).  Set by
++  /// workspace symbols only, so completion is unchanged.
++  bool AllowMiddleMatch = false;
+   /// Contextually relevant files (e.g. the file we're code-completing in).
+   /// Paths should be absolute.
+   std::vector<std::string> ProximityPaths;
+--- a/clang-tools-extra/clangd/index/MemIndex.cpp	2026-10-06 09:38:51
++++ b/clang-tools-extra/clangd/index/MemIndex.cpp	2026-10-15 18:59:28
+@@ -45,7 +45,10 @@
+         !(Sym->Flags & Symbol::IndexedForCodeCompletion))
+       continue;
+ 
+-    if (auto Score = Filter.match(Sym->Name))
++    auto Score = Filter.match(Sym->Name);
++    if (!Score && Req.AllowMiddleMatch)
++      Score = middleMatch(Req.Query, Sym->Name);
++    if (Score)
+       if (Top.push({*Score * quality(*Sym), Sym}))
+         More = true; // An element with smallest score was discarded.
+   }
+--- a/clang-tools-extra/clangd/index/dex/Dex.cpp	2026-10-06 09:38:51
++++ b/clang-tools-extra/clangd/index/dex/Dex.cpp	2026-10-15 18:59:28
+@@ -282,7 +282,9 @@
+   for (const auto &IDAndScore : IDAndScores) {
+     const DocID SymbolDocID = IDAndScore.first;
+     const auto *Sym = Symbols[SymbolDocID];
+-    const std::optional<float> Score = Filter.match(Sym->Name);
++    std::optional<float> Score = Filter.match(Sym->Name);
++    if (!Score && Req.AllowMiddleMatch)
++      Score = middleMatch(Req.Query, Sym->Name);
+     if (!Score)
+       continue;
+     // Combine Fuzzy Matching score, precomputed symbol quality and boosting

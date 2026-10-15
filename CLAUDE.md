@@ -58,6 +58,7 @@ D-109 patched fswatch built locally (T-098, 0074; Arch build left); fswatch back
 for eglot ruled (D-110, DESIGN 7.1), watch items ruled (D-111, 7.2); eglot vendored
 (T-090, 0075; Arch make test left); shared watches as patch 0002
 (T-102, 0076; Arch make test left);
+O-57 (b) + (c) to spike S14 (D-112, T-103);
 T-025 round 2, T-026 queued.
 
 ## Hard rules (each with its reason)
