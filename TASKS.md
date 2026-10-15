@@ -498,8 +498,8 @@ with `done when: ...`).
   the background index's main files by their real directory
   (`spikes/s13-symlinked-paths/RUN.md`, pass criteria proposed 2026-10-14). Done
   when: RESULTS.md has a verdict on criteria 1 - 5. Arch 2026-10-14 (0069): criteria
-  1 - 4 PASS. Left: the owner confirms the criteria; criterion 5, the owner's Mac run
-  under `/tmp`.
+  1 - 4 PASS. Criterion 5 (macOS under `/tmp`) PASS 2026-10-15, run here. Left: the
+  owner confirms the criteria.
 - T-076 (opened 2026-10-14, owner, O-50 (c)): research a clangd patch for projects
   reached through a symlink. Done when: `RESEARCH_platform_differences.md` 2.8 with
   the comparison that drops the main file, the patch's place and cost, what a spike
