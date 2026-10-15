@@ -46,7 +46,7 @@ clang-tidy fixes, clang-move (D-094); snippets: yasnippet, its collection on `C-
 own module (D-099).
 S12 change signature: FAIL, calls in templates (0066), O-43 (b) to the owner.
 Open: O-12; O-38 rg.el / ag.el; O-39 R server; O-47 hover;
-O-50 symlinked paths lose clangd references (S13 PASS on Arch and the Mac; 0010 to rule);
+O-50 resolved: patch 0010 with T-104 (D-114);
 O-57 CLion's extra symbol matches; O-56 theme following macOS appearance;
 D-105 symbols in clangd's order, `M-o` ignores case: built (T-084, 0072);
 D-106 `M-o` symbol sources per server (T-087, 0073); D-107 `build*/` in
@@ -58,7 +58,7 @@ D-109 patched fswatch built locally (T-098, 0074; Arch build left); fswatch back
 for eglot ruled (D-110, DESIGN 7.1), watch items ruled (D-111, 7.2); eglot vendored
 (T-090, 0075; Arch make test left); shared watches as patch 0002
 (T-102, 0076; Arch make test left);
-S14 PASS: O-57 (b) + (c) as clangd patches 0011 / 0012 (T-104, done when to agree);
+S14 PASS: O-57 (b) + (c) as clangd patches 0011 / 0012; T-104 agreed (0010 - 0012);
 D-113 0011 / 0012 switched per request, announced as a capability;
 T-025 round 2, T-026 queued.
 

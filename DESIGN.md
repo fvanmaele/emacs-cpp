@@ -1020,6 +1020,12 @@ each, with a recommendation; the owner agreed to all of them (D-111):
   each. Terminal check (toy, clangd and pyright): `M-o` `vector` from the `.cc`
   buffer shows clangd's heading first, from the `.py` buffer pyright's; `< s` shows
   both.
+- DECIDED D-114 (owner 2026-10-15, O-50 (c): "Yes, with T-104"; S13's criteria confirmed):
+  clangd patch 0010 names the background index's translation units by their real
+  directory (S13, PASS on Arch and the Mac), written fresh with a unit test in
+  `BackgroundIndexTests.cpp`, built together with T-104's 0011 / 0012: one pkgrel
+  (8), one Mac rebuild, one Arch package. Projects reached through a symlink, and
+  every project under `/tmp` on the Mac, keep their references.
 - DECIDED D-113 (owner 2026-10-15, O-63 (b)): CLion-style symbol matches (patches 0011
   / 0012, if S14 passes) are switched per request: fields in `workspace/symbol`'s
   parameters next to clangd's `limit` (e.g. `middleMatch` with its minimum length,
@@ -1670,7 +1676,8 @@ presets, GoogleTest runner.
   (T-059, owner's deal.II project `step-1`, Mac, 40 queries): filtering today's 100
   loses project symbols in 14 queries (373 symbols), 1000 in 2 (30), no limit in
   none, slowest reply 15.9 ms (2458 symbols), median 0.3 ms. To the owner.
-- O-50 (OPEN, found 2026-10-14 in S12, finding 6): in a project under `/tmp` on
+- O-50 (RESOLVED 2026-10-15 with D-114: (c), patch 0010 with T-104; S13 criteria
+  confirmed; found 2026-10-14 in S12, finding 6): in a project under `/tmp` on
   macOS the index loses every cross-file reference (3 instead of 201), with the
   patched and the stock clangd 23.1.3 alike: CMake writes `/tmp/...` into the compile
   database, Emacs opens the true name `/private/tmp/...`. Owner 2026-10-14: research
@@ -2431,6 +2438,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-111 | 2026-10-15 | file-watch items as DESIGN 7.2 recommends | 7 | O-61 |
 | D-112 | 2026-10-15 | spike S14 for mid-word and loose-scope symbols | 10 | O-57 |
 | D-113 | 2026-10-15 | symbol matches switched per request, a capability | 10 | O-63 |
+| D-114 | 2026-10-15 | clangd patch 0010, real paths, built with T-104 | 7 | O-50 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
