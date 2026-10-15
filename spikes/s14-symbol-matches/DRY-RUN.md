@@ -61,6 +61,6 @@ baseline run matches the first in 5 of 20 (ties at the cut).
 
 ## Owner's run
 ```
-bash spikes/s14-symbol-matches/build.sh   # skips what is built
+bash spikes/s14-symbol-matches/build.sh
 bash spikes/s14-symbol-matches/run.sh
 ```
