@@ -284,6 +284,11 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-095 (opened 2026-10-15, owner): research O-61 (h), a tree watcher for eglot
+  with `fswatch` or Watchman. Done when: `RESEARCH_platform_differences.md` 3.12
+  with both measured on an LLVM-sized tree (cost, latency, a burst read and
+  unread), path spelling, Arch packages, how eglot would use them, options. Done
+  2026-10-15.
 - T-094 (opened 2026-10-15, owner): research what CLion, Xcode and Qt Creator do on
   macOS for file watches and large repositories. Done when:
   `RESEARCH_platform_differences.md` 3.11 with each from sources (CLion's

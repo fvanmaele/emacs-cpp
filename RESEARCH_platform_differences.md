@@ -727,6 +727,87 @@ the patterns draft of 3.10; not applied anywhere):
 - Qt Creator's choice, offering servers no watching, is 3.6 (c) here (setting D
   of 3.5): the server never exits and goes stale.
 
+### 3.12 A tree watcher for eglot: fswatch and Watchman (owner 2026-10-15, T-095, O-61 (h))
+Owner: "Research O-61 (h). fswatch and watchman both installed through macports."
+Mac, 2026-10-15: fswatch 1.20.1, Watchman 2026.07.27.00 (MacPorts). Test tree in
+a scratch directory, sized like LLVM: 15408 directories, 187395 files (LLVM's
+checkout: 16993 directories, 187428 tracked files). Watchman writes cookie files
+into the root it watches, so it was kept off the owner's checkouts; `fswatch` was
+also run read-only on `~/source/repos/llvm-project`. Prototype code (an Emacs
+filter turning `fswatch` output into LSP changes) in the scratch directory only.
+
+**What each is:**
+- `fswatch`: a command printing one record per changed path, with flags
+  (`fswatch -0 -r -x --event-flag-separator=, -l 0.1 -e '/\.git/' ROOT`); on macOS
+  its `fsevents_monitor` (also `kqueue_monitor`, `poll_monitor`). No daemon.
+- Watchman: a daemon per user (started on demand, socket under `$TMPDIR`); a
+  client asks it to watch a root (`watch-project`), then queries "files changed
+  since clock C" or subscribes (`subscribe`, JSON lines on a persistent
+  connection, fields such as `name`, `exists`, `new`). It ignores `.git` itself,
+  not `.gitignore`.
+
+**Measured:**
+| | fswatch | Watchman |
+|---|---|---|
+| start | at once, no crawl | crawl of 187395 files: 1.9 s (watch + first query) |
+| descriptors | 8 (LLVM's checkout: 8) | 58 (daemon) |
+| memory | 6 MB (LLVM: 6 MB) | daemon 21 MB idle, 101 MB with the tree |
+| change to record | 15 - 106 ms at 0.1 s latency | not timed |
+| 20000 changes, Emacs reading | all 20000, no overflow | not run with Emacs |
+| 20000 changes, reader paused | 980 - 998, rest lost silently | all 20000 (5 messages) |
+| writes into the tree | none | cookie files at the root, removed again |
+| Arch | `extra` 1.22.0 | AUR only (`watchman-bin` 2026.07.27.00) |
+
+- Emacs's share (prototype filter: split records, `file-exists-p`, eglot's glob
+  matcher, `eglot-path-to-uri`): 3.7 - 4.1 s of CPU for 20000 records, spread over
+  the 15 - 18 s the writes took; not broken down, but eglot's glob matcher is the
+  known slow part (3.10). A regexp per pattern and a stat only for records flagged
+  `Removed` would cut it.
+- The loss with `fswatch`: while the reader does not read, `fswatch` fills the pipe
+  (about 1000 records, 64 KB) and blocks; FSEvents drops what comes meanwhile, and
+  `--allow-overflow` reported nothing. Records written after the reader resumed
+  arrived. In Emacs: a filter not called for a while (a long synchronous command, a
+  long collection) during a burst such as `git checkout` loses changes silently.
+  Watchman's daemon keeps the changes and hands them over when read (clock-based),
+  so a paused Emacs loses nothing.
+- Flags with FSEvents add up per path: a file created and then removed was
+  reported as `Created,IsFile,Updated,Removed,AttributeModified`. Deciding
+  created / changed / deleted needs a stat at the time of the record. Watchman
+  answers `exists` and `new` directly.
+- Paths: both report the real path. `fswatch` given `/tmp/...` reports
+  `/private/tmp/...`, and `watch-project` answers with `/private/tmp/...`; eglot
+  would map them back to the project root's spelling (cf. O-50).
+
+**On Linux (Arch), not measured:** both use inotify there, one watch per directory,
+as Emacs's own `file-notify` does; the limit is the kernel's
+`fs.inotify.max_user_watches` (owner: `sysctl fs.inotify.max_user_watches`), not
+descriptors. A tree watcher changes little on Arch; the problem it solves is
+macOS's kqueue.
+
+**Prior art:** no Emacs package found that feeds `fswatch` or Watchman into eglot or
+`file-notify` (one web search). lsp-mode watches with `file-notify` too and warns
+past `lsp-file-watch-threshold` (1000), suggesting to raise it, to ignore
+directories, or to turn watching off.
+
+**How it would sit in the vendored eglot** (a patch, not drafted):
+- A variable choosing the backend: `file-notify` (today), `fswatch`, or Watchman.
+- One watcher process (or one Watchman subscription) per server and project root,
+  shared by the server's registrations (as (e)); registrations based outside the
+  project stay on `file-notify` or are skipped (D-054 skips them on macOS).
+- Each record: map the real path back, skip `.git`, skip buffers eglot manages,
+  match the registration's globs, decide the change type, batch the changes into
+  one `didChangeWatchedFiles` per filter call.
+- Shutdown: kill the process, or end the subscription (and `watch-del` the root,
+  or leave the watch to Watchman's own aging).
+
+**Options** (not ruled, O-61 (h1) - (h4)):
+- (h1) `fswatch` backend: light (8 descriptors, 6 MB), no crawl, in Arch's `extra`;
+  loses changes silently when Emacs does not read during a burst.
+- (h2) Watchman backend: no loss, exact created / deleted; a 100 MB daemon for
+  LLVM's size, a crawl at first watch, cookie files in the root, AUR on Arch.
+- (h3) Either on macOS only, `file-notify` on Arch (a D-055 platform default).
+- (h4) Neither: (e) / (g) and exclusions (3.9).
+
 ## 4. Other differences met so far
 Decided already; listed so that one document points at all of them.
 
