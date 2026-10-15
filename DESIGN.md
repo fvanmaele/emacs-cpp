@@ -811,6 +811,14 @@ Known defects: none yet (nothing built).
   file candidate (`consult--find-file-temporarily`: `c++-ts-mode` setup, and the
   native trampoline for its advice on `run-hooks`, cached but loaded again each
   session, 60 - 104 ms); not changed here, researched as O-41.
+- DECIDED D-105 (owner 2026-10-15, O-55: "(a) + (b)"; tier 2, done when to agree):
+  symbols in clangd's order and `M-o` ignoring case, as CLion (RESEARCH_go_to_anything
+  14, 15). (a) `M-o` and `C-c l s` list each server's `workspace/symbol` reply in the
+  order the server sent it, best match first; no re-sort by the reply's `score`,
+  which leaves the name match out (toy: `count` then below `count_vertices_globally`;
+  CLion and clangd put `count` first). (b) `M-o`'s buffers, recent files, bookmarks,
+  project files, commands and projects match ignoring case (`readme` finds
+  `README.md`). Build: T-084.
 - DECIDED D-086 (owner 2026-10-13: "the behavior of M-o <l should match C-c l s";
   done when agreed): `M-o` `< l` with no input asks clangd for "" and lists its
   first 100 symbols, as `C-c l s` does when it opens; one or two characters keep
@@ -1505,14 +1513,15 @@ presets, GoogleTest runner.
   and times before the run and fails when they changed after it. Options: (a) that check
   in `make test`; (b) run the tests with `HOME` set to a temporary directory; (c)
   neither. Owner rules.
-- O-55 (OPEN, owner request 2026-10-15, T-081): fuzzy matching in `M-o` and `C-c l s`
-  (`RESEARCH_go_to_anything.md` 14). Found: `M-o`'s buffers and files match by
-  consult's regexps, case sensitive, no orderless; symbols by clangd's segment-wise
-  fuzzy matcher, from the third character, no spaces; both prompts re-sort clangd's
-  reply by a score without the name match (toy: `count` below
-  `count_vertices_globally`). Options: (a) keep clangd's order, (b) ignore case in
-  `M-o`, (c) orderless for `M-o`'s static sources, (d) initials / flex, (e) several
-  words to clangd, (f) two-letter symbol input. Owner rules.
+- O-55 (RESOLVED 2026-10-15 with D-105: (a) + (b); the extra symbol matches CLion makes
+  researched as O-57; owner request 2026-10-15, T-081): fuzzy matching in `M-o` and
+  `C-c l s` (`RESEARCH_go_to_anything.md` 14). Found: `M-o`'s buffers and files match by
+  consult's regexps, case sensitive, no orderless; symbols by clangd's segment-wise fuzzy
+  matcher, from the third character, no spaces; both prompts re-sort clangd's reply by a
+  score without the name match (toy: `count` below `count_vertices_globally`). Options:
+  (a) keep clangd's order, (b) ignore case in `M-o`, (c) orderless for `M-o`'s static
+  sources, (d) initials / flex, (e) several words to clangd, (f) two-letter symbol input.
+  Owner rules.
   Compared with CLion 2026.2 (2026-10-15, T-083, `RESEARCH_go_to_anything.md` 15,
   from IntelliJ's sources, not typed into CLion): case ignored, lower-case humps
   from the first letter, a space as an in-order wildcard, exact name first. Closest
@@ -1524,6 +1533,14 @@ presets, GoogleTest runner.
   a loose qualifier (`geom::vec`); `count() const` first in both, re-sorted away
   here; no typo seen. Search Everywhere's files: case ignored, humps, space in
   order.
+- O-57 (OPEN, owner 2026-10-15 with D-105: "research Optional", T-085): the symbol
+  matches CLion makes and clangd refuses (`RESEARCH_go_to_anything.md` 16): mid-word
+  (`ector`; clangd's trigrams admit it, only its matcher refuses), a gap inside a
+  word (`cml`; its trigrams refuse it), a loose qualifier (`geom::vec`; only the
+  scope check in `FindSymbols.cpp` refuses). Options: (a) loose qualifier in `M-o`
+  only, no clangd change; (b) patch 0010, loose qualifier in clangd; (c) patch,
+  mid-word for 3+ letters under a request field; (d) gaps inside a word, largest
+  cost; (e) none. A clangd patch is tier 3: spike first. Owner rules.
 - O-56 (OPEN, owner request 2026-10-15, T-082): a theme following macOS's dark / light
   setting (`RESEARCH_dark_theme.md`). Found: the NS build of Emacs 31.1 sets no
   `toolkit-theme` and runs no hook on a change; `defaults read -g
@@ -2031,6 +2048,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-102 | 2026-10-14 | LaTeX: no LyX keys, AUCTeX's own only | 12 | O-46 |
 | D-103 | 2026-10-14 | latexindent as texlab runs it; indent as AUCTeX's TAB | 12 | O-53 |
 | D-104 | 2026-10-14 | `make test` in a temporary HOME; REAL_HOME=1 opts out | 4 | O-54 |
+| D-105 | 2026-10-15 | symbols in clangd's order; `M-o` ignores case | 10 | O-55 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
