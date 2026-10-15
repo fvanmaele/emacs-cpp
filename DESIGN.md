@@ -250,7 +250,7 @@ Observed on the owner's Mac, 2026-10-09 (D-050):
 | early init | `early-init.el` | KEEP | T-002, owner-confirmed |
 | platform defaults | `lisp/defaults-<platform>.el` | PROTOTYPE | T-031 (D-055) |
 | init | `init.el` | KEEP | T-002, replaces `~/.emacs` (D-003) |
-| packages | `lib/<repo>/` submodules | KEEP | 31 repositories after T-065 (section 12) |
+| packages | `lib/<repo>/` submodules | KEEP | 34 packages after T-090 (section 12) |
 | clangd, macOS | `packaging/clangd-index-nav/build-macos.sh` | PROTOTYPE | T-023, D-052 |
 | fswatch | `packaging/fswatch-no-loss/` | PROTOTYPE | T-098, D-109 |
 | package build | `scripts/build-packages.el` | KEEP | T-002, `make packages` |
@@ -511,6 +511,13 @@ Known defects: none yet (nothing built).
   the watch code (`eglot-completion-replace-semantics`, fixes). The upstream report
   (T-032) still goes out with the patch. Build: T-090. Owner 2026-10-15: no startup
   check that the patched eglot is the one loaded; that is the user's responsibility.
+  Built (T-090, 0075): submodule `eglot` at c79f727 with
+  `patches/eglot/0001-Keep-partial-file-watches-...`, its manual from `eglot.texi`;
+  `make packages` 34 packages, 7 patches, 10 manuals; the shipped profile loads
+  `lib/eglot/eglot.elc`. With the cap at 5 on 20 directories pyright stays up (the
+  test fails without the patch); `make test` 119 tests, 0 unexpected (Mac). eglot
+  is not loaded at startup, so startup is unchanged: median 0.550 s on the Mac (10
+  runs, 0.531 - 0.560).
 - DECIDED D-107 (owner 2026-10-15, O-59 (a): "build*/ to .gitignore"): a project's
   large untracked output trees belong in its `.gitignore`; eglot's watches and
   projectile's file lists follow git's ignore rules, and the config does not list

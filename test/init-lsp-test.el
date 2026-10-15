@@ -1,4 +1,4 @@
-;;; init-lsp-test.el --- Mouse navigation and the right-click menu  -*- lexical-binding: t; -*-
+;;; init-lsp-test.el --- Mouse navigation, the right-click menu, vendored eglot  -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 
@@ -7,6 +7,9 @@
 ;; or lists references when it is on the definition; right click opens a menu, with
 ;; the language server's entries in a managed buffer.  xref's backend is a stub, so
 ;; no server is needed; the clicks in a graphical frame are a hand check.
+;;
+;; eglot comes from lib/eglot with patch 0001 (D-108, T-090): with the watch limit
+;; reached pyright keeps running.  That test needs pyright and git.
 
 ;;; Code:
 
@@ -74,6 +77,58 @@ entries, elsewhere not."
                    '(emacs-cpp-lsp-separator emacs-cpp-lsp-rename emacs-cpp-lsp-actions
                      emacs-cpp-lsp-implementation emacs-cpp-lsp-format)))
     (should-not (funcall entries nil))))
+
+(ert-deftest init-lsp-eglot-vendored ()
+  "D-108: the shipped profile loads eglot from lib/eglot, not Emacs's own."
+  (init-test--load)
+  (require 'eglot)
+  (should (file-in-directory-p (symbol-file 'eglot--watch-globs)
+                               (expand-file-name "lib/eglot" build-packages-root))))
+
+(ert-deftest init-lsp-eglot-keeps-partial-watches ()
+  "D-108, patch 0001: a watch registration past `eglot-max-file-watches' keeps
+the watches it got and succeeds, so pyright stays up (without the patch it exits)."
+  (init-test--load)
+  (require 'eglot)
+  (let* ((root (file-name-as-directory
+                (file-truename (make-temp-file "emacs-cpp-watch" t))))
+         (default-directory root)
+         (buffers-before (buffer-list))
+         (eglot-max-file-watches 5)
+         (eglot-watch-files-outside-project-root nil))
+    (unwind-protect
+        (progn
+          (dotimes (i 20)
+            (make-directory (expand-file-name (format "pkg%d" i) root))
+            (write-region (format "def f%d():\n    return %d\n" i i) nil
+                          (expand-file-name (format "pkg%d/m.py" i) root)))
+          (write-region "from pkg7.m import f7\n\nprint(f7())\n" nil
+                        (expand-file-name "main.py" root))
+          (should (eql 0 (call-process "git" nil nil nil "init" "-q")))
+          (let ((buffer (find-file-noselect (expand-file-name "main.py" root))))
+            (with-current-buffer buffer
+              (run-hooks 'post-command-hook)
+              (should (init-test--wait-managed 20))
+              (let ((server (eglot-current-server))
+                    (deadline (+ (float-time) 20)))
+                ;; Wait for pyright's registrations, then a few seconds more: it
+                ;; exits about 80 ms after a failed one.
+                (while (and (zerop (hash-table-count (eglot--file-watches server)))
+                            (< (float-time) deadline))
+                  (accept-process-output nil 0.2))
+                (should (< 0 (hash-table-count (eglot--file-watches server))))
+                (let ((settle (+ (float-time) 3)))
+                  (while (< (float-time) settle)
+                    (accept-process-output nil 0.2)))
+                (should (process-live-p (jsonrpc--process server)))
+                (should (<= (eglot--count-file-watches) 5))))))
+      (dolist (server (apply #'append (hash-table-values eglot--servers-by-project)))
+        (ignore-errors (eglot-shutdown server)))
+      (dolist (buffer (buffer-list))
+        (unless (memq buffer buffers-before)
+          (let ((kill-buffer-query-functions nil))
+            (kill-buffer buffer))))
+      (delete-directory root t))))
 
 (provide 'init-lsp-test)
 ;;; init-lsp-test.el ends here
