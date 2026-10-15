@@ -2,7 +2,8 @@
 
 Findings only; verdicts go to DESIGN (O-30 -> D-074, O-31 -> D-076, O-32 -> D-075,
 performance: O-33 -> D-077, narrowed to symbols: O-34 -> D-079,
-path filter for symbols: O-52 -> D-082, fuzzy matching and CLion: O-55). Owner request
+path filter for symbols: O-52 -> D-082, fuzzy matching and CLion: O-55 -> D-105,
+CLion's extra symbol matches: O-57). Owner request
 2026-10-11: a "go to anything" key in Emacs that works like CLion's (the owner calls it
 `M-M`): symbols, project files, bookmarks and more from one prompt. Arch, Emacs 31.1,
 2026-10-11. Package facts from the vendored sources at their pins (consult 3.10,
@@ -773,6 +774,91 @@ What it shows:
   (`vector_tools.h`), mid-word from 3 characters (`EvaluatorSelector`). `M-o`'s
   files: `vec tools` and `ector` match (any substring), `readme`, `cml` and
   `pshbk` do not.
+
+## 16. CLion's extra symbol matches with clangd (owner 2026-10-15, T-085)
+Owner, ruling O-55 (a) + (b) (D-105): "research Optional", i.e. the three kinds of
+symbol match CLion made and clangd refuses (section 15): mid-word (`ector` in
+`TangentVector`), a lower-case letter inside a word after a gap (`cml` in
+`class_multilevel_experiment`), a loose qualifier (`geom::vec` to
+`GeometryInfo::vertices_per_cell`). Read in clangd 23.1.1 (`index/dex/Dex.cpp`,
+`index/dex/Trigram.cpp`, `index/MemIndex.cpp`, `index/Index.h`, `FindSymbols.cpp`,
+`FuzzyMatch.cpp`), which the patched clangd builds (patches 0001 - 0009 touch none
+of these). Nothing built or measured.
+
+**Where clangd refuses each, along a `workspace/symbol` request:**
+1. `getWorkspaceSymbols` splits the query at its last `::` (scope, name), sends the
+   name as `FuzzyFindRequest::Query` with the scope as a boost (`AnyScope`).
+2. Dex intersects the query's trigrams with each symbol's (section 14), caps at
+   `Limit * 100` by quality, then drops every symbol `FuzzyMatcher` refuses.
+   MemIndex (main files, dynamic index) scans all symbols with the same matcher.
+3. `getWorkspaceSymbols` drops symbols whose scope fails `approximateScopeMatch`
+   (whole segments, in order), matches the name again, ranks, keeps `Limit`.
+The index's matcher is shared: code completion (`CodeComplete.cpp`), the include
+fixer and `XRefs.cpp` also call `fuzzyFind`. A looser matcher there changes what
+completion receives within its limit, so any loosening needs a request field that
+only workspace symbols set (as section 13 (b) for paths).
+
+**Mid-word (`ector`):**
+- Trigrams already admit it: a symbol's trigrams follow "next letter" and "next
+  word start", so every run of three letters in a row is among them; `ect`, `cto`,
+  `tor` are all in `TangentVector`'s. Only `FuzzyMatcher` refuses (first letter
+  not at a word start).
+- Change: a new `FuzzyFindRequest` field (for example `MiddleMatch`), set by
+  `getWorkspaceSymbols` for queries of 3 or more letters (IntelliJ's minimum);
+  where `FuzzyMatcher::match` fails, Dex, MemIndex and `getWorkspaceSymbols` accept
+  a case-ignoring substring at a score below every hump match. Files: `Index.h`,
+  `Index.cpp` (`==`, JSON), `Dex.cpp`, `MemIndex.cpp`, `FindSymbols.cpp`, a
+  substring helper next to `FuzzyMatcher`. No index format change.
+- Cost: no new candidates reach the loop, only fewer are refused; one substring
+  test per refused candidate. More results per query, so the `Limit` cut and
+  `M-o`'s `emacs-cpp-go-symbol-limit` are reached sooner (D-083's message).
+
+**Inside a word after a gap (`cml`):**
+- Trigrams refuse it before the matcher: a symbol's trigrams only jump to the next
+  word start; `class_multilevel_experiment` has `cmu` and `cme`, not `cml`. Dex
+  never offers the symbol.
+- Change: either trigrams for every jump inside a word (per identifier about the
+  cube of a word's length instead of its length: posting lists and memory grow,
+  for every query, completion's too), or, under a request field, skip the trigram
+  step and scan all symbols as MemIndex does (deal.II's index: number of symbols and
+  scan time not known; S11's replies took 0.3 - 49 ms). Plus `FuzzyMatcher` letting
+  a lower-case letter match after a gap (`allowMatch`), which also changes its
+  scores.
+- CLion's own rule for it was not found: the parts of IntelliJ's matcher read
+  (section 15) do not say how an all-lower-case pattern treats a gap inside a word,
+  and Go to Symbol's C++ results may use Nova's (ReSharper's) matcher; Rider's
+  pages do not say.
+
+**Loose qualifier (`geom::vec`):**
+- Only step 3 refuses: the name `vec` matches `vertices_per_cell`, Dex boosts but
+  does not require the scope (`AnyScope`), then `approximateScopeMatch` wants
+  `geom::` as a whole segment of `GeometryInfo::`.
+- Change in clangd: `approximateScopeMatch` matching each query segment with
+  `FuzzyMatcher` against the symbol's segments, in order; `FindSymbols.cpp` only;
+  the result field, ranking (`InBaseClass` penalty when scopes differ) unchanged.
+- Without clangd: `M-o` splits the input at its last `::` itself, sends only the
+  name (`vec`) and keeps replies whose `containerName` (the scope, sent by clangd)
+  matches the qualifier, by a regexp per letter (continue the word, or jump to a
+  later word start). For `s` this works within `emacs-cpp-go-symbol-limit` (the
+  name alone matches more symbols; D-083's message warns at the cap); for `l` and
+  `C-c l s` within clangd's 100, which a short name fills with other scopes.
+  `C-c l s` would need its own source (consult-eglot sends the input whole).
+
+**Ranking for all three:** CLion lists exact and hump matches before middle and
+qualifier ones (section 15); clangd's order would hold that if the new matches score
+below the old ones (a substring score under the lowest hump score; a fuzzy scope
+match penalised as `InBaseClass`).
+
+**Options** (not ruled, O-57):
+- (a) Loose qualifier in Emacs only (`M-o`), no clangd change; `C-c l s` unchanged.
+- (b) Patch 0010: loose qualifier in clangd (`FindSymbols.cpp` only), both prompts.
+- (c) Patch 0010 / 0011: mid-word for 3+ letters under a request field (five
+  files).
+- (d) Inside-a-word gaps (`cml`): trigram change or a full scan; largest cost,
+  rule not known from CLion; not pursued unless asked.
+- (e) None.
+- A clangd patch is tier 3: spike first (deal.II index: replies and times for a set
+  of mid-word and qualified queries, against today).
 
 ## Sources
 - JetBrains, CLion help "Search everywhere":
