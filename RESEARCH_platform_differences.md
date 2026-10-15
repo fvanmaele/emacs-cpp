@@ -870,6 +870,42 @@ reporting for options -x and -o", open since 2019) is the nearest.
 - (iii) Only change 1 in fswatch; decide created / deleted in Emacs with a stat
   per record (the prototype filter of 3.12 does so).
 
+Owner 2026-10-15: (ii), a local build (D-109); "Check Change2 and memory use"
+(T-097). Same tree and test scripts, scratch builds.
+
+**Change 2, in a real drop:** a second build with changes 2 and 3 but fswatch's
+own blocking output (so a paused reader still makes FSEvents drop): with
+`--allow-overflow` one record `TREE Overflow` (989 records, the rest dropped, the
+drop now named); without it fswatch ends with "libc++abi: terminating due to
+uncaught exception of type fsw::libfsw_exception: Event queue overflow." (libfswatch
+throws on overflow unless allowed, for every monitor; a client passes
+`--allow-overflow`). With change 1 in place no drop was seen in any run.
+
+**Memory, a reader that never reads:** the full prototype, 50000 files created and
+removed again (100000 events) while nothing reads, then drained:
+| | resident memory |
+|---|---|
+| idle | 6.1 MB |
+| 100000 records waiting | 24.8 MB (+18.7 MB, about 192 bytes per record) |
+| after reading them all | 24.8 MB |
+Output was 16.8 MB (168 bytes per record), so the queue costs little beyond the
+records themselves. The memory is not handed back after draining (the allocator
+keeps it for the next burst). Without a bound, a reader stopped for good lets it
+grow with every change; a cap (records or bytes) that empties the queue and emits
+one `Overflow` record would bound it and still say so.
+
+**The locale finding, explained:** with gettext found at configure time
+(`ENABLE_NLS`), `main` calls `setlocale(LC_ALL, "")`, and `-l` is read with
+`strtod`, so under `de_DE.UTF-8` the latency needs a decimal comma. MacPorts' build
+links no libintl and stays in the C locale. A fswatch bug, in every build with NLS;
+a local build either turns NLS off or sets `LC_NUMERIC` back to "C" after
+`setlocale`.
+
+**Version:** the newest release is 1.22.0 (2026-07-22; Arch `extra` ships it,
+MacPorts 1.20.1); 33 commits since 1.20.1, none in `fsevents_monitor.cpp`. The
+prototype applies to 1.22.0 unchanged; built there, the paused-reader run gave
+10001 records and the four single cases the same flags as on 1.20.1.
+
 ## 4. Other differences met so far
 Decided already; listed so that one document points at all of them.
 

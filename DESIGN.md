@@ -476,6 +476,13 @@ Known defects: none yet (nothing built).
   entry (in RMO `fmt/src/format.cc`, wrong include paths). S1 live check: once an
   including `.cc` is open, clangd reuses its flags and the header is clean; opened
   first, it shows errors. The patched clangd takes an includer from its index (D-028).
+- DECIDED D-109 (owner 2026-10-15, O-61 (h1) (ii); tier 2, done when to agree): a
+  patched fswatch is built locally on both machines, as clangd is (D-026, D-052):
+  its FSEvents callback never blocks on the reader, drops are reported as
+  overflow, a path's present state decides removed or not
+  (`RESEARCH_platform_differences.md` 3.13); installed next to the system fswatch.
+  It serves an fswatch backend for eglot (O-61 (h1)), which is not designed yet.
+  Build: T-098.
 - DECIDED D-108 (owner 2026-10-15, O-60 (b): "Vendor eglot"; tier and done when to
   agree): eglot comes from a submodule, `lib/eglot` from
   github.com/emacs-straight/eglot (GNU ELPA's eglot, i.e. Emacs master's, no tags),
@@ -1604,7 +1611,12 @@ presets, GoogleTest runner.
   records against stock's 959), drops reported as overflow, `lstat` decides
   removed or present (created-then-removed: `Removed` only). Ways: (i) upstream
   pull request, (ii) a local build as for clangd, (iii) only the writer thread in
-  fswatch, the stat in Emacs.
+  fswatch, the stat in Emacs. Owner 2026-10-15: (ii) (D-109). Checked (T-097):
+  change 2 names a real drop (`TREE Overflow`; without `--allow-overflow` fswatch
+  aborts); 100000 unread records cost 18.7 MB, kept after draining, unbounded
+  without a cap; the prototype applies to 1.22.0 and behaves the same; fswatch
+  misreads `-l 0.1` in a comma locale when built with NLS. Still open in (h1): the
+  eglot backend itself.
 - O-60 (RESOLVED 2026-10-15 with D-108: (b) vendor eglot; tracked-only lists still
   undecided, moved to O-61; owner 2026-10-15 with D-107, T-089): (b) tracked-only file
   lists and (c) an eglot patch keeping partial watches (`RESEARCH_platform_differences.md`
@@ -2160,6 +2172,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-106 | 2026-10-15 | `M-o` symbols per server; `C-c l s` keeps kind groups | 10 | O-58 |
 | D-107 | 2026-10-15 | untracked output trees in the project's `.gitignore` | 7 | O-59 |
 | D-108 | 2026-10-15 | eglot vendored (GNU ELPA mirror) with a watch patch | 7 | O-60 |
+| D-109 | 2026-10-15 | fswatch built locally with a no-loss patch | 7 | O-61 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.

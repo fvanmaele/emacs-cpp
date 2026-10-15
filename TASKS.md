@@ -284,6 +284,23 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-098 (opened 2026-10-15, D-109): package the patched fswatch. Tier proposed: 2.
+  Done when (proposed 2026-10-15, not yet agreed): `packaging/fswatch-no-loss/` holds
+  a `PKGBUILD` (Arch, installs to /opt/fswatch-no-loss, next to the `extra`
+  package) and `build-macos.sh` (to ~/opt/fswatch-no-loss, tools from MacPorts),
+  both from the 1.22.0 release with the checksum pinned, and the patches split
+  0001 writer thread with a cap (200000 waiting records, then the queue is emptied
+  and one `Overflow` record written), 0002 drops as overflow, 0003 present state by
+  `lstat`, 0004 numbers parsed in the C locale; `check.sh` next to them builds
+  nothing and runs the installed binary in a temporary tree: 10000 creations while
+  the reader pauses arrive whole, a created-then-removed file reads `Removed` only,
+  the cap gives one `Overflow` and bounded memory, `-l 0.1` is accepted under
+  `de_DE.UTF-8`. The Mac build and check run here; the Arch build and check are
+  the owner's. Nothing in the Emacs config uses it yet. DESIGN D-109, journal.
+- T-097 (opened 2026-10-15, owner with D-109): check change 2 of the fswatch
+  prototype and its memory use. Done when: `RESEARCH_platform_differences.md` 3.13
+  with a real drop reported, memory with a reader that never reads, measured.
+  Done 2026-10-15.
 - T-096 (opened 2026-10-15, owner): can fswatch be patched not to lose events and
   to tell created from deleted? Done when: `RESEARCH_platform_differences.md` 3.13
   with the cause in fswatch's code, a prototype built and checked against the
