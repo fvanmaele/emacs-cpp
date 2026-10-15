@@ -64,6 +64,13 @@ macOS (kqueue) each watch is a file descriptor.
    already notes "Could `(setq success t)' here to keep partial watches"), keeping the
    warning. A server then loses notifications for some directories instead of
    exiting.
+   A patch for this is attached (`eglot-watch-cap-partial-watches.patch`, against
+   Emacs 31.1's eglot.el; the code is the same on master as of 2026-10-15). With
+   it, the reproduction above keeps pyright running (600 directories, limit 500),
+   and so does 1100 directories with `eglot-max-file-watches` nil, where kqueue
+   refuses the 975th watch and unpatched eglot leaves "Error running timer:
+   (file-notify-error "File watching not possible, no file descriptor left" 975)"
+   and an exited pyright.
 2. Share one file watch per directory among registrations (count and limit
    directories, not registration-directory pairs).
 
