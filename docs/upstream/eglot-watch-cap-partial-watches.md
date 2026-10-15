@@ -71,6 +71,12 @@ macOS (kqueue) each watch is a file descriptor.
    refuses the 975th watch and unpatched eglot leaves "Error running timer:
    (file-notify-error "File watching not possible, no file descriptor left" 975)"
    and an exited pyright.
+   One limit of this patch alone: pyright registers three times and then
+   unregisters the first two. If the first two reach the limit, the third gets no
+   watches, and once the first two are removed none are left (measured: 600
+   directories, limit 500, 0 watches 15 s after connecting). Re-running a
+   registration that was cut short when another is removed, or suggestion 2,
+   would close that gap.
 2. Share one file watch per directory among registrations (count and limit
    directories, not registration-directory pairs).
 

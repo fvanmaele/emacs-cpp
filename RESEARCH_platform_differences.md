@@ -566,6 +566,63 @@ the owner's checkouts:
 - (e) Suggestion 2, shared watches (patch, larger; also upstream).
 - (f) Nothing beyond D-108: partial watches, a warning, pyright stays up.
 
+### 3.10 Draft: watch patterns per server (owner 2026-10-15, T-092, O-61 (c))
+Owner: "Draft a patch for the vendored eglot, which configured watch patterns for
+different servers - although this does still not solve the issue on repositories
+like LLVM." Draft: `docs/upstream/eglot-watch-file-patterns.patch`, against the
+mirror (c79f727) with `eglot-watch-cap-partial-watches.patch` applied first (it
+applies there unchanged). Mac, 2026-10-15, all in a scratch directory.
+
+**What it adds:** `eglot-watch-file-patterns`, an alist `(MODES . PATTERNS)`, MODES
+as in `eglot-server-programs`. For a server managing one of MODES, eglot watches a
+project directory only if it holds a file whose base name matches one of PATTERNS
+(shell wildcards), plus the project root. Servers without an entry, and
+registrations based outside the project (library roots, `subdirs-using-find`), are
+unchanged; which events are reported still follows the server's own globs. For
+this config's servers it would read, for example:
+`(((python-mode python-ts-mode) "*.py" "*.pyi" "pyproject.toml" "pyrightconfig.json")
+((LaTeX-mode latex-mode bibtex-mode) "*.tex" "*.bib" "*.sty" "*.cls"))`; clangd
+asks for no watches.
+
+**Why base-name wildcards, not LSP globs:** a first version took LSP globs
+(`**/*.py`) through eglot's own `eglot--glob-compile`; matching every file of the
+list took 1157 ms for deal.II (33768 files) and 5678 ms for LLVM (187428): the
+matcher inserts each name into a buffer. One regexp from `wildcard-to-regexp` over
+the base names: 70 ms and 346 ms, the same 19 / 3199 matches. Both run once per
+registration, after `project-files` has listed the files.
+
+**Checked:**
+- Byte-compiles with no new warning (the mirror's two xref warnings are there
+  without it).
+- Toy with pyright 1.1.414: 600 directories, `.py` files in 10 of them and
+  `main.py` at the root, `eglot-max-file-watches` 500, project directories only,
+  15 s after connecting:
+
+  | eglot | pyright | watches at most | watches at the end |
+  |---|---|---|---|
+  | mirror + 0001, no patterns | runs | 500 | 0 |
+  | mirror + 0001 + 0002, Python patterns | runs | 22 | 11 |
+  | mirror + 0001 + 0002, no patterns set | runs | 500 | 0 |
+
+**Found: 0001 alone ends with no watches.** pyright registers three times and then
+unregisters the first two (3.5). With the cap reached by the first two, the third
+gets none (0001 keeps it, empty); when the first two go, nothing is left. So 0001
+keeps pyright alive but blind whenever the cap is reached. The patterns avoid it
+where they shrink the list below a third of the cap. Remedies, not drafted: re-run
+a registration that was cut short whenever another is removed (O-61 (g)), or one
+watch per directory shared by a server's registrations (O-61 (e)).
+
+**LLVM:** with the Python patterns, 1779 directories (of 14419) hold Python files:
+past 500 by itself, and three registrations make it 5337. With 0001 the result is
+the zero-watch case above. As the owner says, the draft does not solve it; per
+project exclusions (3.9) or (e) / (g) would still be needed there.
+
+**Risks of the draft:**
+- A file matching the patterns created in a directory that held none goes
+  unnoticed until the server registers again (that directory is not watched).
+- The root is always watched, so a new top-level `.py` file is seen.
+- 32 changed lines: for Emacs upstream, copyright paperwork.
+
 ## 4. Other differences met so far
 Decided already; listed so that one document points at all of them.
 

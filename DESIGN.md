@@ -484,7 +484,8 @@ Known defects: none yet (nothing built).
   built-in eglot (`lib/` first on `load-path`). The mirror at c79f727 (2026-10-14)
   is newer than 31.1's eglot 1.24.31 (its header says 1.24): 182 lines differ outside
   the watch code (`eglot-completion-replace-semantics`, fixes). The upstream report
-  (T-032) still goes out with the patch. Build: T-090.
+  (T-032) still goes out with the patch. Build: T-090. Owner 2026-10-15: no startup
+  check that the patched eglot is the one loaded; that is the user's responsibility.
 - DECIDED D-107 (owner 2026-10-15, O-59 (a): "build*/ to .gitignore"): a project's
   large untracked output trees belong in its `.gitignore`; eglot's watches and
   projectile's file lists follow git's ignore rules, and the config does not list
@@ -1576,7 +1577,12 @@ presets, GoogleTest runner.
   tracked-only lists (undecided); (b) per-project exclusions, documented; (c) a
   language filter in the vendored eglot; (d) open buffers' directories first under
   the cap; (e) shared watches across registrations; (f) nothing beyond D-108.
-  Owner rules.
+  Owner 2026-10-15: draft (c) (T-092, research 3.10): `eglot-watch-file-patterns`,
+  base-name wildcards per major modes, 32 lines on top of 0001; on a toy pyright
+  keeps 11 watches instead of 500; LLVM still 1779 Python directories. Found: with
+  0001 alone pyright ends with 0 watches once it unregisters its first two
+  registrations, which had taken the cap: (g) re-run a truncated registration when
+  another is removed, or (e). Owner rules.
 - O-60 (RESOLVED 2026-10-15 with D-108: (b) vendor eglot; tracked-only lists still
   undecided, moved to O-61; owner 2026-10-15 with D-107, T-089): (b) tracked-only file
   lists and (c) an eglot patch keeping partial watches (`RESEARCH_platform_differences.md`

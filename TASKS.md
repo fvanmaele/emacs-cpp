@@ -284,6 +284,12 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-092 (opened 2026-10-15, owner): draft a patch for the vendored eglot with
+  watch patterns per server. Done when: a draft in `docs/upstream/` checked against
+  the mirror (with patch 0001), measured on deal.II's and LLVM's file lists and on a
+  toy with pyright; `RESEARCH_platform_differences.md` 3.10. Done 2026-10-15
+  (`docs/upstream/eglot-watch-file-patterns.patch`); found 0001's zero watches after
+  pyright's unregistering (O-61 (g)).
 - T-091 (opened 2026-10-15, owner with D-108): other ways to define the watched
   files; large repositories. Done when: `RESEARCH_platform_differences.md` 3.9 with
   the mechanisms checked on a toy, counts for deal.II and LLVM, options. Done
@@ -293,9 +299,10 @@ with `done when: ...`).
   `.gitmodules` lists submodule `eglot` (`lib/eglot`,
   https://github.com/emacs-straight/eglot, pinned c79f727, `info = eglot.texi`,
   `patch = patches/eglot/0001-...`), the patch being the watch change on that
-  commit; `make packages` compiles it and applies 7 patches; init-lsp fails loudly
-  at startup when `eglot` does not load from `lib/eglot` (D-018's loud refusal
-  style). Tests: eglot's file is under `lib/eglot`; with
+  commit; `make packages` compiles it and applies 7 patches. No startup check
+  that eglot comes from `lib/eglot` (owner 2026-10-15: "this is user
+  responsibility"); settings for patched features stay harmless with a stock eglot.
+  Tests: eglot's file is under `lib/eglot` in the shipped profile; with
   `eglot-max-file-watches` 5 on a toy of 20 package directories pyright still runs
   after the registration (it exits without the patch); the existing eglot tests
   (clangd, pyright, texlab, `M-o`, `C-c l s`) pass. `make test` on the Mac; startup
