@@ -1759,6 +1759,18 @@ presets, GoogleTest runner.
   a loose qualifier (`geom::vec`); `count() const` first in both, re-sorted away
   here; no typo seen. Search Everywhere's files: case ignored, humps, space in
   order.
+- O-63 (OPEN, owner question 2026-10-15 on S14: "Can be new behavior be
+  configured?"): how patches 0011 / 0012 (if S14 passes) are switched. The spike has
+  them always on for workspace symbols. clangd reads `workspace/symbol` parameters
+  with an `ObjectMapper` that maps the keys it knows and ignores others, and has
+  one extension there already (`limit`, `Protocol.cpp`). Options: (a) hidden startup
+  flags, off by default, as patches 0001 - 0009 (`--navigation-from-index`): an
+  Emacs option adds them to the clangd command; a change needs a restart; `M-o`
+  and `C-c l s` alike. (b) request fields next to `limit` (e.g. `middleMatch`, with
+  the minimum length, and `looseScope`), off unless sent: Emacs options decide per
+  request, `M-o` and `C-c l s` may differ, no restart, a stock clangd ignores them;
+  `C-c l s` needs our consult-eglot patch extended (it sends only `query`).
+  Recommended (b). Owner rules.
 - O-62 (RESOLVED 2026-10-15 with D-110: (a) - (e) as designed, details in DESIGN
   7.1; (f) build order: after T-090, done when to agree; owner request 2026-10-15,
   T-099): the fswatch backend for eglot as
