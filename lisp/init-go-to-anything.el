@@ -4,8 +4,9 @@
 
 ;; CLion's "search everywhere" on `M-o' (D-074 .. D-078): one consult prompt over
 ;; buffers, recent files, bookmarks and the project's files from the first key, the
-;; project's clangd symbols from the third (D-082); all symbols (`l'), commands
-;; (`x') and known projects (`p') behind narrow keys.  Spike S11 measured it on RMO
+;; project's clangd symbols from the third (D-082), each language server's under
+;; its own heading (D-106); all symbols (`l'), commands (`x') and known projects
+;; (`p') behind narrow keys.  Spike S11 measured it on RMO
 ;; and the deal.II tree: the settings bound in `emacs-cpp-go-to-anything' keep each
 ;; key under 25 ms on RMO (0049).
 ;;
@@ -141,23 +142,45 @@ project's out.  Symbols keep the order each server sent them in (D-105)."
                  (message "emacs-cpp: workspace/symbol %S timed out" query))))))
         (funcall sink action)))))
 
+(defun emacs-cpp-go--server-name (server)
+  "Return the file name of SERVER's program: clangd, pyright-langserver, texlab."
+  (file-name-nondirectory (car (process-command (jsonrpc--process server)))))
+
+(defun emacs-cpp-go--servers ()
+  "Return the project's servers with workspace symbols, the current buffer's first.
+The others follow in eglot's order, newest started first (D-106)."
+  (let ((servers (copy-sequence (consult-eglot--servers)))
+        (own (eglot-current-server)))
+    (if (memq own servers)
+        (cons own (delq own servers))
+      servers)))
+
 (defun emacs-cpp-go--symbol-sources (root)
-  "Return the clangd symbol sources for project ROOT, nil when no server has one.
+  "Return the symbol sources for project ROOT, nil when no server has one.
+Each server gets its own sources under its own heading, such as Symbol (clangd),
+so the servers' symbols never mix (D-106); the narrow keys are shared.
 `s': symbols defined under ROOT (D-082).  `l', hidden until narrowed: every
-symbol of clangd's index, deal.II's and the standard library's too, clangd's
+symbol of the server's index, deal.II's and the standard library's too, clangd's
 best 100 as `C-c l s' shows them, its first 100 for an empty input (D-086).
 Without ROOT, `s' is the latter but asks nothing for an empty input."
   (when (featurep 'eglot)
     (require 'consult-eglot)
-    (when-let* ((servers (consult-eglot--servers)))
+    (let* ((servers (emacs-cpp-go--servers))
+           (root-uris (and root (emacs-cpp-go--root-uris root)))
+           (sources (lambda (name narrow hidden uris empty)
+                      (mapcar (lambda (server)
+                                (emacs-cpp-go--symbol-source
+                                 (format "%s (%s)" name (emacs-cpp-go--server-name server))
+                                 (cons narrow name) hidden (list server) uris empty))
+                              servers))))
       (if root
-          (list (emacs-cpp-go--symbol-source "Symbol" ?s nil servers
-                                             (emacs-cpp-go--root-uris root) nil)
-                (emacs-cpp-go--symbol-source "All Symbols" ?l t servers nil t))
-        (list (emacs-cpp-go--symbol-source "Symbol" ?s nil servers nil nil))))))
+          (append (funcall sources "Symbol" ?s nil root-uris nil)
+                  (funcall sources "All Symbols" ?l t nil t))
+        (funcall sources "Symbol" ?s nil nil nil)))))
 
 (defun emacs-cpp-go--symbol-source (name narrow hidden servers root-uris empty)
-  "Return a symbol source NAME on key NARROW, HIDDEN or not, asking SERVERS.
+  "Return a symbol source NAME on NARROW, a (KEY . LABEL) pair, HIDDEN or not,
+asking SERVERS.
 ROOT-URIS and EMPTY as in `emacs-cpp-go--symbol-request'.  The candidates and
 their preview come from consult-eglot."
   (list :name name :narrow narrow :hidden hidden :category 'consult-eglot-symbols

@@ -284,8 +284,12 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-088 (opened 2026-10-15, owner: "verify" a `*Messages*` excerpt from step-1):
+  why pyright exits there, and the auto-save message. Done when:
+  `RESEARCH_platform_differences.md` 3.7 with the cause, checked in the project
+  read-only, and options. Done 2026-10-15: options as O-59.
 - T-087 (opened 2026-10-15, D-106, O-58 (d)): `M-o` symbol sources per server. Done
-  when (proposed 2026-10-15, not yet agreed): `emacs-cpp-go--symbol-sources` makes,
+  when: `emacs-cpp-go--symbol-sources` makes,
   for each server `consult-eglot--servers` returns, its own `s` source (the
   project's symbols) and `l` source (all, hidden), each asking that server alone.
   Order: the server of the buffer `M-o` was called from first, then the others in
@@ -301,7 +305,8 @@ with `done when: ...`).
   `l`; existing tests adjusted. Terminal check: toy with a `.cc` and a `.py` file,
   clangd and pyright running, `M-o` `vector` from the `.cc` buffer lists clangd's
   heading above pyright's, from the `.py` buffer the other way round. `make test`
-  on the Mac. DESIGN D-106, journal.
+  on the Mac. DESIGN D-106, journal. Agreed 2026-10-15. Done 2026-10-15 (0073):
+  met on the Mac.
 - T-086 (opened 2026-10-15, owner approving T-084): research the order of several
   servers' symbols. Done when: `RESEARCH_go_to_anything.md` 17 with which servers
   answer, how the order arises, options. Done 2026-10-15: options as O-58, with
