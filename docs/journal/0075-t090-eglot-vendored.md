@@ -51,7 +51,9 @@ answers the request successfully.
 - **Risk:** with the cap reached pyright stays up but can end with no watches once it
   drops its first registrations (research 3.10); D-111 adopts shared watches (e) to
   close that, a later patch.
-- **Risk:** two Eglot manuals in `C-h i` (Emacs's and this one).
+- **Was a risk, fixed the same day:** `(eglot)` opened Emacs's own manual, since
+  `lib/info` was searched after Emacs's; it now comes first, and `C-h i` lists Eglot
+  once (identical entries are merged).
 
 ## How to verify
 - `make packages` reports 7 patches; `make test`.
