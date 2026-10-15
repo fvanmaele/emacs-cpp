@@ -53,7 +53,8 @@ D-106 `M-o` symbol sources per server (T-087, 0073); D-107 `build*/` in
 step-1's `.gitignore` (owner); D-108 eglot vendored with a
 watch patch: T-090 done when proposed (no startup check); O-61 watched files,
 large repositories: drafts (c) (e) (g), IDE research, (h) tree watcher via fswatch /
-Watchman researched, fswatch patch prototyped (T-092 .. T-096);
+Watchman researched, fswatch patch prototyped (T-092 .. T-097);
+D-109 patched fswatch built locally: T-098 done when proposed;
 T-025 round 2, T-026 queued.
 
 ## Hard rules (each with its reason)
