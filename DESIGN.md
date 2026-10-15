@@ -1591,6 +1591,14 @@ presets, GoogleTest runner.
   Qt Creator keeps partial watches at half the file limit and offers servers no
   file watching at all (T-094). New option (h): a tree watcher process for eglot
   (`fswatch` or Watchman, FSEvents on macOS), a new dependency, not prototyped.
+  Owner 2026-10-15: both installed (MacPorts), research (h) (T-095, research
+  3.12): on an LLVM-sized tree `fswatch` holds 8 descriptors and 6 MB, starts at
+  once, delivers all of 20000 changes while read, but loses changes silently once
+  its reader pauses (about 1000 buffered); Watchman crawls 1.9 s, holds 101 MB,
+  loses nothing (all 20000 after a 20 s pause), writes cookie files into the root,
+  AUR-only on Arch. Both report real paths (`/private/tmp`). Options: (h1)
+  `fswatch` backend, (h2) Watchman backend, (h3) either on macOS only, (h4)
+  neither.
 - O-60 (RESOLVED 2026-10-15 with D-108: (b) vendor eglot; tracked-only lists still
   undecided, moved to O-61; owner 2026-10-15 with D-107, T-089): (b) tracked-only file
   lists and (c) an eglot patch keeping partial watches (`RESEARCH_platform_differences.md`
