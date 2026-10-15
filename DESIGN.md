@@ -1847,12 +1847,32 @@ presets, GoogleTest runner.
   only, no clangd change; (b) patch 0010, loose qualifier in clangd; (c) patch,
   mid-word for 3+ letters under a request field; (d) gaps inside a word, largest
   cost; (e) none. A clangd patch is tier 3: spike first. Owner rules.
+  Reviewed 2026-10-15 (owner request): unchanged by D-105 / D-106, except that
+  `M-o` symbols now come per server, so (a) would split the qualifier for clangd's
+  source only. Patch 0010 is taken by O-50 (S13, symlinked paths), so (b) / (c)
+  would be 0011 / 0012; one rebuild of the patched clangd (Arch package, Mac
+  `build-macos.sh`, about 15 minutes) could carry all three. Recommendation: (b)
+  and (c) in one spike S14 on deal.II's index (replies and times for mid-word and
+  qualified queries against today), built with O-50's 0010; (d) dropped (trigrams
+  refuse it before the matcher; a full scan or far larger index); (a) only if no
+  clangd change is wanted.
 - O-56 (OPEN, owner request 2026-10-15, T-082): a theme following macOS's dark / light
   setting (`RESEARCH_dark_theme.md`). Found: the NS build of Emacs 31.1 sets no
   `toolkit-theme` and runs no hook on a change; `defaults read -g
   AppleInterfaceStyle` reads it in 6.4 ms. Options: (a) once at startup, (b) and
   polling, (c) and a command, (d) auto-dark package, (e) another Emacs build. Owner
   rules; Arch is stage 2.
+  Reviewed 2026-10-15 (owner request): nothing changed; Emacs 31.1's NS build still
+  has no appearance hook. Recommendation: (a) + (b) + (c): the pair
+  `modus-operandi-tritanopia` / `modus-vivendi-tritanopia` chosen at startup, a
+  timer reading `defaults` asynchronously (`make-process`, so Emacs never waits;
+  every 10 s is enough for "Automatic" switching at dusk), and `M-x
+  emacs-cpp-ui-follow-system` for at once; all only while no theme was saved with
+  Customize (D-040) and only on macOS (the reading in init-ui, D-055). (d) adds a
+  dependency for the same polling; (e) contradicts D-053. Stage 2 (Arch): Emacs 31's
+  `toolkit-theme-set-functions` works only in a PGTK build; for the GTK / X11 build
+  the freedesktop portal's `color-scheme` setting over D-Bus would be the source;
+  which build the owner runs there decides, not researched.
 - O-49 (RESOLVED 2026-10-14 with D-099: (a); found 2026-10-14 checking order
   dependencies, D-098): `M-o`
   (`emacs-cpp-go-to-anything`, init-completion) calls projectile
