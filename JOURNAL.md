@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0076 | 2026-10-15 | T-102: one shared watch per directory | T-102 | D-111 |
 | 0075 | 2026-10-15 | T-090: eglot vendored with the partial-watch patch | T-090 | D-108 |
 | 0074 | 2026-10-15 | T-098: fswatch built without event loss | T-098 | D-109 |
 | 0073 | 2026-10-15 | T-087: `M-o` symbol sources per server | T-087 | D-106 |

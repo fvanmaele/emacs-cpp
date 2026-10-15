@@ -284,8 +284,8 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
-- T-102 (opened 2026-10-15, D-111): shared watches as `patches/eglot/0002`. Tier
-  proposed: 2. Done when (proposed 2026-10-15, not yet agreed): the revised draft
+- T-102 (opened 2026-10-15, D-111): shared watches as `patches/eglot/0002`. Tier: 2.
+  Done when: the revised draft
   (`docs/upstream/eglot-watch-shared-directories.patch`) as patch 0002 after 0001 in
   `.gitmodules`; `make packages` applies 8 patches. Tests in the shipped profile:
   with pyright, cap 500, on 400 directories the watches never exceed 401 and 401
@@ -294,7 +294,8 @@ with `done when: ...`).
   again; a failing handler leaves the other's notification and warns; removing the
   last registration on a directory stops its watch; `eglot-describe-connection`
   still lists watches per registration. `make test` on the Mac; Arch by the owner.
-  DESIGN D-111, journal.
+  DESIGN D-111, journal. Agreed 2026-10-15. Done 2026-10-15 (0076): met on the Mac;
+  left: the owner's `make packages && make test` on Arch.
 - T-101 (opened 2026-10-15, owner: "Revisit shared watches (e)"): review the (e)
   draft against the vendored eglot. Done when: its downsides re-examined, those found
   fixed in the draft and checked with pyright, DESIGN 7.2 updated. Done 2026-10-15.

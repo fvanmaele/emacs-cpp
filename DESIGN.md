@@ -675,7 +675,12 @@ is removed and at server shutdown. Command:
   its registrations, without restarting the server; or `M-x eglot-reconnect`
   restarts both. Either way changes made while no fswatch ran are not reported; the
   warning says so.
-- The watch count (`eglot-max-file-watches`) does not count fswatch processes.
+- The watch count (`eglot-max-file-watches`) does not count fswatch processes, so
+  the cap (500 on macOS, D-054) does not limit project registrations served by
+  fswatch (owner question 2026-10-15). It still applies to what stays on
+  `file-notify`: the backend switched off, groups based outside the root, Arch;
+  and it keeps macOS's descriptors (about 975 per Emacs) for auto-revert and
+  treemacs.
 
 **Not covered:** remote projects (TRAMP): the backend is local only.
 
@@ -731,6 +736,9 @@ each, with a recommendation; the owner agreed to all of them (D-111):
     `stopped` removes the entry, the parent's `created` brings a valid watch back,
     and a failing handler next to the real one leaves one notification sent and one
     warning. `docs/upstream/eglot-watch-shared-directories.patch`; build: T-102.
+  - Built (T-102, 0076): `patches/eglot/0002-Share-one-file-watch-...`, 8 patches in
+    force; the shipped-profile test with pyright (cap 500, 400 directories): at
+    most 401 watches, 401 left (fails without 0002: 500 reached).
 - O-61 (g), retry what the cap cut short: drafted, checked (3.11). Drop if (e) is
   adopted: (e) leaves no duplicate registration to retry.
 - O-61 (h1), fswatch backend: designed (7.1). Rule O-62.
