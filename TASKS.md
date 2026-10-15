@@ -284,6 +284,24 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-087 (opened 2026-10-15, D-106, O-58 (d)): `M-o` symbol sources per server. Done
+  when (proposed 2026-10-15, not yet agreed): `emacs-cpp-go--symbol-sources` makes,
+  for each server `consult-eglot--servers` returns, its own `s` source (the
+  project's symbols) and `l` source (all, hidden), each asking that server alone.
+  Order: the server of the buffer `M-o` was called from first, then the others in
+  eglot's order (newest started first). Heading: `Symbol (NAME)` and
+  `All Symbols (NAME)`, NAME the server program's file name (`clangd`,
+  `pyright-langserver`, `texlab`), also with one server. Narrow keys stay `s` and
+  `l`, one entry each in the narrow list (`:narrow (?s . "Symbol")`), narrowing
+  shows every server's. Known and accepted: a server ranked higher that answers
+  later pushes rows below it down. Tests: two servers give four sources in that
+  order with those headings and keys, each source's request goes to its server
+  only; the calling buffer's server first though started first; `< s` shows both
+  `s` sources (`consult--multi-visible-p`), the narrow list has one `s` and one
+  `l`; existing tests adjusted. Terminal check: toy with a `.cc` and a `.py` file,
+  clangd and pyright running, `M-o` `vector` from the `.cc` buffer lists clangd's
+  heading above pyright's, from the `.py` buffer the other way round. `make test`
+  on the Mac. DESIGN D-106, journal.
 - T-086 (opened 2026-10-15, owner approving T-084): research the order of several
   servers' symbols. Done when: `RESEARCH_go_to_anything.md` 17 with which servers
   answer, how the order arises, options. Done 2026-10-15: options as O-58, with
@@ -305,7 +323,7 @@ with `done when: ...`).
   `count` lists `count` before `count_vertices_globally` in `M-o` `< s` and in
   `C-c l s`. `make test` on the Mac. DESIGN D-105, journal. Agreed 2026-10-15.
   Built 2026-10-15 (0072): all met but the `C-c l s` `count` check, which
-  consult-eglot's kind groups reorder (O-58).
+  consult-eglot's kind groups reorder (O-58); waived by D-106 (h). Done.
 - T-083 (opened 2026-10-15, owner: "O-55 - comparison to CLion"): compare O-55's
   findings with CLion's matching. Done when: `RESEARCH_go_to_anything.md` 15 with
   CLion's rules and their sources, a side-by-side table, O-55's options against it.

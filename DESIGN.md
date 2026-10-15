@@ -811,6 +811,13 @@ Known defects: none yet (nothing built).
   file candidate (`consult--find-file-temporarily`: `c++-ts-mode` setup, and the
   native trampoline for its advice on `run-hooks`, cached but loaded again each
   session, 60 - 104 ms); not changed here, researched as O-41.
+- DECIDED D-106 (owner 2026-10-15, O-58: "(d) One source per server, (h) Keep grouping
+  for C-c l s"; tier 2, done when to agree): in `M-o` each language server of the
+  project gets its own symbol sources, so clangd's, pyright's and texlab's symbols
+  each sit under their own heading, in a fixed order, instead of one list in
+  arrival order (RESEARCH_go_to_anything 17). `C-c l s` keeps consult-eglot's
+  groups by symbol kind; T-084's `C-c l s` `count` check is waived by this.
+  Build: T-087.
 - DECIDED D-105 (owner 2026-10-15, O-55: "(a) + (b)"; tier 2, done when to agree):
   symbols in clangd's order and `M-o` ignoring case, as CLion (RESEARCH_go_to_anything
   14, 15). (a) `M-o` and `C-c l s` list each server's `workspace/symbol` reply in the
@@ -1539,7 +1546,8 @@ presets, GoogleTest runner.
   a loose qualifier (`geom::vec`); `count() const` first in both, re-sorted away
   here; no typo seen. Search Everywhere's files: case ignored, humps, space in
   order.
-- O-58 (OPEN, owner 2026-10-15 approving T-084, T-086): order of several servers'
+- O-58 (RESOLVED 2026-10-15 with D-106: (d) and (h); owner 2026-10-15 approving T-084,
+  T-086): order of several servers'
   symbols, and `C-c l s`'s kind groups (`RESEARCH_go_to_anything.md` 17). Found:
   pyright and texlab answer `workspace/symbol` without `score`; since D-105 replies
   follow in arrival order, which can differ per key; `C-c l s` lists whole kind
@@ -2066,6 +2074,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-103 | 2026-10-14 | latexindent as texlab runs it; indent as AUCTeX's TAB | 12 | O-53 |
 | D-104 | 2026-10-14 | `make test` in a temporary HOME; REAL_HOME=1 opts out | 4 | O-54 |
 | D-105 | 2026-10-15 | symbols in clangd's order; `M-o` ignores case | 10 | O-55 |
+| D-106 | 2026-10-15 | `M-o` symbols per server; `C-c l s` keeps kind groups | 10 | O-58 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
