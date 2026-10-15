@@ -577,6 +577,96 @@ Known defects: none yet (nothing built).
   a suitable implementation file." (owner report, RMO). That error is accurate; no
   patch 0010 to hide the action.
 
+### 7.1 File watches: an fswatch backend for eglot (PROPOSED 2026-10-15, O-62)
+Owner request 2026-10-15: "Design fswatch backend for eglot". A patch on the
+vendored eglot (D-108, T-090), reading the patched fswatch (D-109). Findings behind
+it: `RESEARCH_platform_differences.md` 3.9 - 3.13. Not ruled; the choices to rule
+are O-62 (a) - (f).
+
+**Goal.** Servers that ask for `workspace/didChangeWatchedFiles` (pyright, texlab)
+see changes in project trees of any size on macOS, at the cost of one fswatch
+process per server and root (8 descriptors, 6 MB idle), not one kqueue descriptor
+per directory; no event lost to a busy Emacs, drops said out loud.
+
+**Switch.** `eglot-fswatch-program`: nil (default) keeps today's `file-notify`
+watches; a file name runs that fswatch. Set by the user (owner 2026-10-15 on the
+vendored eglot: "user responsibility"), e.g. to
+`~/opt/fswatch-no-loss/bin/fswatch`, in `custom.el`; the config sets nothing. A
+stock fswatch (no `--queue-limit` in `--help`) works, with one warning that it
+loses events when Emacs does not read in time (3.13).
+
+**Which registrations.** A registration group whose base is the project (no base
+URI, or one inside the root) goes to fswatch; a group based outside the root
+(pyright's library roots) stays on `file-notify`, or is skipped when
+`eglot-watch-files-outside-project-root` is nil (macOS, D-054). The glob matching,
+the `kind` bits and "not for a buffer eglot manages" stay as in
+`eglot--watch-globs`.
+
+**Process.** One per server and project root, started at the first project
+registration, shared by all of the server's registrations (a handler per
+registration id, as the shared-watches draft does), killed when the last of them
+is removed and at server shutdown. Command:
+`fswatch -0 -r -x --event-flag-separator=, -l LATENCY --allow-overflow
+--queue-limit=N -e REGEXP... ROOT`, with `LATENCY` from `eglot-fswatch-latency`
+(0.1 s), `N` from `eglot-fswatch-queue-limit` (200000), `REGEXP`s from
+`eglot-fswatch-exclude` (default `/\.git/`). `:connection-type 'pipe`,
+`:noquery t`, `LC_ALL=C` in its environment.
+
+**Records to changes** (the process filter):
+- Split at NUL, keep a partial record for the next call; `PATH FLAGS`.
+- Map the path: fswatch reports real paths (`/private/tmp/...`); a prefix equal to
+  the root's `file-truename` is replaced by the root as eglot spells it (cf. O-50).
+- `Overflow`: changes were lost. One warning per server and minute naming
+  `M-x eglot-reconnect`; nothing sent (LSP has no "rescan" notification).
+- Type: `Removed` -> 3 (deleted), `Created` -> 1, any other flag -> 2 (changed);
+  with the patched fswatch a path's present state is decided there (0003); with a
+  stock one a `file-exists-p` decides between 3 and 1 / 2.
+- Optional pre-filter: `eglot-watch-file-patterns` (the patterns draft, base-name
+  wildcards per major mode) as one regexp before the glob matcher, which costs
+  about 190 us per record (3.12).
+- Every registration handler whose globs match gets the change; all changes of one
+  filter call go out as one `workspace/didChangeWatchedFiles` per server (today
+  eglot sends one notification per event).
+
+**Failure, loudly** (D-018's spirit, no silent fallback):
+- Program missing or not executable at registration: an `eglot--warn` naming the
+  variable, the registration answered successfully with no watches (a failed
+  registration makes pyright exit, 3.3).
+- The process exits while registrations use it: a warning with its exit status and
+  stderr; no restart behind the user's back; `M-x eglot-reconnect` starts it anew.
+- The watch count (`eglot-max-file-watches`) does not count fswatch processes.
+
+**Not covered:** Linux. fswatch uses inotify there, one watch per directory, so the
+backend saves nothing on Arch; the switch stays nil there unless the owner wants
+batching and the drop warning. Remote projects (TRAMP): the backend is local only.
+
+**Tests (when built):** ERT with a fake `fswatch` (a shell script that prints given
+records, then waits), no real file events: records split across filter calls,
+the real-path mapping, the three change types, `Overflow` warns and sends nothing,
+handlers per registration and their removal, one notification per batch, process
+start once per server and root and kill with the last registration, the warnings
+for a missing program and a dying process. A terminal check with pyright and the
+patched fswatch on an LLVM-sized tree (research 3.12's tree).
+
+### 7.2 File watches: open questions revisited (2026-10-15)
+Owner request 2026-10-15: "revisit open questions regarding file watches". State of
+each, with a recommendation (not a ruling):
+- T-090, vendor eglot (D-108): done when amended, not agreed. Agree: every eglot
+  patch below waits on it.
+- 0001, partial watches: drafted, checked. Keep: the `file-notify` path needs it.
+- O-61 (a), tracked-only lists: undecided. Close: with the backend `project-files`
+  no longer sizes the watches.
+- O-61 (b), per-project exclusions: in research 3.9. A README note, no code.
+- O-61 (c), watch patterns: drafted (3.10). Only as the backend's pre-filter (7.1).
+- O-61 (d), open buffers first: not drafted. Drop.
+- O-61 (e), shared watches: drafted, checked (3.11). Adopt for the `file-notify`
+  path (Arch, groups based outside the root).
+- O-61 (g), retry what the cap cut short: drafted, checked (3.11). Drop if (e) is
+  adopted: (e) leaves no duplicate registration to retry.
+- O-61 (h1), fswatch backend: designed (7.1). Rule O-62.
+- T-032, eglot report: drafted, unsent. Send, with 0001 and (e) as patches.
+- O-50, symlinked paths: open. The backend maps real paths itself (7.1).
+
 ## 8. Build (CMake presets)
 - DECIDED D-005: `CMakePresets.json` is the toolchain / profile mechanism; Emacs never
   stores its own per-project build settings while a preset exists.
@@ -1581,6 +1671,14 @@ presets, GoogleTest runner.
   a loose qualifier (`geom::vec`); `count() const` first in both, re-sorted away
   here; no typo seen. Search Everywhere's files: case ignored, humps, space in
   order.
+- O-62 (OPEN, owner request 2026-10-15, T-099): the fswatch backend for eglot as
+  designed in DESIGN 7.1. To rule: (a) the switch is eglot's `eglot-fswatch-program`,
+  set by the user (designed), or the config sets it when ~/opt/fswatch-no-loss
+  exists; (b) a stock fswatch runs with one warning (designed), or is refused; (c) on
+  `Overflow` a warning naming `M-x eglot-reconnect` (designed), or a reconnect by
+  itself; (d) `eglot-watch-file-patterns` as a pre-filter, yes (designed) or no; (e)
+  a dead fswatch is reported, not restarted (designed), or restarted once; (f) build
+  it after T-090 is agreed, as tier 2 with its own done when. Owner rules.
 - O-61 (OPEN, owner 2026-10-15 with D-108, T-091): which files eglot watches, and
   large repositories (`RESEARCH_platform_differences.md` 3.9). Found: besides
   `.gitignore`, `.git/info/exclude`, `.ignore`, `.fdignore` and `.projectile` keep a
@@ -1621,7 +1719,9 @@ presets, GoogleTest runner.
   aborts); 100000 unread records cost 18.7 MB, kept after draining, unbounded
   without a cap; the prototype applies to 1.22.0 and behaves the same; fswatch
   misreads `-l 0.1` in a comma locale when built with NLS. Still open in (h1): the
-  eglot backend itself.
+  eglot backend itself. Revisited 2026-10-15 (DESIGN 7.2): recommended close (a),
+  README note for (b), (c) as the backend's pre-filter, drop (d), adopt (e), drop
+  (g); the backend designed in 7.1, ruled as O-62.
 - O-60 (RESOLVED 2026-10-15 with D-108: (b) vendor eglot; tracked-only lists still
   undecided, moved to O-61; owner 2026-10-15 with D-107, T-089): (b) tracked-only file
   lists and (c) an eglot patch keeping partial watches (`RESEARCH_platform_differences.md`
