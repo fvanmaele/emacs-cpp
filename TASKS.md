@@ -284,6 +284,10 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-099 (opened 2026-10-15, owner): design the fswatch backend for eglot and revisit
+  the open file-watch questions. Done when: DESIGN 7.1 with the backend (switch,
+  scope, process, records to changes, failures, tests) and 7.2 with each open item's
+  state and a recommendation. Done 2026-10-15: O-62.
 - T-098 (opened 2026-10-15, D-109): package the patched fswatch. Tier: 2.
   Done when: `packaging/fswatch-no-loss/` holds
   a `PKGBUILD` (Arch, installs to /opt/fswatch-no-loss, next to the `extra`
