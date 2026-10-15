@@ -1,0 +1,41 @@
+From 948bdc47209ae911cc103cb504cbbcc267fb5ad4 Mon Sep 17 00:00:00 2001
+From: Ferdinand Vanmaele <ferdinand-joseph.vanmaele@uni-a.de>
+Date: Thu, 15 Oct 2026 14:07:35 +0200
+Subject: [PATCH] Keep each server's workspace/symbol reply in the order it was
+ sent
+
+consult-eglot--make-async-source re-sorted the replies by their `score'
+field when consult-eglot-sort-results was set.  clangd ranks its reply
+with the name match included, but the `score' it sends leaves the name
+match out ("for client-side re-ranking"), and halves it for a symbol in
+a namespace when the query names none.  So for the query "vector" the
+re-sort put a global vector_n_rows_1d above dealii::Vector, which clangd
+had sent first.  Servers without a `score' (pyright, texlab) had theirs
+sorted below every clangd symbol.
+
+The replies now stay as sent; a second server's reply follows the first
+one's.  `:sort' stays nil, so the completion UI does not sort them
+either.
+---
+ consult-eglot.el | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/consult-eglot.el b/consult-eglot.el
+index 0792b00..25ba654 100644
+--- a/consult-eglot.el
++++ b/consult-eglot.el
+@@ -123,9 +123,9 @@ symbols in the workspace tied to SERVERS."
+                 `(:query ,query)
+                 :success-fn
+                 (lambda (resp)
++                  ;; Keep the order the server sent: clangd ranks with the name
++                  ;; match, which the `score' it sends leaves out.
+                   (setq responses (append responses resp nil))
+-                  (when consult-eglot-sort-results
+-                    (setq responses (cl-sort responses #'> :key (lambda (c) (cl-getf c :score 0)))))
+                   (funcall async 'flush)
+                   (funcall async responses))
+                 :error-fn
+-- 
+2.56.0
+
