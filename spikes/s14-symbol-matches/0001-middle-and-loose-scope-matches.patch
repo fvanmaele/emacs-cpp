@@ -1,5 +1,5 @@
 --- a/clang-tools-extra/clangd/FindSymbols.cpp	2026-10-06 09:38:51
-+++ b/clang-tools-extra/clangd/FindSymbols.cpp	2026-10-15 18:59:36
++++ b/clang-tools-extra/clangd/FindSymbols.cpp	2026-10-15 19:19:10
 @@ -253,6 +253,22 @@
    return Query.empty();
  }
@@ -47,30 +47,47 @@
        return;
  
      auto Loc = symbolToLocation(Sym, HintPath);
-@@ -334,7 +352,10 @@
+@@ -334,7 +352,13 @@
      Relevance.Query = SymbolRelevanceSignals::Generic;
      // If symbol and request scopes do not match exactly, apply a penalty.
      Relevance.InBaseClass = AnyScope && Scope != ReqScope;
 -    if (auto NameMatch = Filter.match(Sym.Name))
 +    auto NameMatch = Filter.match(Sym.Name);
-+    if (!NameMatch && Req.AllowMiddleMatch) // S14 spike
-+      NameMatch = middleMatch(Req.Query, Sym.Name);
++    bool Middle = false; // S14 spike
++    if (!NameMatch && Req.AllowMiddleMatch && middleMatch(Req.Query, Sym.Name)) {
++      NameMatch = 1e-3f;
++      Middle = true;
++    }
 +    if (NameMatch)
        Relevance.NameMatch = *NameMatch;
      else {
        log("Workspace symbol: {0} didn't match query {1}", Sym.Name,
+@@ -359,6 +383,8 @@
+     Info.score = Relevance.NameMatch > std::numeric_limits<float>::epsilon()
+                      ? Score / Relevance.NameMatch
+                      : QualScore;
++    if (Middle) // S14 spike: after every fuzzy match, first to go at the limit
++      Score -= 1e6f;
+     Top.push({Score, std::move(Info)});
+   });
+   for (auto &R : std::move(Top).items())
 --- a/clang-tools-extra/clangd/FuzzyMatch.h	2026-10-06 09:38:51
-+++ b/clang-tools-extra/clangd/FuzzyMatch.h	2026-10-15 18:59:28
-@@ -68,6 +68,15 @@
++++ b/clang-tools-extra/clangd/FuzzyMatch.h	2026-10-15 19:18:53
+@@ -68,6 +68,20 @@
  
  // A matcher capable of matching and scoring strings against a single pattern.
  // It's optimized for matching against many strings - match() does not allocate.
-+// S14 spike: Pattern (3 or more characters) inside Word, in any case; the score
-+// sits below every match FuzzyMatcher gives, so such symbols rank last.
++// S14 spike: Pattern (3 or more characters) inside Word's identifier (before any
++// template arguments: a class template's constructor is named
++// "DiagonalMatrix<VectorType>"), in any case.  The score is negative, so the index
++// ranks such a symbol after every fuzzy match (FuzzyMatcher scores >= 0), whatever
++// its quality, which multiplies the score (dry runs 1, 4: positive scores 0.01 and
++// 1e-6 still outranked fuzzy matches scoring 0).
 +inline std::optional<float> middleMatch(llvm::StringRef Pattern,
 +                                        llvm::StringRef Word) {
-+  if (Pattern.size() >= 3 && Word.contains_insensitive(Pattern))
-+    return 0.01f;
++  llvm::StringRef Identifier = Word.take_until([](char C) { return C == '<'; });
++  if (Pattern.size() >= 3 && Identifier.contains_insensitive(Pattern))
++    return -1.0f;
 +  return std::nullopt;
 +}
 +

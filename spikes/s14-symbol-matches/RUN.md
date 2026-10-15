@@ -14,25 +14,31 @@ clangd patches 0011 / 0012 written fresh, with clangd unit tests (0010 is O-50's
 (23.1.3, patches 0001 - 0009):
 - (c) `FuzzyFindRequest::AllowMiddleMatch`, set by `getWorkspaceSymbols` only, for
   queries of 3 or more characters: where `FuzzyMatcher` refuses a name, Dex,
-  MemIndex and `getWorkspaceSymbols` accept it when it contains the query in any case,
-  with the score 0.01, below fuzzy matches. Code completion never sets the field.
+  MemIndex and `getWorkspaceSymbols` accept it when its identifier (before any
+  template arguments) contains the query in any case. Its score is negative, so it
+  ranks after every fuzzy match and is the first dropped at a limit. Code completion
+  never sets the field. (Changed during the dry runs: RESULTS.md.)
 - (b) `fuzzyScopeMatch`: a symbol's scope passes when each segment of the query's
   qualifier fuzzy-matches one of the scope's segments, in order (`geom::` matches
   `GeometryInfo::`, `vt::` matches `VectorTools::`); the exact rule
   (`approximateScopeMatch`) still passes what it passed.
 
-## Pass criteria (proposed 2026-10-15, owner to confirm)
-On deal.II's `step-1` (its `mac-debug` preset, its index), baseline = the installed
-patched clangd, spike = the same plus the spike patch, each query with limit 100 and
-10000 (`compare.py` checks them):
+## Pass criteria (proposed 2026-10-15, refined after the dry runs; owner to confirm)
+On deal.II's `step-1` (its `mac-debug` preset, its index, cloned afresh for each
+run), baseline = the installed patched clangd, spike = the same plus the spike
+patch, each query with limit 100 and 10000, a second baseline run for reference
+(`compare.py` checks them):
 1. Mid-word: each of 8 mid-word queries (`ector`, `ngulat`, ...) gains matches, each
    containing the query in its name; they rank after every match the baseline gives
    (1b).
-2. Scoped: each of 7 abbreviated-scope queries (`geom::vert`, `vt::interp`, ...)
-   reaches its class or namespace (`GeometryInfo`, `VectorTools`, ...); the baseline
-   misses at least one.
-3. No regression: for 20 fuzzy queries as typed today, the baseline's reply is the
-   head of the spike's, in the same order.
+2. Scoped: each of 7 abbreviated-scope queries (`geom::vert`, `vt::interp`,
+   `spm::vmult`, ...) reaches its class or namespace (`GeometryInfo`,
+   `VectorTools`, ...); the baseline misses at least one.
+3. No regression: for 20 fuzzy queries as typed today, with limit 10000 (complete
+   replies, the same in two baseline runs), the baseline's reply is the head of the
+   spike's, in the same order up to ties (symbols of equal score). With limit 100
+   many symbols tie at the cut, and which make it varies between two baseline runs
+   by itself: reported, not judged.
 4. Time: per query set the median reply time at most 1.5 times the baseline's (plus
    1 ms), every reply under 100 ms.
 5. Completion: `AllowMiddleMatch` is set nowhere but in `getWorkspaceSymbols`
@@ -53,4 +59,4 @@ bash spikes/s14-symbol-matches/run.sh       # step-1, build/mac-debug, src/main.
 `run.sh` clones `build/mac-debug` into `~/.cache/emacs-cpp-s14/run`, so the project is
 only read. Other project: `run.sh PROJECT PRESET_DIR OPENED_FILE`.
 
-Results: `RESULTS.md`.
+Dry runs so far: `DRY-RUN.md`. Results: `RESULTS.md` (from the owner's run).
