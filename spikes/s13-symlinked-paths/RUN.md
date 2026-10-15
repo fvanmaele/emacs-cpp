@@ -49,9 +49,14 @@ bash spikes/s13-symlinked-paths/run.sh ~/.cache/emacs-cpp-s13/clangd-baseline ba
 bash spikes/s13-symlinked-paths/build.sh              # applies the patch, rebuilds
 bash spikes/s13-symlinked-paths/run.sh ~/.cache/emacs-cpp-s13/build/bin/clangd patched
 ```
-macOS (owner), with the tree `build-macos.sh` left: the same with
-`S13_BUILD=/tmp/s13 S13_PATCHED_TREE=<that tree>`; build.sh builds standalone against
-the system LLVM, which MacPorts' layout may not offer, so the Mac build may need
-build-macos.sh's flags (S12's `build.sh` shows them).
+macOS (criterion 5; run 2026-10-15, RESULTS.md): `build.sh` is Arch-only (GNU `cp`,
+the system LLVM); `build-macos.sh` clones the tree `packaging/clangd-index-nav/
+build-macos.sh` left and builds the spike there, the installed clangd is the baseline:
+```
+s13=spikes/s13-symlinked-paths
+bash $s13/build-macos.sh
+S13_BUILD=/tmp/s13 bash $s13/run.sh ~/opt/clangd-index-nav/bin/clangd baseline
+S13_BUILD=/tmp/s13 bash $s13/run.sh ~/.cache/emacs-cpp-s13-mac/build/bin/clangd patched
+```
 
 Results: `RESULTS.md`.

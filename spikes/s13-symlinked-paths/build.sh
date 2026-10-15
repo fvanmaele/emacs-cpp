@@ -14,6 +14,8 @@ repo=$(cd "$here/../.." && pwd)
 work=${S13_BUILD:-$HOME/.cache/emacs-cpp-s13}
 src=${S13_PATCHED_TREE:-$repo/packaging/clangd-index-nav/src/llvm-project-23.1.1.src}
 die() { printf 's13 build: %s\n' "$*" >&2; exit 1; }
+[ "$(uname -s)" != Darwin ] \
+    || die "Arch only (GNU cp, the system LLVM); on macOS run build-macos.sh (RUN.md)"
 [ -d "$src/clang-tools-extra/clangd" ] || die "no patched tree at $src; run makepkg first"
 grep -q header-flags-from-index "$src/clang-tools-extra/clangd/tool/ClangdMain.cpp" \
     || die "$src lacks the local patches"
