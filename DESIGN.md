@@ -708,9 +708,15 @@ each, with a recommendation; the owner agreed to all of them (D-111):
     directory (`inotify.c`: "inotify returns the same descriptor WD for multiple
     calls ... with the same file"); there (e) only stops eglot's own
     `eglot-max-file-watches` from counting a directory three times.
-  - One handler's error stops the rest: the draft calls the handlers of a shared
-    watch in a loop, so an error in one skips the others for that event. To fix
-    when built: each call in `condition-case`, the error reported.
+  - One handler's error stops the rest: the first draft called the handlers of a
+    shared watch in a loop, so an error in one skipped the others. Fixed in the
+    revised draft (T-101): each call under `condition-case`, the error warned about.
+  - A deleted directory, found on revisiting (T-101): kqueue ends a watch whose
+    directory is deleted (`deleted`, then `stopped`, and `file-notify-valid-p` nil;
+    terminal Emacs, macOS). The first draft kept that dead entry, so a directory
+    created again under the same name got no watch, where stock eglot adds a fresh
+    one. Fixed in the revised draft: `stopped` forgets the entry, and an invalid
+    one is replaced when a watch is asked for.
   - Keys are spelled paths (`directory-file-name`), not true names: one directory
     reached by two spellings (a symlink) keeps two watches; no worse than today.
   - A watch lives as long as any registration uses it: removing one registration
@@ -718,8 +724,13 @@ each, with a recommendation; the owner agreed to all of them (D-111):
     only with the last.
   - Duplicate notifications are unchanged: each registration whose globs match
     sends, as today with separate watches.
-  - Divergence from upstream: 76 changed lines on the vendored eglot, to carry
-    across mirror updates; for Emacs itself, copyright paperwork.
+  - Divergence from upstream: 101 changed lines on the vendored eglot (revised
+    draft), to carry across mirror updates; for Emacs itself, copyright paperwork.
+  - Revised draft checked against `lib/eglot` with pyright (cap 500): 400 directories
+    end with 401 watches, never more; 600 end with 500; through the real dispatcher,
+    `stopped` removes the entry, the parent's `created` brings a valid watch back,
+    and a failing handler next to the real one leaves one notification sent and one
+    warning. `docs/upstream/eglot-watch-shared-directories.patch`; build: T-102.
 - O-61 (g), retry what the cap cut short: drafted, checked (3.11). Drop if (e) is
   adopted: (e) leaves no duplicate registration to retry.
 - O-61 (h1), fswatch backend: designed (7.1). Rule O-62.

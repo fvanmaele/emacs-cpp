@@ -1,9 +1,11 @@
 One file watch per directory, shared by a server's registrations
 
-DRAFT for the vendored eglot (D-108, T-093, O-61 (e)). Against
-github.com/emacs-straight/eglot c79f727 with eglot-watch-cap-partial-watches.patch
-applied first; independent of eglot-watch-file-patterns.patch. Not applied anywhere yet.
-Over 15 lines: Emacs upstream would need copyright paperwork.
+DRAFT for the vendored eglot (D-108, D-111, O-61 (e)), revised 2026-10-15 (T-101):
+against lib/eglot (github.com/emacs-straight/eglot c79f727 with
+patches/eglot/0001). Not applied yet; to become patches/eglot/0002. A watch whose
+directory was deleted (stopped) is forgotten, an invalid one replaced, and each
+registration's handler runs under condition-case. Over 15 lines: Emacs upstream
+would need copyright paperwork.
 
 --- a/eglot.el
 +++ b/eglot.el
@@ -19,10 +21,11 @@ Over 15 lines: Emacs upstream would need copyright paperwork.
    ;; Sever the project/server relationship for `server'
    (setf (gethash (eglot--project server) eglot--servers-by-project)
          (delq server
-@@ -4862,14 +4859,29 @@
+@@ -4861,15 +4858,54 @@
+   "Maximum number of file watches across all Eglot servers.
  If this limit is reached, a warning is issued and further watches
  are not added.  Set to nil for unlimited watches.")
- 
++
 +(defvar eglot--directory-watches (make-hash-table :test #'eq :weakness 'key)
 +  "Server -> hash table DIRECTORY -> (DESCRIPTOR . HANDLERS).
 +One file watch per directory, shared by all of a server's registrations;
@@ -32,6 +35,30 @@ Over 15 lines: Emacs upstream would need copyright paperwork.
 +  "Return SERVER's table of watched directories."
 +  (or (gethash server eglot--directory-watches)
 +      (puthash server (make-hash-table :test #'equal) eglot--directory-watches)))
++
++(defun eglot--dispatch-directory-event (server key event)
++  "Pass file EVENT of SERVER's watched directory KEY to every registration on it.
++An error in one is reported and does not keep the event from the others.  A
++`stopped' event (the directory was deleted) forgets the watch, so a directory
++created again under that name gets a new one."
++  (pcase-dolist (`(,id . ,handler)
++                 (cdr (gethash key (eglot--directory-watches server))))
++    (condition-case err
++        (funcall handler event)
++      (error (eglot--warn "File watch of registration %s on %s: %s"
++                          id key (error-message-string err)))))
++  (when (eq (nth 1 event) 'stopped)
++    (eglot--forget-directory-watch server key)))
+ 
++(defun eglot--forget-directory-watch (server key)
++  "Stop and forget SERVER's watch of directory KEY, for every registration."
++  (let ((table (eglot--directory-watches server)))
++    (when-let* ((entry (gethash key table)))
++      (ignore-errors (file-notify-rm-watch (car entry)))
++      (pcase-dolist (`(,id . ,_) (cdr entry))
++        (setf (gethash id (eglot--file-watches server))
++              (delete key (gethash id (eglot--file-watches server)))))
++      (remhash key table))))
 +
 +(defun eglot--remove-directory-watches (server)
 +  "Stop every file watch of SERVER."
@@ -52,7 +79,7 @@ Over 15 lines: Emacs upstream would need copyright paperwork.
               eglot--servers-by-project)
      count))
  
-@@ -4919,22 +4931,35 @@
+@@ -4919,22 +4955,38 @@
               (handle-event `(,desc deleted ,file))
               (handle-event `(,desc created ,file1))))))
         (add-watch (subdir)
@@ -64,6 +91,10 @@ Over 15 lines: Emacs upstream would need copyright paperwork.
 +         (let* ((table (eglot--directory-watches server))
 +                (key (directory-file-name subdir))
 +                (entry (gethash key table)))
++           ;; A watch the system ended (its directory deleted) is replaced.
++           (when (and entry (not (file-notify-valid-p (car entry))))
++             (eglot--forget-directory-watch server key)
++             (setq entry nil))
 +           (cond ((or full (not (file-readable-p subdir))))
 +                 (entry
 +                  ;; Watched already for another registration: share it.
@@ -90,9 +121,8 @@ Over 15 lines: Emacs upstream would need copyright paperwork.
 +                      (let ((desc (file-notify-add-watch
 +                                   subdir '(change)
 +                                   (lambda (event)
-+                                     (pcase-dolist (`(,_ . ,handler)
-+                                                    (cdr (gethash key table)))
-+                                       (funcall handler event))))))
++                                     (eglot--dispatch-directory-event
++                                      server key event)))))
 +                        (puthash key (list desc (cons id #'handle-event)) table)
 +                        (push key (gethash id (eglot--file-watches server)))
 +                        (cl-incf watch-count))
@@ -103,7 +133,7 @@ Over 15 lines: Emacs upstream would need copyright paperwork.
      (let ((subdirs (if (or (null dir) in-root)
                         (subdirs-using-project)
                       (condition-case _ (subdirs-using-find)
-@@ -4985,8 +5010,14 @@
+@@ -4985,8 +5037,14 @@
  (cl-defmethod eglot-unregister-capability
    (server (_method (eql workspace/didChangeWatchedFiles)) id)
    "Handle dynamic unregistration of workspace/didChangeWatchedFiles."
