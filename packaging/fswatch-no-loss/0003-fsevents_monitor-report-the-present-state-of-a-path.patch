@@ -1,0 +1,60 @@
+From 460ea7906b14338cffc1d9d3707ef310077beec1 Mon Sep 17 00:00:00 2001
+From: Ferdinand Vanmaele <ferdinand-joseph.vanmaele@uni-a.de>
+Date: Thu, 15 Oct 2026 16:13:39 +0200
+Subject: [PATCH 3/4] fsevents_monitor: report the present state of a path
+
+With file events FSEvents accumulates the flags of a path, so a file
+created and removed again was reported as
+Created,IsFile,Updated,Removed,AttributeModified.  lstat at the time of
+the event now decides: a missing path is reported Removed, without
+Created and Updated; a present one is not reported Removed.
+---
+ .../src/libfswatch/c++/fsevents_monitor.cpp   | 23 ++++++++++++++++++-
+ 1 file changed, 22 insertions(+), 1 deletion(-)
+
+diff --git a/libfswatch/src/libfswatch/c++/fsevents_monitor.cpp b/libfswatch/src/libfswatch/c++/fsevents_monitor.cpp
+index ef0b44d..546cf87 100644
+--- a/libfswatch/src/libfswatch/c++/fsevents_monitor.cpp
++++ b/libfswatch/src/libfswatch/c++/fsevents_monitor.cpp
+@@ -23,6 +23,8 @@
+ #include "libfswatch_exception.hpp"
+ #include "libfswatch/c/libfswatch_log.h"
+ #include <mutex>
++#include <algorithm>
++#include <sys/stat.h>
+ 
+ namespace fsw
+ {
+@@ -287,9 +289,28 @@ namespace fsw
+         continue;
+       }
+ 
++      // FSEvents accumulates the flags of a path: a file created and removed
++      // again carries both.  Report the state the path has now.
++      std::vector<fsw_event_flag> flags = decode_flags(eventFlags[i]);
++      auto has = [&flags](fsw_event_flag f)
++      { return std::find(flags.begin(), flags.end(), f) != flags.end(); };
++      auto drop = [&flags](fsw_event_flag f)
++      { flags.erase(std::remove(flags.begin(), flags.end(), f), flags.end()); };
++      struct stat st;
++      if (lstat(path_buffer.data(), &st) != 0)
++      {
++        drop(fsw_event_flag::Created);
++        drop(fsw_event_flag::Updated);
++        if (!has(fsw_event_flag::Removed)) flags.push_back(fsw_event_flag::Removed);
++      }
++      else
++      {
++        drop(fsw_event_flag::Removed);
++      }
++
+       events.emplace_back(std::string(path_buffer.data()),
+                           curr_time,
+-                          decode_flags(eventFlags[i]),
++                          flags,
+                           inode);
+ 
+ #else
+-- 
+2.56.0
+
