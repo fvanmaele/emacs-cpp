@@ -1583,6 +1583,14 @@ presets, GoogleTest runner.
   0001 alone pyright ends with 0 watches once it unregisters its first two
   registrations, which had taken the cap: (g) re-run a truncated registration when
   another is removed, or (e). Owner rules.
+  Owner 2026-10-15: drafts for (e) and (g) (T-093, research 3.11): toy of 400
+  directories, cap 500: 0001 ends with 0 watches, (g) with 401, (e) never needs
+  more than 401; neither reaches LLVM. CLion, Qt Creator (and, by Apple's own
+  advice, Xcode) watch trees on macOS with one FSEvents stream, not a descriptor per
+  directory; CLion watches `/` and filters, excluded folders included (IJPL-2175);
+  Qt Creator keeps partial watches at half the file limit and offers servers no
+  file watching at all (T-094). New option (h): a tree watcher process for eglot
+  (`fswatch` or Watchman, FSEvents on macOS), a new dependency, not prototyped.
 - O-60 (RESOLVED 2026-10-15 with D-108: (b) vendor eglot; tracked-only lists still
   undecided, moved to O-61; owner 2026-10-15 with D-107, T-089): (b) tracked-only file
   lists and (c) an eglot patch keeping partial watches (`RESEARCH_platform_differences.md`

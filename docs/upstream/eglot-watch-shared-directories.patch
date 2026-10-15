@@ -1,0 +1,122 @@
+One file watch per directory, shared by a server's registrations
+
+DRAFT for the vendored eglot (D-108, T-093, O-61 (e)). Against
+github.com/emacs-straight/eglot c79f727 with eglot-watch-cap-partial-watches.patch
+applied first; independent of eglot-watch-file-patterns.patch. Not applied anywhere yet.
+Over 15 lines: Emacs upstream would need copyright paperwork.
+
+--- a/eglot.el
++++ b/eglot.el
+@@ -1485,10 +1485,7 @@
+           (eglot-autoshutdown nil))
+       (eglot--when-live-buffer buffer (eglot--managed-mode-off))))
+   ;; Kill any expensive watches
+-  (maphash (lambda (_id watch-descriptors)
+-             (dolist (watch-desc watch-descriptors)
+-               (file-notify-rm-watch watch-desc)))
+-           (eglot--file-watches server))
++  (eglot--remove-directory-watches server)
+   ;; Sever the project/server relationship for `server'
+   (setf (gethash (eglot--project server) eglot--servers-by-project)
+         (delq server
+@@ -4862,14 +4859,29 @@
+ If this limit is reached, a warning is issued and further watches
+ are not added.  Set to nil for unlimited watches.")
+ 
++(defvar eglot--directory-watches (make-hash-table :test #'eq :weakness 'key)
++  "Server -> hash table DIRECTORY -> (DESCRIPTOR . HANDLERS).
++One file watch per directory, shared by all of a server's registrations;
++HANDLERS is an alist (ID . FUNCTION) of the registrations using it.")
++
++(defun eglot--directory-watches (server)
++  "Return SERVER's table of watched directories."
++  (or (gethash server eglot--directory-watches)
++      (puthash server (make-hash-table :test #'equal) eglot--directory-watches)))
++
++(defun eglot--remove-directory-watches (server)
++  "Stop every file watch of SERVER."
++  (maphash (lambda (_dir entry) (file-notify-rm-watch (car entry)))
++           (eglot--directory-watches server))
++  (remhash server eglot--directory-watches))
++
+ (defun eglot--count-file-watches ()
+   "Count total file watches across all Eglot servers."
+   (let ((count 0))
+     (maphash (lambda (_proj servers)
+                (dolist (server servers)
+-                 (maphash (lambda (_id descs)
+-                            (cl-incf count (length descs)))
+-                          (eglot--file-watches server))))
++                 (cl-incf count (hash-table-count
++                                 (eglot--directory-watches server)))))
+              eglot--servers-by-project)
+     count))
+ 
+@@ -4919,22 +4931,35 @@
+              (handle-event `(,desc deleted ,file))
+              (handle-event `(,desc created ,file1))))))
+        (add-watch (subdir)
+-         (cond ((or full (not (file-readable-p subdir))))
+-               ((and eglot-max-file-watches
+-                     (>= watch-count eglot-max-file-watches))
+-                (setq full t)
+-                (eglot--warn "Reached `eglot-max-file-watches' limit of %d, \
++         (let* ((table (eglot--directory-watches server))
++                (key (directory-file-name subdir))
++                (entry (gethash key table)))
++           (cond ((or full (not (file-readable-p subdir))))
++                 (entry
++                  ;; Watched already for another registration: share it.
++                  (unless (assoc id (cdr entry))
++                    (push (cons id #'handle-event) (cdr entry))
++                    (push key (gethash id (eglot--file-watches server)))))
++                 ((and eglot-max-file-watches
++                       (>= watch-count eglot-max-file-watches))
++                  (setq full t)
++                  (eglot--warn "Reached `eglot-max-file-watches' limit of %d, \
+ not watching some directories" eglot-max-file-watches))
+-               (t
+-                (condition-case err
+-                    (progn
+-                      (push (file-notify-add-watch subdir '(change) #'handle-event)
+-                            (gethash id (eglot--file-watches server)))
+-                      (cl-incf watch-count))
+-                  (file-notify-error
+-                   (setq full t)
+-                   (eglot--warn "Cannot watch %s: %s, not watching some directories"
+-                                subdir (error-message-string err))))))))
++                 (t
++                  (condition-case err
++                      (let ((desc (file-notify-add-watch
++                                   subdir '(change)
++                                   (lambda (event)
++                                     (pcase-dolist (`(,_ . ,handler)
++                                                    (cdr (gethash key table)))
++                                       (funcall handler event))))))
++                        (puthash key (list desc (cons id #'handle-event)) table)
++                        (push key (gethash id (eglot--file-watches server)))
++                        (cl-incf watch-count))
++                    (file-notify-error
++                     (setq full t)
++                     (eglot--warn "Cannot watch %s: %s, not watching some directories"
++                                  subdir (error-message-string err)))))))))
+     (let ((subdirs (if (or (null dir) in-root)
+                        (subdirs-using-project)
+                      (condition-case _ (subdirs-using-find)
+@@ -4985,8 +5010,14 @@
+ (cl-defmethod eglot-unregister-capability
+   (server (_method (eql workspace/didChangeWatchedFiles)) id)
+   "Handle dynamic unregistration of workspace/didChangeWatchedFiles."
+-  (dolist (watch-desc (gethash id (eglot--file-watches server)))
+-    (file-notify-rm-watch watch-desc))
++  (let ((table (eglot--directory-watches server)))
++    (dolist (key (gethash id (eglot--file-watches server)))
++      (when-let* ((entry (gethash key table)))
++        (setcdr entry (assoc-delete-all id (cdr entry)))
++        ;; The last registration using this directory: stop watching it.
++        (unless (cdr entry)
++          (file-notify-rm-watch (car entry))
++          (remhash key table)))))
+   (remhash id (eglot--file-watches server))
+   (list t "OK"))
+ 

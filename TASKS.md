@@ -284,6 +284,15 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-094 (opened 2026-10-15, owner): research what CLion, Xcode and Qt Creator do on
+  macOS for file watches and large repositories. Done when:
+  `RESEARCH_platform_differences.md` 3.11 with each from sources (CLion's
+  `fsnotifier`, JetBrains' tracker, Qt's and Qt Creator's code, Apple's docs), what
+  could not be established, what follows for eglot. Done 2026-10-15: option O-61 (h).
+- T-093 (opened 2026-10-15, owner): draft fixes for O-61 (e) and (g). Done when:
+  drafts in `docs/upstream/` against the mirror with 0001, compiled, checked with
+  pyright on toys including an event through the watch callback. Done 2026-10-15
+  (`eglot-watch-shared-directories.patch`, `eglot-watch-retry-cut-short.patch`).
 - T-092 (opened 2026-10-15, owner): draft a patch for the vendored eglot with
   watch patterns per server. Done when: a draft in `docs/upstream/` checked against
   the mirror (with patch 0001), measured on deal.II's and LLVM's file lists and on a

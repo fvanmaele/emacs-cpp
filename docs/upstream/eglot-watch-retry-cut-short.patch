@@ -1,0 +1,74 @@
+Set up again a watch registration the limit cut short, once watches are freed
+
+DRAFT for the vendored eglot (D-108, T-093, O-61 (g)). Against
+github.com/emacs-straight/eglot c79f727 with eglot-watch-cap-partial-watches.patch
+applied first; independent of eglot-watch-file-patterns.patch. Not applied anywhere yet.
+Over 15 lines: Emacs upstream would need copyright paperwork.
+
+--- a/eglot.el
++++ b/eglot.el
+@@ -4861,7 +4861,13 @@
+   "Maximum number of file watches across all Eglot servers.
+ If this limit is reached, a warning is issued and further watches
+ are not added.  Set to nil for unlimited watches.")
++
++(defvar eglot--cut-short-watches (make-hash-table :test #'eq :weakness 'key)
++  "Server -> alist (ID . WATCHERS) of registrations that hit the watch limit.")
+ 
++(defvar eglot--rewatching nil
++  "Non-nil while cut-short registrations are being set up again.")
++
+ (defun eglot--count-file-watches ()
+   "Count total file watches across all Eglot servers."
+   (let ((count 0))
+@@ -4942,7 +4948,8 @@
+       (unwind-protect
+           (cl-loop for sd in subdirs do (add-watch sd) finally (setq success t))
+         (unless success
+-          (eglot-unregister-capability server 'workspace/didChangeWatchedFiles id))))))
++          (eglot-unregister-capability server 'workspace/didChangeWatchedFiles id))))
++    full))
+ 
+ (cl-defmethod eglot-register-capability
+   (server (method (eql workspace/didChangeWatchedFiles)) id &key watchers
+@@ -4976,18 +4983,32 @@
+                        (or kind 7))
+                  (gethash (cons base-path in-root) groups)))))
+      watchers)
+-    ;; For each group, set up watches
+-    (maphash
+-     (lambda (base-path globs)
+-       (eglot--watch-globs server id globs (car base-path) (cdr base-path)))
+-     groups)))
++    ;; For each group, set up watches; remember a registration cut short
++    ;; by the limit, so it can be set up again when watches are freed.
++    (let (cut-short)
++      (maphash
++       (lambda (base-path globs)
++         (when (eglot--watch-globs server id globs (car base-path) (cdr base-path))
++           (setq cut-short t)))
++       groups)
++      (when cut-short
++        (push (cons id watchers) (gethash server eglot--cut-short-watches))))))
+ 
+ (cl-defmethod eglot-unregister-capability
+   (server (_method (eql workspace/didChangeWatchedFiles)) id)
+   "Handle dynamic unregistration of workspace/didChangeWatchedFiles."
+-  (dolist (watch-desc (gethash id (eglot--file-watches server)))
+-    (file-notify-rm-watch watch-desc))
+-  (remhash id (eglot--file-watches server))
++  (let ((freed (gethash id (eglot--file-watches server))))
++    (dolist (watch-desc freed)
++      (file-notify-rm-watch watch-desc))
++    (remhash id (eglot--file-watches server))
++    (setf (alist-get id (gethash server eglot--cut-short-watches) nil t #'equal) nil)
++    ;; Watches were freed: set up again the registrations the limit cut short.
++    (when (and freed (not eglot--rewatching))
++      (let ((eglot--rewatching t))
++        (pcase-dolist (`(,other . ,watchers)
++                       (copy-sequence (gethash server eglot--cut-short-watches)))
++          (eglot-register-capability server 'workspace/didChangeWatchedFiles other
++                                     :watchers watchers)))))
+   (list t "OK"))
+ 
+ 
