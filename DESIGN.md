@@ -1513,6 +1513,12 @@ presets, GoogleTest runner.
   `count_vertices_globally`). Options: (a) keep clangd's order, (b) ignore case in
   `M-o`, (c) orderless for `M-o`'s static sources, (d) initials / flex, (e) several
   words to clangd, (f) two-letter symbol input. Owner rules.
+  Compared with CLion 2026.2 (2026-10-15, T-083, `RESEARCH_go_to_anything.md` 15,
+  from IntelliJ's sources, not typed into CLion): case ignored, lower-case humps
+  from the first letter, a space as an in-order wildcard, exact name first. Closest
+  to it: (a), (b), (e) joined, (f); (c) and (d) do not give humps; new (g) one typo
+  (IntelliJ's `TypoTolerantMatcher`, use in CLion's popups not confirmed). Owner's
+  hand check in CLion listed there.
 - O-56 (OPEN, owner request 2026-10-15, T-082): a theme following macOS's dark / light
   setting (`RESEARCH_dark_theme.md`). Found: the NS build of Emacs 31.1 sets no
   `toolkit-theme` and runs no hook on a change; `defaults read -g
