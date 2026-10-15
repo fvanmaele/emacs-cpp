@@ -1697,6 +1697,13 @@ presets, GoogleTest runner.
   index nothing, a header opened first keeps its includer's flags; one re-index from
   unpatched shards. Left: the owner confirms the criteria and runs criterion 5
   (macOS under `/tmp`); then patch 0010 written fresh (tier 3). Owner rules.
+  Revisited 2026-10-15 (owner request): unchanged since 2026-10-14; still left: the
+  criteria confirmed and criterion 5. Criterion 5 runs on S12's generated project,
+  not the owner's data, so it can run here; it needs S13's patch built on the Mac
+  (S13's `build.sh` is Arch-only; S14's clone-and-build on the Mac tree serves,
+  about 25 minutes), then `S13_BUILD=/tmp/s13 bash spikes/s13-symlinked-paths/run.sh`.
+  Recommended: run it now, then write 0010 with T-104's 0011 / 0012, one pkgrel
+  and one Mac rebuild for all three.
 - O-51 (RESOLVED 2026-10-14 with D-101: option (a), buffers too; found 2026-10-14,
   owner: "verify region/buffer formatting for LaTeX documents"): `C-c l f`
   (`eglot-format`) formats a whole LaTeX buffer through texlab (latexindent 4.0 on the
