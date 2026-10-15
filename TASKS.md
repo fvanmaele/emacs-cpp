@@ -284,6 +284,10 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-083 (opened 2026-10-15, owner: "O-55 - comparison to CLion"): compare O-55's
+  findings with CLion's matching. Done when: `RESEARCH_go_to_anything.md` 15 with
+  CLion's rules and their sources, a side-by-side table, O-55's options against it.
+  Done 2026-10-15; the owner's hand check in CLion is listed there.
 - T-082 (opened 2026-10-15, owner): research a theme following the OS's dark / light
   setting, stage 1 macOS. Done when: `RESEARCH_dark_theme.md` with what Emacs 31.1's
   NS build offers, how to read the setting and its cost, options. Done 2026-10-15:

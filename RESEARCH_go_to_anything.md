@@ -2,7 +2,7 @@
 
 Findings only; verdicts go to DESIGN (O-30 -> D-074, O-31 -> D-076, O-32 -> D-075,
 performance: O-33 -> D-077, narrowed to symbols: O-34 -> D-079,
-path filter for symbols: O-52 -> D-082, fuzzy matching: O-55). Owner request
+path filter for symbols: O-52 -> D-082, fuzzy matching and CLion: O-55). Owner request
 2026-10-11: a "go to anything" key in Emacs that works like CLion's (the owner calls it
 `M-M`): symbols, project files, bookmarks and more from one prompt. Arch, Emacs 31.1,
 2026-10-11. Package facts from the vendored sources at their pins (consult 3.10,
@@ -657,6 +657,89 @@ the inserted `#` is all async until a second `#`). clangd's `getWorkspaceSymbols
   replies (`l` asks all of clangd's index; `s` up to
   `emacs-cpp-go-symbol-limit`); not measured.
 
+## 15. Compared with CLion (owner request 2026-10-15, T-083)
+Question: how CLion matches in the same places, against section 14. CLion 2026.2.3.1
+is installed on the Mac; it was not driven by hand. Sources: JetBrains help pages
+(CLion, IntelliJ IDEA, Rider, 2026.2), which say little about matching; the
+IntelliJ platform sources on GitHub (`intellij-community`, master, 2026-10-15):
+`platform/util/text-matching/.../psi/codeStyle/` (`NameUtil.java`,
+`MinusculeMatcherImpl.kt`, `TypoTolerantMatcher.kt`) and
+`platform/lang-impl/.../gotoByName/DefaultChooseByNameItemProvider.java`. The
+installed CLion carries these classes (`lib/intellij.platform.analysis.jar` holds
+`MinusculeMatcherImpl` and `TypoTolerantMatcher`); that its build equals master was
+not checked. C++ symbols come from CLion Nova, the ReSharper C++ engine (only engine
+since 2026.2, plugin `clion-radler`), whose own rules JetBrains documents for Rider.
+
+**What CLion does:**
+- Go to File / Class / Symbol build the platform matcher with
+  `MatchingMode.IGNORE_CASE` (`buildPatternMatcher`). Rider: "You can type either
+  uppercase or lowercase letters"; `ch` finds `ColorHelper`.
+- Humps, also typed lower case: each pattern letter continues the current word or
+  starts at a later word start (CamelCase, `_`, `-`, `.`, `:`, `+`, space); an upper
+  case letter in a mixed-case pattern must hit a word start. CLion blog (2015):
+  `cml` finds `CMakeLists.txt`. Close to clangd's `FuzzyMatcher` (section 14).
+- A match starting mid-word needs a `*` before it, or the popup's "search in any
+  place", which prepends `*`; such middle matches must be 3 or more characters
+  ("to prevent too many irrelevant matches").
+- A space in the pattern is a wildcard like `*`: the words in order, each next one
+  at a later word start. A trailing space asks for the end of a word. Rider: parts
+  of a qualified name are separated by spaces or dots; a quoted term is exact.
+- Qualified names: each model's separators (`::` for C++ assumed, not read in
+  Nova) become one separator in name and pattern, so `geom::vec` would find
+  `geom::VectorTools`.
+- Ranking: exact name first (`EXACT_MATCH_BONUS` 5000), then the matching degree
+  (a word-start bonus of 1000, case agreement, fewer fragments and skipped humps),
+  then path proximity to the open file. Search Everywhere's own mixing of the
+  scopes not read.
+- Typos: `TypoTolerantMatcher` allows one error per pattern (a QWERTY neighbour in
+  the same row, two letters swapped, a letter missed), only for ASCII names, and
+  only when the exact match fails; enabled by `MatcherBuilder.typoTolerant()` up to
+  13 characters. Which popups enable it was not found (`DefaultChooseByNameItem
+  Provider` does not); a Levenshtein fallback for qualified names sits behind the
+  registry key `search.everywhere.fuzzy.class.search.enabled`.
+- Scope: project items; libraries after a second double Shift or the "Include
+  non-project items" box. Rider: if nothing in the solution matches, library items
+  appear without asking.
+- From the first character; no minimum.
+
+**Side by side** (section 14's toy and batch inputs; CLion's column from the
+sources, not typed into CLion):
+| Input / rule | CLion | `M-o` files, buffers | `M-o` `s` / `l`, `C-c l s` |
+|---|---|---|---|
+| case | ignored | sensitive (`readme` misses `README.md`) | ignored |
+| humps, lower case (`cml`, `vt`) | yes | no | yes, from 3rd character |
+| mid-word start (`ector`) | only after `*`, 3+ characters | yes, any substring | no |
+| space (`vec tools`) | wildcard, words in order | words in any order | no match |
+| `*` | wildcard | regexp `.*` | no |
+| one typo (`vectro`) | `TypoTolerantMatcher`, popups unknown | no | no |
+| `ns::name` | qualifier matched | as text in the path | scope matched loosely |
+| best first | exact name, match quality | source order | quality, not the name match |
+| libraries | on request; Rider: when the project has none | n/a | `l` |
+
+**Against O-55's options:**
+- (a) keep clangd's order: CLion ranks by name match first, so (a) moves toward it;
+  CLion additionally puts the exact name on top, which clangd's own order mostly
+  does (toy: `count` first).
+- (b) ignore case: CLion ignores case everywhere in these popups.
+- (c) orderless: orderless's literal and regexp parts are substrings in any order;
+  CLion is in order and at word starts. (c) gains dispatchers and `C-x b`'s words,
+  not CLion's behaviour.
+- (d) initials / flex: CLion's humps are neither orderless's initialism (initials
+  only, every word) nor flex (any letters in order, anywhere); clangd's matcher is
+  the nearest. For files no packaged orderless style does humps; a custom matching
+  style would (regexp per letter: continue the word or jump to a word start).
+- (e) words to clangd: joining (`vec tools` as `vectools`) is CLion's space rule
+  under clangd's matcher (in order, next word at a word start); the first-word
+  filter is not.
+- (f) two letters: CLion matches from the first.
+- New, (g) one typo: nothing in Emacs here; orderless has no such style, and clangd
+  has none. Lowest value, as CLion's own use is not confirmed.
+
+**Owner's hand check in CLion** (to replace "from the sources" above): on the
+toy project of section 14 (or RMO), Search Everywhere and Go to Symbol, type each
+of `pshbk`, `vec tools`, `vectro`, `ector`, `count`, `readme`, `cml`, `geom::vec`,
+and note which items appear first.
+
 ## Sources
 - JetBrains, CLion help "Search everywhere":
   https://www.jetbrains.com/help/clion/searching-everywhere.html
@@ -671,6 +754,16 @@ the inserted `#` is all async until a second `#`). clangd's `getWorkspaceSymbols
   `index/Background.cpp`, `index/dex/Dex.cpp`, `index/dex/Trigram.cpp`, `FuzzyMatch.cpp`,
   `FuzzyMatch.h`.
 - orderless 1.8: `lib/orderless/orderless.el`.
+- IntelliJ platform, intellij-community master (2026-10-15):
+  https://github.com/JetBrains/intellij-community, `platform/util/text-matching/src/
+  com/intellij/psi/codeStyle/` and `platform/lang-impl/src/com/intellij/ide/util/
+  gotoByName/DefaultChooseByNameItemProvider.java`.
+- JetBrains help 2026.2: https://www.jetbrains.com/help/idea/searching-everywhere.html,
+  https://www.jetbrains.com/help/rider/Navigation_and_Search__CamelHumps.html,
+  https://www.jetbrains.com/help/rider/Navigation_and_Search__Go_to_Symbol.html,
+  https://www.jetbrains.com/help/clion/clion-language-engines.html.
+- CLion blog, "Search and navigation in CLion" (2015):
+  https://blog.jetbrains.com/clion/2015/03/search-and-navigation-in-clion/
 - D84811, "[clangd] Add an option to exclude symbols outside of project root from
   index": https://reviews.llvm.org/D84811
 - clangd issues 1101 and 707, discussion 1382:
