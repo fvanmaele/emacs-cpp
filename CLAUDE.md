@@ -55,7 +55,7 @@ watch patch: T-090 done when proposed (no startup check); O-61 watched files,
 large repositories: drafts (c) (e) (g), IDE research, (h) tree watcher via fswatch /
 Watchman researched, fswatch patch prototyped (T-092 .. T-097);
 D-109 patched fswatch built locally (T-098, 0074; Arch build left); fswatch backend
-for eglot designed (DESIGN 7.1, O-62), watch questions revisited (7.2);
+for eglot ruled (D-110, DESIGN 7.1), watch items ruled (D-111, 7.2); T-090 agreed;
 T-025 round 2, T-026 queued.
 
 ## Hard rules (each with its reason)

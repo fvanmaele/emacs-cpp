@@ -284,6 +284,11 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-100 (opened 2026-10-15, owner on DESIGN 7.1, O-62, 7.2): one scope paragraph
+  instead of two overlapping ones, O-62 rulings into 7.1 (stock fswatch detected by
+  `--queue-limit`, pre-filter benchmark, manual restart), downsides of shared watches.
+  Done when: DESIGN 7.1 / 7.2 revised, D-110, D-111, the benchmark run. Done
+  2026-10-15.
 - T-099 (opened 2026-10-15, owner): design the fswatch backend for eglot and revisit
   the open file-watch questions. Done when: DESIGN 7.1 with the backend (switch,
   scope, process, records to changes, failures, tests) and 7.2 with each open item's
@@ -338,7 +343,7 @@ with `done when: ...`).
   the mechanisms checked on a toy, counts for deal.II and LLVM, options. Done
   2026-10-15: options as O-61.
 - T-090 (opened 2026-10-15, D-108, O-60 (b)): vendor eglot with the watch patch.
-  Tier proposed: 2 (owner rules). Done when (proposed 2026-10-15, not yet agreed):
+  Tier: 2. Done when:
   `.gitmodules` lists submodule `eglot` (`lib/eglot`,
   https://github.com/emacs-straight/eglot, pinned c79f727, `info = eglot.texi`,
   `patch = patches/eglot/0001-...`), the patch being the watch change on that
@@ -350,7 +355,7 @@ with `done when: ...`).
   after the registration (it exits without the patch); the existing eglot tests
   (clangd, pyright, texlab, `M-o`, `C-c l s`) pass. `make test` on the Mac; startup
   time on the Mac noted (budgets bind on Arch, D-057); the owner runs `make test`
-  on Arch. DESIGN D-108, journal.
+  on Arch. DESIGN D-108, journal. Agreed 2026-10-15 (D-111).
 - T-089 (opened 2026-10-15, owner with D-107): can eglot run on untracked `.py`
   buffers with tracked-only lists, and research a patch for eglot's watch cap.
   Done when: `RESEARCH_platform_differences.md` 3.8 with both answered by checks,
