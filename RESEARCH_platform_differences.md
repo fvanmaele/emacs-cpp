@@ -380,6 +380,48 @@ tests need a command loop; the descriptor counts of section 3.2 are unaffected.
 Ruled 2026-10-09: (a) + (d); D-054 confirmed; the report is
 `docs/upstream/eglot-watch-cap-partial-watches.md` with `eglot_watch_cap_repro.sh`.
 
+### 3.7 The cap met on deal.II's step-1 (owner report 2026-10-15, O-59)
+Owner's `*Messages*` after visiting `staging/plot_theta.py` in
+`~/CLionProjects/step-1`: eglot connected pyright, warned "Reached
+`eglot-max-file-watches' limit of 500" three times, "[jsonrpc] Server exited with
+status 1", "Not auto-reconnecting, last one didn't last long", and twice "Error
+running timer: (error "Process EGLOT (step-1/(python-ts-mode python-mode)) not
+running: exited abnormally with code 1")". Checked read-only in the project,
+2026-10-15:
+- eglot watches the directory of every file `project-files` lists (`eglot--watch-
+  globs`, `subdirs-using-project`). For a git project that is tracked files plus
+  untracked ones git does not ignore (`project-vc-include-untracked`, t by
+  default): 14782 files in 1811 directories. Tracked alone: 17 directories.
+- 1787 of those directories are under `build_cpu/` (14244 files, 2.0 GB: `bin`,
+  `bin_v2` ..., logs, results; no `CMakeCache.txt`, so not a CMake build tree).
+  step-1's `.gitignore` lists `build/` and `build-*/`, not `build_cpu/`; the CLion
+  trees `cmake-build-*` hold no untracked files git sees.
+- So the first of pyright's three registrations hits the cap of 500 at once: the
+  case section 3.6 (a) foresaw (about 160 directories). pyright exits, as measured
+  in 3.3. The two later warnings and the two timer errors are eglot answering
+  pyright's other registrations after the process had exited (the reply cannot be
+  sent); they are noise from the same cause. Not reproduced here; read from the
+  order of the messages and `eglot--watch-globs`.
+- The same untracked files fill `M-o`'s and `C-c p f`'s file lists: projectile
+  lists untracked files too (`git ls-files -co --exclude-standard`).
+- Unrelated, also in the report: `#plot_theta.py#` is an auto-save file from
+  2026-10-14 19:08, newer than `plot_theta.py` (2026-07-09); it differs by `# %%`
+  cell markers added then and never saved (`diff`). Emacs offers
+  `M-x recover-this-file`; whether to recover is the owner's call. step-1's
+  `.gitignore` ignores `#*#`.
+
+Options (not ruled, O-59):
+- (a) The owner adds `build_cpu/` (or `build_*/`) to step-1's `.gitignore`: 24
+  directories left, so about 72 watch calls; the file lists shrink by 14244. Outside
+  this repository, no code here.
+- (b) Watch tracked files only: `project-vc-include-untracked` nil in the config
+  (project.el, every user of `project-files`); a new untracked `.py` file is then not
+  watched until added to git; projectile's lists unchanged.
+- (c) Send the eglot report of 3.6 (d) (T-032, the owner's): with partial watches
+  pyright would stay up, watching the first 500 directories.
+- (d) Raise the cap (3.6 (b)): 1811 directories times three registrations is far
+  above the 975 the Mac allows; does not help here.
+
 ## 4. Other differences met so far
 Decided already; listed so that one document points at all of them.
 

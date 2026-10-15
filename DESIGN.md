@@ -817,7 +817,12 @@ Known defects: none yet (nothing built).
   each sit under their own heading, in a fixed order, instead of one list in
   arrival order (RESEARCH_go_to_anything 17). `C-c l s` keeps consult-eglot's
   groups by symbol kind; T-084's `C-c l s` `count` check is waived by this.
-  Build: T-087.
+  Build: T-087. Built (T-087, 0073): per server an `s` and a hidden `l` source,
+  headed `Symbol (clangd)`, `All Symbols (pyright-langserver)` ...; the calling
+  buffer's server first, then eglot's order; narrow keys `s` / `l` shared, one entry
+  each. Terminal check (toy, clangd and pyright): `M-o` `vector` from the `.cc`
+  buffer shows clangd's heading first, from the `.py` buffer pyright's; `< s` shows
+  both.
 - DECIDED D-105 (owner 2026-10-15, O-55: "(a) + (b)"; tier 2, done when to agree):
   symbols in clangd's order and `M-o` ignoring case, as CLion (RESEARCH_go_to_anything
   14, 15). (a) `M-o` and `C-c l s` list each server's `workspace/symbol` reply in the
@@ -1546,6 +1551,16 @@ presets, GoogleTest runner.
   a loose qualifier (`geom::vec`); `count() const` first in both, re-sorted away
   here; no typo seen. Search Everywhere's files: case ignored, humps, space in
   order.
+- O-59 (OPEN, owner report 2026-10-15, T-088): pyright exits in deal.II's step-1 at
+  eglot's watch cap (`RESEARCH_platform_differences.md` 3.7). Found: `project-files`
+  includes untracked files git does not ignore; `build_cpu/` (results, 14244 files,
+  1787 directories) is such, so 1811 directories against D-054's cap of 500; the
+  later warnings and timer errors are eglot answering a dead pyright. Options: (a)
+  the owner ignores `build_cpu/` in step-1's `.gitignore` (24 directories left); (b)
+  watch tracked files only (`project-vc-include-untracked` nil); (c) send T-032's
+  eglot report; (d) a higher cap, no help here. The auto-save file
+  `#plot_theta.py#` holds unsaved `# %%` markers of 2026-10-14: recovering is the
+  owner's call. Owner rules.
 - O-58 (RESOLVED 2026-10-15 with D-106: (d) and (h); owner 2026-10-15 approving T-084,
   T-086): order of several servers'
   symbols, and `C-c l s`'s kind groups (`RESEARCH_go_to_anything.md` 17). Found:
