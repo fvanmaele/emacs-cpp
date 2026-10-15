@@ -47,6 +47,7 @@ own module (D-099).
 S12 change signature: FAIL, calls in templates (0066), O-43 (b) to the owner.
 Open: O-12; O-38 rg.el / ag.el; O-39 R server; O-47 hover;
 O-50 symlinked paths lose clangd references (S13 PASS on Arch, Mac run left);
+O-55 fuzzy matching in `M-o` / `C-c l s`; O-56 theme following macOS appearance;
 T-025 round 2, T-026 queued.
 
 ## Hard rules (each with its reason)
