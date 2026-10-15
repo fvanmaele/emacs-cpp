@@ -46,7 +46,7 @@ clang-tidy fixes, clang-move (D-094); snippets: yasnippet, its collection on `C-
 own module (D-099).
 S12 change signature: FAIL, calls in templates (0066), O-43 (b) to the owner.
 Open: O-12; O-38 rg.el / ag.el; O-39 R server; O-47 hover;
-O-50 symlinked paths lose clangd references (S13 PASS on Arch, Mac run left);
+O-50 symlinked paths lose clangd references (S13 PASS on Arch and the Mac; 0010 to rule);
 O-57 CLion's extra symbol matches; O-56 theme following macOS appearance;
 D-105 symbols in clangd's order, `M-o` ignores case: built (T-084, 0072);
 D-106 `M-o` symbol sources per server (T-087, 0073); D-107 `build*/` in

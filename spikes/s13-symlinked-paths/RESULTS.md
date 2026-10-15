@@ -1,11 +1,11 @@
 # S13 - clangd's background index through a symlinked path: results
 
-Verdict: PASS on Arch (criteria 1 - 4, 2026-10-14); criterion 5, macOS under `/tmp`,
-is the owner's run and still open. The criteria were proposed in RUN.md the same day
-and have not been confirmed by the owner yet. Through a symlinked directory the
-patched build gives 201 references in 26 files, as at the real path; without the
-patch, 3 in 2. Restarts index nothing, and a header opened first still takes its
-includer's command.
+Verdict: PASS: criteria 1 - 4 on Arch (2026-10-14), criterion 5, macOS under `/tmp`, on
+the Mac (2026-10-15, run here on the generated project at the owner's request). The
+criteria were proposed in RUN.md and have not been confirmed by the owner yet. Through a
+symlinked directory the patched build gives 201 references in 26 files, as at the real
+path; without the patch, 3 in 2. Restarts index nothing, and a header opened first still
+takes its includer's command.
 
 ## Setup
 - clangd: the patched tree of pkgrel 7 (23.1.1, patches 0001 - 0009), its clang and
@@ -46,11 +46,35 @@ includer's command.
 - Index time: every run 1 went idle 0.6 s after the client's open; the patch's lookup
   of 2 directories is not visible in it.
 
+## Criterion 5: macOS under `/tmp` (2026-10-15)
+- clangd: baseline the installed `~/opt/clangd-index-nav/bin/clangd` (23.1.3, patches
+  0001 - 0009); patched the same tree plus `0001-real-main-files.patch`, built by
+  `build-macos.sh` here (S13's `build.sh` is Arch-only; clone of the Mac tree, 3283
+  steps). The patch applies to 23.1.3 unchanged.
+- `S13_BUILD=/tmp/s13 bash spikes/s13-symlinked-paths/run.sh CLANGD LABEL`; CMake
+  3.31.12 writes `/tmp/...` for both projects (`real` too: `/tmp` is a symlink to
+  `/private/tmp`), eglot's spelling, the files' true names, is `/private/tmp/...`.
+
+| Case | clangd | Run 1 refs (files), TUs indexed | Run 2 | Run 3 (header first) |
+|---|---|---|---|---|
+| real | baseline | 3 (2), 27 | 3 (2), 0 | 2 (1), 0, includer's flags |
+| link | baseline | 3 (2), 27 | 3 (2), 0 | 2 (1), 0, includer's flags |
+| real | patched | 201 (26), 27 | 201 (26), 0 | 201 (26), 0, includer's flags |
+| link | patched | 201 (26), 27 | 201 (26), 0 | 201 (26), 0, includer's flags |
+
+- Criteria 1 - 4 hold under `/tmp`: PASS. Every patched run logs `27 of 27 main
+  files named by their real path (2 directories)`; the includer is named by its real
+  path (`/private/tmp/...`), the baseline's by the database's (`/tmp/...`).
+- Unlike Arch, the `real` case is affected on the Mac too: CMake 3.31 writes `/tmp`
+  whatever the working directory (RESEARCH_platform_differences 2.2), so every
+  project under `/tmp` loses its references with the stock or patched clangd 23.1.3
+  without 0010.
+
 ## Decision
-For the owner (O-50): the patch works on Arch as RESEARCH 2.8 proposed. Patch 0010
-written fresh in the packaging (tier 3 passed once criterion 5 holds or the owner
-waives it), with a clangd unit test in `BackgroundIndexTests.cpp` and the config's
-references test asking for the definition's file too (2.5, Tests).
+For the owner (O-50): the patch works on Arch and on the Mac as RESEARCH 2.8
+proposed. Patch 0010 written fresh in the packaging (tier 3 passed: criterion 5
+holds, 2026-10-15), with a clangd unit test in `BackgroundIndexTests.cpp` and the
+config's references test asking for the definition's file too (2.5, Tests).
 
 ## Gotchas
 - clangd answers `textDocument/references` only for an opened file: asking about

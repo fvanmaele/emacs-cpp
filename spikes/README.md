@@ -43,7 +43,7 @@ code is written for it. Each spike is a self-contained directory with its own bu
 - **S13 symlinked paths** - does a clangd patch naming the background index's main
   files by their real directory restore the references a project reached through a
   symlink loses, with shards still loading on a restart and header flags from an
-  includer (O-50 (c))? PASS on Arch (criteria 1 - 4); macOS under `/tmp` the owner's
+  includer (O-50 (c))? PASS: criteria 1 - 4 on Arch, 5 (macOS under `/tmp`) on the Mac
   (T-077, `s13-symlinked-paths/RESULTS.md`).
 - **S14 symbol matches** - do CLion's mid-word (`ector`) and abbreviated-qualifier
   (`geom::vert`) symbol matches work in clangd on deal.II's index without changing
