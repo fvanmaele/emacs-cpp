@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0072 | 2026-10-15 | T-084: symbols in clangd's order, `M-o` ignores case | T-084 | D-105 |
 | 0071 | 2026-10-14 | T-080: `make test` in a temporary HOME | T-080 | D-104 |
 | 0070 | 2026-10-14 | T-078: latexindent as texlab runs it | T-078 | D-103 |
 | 0069 | 2026-10-14 | S13: index through a symlink, PASS on Arch | S13, T-077 | none |

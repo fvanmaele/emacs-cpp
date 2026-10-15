@@ -818,7 +818,13 @@ Known defects: none yet (nothing built).
   which leaves the name match out (toy: `count` then below `count_vertices_globally`;
   CLion and clangd put `count` first). (b) `M-o`'s buffers, recent files, bookmarks,
   project files, commands and projects match ignoring case (`readme` finds
-  `README.md`). Build: T-084.
+  `README.md`). Build: T-084. Built (T-084, 0072): `M-o` drops the sort; consult-eglot
+  patch 0001 (D-069) drops consult-eglot's; `completion-ignore-case` t in `M-o`.
+  Terminal check (toy, clangd 21.1.8): `M-o` `< s` lists `count` before
+  `count_vertices_globally` and `Vector` first for `vector`; `readme` finds
+  `README.md`; `C-c l s` `vector` lists `Vector` first, but `count` shows
+  `count_vertices_globally` first: consult-eglot groups by symbol kind, and the
+  Function group appears before the Variable one in clangd's reply (O-58).
 - DECIDED D-086 (owner 2026-10-13: "the behavior of M-o <l should match C-c l s";
   done when agreed): `M-o` `< l` with no input asks clangd for "" and lists its
   first 100 symbols, as `C-c l s` does when it opens; one or two characters keep
@@ -1533,6 +1539,17 @@ presets, GoogleTest runner.
   a loose qualifier (`geom::vec`); `count() const` first in both, re-sorted away
   here; no typo seen. Search Everywhere's files: case ignored, humps, space in
   order.
+- O-58 (OPEN, owner 2026-10-15 approving T-084, T-086): order of several servers'
+  symbols, and `C-c l s`'s kind groups (`RESEARCH_go_to_anything.md` 17). Found:
+  pyright and texlab answer `workspace/symbol` without `score`; since D-105 replies
+  follow in arrival order, which can differ per key; `C-c l s` lists whole kind
+  groups in order of first appearance, so `count_vertices_globally` (Function)
+  shows before `count` (Variable) on the toy. Options: (a) arrival order, as built;
+  (b) the calling buffer's server first, then newest first; (c) (b) shown once all
+  answered or after a timeout; (d) one `M-o` source per server; (e) the calling
+  buffer's server only; (f) interleave, not recommended; for `C-c l s`: (g) no kind
+  groups (patch 0001 gains a hunk; kind narrowing stays), (h) keep them. Owner
+  rules.
 - O-57 (OPEN, owner 2026-10-15 with D-105: "research Optional", T-085): the symbol
   matches CLion makes and clangd refuses (`RESEARCH_go_to_anything.md` 16): mid-word
   (`ector`; clangd's trigrams admit it, only its matcher refuses), a gap inside a
