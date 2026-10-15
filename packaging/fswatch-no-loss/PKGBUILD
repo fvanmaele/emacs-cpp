@@ -1,0 +1,54 @@
+# Local package of emacs-cpp (D-109, T-098); not for the AUR.
+# fswatch with the emacs-cpp patches: records are written by a thread of their own,
+# so a slow reader no longer makes the system drop events, with a configurable limit
+# on waiting records (--queue-limit, past it one Overflow record per watched path);
+# FSEvents drops reported as an overflow (macOS); a path's present state decides
+# Removed (macOS); numbers on the command line read in the C locale. See
+# RESEARCH_platform_differences.md 3.12, 3.13. Installed to /opt, next to (not
+# instead of) the extra package fswatch. Patches: `git format-patch 1.22.0..series`
+# in a clone of github.com/emcrisostomo/fswatch.
+
+pkgname=fswatch-no-loss
+pkgver=1.22.0
+pkgrel=1
+pkgdesc="fswatch $pkgver that does not lose events to a slow reader (emacs-cpp patches)"
+arch=(x86_64)
+url="https://github.com/emcrisostomo/fswatch"
+license=(GPL-3.0-or-later)
+depends=(gcc-libs glibc)
+checkdepends=(python)
+options=(!debug)
+source=("https://github.com/emcrisostomo/fswatch/releases/download/$pkgver/fswatch-$pkgver.tar.gz"
+        0001-fswatch-write-records-from-a-thread-of-their-own-wit.patch
+        0002-fsevents_monitor-report-dropped-events-as-an-overflo.patch
+        0003-fsevents_monitor-report-the-present-state-of-a-path.patch
+        0004-fswatch-read-numbers-on-the-command-line-in-the-C-lo.patch
+        check.sh)
+sha256sums=('fa6e2becba0a629964b466b39c5997e72d8a6da40d82b88190aae7359065c758'
+            'f153a50d7397c6fa67f21ccbcf8e2b190bf55777abb3f35dbaebadbefc449b2d'
+            '72528ffc463ff0b0dc3d121c820f93d4951bb52c901dc9429417d48c390c334a'
+            'f75a6e33d8d0a1827452901ee9b040b6d0ed5655bf4eb904c8038e4d4da3853d'
+            'cd805ba2912aec47eb31ada09301d51c4c6fe940e50796c6f2aa3d247acb55b2'
+            'ec93654a8467acc740e553333e6761570b55314f3e2ee95235159d68b232319e')
+
+prepare() {
+  cd fswatch-$pkgver
+  for patch in "$srcdir"/000*.patch; do
+    patch -Np1 -i "$patch"
+  done
+}
+
+build() {
+  cd fswatch-$pkgver
+  # libfswatch linked in, so the binary never loads the extra package's library.
+  ./configure --prefix=/opt/$pkgname --disable-shared
+  make
+}
+
+check() {
+  sh "$srcdir/check.sh" "$srcdir/fswatch-$pkgver/fswatch/src/fswatch"
+}
+
+package() {
+  install -Dm755 fswatch-$pkgver/fswatch/src/fswatch "$pkgdir/opt/$pkgname/bin/fswatch"
+}

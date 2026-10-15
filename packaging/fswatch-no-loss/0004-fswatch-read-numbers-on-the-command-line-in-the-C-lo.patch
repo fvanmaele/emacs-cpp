@@ -1,0 +1,29 @@
+From efddeec8a8423e54c61721554171bca6deaa0e86 Mon Sep 17 00:00:00 2001
+From: Ferdinand Vanmaele <ferdinand-joseph.vanmaele@uni-a.de>
+Date: Thu, 15 Oct 2026 16:13:39 +0200
+Subject: [PATCH 4/4] fswatch: read numbers on the command line in the C locale
+
+With NLS, main calls setlocale(LC_ALL, ""), and -l is read with strtod,
+so under a locale with a decimal comma (de_DE.UTF-8) "-l 0.1" failed
+with "Invalid value: 0.1".  LC_NUMERIC is set back to "C".
+---
+ fswatch/src/fswatch.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/fswatch/src/fswatch.cpp b/fswatch/src/fswatch.cpp
+index 0c61478..914a2ac 100644
+--- a/fswatch/src/fswatch.cpp
++++ b/fswatch/src/fswatch.cpp
+@@ -1058,6 +1058,9 @@ int main(int argc, char **argv)
+   // Trigger gettext operations
+ #ifdef ENABLE_NLS
+   setlocale(LC_ALL, "");
++  // Numbers on the command line (-l) are read in the C locale: under a
++  // locale with a decimal comma, strtod refused "-l 0.1".
++  setlocale(LC_NUMERIC, "C");
+   bindtextdomain(PACKAGE, LOCALEDIR);
+   textdomain(PACKAGE);
+ #endif
+-- 
+2.56.0
+

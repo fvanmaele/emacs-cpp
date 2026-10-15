@@ -280,6 +280,7 @@ history and caches.
 | `scripts/measure-startup.sh` | startup time measurement (DESIGN 11) |
 | `test/*-test.el` | ERT tests, one file per module |
 | `packaging/clangd-index-nav/` | patched clangd: patches, PKGBUILD, `build-macos.sh` |
+| `packaging/fswatch-no-loss/` | patched fswatch (D-109), not used by the config yet |
 | `packaging/clang-change-namespace/` | its crash fix and `build.sh`, for `C-c l N` |
 | `spikes/` | throwaway prototypes with PASS / FAIL verdicts, listed in their README |
 

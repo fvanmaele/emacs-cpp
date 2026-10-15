@@ -1,0 +1,197 @@
+From f766ac2148e910a745e3c49b0b694025930e86ec Mon Sep 17 00:00:00 2001
+From: Ferdinand Vanmaele <ferdinand-joseph.vanmaele@uni-a.de>
+Date: Thu, 15 Oct 2026 16:13:19 +0200
+Subject: [PATCH 1/4] fswatch: write records from a thread of their own, with a
+ queue limit
+
+The monitor's callback wrote each record to standard output itself.  With
+a reader that does not keep up the write blocks, and on macOS a blocked
+FSEvents callback makes the system drop events: with 10000 files created
+while the reader paused, 959 records arrived.
+
+Records are now formatted in the callback and queued; a writer thread
+takes them to standard output.  At most --queue-limit=N records wait
+(default 200000, 0: no limit); past it the waiting records are dropped
+and one Overflow record per watched path takes their place, or, without
+--allow-overflow, fswatch stops with "Event queue overflow.", as
+libfswatch does for monitor overflows.  After the monitor stops (-1),
+fswatch waits for the queue to be written.
+---
+ fswatch/src/fswatch.cpp | 113 +++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 112 insertions(+), 1 deletion(-)
+
+diff --git a/fswatch/src/fswatch.cpp b/fswatch/src/fswatch.cpp
+index 9cf607a..0c61478 100644
+--- a/fswatch/src/fswatch.cpp
++++ b/fswatch/src/fswatch.cpp
+@@ -28,6 +28,14 @@
+ #include <array>
+ #include <map>
+ #include <filesystem>
++#include <condition_variable>
++#include <deque>
++#include <mutex>
++#include <sstream>
++#include <thread>
++#include <utility>
++#include <cstdio>
++#include <unistd.h>
+ #include "libfswatch/c++/event.hpp"
+ #include "libfswatch/c++/monitor.hpp"
+ #include "libfswatch/c++/monitor_factory.hpp"
+@@ -135,6 +143,7 @@ static const int OPT_FILTER_FROM = 135;
+ static const int OPT_NO_DEFER = 136;
+ static const int OPT_PRUNE = 137;
+ static const int OPT_FILTER_MODE = 138;
++static const int OPT_QUEUE_LIMIT = 139;
+ 
+ static void list_monitor_types(std::ostream& stream)
+ {
+@@ -168,6 +177,7 @@ static void usage(std::ostream& stream)
+   stream << " -1, --one-event       " << _("Exit fswatch after the first set of events is received.\n");
+   stream << "     --allow-overflow  " << _("Allow a monitor to overflow and report it as a change event.\n");
+   stream << "     --batch-marker    " << _("Print a marker at the end of every batch.\n");
++  stream << "     --queue-limit=N   " << _("Records waiting for the reader, at most (default 200000, 0: no limit).\n");
+   stream << " -a, --access          " << _("Watch file accesses.\n");
+   stream << " -b, --bubble-events   " << _("Bubble events with the same timestamp and path.\n");
+   stream << " -d, --directories     " << _("Watch directories only.\n");
+@@ -483,12 +493,95 @@ static void write_events(const std::vector<event>& events)
+   }
+ }
+ 
+-static void process_events(const std::vector<event>& events, void *)
++/*
++ * Records are written by a thread of their own, so the monitor's callback
++ * never waits for a slow reader: on macOS a blocked FSEvents callback makes the
++ * system drop events.  At most queue_limit records wait (0: no limit); past it
++ * the waiting records are dropped and one Overflow record per watched path is
++ * written instead, or, without --allow-overflow, fswatch stops.
++ */
++static unsigned long queue_limit = 200000;
++static std::vector<std::string> watched_paths;
++static std::mutex output_mutex;
++static std::condition_variable output_ready;
++static std::condition_variable output_drained;
++static std::deque<std::pair<std::string, size_t>> output_queue;
++static size_t queued_records = 0;
++static bool writing = false;
++
++static std::string format_events(const std::vector<event>& events)
+ {
++  std::ostringstream records;
++  std::streambuf *console = std::cout.rdbuf(records.rdbuf());
+   if (oflag)
+     write_one_batch_event(events);
+   else
+     write_events(events);
++  std::cout.rdbuf(console);
++  return records.str();
++}
++
++static void write_output()
++{
++  for (;;)
++  {
++    std::pair<std::string, size_t> chunk;
++    {
++      std::unique_lock<std::mutex> lock(output_mutex);
++      output_ready.wait(lock, [] { return !output_queue.empty(); });
++      chunk = std::move(output_queue.front());
++      output_queue.pop_front();
++      queued_records -= chunk.second;
++      writing = true;
++    }
++    if (fwrite(chunk.first.data(), 1, chunk.first.size(), stdout) != chunk.first.size()
++        || fflush(stdout) != 0)
++      std::_Exit(FSW_EXIT_ERROR);
++    {
++      std::lock_guard<std::mutex> lock(output_mutex);
++      writing = false;
++    }
++    output_drained.notify_all();
++  }
++}
++
++static void drain_output()
++{
++  std::unique_lock<std::mutex> lock(output_mutex);
++  output_drained.wait(lock, [] { return output_queue.empty() && !writing; });
++}
++
++static void process_events(const std::vector<event>& events, void *)
++{
++  const size_t count = oflag ? 1 : events.size();
++  std::string records = format_events(events);
++  {
++    std::lock_guard<std::mutex> lock(output_mutex);
++    if (queue_limit > 0 && queued_records + count > queue_limit)
++    {
++      if (!allow_overflow)
++      {
++        // Not through std::cerr: it flushes std::cout first, which waits for
++        // the lock on stdout the writer thread holds while the reader stalls.
++        const std::string message = std::string(_("Event queue overflow.")) + "\n";
++        if (write(STDERR_FILENO, message.data(), message.size()) < 0) {}
++        std::_Exit(FSW_EXIT_ERROR);
++      }
++
++      time_t now;
++      time(&now);
++      std::vector<event> overflow;
++      for (const auto& path : watched_paths)
++        overflow.emplace_back(path, now, std::vector<fsw_event_flag>{fsw_event_flag::Overflow});
++
++      output_queue.clear();
++      queued_records = oflag ? 1 : overflow.size();
++      output_queue.emplace_back(format_events(overflow), queued_records);
++    }
++    output_queue.emplace_back(std::move(records), count);
++    queued_records += count;
++  }
++  output_ready.notify_one();
+ }
+ 
+ static void start_monitor(int argc, char **argv, int argIndex)
+@@ -566,7 +659,10 @@ static void start_monitor(int argc, char **argv, int argIndex)
+   active_monitor->set_watch_access(aflag);
+   active_monitor->set_bubble_events(bflag);
+ 
++  watched_paths = paths;
++  std::thread(write_output).detach();
+   active_monitor->start();
++  drain_output();
+ }
+ 
+ static void parse_opts(int argc, char **argv)
+@@ -608,6 +704,7 @@ static void parse_opts(int argc, char **argv)
+     {"one-event",            no_argument,       nullptr,       '1'},
+     {"print0",               no_argument,       nullptr,       '0'},
+     {"prune",                required_argument, nullptr,       OPT_PRUNE},
++    {"queue-limit",          required_argument, nullptr,       OPT_QUEUE_LIMIT},
+     {"recursive",            no_argument,       nullptr,       'r'},
+     {"timestamp",            no_argument,       nullptr,       't'},
+     {"utc-time",             no_argument,       nullptr,       'u'},
+@@ -750,6 +847,20 @@ static void parse_opts(int argc, char **argv)
+       allow_overflow = true;
+       break;
+ 
++    case OPT_QUEUE_LIMIT:
++    {
++      char *end = nullptr;
++      errno = 0;
++      unsigned long value = strtoul(optarg, &end, 10);
++      if (*optarg == '\0' || *end != '\0' || errno != 0 || optarg[0] == '-')
++      {
++        std::cerr << _("Invalid value: ") << optarg << std::endl;
++        exit(FSW_EXIT_OPT);
++      }
++      queue_limit = value;
++      break;
++    }
++
+     case OPT_MONITOR_PROPERTY:
+       set_monitor_property(optarg);
+       break;
+-- 
+2.56.0
+

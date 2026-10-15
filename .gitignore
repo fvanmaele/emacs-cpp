@@ -7,3 +7,9 @@
 /packaging/clangd-index-nav/pkg/
 /packaging/clangd-index-nav/*.tar.xz
 /packaging/clangd-index-nav/*.pkg.tar.zst
+# Left by makepkg / build-macos.sh in packaging/fswatch-no-loss (D-109).
+/packaging/fswatch-no-loss/src/
+/packaging/fswatch-no-loss/pkg/
+/packaging/fswatch-no-loss/*.tar.gz
+/packaging/fswatch-no-loss/*.tar.gz.part
+/packaging/fswatch-no-loss/*.pkg.tar.zst

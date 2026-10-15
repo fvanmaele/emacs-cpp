@@ -284,8 +284,8 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
-- T-098 (opened 2026-10-15, D-109): package the patched fswatch. Tier proposed: 2.
-  Done when (proposed 2026-10-15, not yet agreed): `packaging/fswatch-no-loss/` holds
+- T-098 (opened 2026-10-15, D-109): package the patched fswatch. Tier: 2.
+  Done when: `packaging/fswatch-no-loss/` holds
   a `PKGBUILD` (Arch, installs to /opt/fswatch-no-loss, next to the `extra`
   package) and `build-macos.sh` (to ~/opt/fswatch-no-loss, tools from MacPorts),
   both from the 1.22.0 release with the checksum pinned, and the patches split
@@ -297,6 +297,9 @@ with `done when: ...`).
   the cap gives one `Overflow` and bounded memory, `-l 0.1` is accepted under
   `de_DE.UTF-8`. The Mac build and check run here; the Arch build and check are
   the owner's. Nothing in the Emacs config uses it yet. DESIGN D-109, journal.
+  Agreed 2026-10-15, with the cap configurable (owner). Built 2026-10-15 (0074):
+  met on the Mac (check.sh: 7 of 7, installed to ~/opt/fswatch-no-loss); left: the
+  owner's `makepkg -si` on Arch (its `check()` runs check.sh).
 - T-097 (opened 2026-10-15, owner with D-109): check change 2 of the fswatch
   prototype and its memory use. Done when: `RESEARCH_platform_differences.md` 3.13
   with a real drop reported, memory with a reader that never reads, measured.

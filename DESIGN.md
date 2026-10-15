@@ -252,6 +252,7 @@ Observed on the owner's Mac, 2026-10-09 (D-050):
 | init | `init.el` | KEEP | T-002, replaces `~/.emacs` (D-003) |
 | packages | `lib/<repo>/` submodules | KEEP | 31 repositories after T-065 (section 12) |
 | clangd, macOS | `packaging/clangd-index-nav/build-macos.sh` | PROTOTYPE | T-023, D-052 |
+| fswatch | `packaging/fswatch-no-loss/` | PROTOTYPE | T-098, D-109 |
 | package build | `scripts/build-packages.el` | KEEP | T-002, `make packages` |
 | theme | `lisp/init-ui.el` | KEEP | T-002 |
 | writing | `lisp/init-writing.el` | KEEP | T-002: markdown, org-journal |
@@ -482,7 +483,11 @@ Known defects: none yet (nothing built).
   overflow, a path's present state decides removed or not
   (`RESEARCH_platform_differences.md` 3.13); installed next to the system fswatch.
   It serves an fswatch backend for eglot (O-61 (h1)), which is not designed yet.
-  Build: T-098.
+  Build: T-098. Owner 2026-10-15 with T-098: the cap configurable. Built (T-098,
+  0074): `packaging/fswatch-no-loss/` (fswatch 1.22.0, patches 0001 - 0004,
+  `PKGBUILD`, `build-macos.sh`, `check.sh`); `--queue-limit=N` (default 200000,
+  0: no limit). On the Mac all seven checks pass and it is installed to
+  `~/opt/fswatch-no-loss`; the Arch build is the owner's.
 - DECIDED D-108 (owner 2026-10-15, O-60 (b): "Vendor eglot"; tier and done when to
   agree): eglot comes from a submodule, `lib/eglot` from
   github.com/emacs-straight/eglot (GNU ELPA's eglot, i.e. Emacs master's, no tags),

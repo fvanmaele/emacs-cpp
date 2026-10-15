@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0074 | 2026-10-15 | T-098: fswatch built without event loss | T-098 | D-109 |
 | 0073 | 2026-10-15 | T-087: `M-o` symbol sources per server | T-087 | D-106 |
 | 0072 | 2026-10-15 | T-084: symbols in clangd's order, `M-o` ignores case | T-084 | D-105 |
 | 0071 | 2026-10-14 | T-080: `make test` in a temporary HOME | T-080 | D-104 |

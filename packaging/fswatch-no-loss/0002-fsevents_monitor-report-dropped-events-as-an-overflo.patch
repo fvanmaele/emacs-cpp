@@ -1,0 +1,39 @@
+From c256c656ba933915ca6bf327e690ab157df4af35 Mon Sep 17 00:00:00 2001
+From: Ferdinand Vanmaele <ferdinand-joseph.vanmaele@uni-a.de>
+Date: Thu, 15 Oct 2026 16:13:39 +0200
+Subject: [PATCH 2/4] fsevents_monitor: report dropped events as an overflow
+
+FSEvents flags a drop with MustScanSubDirs, UserDropped or KernelDropped.
+These were decoded as PlatformSpecific, so a consumer saw a record for the
+root with no sign that events were lost, and --allow-overflow showed
+nothing.  They now go to notify_overflow, as the inotify and kqueue
+monitors report their queue overflows: an Overflow record with
+--allow-overflow, an error without it.
+---
+ libfswatch/src/libfswatch/c++/fsevents_monitor.cpp | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/libfswatch/src/libfswatch/c++/fsevents_monitor.cpp b/libfswatch/src/libfswatch/c++/fsevents_monitor.cpp
+index f3862c4..ef0b44d 100644
+--- a/libfswatch/src/libfswatch/c++/fsevents_monitor.cpp
++++ b/libfswatch/src/libfswatch/c++/fsevents_monitor.cpp
+@@ -277,6 +277,16 @@ namespace fsw
+         CFNumberGetValue(cf_inode, kCFNumberLongType, &inode);
+       }
+ 
++      // The system dropped events (a slow consumer, or the kernel): report an
++      // overflow, as the inotify and kqueue monitors do.
++      if (eventFlags[i] & (kFSEventStreamEventFlagMustScanSubDirs
++                           | kFSEventStreamEventFlagUserDropped
++                           | kFSEventStreamEventFlagKernelDropped))
++      {
++        fse_monitor->notify_overflow(std::string(path_buffer.data()));
++        continue;
++      }
++
+       events.emplace_back(std::string(path_buffer.data()),
+                           curr_time,
+                           decode_flags(eventFlags[i]),
+-- 
+2.56.0
+
