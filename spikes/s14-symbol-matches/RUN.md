@@ -54,8 +54,9 @@ Emacs). The first build takes about as long as `build-macos.sh` (3283 steps).
 ## Commands
 ```
 bash spikes/s14-symbol-matches/build.sh
-bash spikes/s14-symbol-matches/run.sh       # step-1, build/mac-debug, src/main.cc
+bash spikes/s14-symbol-matches/run.sh
 ```
+Without arguments `run.sh` uses step-1, its `build/mac-debug` and `src/main.cc`.
 `run.sh` clones `build/mac-debug` into `~/.cache/emacs-cpp-s14/run`, so the project is
 only read. Other project: `run.sh PROJECT PRESET_DIR OPENED_FILE`.
 

@@ -18,6 +18,8 @@ opened=${3:-$project/src/main.cc}
 baseline=${S14_BASELINE:-$HOME/opt/clangd-index-nav/bin/clangd}
 spike=$work/build/bin/clangd
 die() { printf 's14 run: %s\n' "$*" >&2; exit 1; }
+[ $# -le 3 ] || die "at most 3 arguments: PROJECT PRESET_DIR OPENED (got $#: $*)"
+[ -d "$project" ] || die "no project directory $project"
 [ -x "$baseline" ] || die "no baseline clangd at $baseline"
 [ -x "$spike" ] || die "no spike clangd at $spike; run build.sh"
 [ -f "$preset/compile_commands.json" ] || die "no compile_commands.json in $preset"
