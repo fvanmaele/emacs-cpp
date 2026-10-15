@@ -623,6 +623,110 @@ project exclusions (3.9) or (e) / (g) would still be needed there.
 - The root is always watched, so a new top-level `.py` file is seen.
 - 32 changed lines: for Emacs upstream, copyright paperwork.
 
+### 3.11 Drafts for O-61 (e) and (g), and what CLion, Xcode, Qt Creator do (T-093, T-094)
+Owner 2026-10-15: "Draft fixes for O-61. Do a thorough research what CLion, XCode
+and QtCreator do on macos for file watches and large repositories." Mac, 2026-10-15.
+
+**Drafts** (against the mirror c79f727 with 0001; each applies alone, also next to
+the patterns draft of 3.10; not applied anywhere):
+- (g) `docs/upstream/eglot-watch-retry-cut-short.patch`, 37 changed lines: a
+  registration that hits the limit is remembered with its watchers; when another
+  registration is removed and frees watches, the remembered ones are set up again
+  (a guard stops the re-registration from recursing).
+- (e) `docs/upstream/eglot-watch-shared-directories.patch`, 76 changed lines: one
+  file watch per directory and server, a table directory -> (descriptor .
+  handlers); each registration adds its handler to an existing watch instead of a
+  second watch; the watch goes when its last registration does; the count is
+  directories, not registration-directory pairs; shutdown stops them all.
+- Both byte-compile without new warnings. Checked with pyright 1.1.414 (cap 500,
+  project directories only, 15 s after connecting; a "created" event sent through
+  the real watch callback of `d5`):
+
+  | Toy | eglot | watches at most | at the end | event in `d5` |
+  |---|---|---|---|---|
+  | 400 directories | 0001 | 500 | 0 | not watched |
+  | 400 directories | 0001 + (g) | 500 | 401 | 1 notification |
+  | 400 directories | 0001 + (e) | 401 | 401 | 1 notification |
+  | 600 directories | 0001 + (g) | 500 | 500 | not checked |
+  | 600 directories | 0001 + (e) | 500 | 500 | not checked |
+
+  (e) never goes past one watch per directory, so pyright's three registrations
+  cost no more than one; (g) needs the cap headroom for a while, then recovers.
+  Neither helps once the directories alone exceed the cap (LLVM: 14419, or 1779
+  with Python files).
+
+**CLion (IntelliJ platform):**
+- The macOS file watcher is `fsnotifier`, a small native helper
+  (`intellij-community/native/fsNotifier/mac/fsnotifier.c`, read 2026-10-15): one
+  FSEvents stream on `/`, latency 0.3 s, no per-directory or per-file watches. It
+  reports a dirty directory (`DIRTY`), a subtree to rescan (`RECDIRTY`, on
+  `kFSEventStreamEventFlagMustScanSubDirs`) or `RESET`; the IDE filters by its
+  project roots and refreshes its virtual file system from disk. The roots it is
+  sent only decide which non-local mounts it reports as `UNWATCHEABLE` (network
+  file systems; those are refreshed instead). So on macOS the number of directories
+  costs nothing; the cost is the refresh after events.
+- Large trees: excluded folders are still watched; open since 2011 (IJPL-2175:
+  "When a folder is excluded from the project, is still tracked by file watcher").
+  A "File system synchronization" popup that blocks the UI on large or busy trees
+  is open too (IJPL-2189, 2020; CPP-42555 for CLion, 2024, resolved 2025). A
+  replacement of the per-OS watchers by common code is planned (IJPL-251901,
+  2026-08). Settings (CLion 2026.2 help, System Settings): "Sync external changes"
+  when switching to the IDE window or opening a tab, or (experimental) every 15 s
+  while inactive; the watcher can be turned off (`idea.filewatcher.disabled`,
+  reported on JetBrains' forum, not checked), external changes are then found only
+  by those refreshes.
+- Linux, for comparison: inotify, one watch per directory, the IDE's warning "The
+  current inotify watch limit ... is too low" (IJPL-2175's description).
+
+**Xcode:**
+- Not installed here, and Apple documents nothing about how Xcode watches files.
+  What Apple documents is FSEvents itself (File System Events Programming Guide,
+  updated 2012-12-13): notifications per directory ("only that something in the
+  directory has changed"), for "passively monitoring a large tree of files",
+  coalesced, with history across runs; for one particular file kqueue is the
+  suggested tool.
+- Project model: Xcode 16 added folders synchronized with the disk
+  (`PBXFileSystemSynchronizedRootGroup`): the project file records only the folder,
+  Xcode lists its contents. A third-party measurement (rules_xcodeproj PR #3373,
+  Xcode 26.2, 200 targets, 3000 files, 200 synchronized folders) found each added
+  or removed file costing Xcode about 1.5 - 2.5 s of CPU to re-evaluate target
+  membership. Older group-based projects list every file and see only those.
+- Not established: whether Xcode uses FSEvents for these folders (likely, not
+  shown); behaviour with a 14000-directory tree.
+
+**Qt Creator:**
+- Qt's `QFileSystemWatcher` on macOS uses its FSEvents engine
+  (`qtbase/src/corelib/io/qfilesystemwatcher.cpp` picks
+  `QFseventsFileSystemWatcherEngine` for `Q_OS_MACOS`; kqueue only on the BSDs and
+  iOS): one FSEvents stream over all watched paths, each path reference-counted
+  (watched twice costs nothing extra), the stream restarted when the set changes;
+  on an event the directory is listed again and compared with what was known
+  (`qfilesystemwatcher_fsevents.mm`, dev branch, read 2026-10-15).
+- Qt Creator wraps it in `Utils::FileSystemWatcher`
+  (`src/libs/utils/filesystemwatcher.cpp`, master 2026-10-14): one shared watcher;
+  on macOS it uses at most half of the process's open-file limit (`RLIMIT_NOFILE`,
+  a rule from its kqueue days) and past that warns "File ... is not watched: Too
+  many file handles are already open" and goes on with what it has: partial
+  watches, as 0001 does.
+- Its language client does not offer `workspace/didChangeWatchedFiles` at all
+  (`src/plugins/languageclient/client.cpp` builds the workspace capabilities without
+  it; the protocol types exist in `languageserverprotocol` only). A server such as
+  pyright gets no watching from Qt Creator; per 3.5 it then misses changes made
+  outside the editor.
+
+**What follows for this config:**
+- The IDEs that watch whole trees on macOS do it with one FSEvents stream per tree
+  (or for `/`), not a descriptor per directory; that is why size does not matter
+  to them. Emacs's backends on macOS are kqueue only (3.9); no per-directory
+  scheme, (e) and (g) included, reaches LLVM's 14419 directories under 975.
+- A tree-level watcher for eglot would be an external process: `fswatch` (FSEvents
+  on macOS, inotify on Linux; MacPorts 1.20.1) or Watchman (MacPorts
+  2026.07.27.00), neither installed; eglot would start one per server and root and
+  turn its output into `didChangeWatchedFiles` with the server's globs. A new
+  dependency (D-nnn) and a larger eglot patch; option O-61 (h). Not prototyped.
+- Qt Creator's choice, offering servers no watching, is 3.6 (c) here (setting D
+  of 3.5): the server never exits and goes stale.
+
 ## 4. Other differences met so far
 Decided already; listed so that one document points at all of them.
 
