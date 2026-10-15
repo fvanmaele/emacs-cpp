@@ -287,7 +287,7 @@ with `done when: ...`).
 - T-083 (opened 2026-10-15, owner: "O-55 - comparison to CLion"): compare O-55's
   findings with CLion's matching. Done when: `RESEARCH_go_to_anything.md` 15 with
   CLion's rules and their sources, a side-by-side table, O-55's options against it.
-  Done 2026-10-15; the owner's hand check in CLion is listed there.
+  Done 2026-10-15; owner's hand check in CLion 2026-10-15 recorded there.
 - T-082 (opened 2026-10-15, owner): research a theme following the OS's dark / light
   setting, stage 1 macOS. Done when: `RESEARCH_dark_theme.md` with what Emacs 31.1's
   NS build offers, how to read the setting and its cost, options. Done 2026-10-15:

@@ -1518,7 +1518,12 @@ presets, GoogleTest runner.
   from the first letter, a space as an in-order wildcard, exact name first. Closest
   to it: (a), (b), (e) joined, (f); (c) and (d) do not give humps; new (g) one typo
   (IntelliJ's `TypoTolerantMatcher`, use in CLion's popups not confirmed). Owner's
-  hand check in CLion listed there.
+  hand check in CLion 2026-10-15 (eight inputs, same section): Go to Symbol and
+  clangd agree on five; CLion alone matches mid-word (`ector`, 3+ characters), a
+  lower-case letter inside a word after a gap (`cml` in `class_multilevel_...`) and
+  a loose qualifier (`geom::vec`); `count() const` first in both, re-sorted away
+  here; no typo seen. Search Everywhere's files: case ignored, humps, space in
+  order.
 - O-56 (OPEN, owner request 2026-10-15, T-082): a theme following macOS's dark / light
   setting (`RESEARCH_dark_theme.md`). Found: the NS build of Emacs 31.1 sets no
   `toolkit-theme` and runs no hook on a change; `defaults read -g
