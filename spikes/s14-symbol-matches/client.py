@@ -5,9 +5,10 @@ Spike code, never promoted.
 Starts CLANGD with the shipped config's flags plus --compile-commands-dir=DBDIR, opens
 OPENED (a source file of the project, by its real path, as eglot does), waits until
 the background index is idle (every progress begun has ended, none for 5 s; at most
-WAIT_S, default 300), then sends each query twice, with limit 100 (as C-c l s) and
+WAIT_S, default 300) and a probe query answers the same twice in a row, then sends each query twice, with limit 100 (as C-c l s) and
 10000 (as M-o's `s'), and writes one JSON line per request to OUT:
-  {"set", "query", "limit", "ms", "names": [qualified names in reply order]}
+  {"set", "query", "limit", "ms", "names": [container::name in reply order],
+   "bare": [the names alone, same order], "scores": [clangd's score field]}
 """
 import json
 import os
@@ -28,7 +29,7 @@ QUERIES = {
     "middle": ["ector", "ngulat", "olution", "ssembl", "ndari", "atrix", "uadrat",
                "egree"],
     "scoped": ["geom::vert", "gi::vert", "tria::n_act", "dof::n_dofs", "vt::interp",
-               "mt::create", "dealii::vt::interp"],
+               "spm::vmult", "dealii::vt::interp"],
 }
 
 proc = subprocess.Popen(
@@ -104,6 +105,19 @@ while time.time() - start < wait:
     if idle and time.time() - start > 10:
         break
     time.sleep(0.2)
+# The index swaps in what it rebuilt some time after the last progress ends (dry
+# run 3: replies still changed), so wait until a probe gives the same reply twice in
+# a row, 2 s apart (at most 120 s).
+previous, settled = None, False
+probe_deadline = time.time() + 120
+while time.time() < probe_deadline:
+    names = [(r.get("containerName") or "") + "::" + r["name"] for r in
+             request("workspace/symbol", {"query": "vec", "limit": 10000}).get("result") or []]
+    if names == previous:
+        settled = True
+        break
+    previous = names
+    time.sleep(2)
 with open(out, "w") as sink:
     for name, queries in QUERIES.items():
         for query in queries:
@@ -111,10 +125,13 @@ with open(out, "w") as sink:
                 t0 = time.time()
                 reply = request("workspace/symbol", {"query": query, "limit": limit})
                 ms = (time.time() - t0) * 1000
-                names = [(s.get("containerName") or "") + "::" + s["name"]
-                         for s in reply.get("result") or []]
+                result = reply.get("result") or []
+                names = [(s.get("containerName") or "") + "::" + s["name"] for s in result]
                 sink.write(json.dumps({"set": name, "query": query, "limit": limit,
-                                       "ms": round(ms, 2), "names": names}) + "\n")
-print("s14 client: index idle after %.0f s; %d requests written to %s"
-      % (time.time() - start, 2 * sum(map(len, QUERIES.values())), out))
+                                       "ms": round(ms, 2), "names": names,
+                                       "bare": [s["name"] for s in result],
+                                       "scores": [s.get("score") for s in result]}) + "\n")
+print("s14 client: index idle and %s after %.0f s; %d requests written to %s"
+      % ("settled" if settled else "NOT settled", time.time() - start,
+         2 * sum(map(len, QUERIES.values())), out))
 proc.kill()

@@ -1025,7 +1025,10 @@ each, with a recommendation; the owner agreed to all of them (D-111):
   spike S14 (`spikes/s14-symbol-matches`, T-103) before any patch; tier 3. Gaps
   inside a word (`cml`) are dropped: clangd's trigrams refuse them before its
   matcher, so they need a full scan or a far larger index. A PASS leads to clangd
-  patches 0011 / 0012 (0010 is O-50's), built with O-50's rebuild.
+  patches 0011 / 0012 (0010 is O-50's), built with O-50's rebuild. Dry run 5
+  (2026-10-15, step-1's index cloned): all five criteria pass, mid-word matches
+  ranked last by a negative score, identifiers only; criteria refined during the dry
+  runs (`spikes/s14-symbol-matches/DRY-RUN.md`); the verdict is the owner's run.
 - DECIDED D-105 (owner 2026-10-15, O-55: "(a) + (b)"; tier 2, done when to agree):
   symbols in clangd's order and `M-o` ignoring case, as CLion (RESEARCH_go_to_anything
   14, 15). (a) `M-o` and `C-c l s` list each server's `workspace/symbol` reply in the

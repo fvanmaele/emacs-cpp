@@ -287,7 +287,8 @@ with `done when: ...`).
 - T-103 (opened 2026-10-15, D-112): spike S14, CLion's mid-word and loose-scope
   symbol matches in clangd (`spikes/s14-symbol-matches/RUN.md`, pass criteria
   proposed 2026-10-15). Done when: RESULTS.md has a verdict on criteria 1 - 5 from
-  the owner's run on step-1 (a dry run here first).
+  the owner's run on step-1 (a dry run here first). Dry run 5 (2026-10-15): all five
+  pass; criteria refined during the dry runs, owner to confirm; left: the owner's run.
 - T-102 (opened 2026-10-15, D-111): shared watches as `patches/eglot/0002`. Tier: 2.
   Done when: the revised draft
   (`docs/upstream/eglot-watch-shared-directories.patch`) as patch 0002 after 0001 in
