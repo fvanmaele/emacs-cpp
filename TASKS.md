@@ -355,7 +355,8 @@ with `done when: ...`).
   after the registration (it exits without the patch); the existing eglot tests
   (clangd, pyright, texlab, `M-o`, `C-c l s`) pass. `make test` on the Mac; startup
   time on the Mac noted (budgets bind on Arch, D-057); the owner runs `make test`
-  on Arch. DESIGN D-108, journal. Agreed 2026-10-15 (D-111).
+  on Arch. DESIGN D-108, journal. Agreed 2026-10-15 (D-111). Done 2026-10-15
+  (0075): met on the Mac; left: the owner's `make test` on Arch.
 - T-089 (opened 2026-10-15, owner with D-107): can eglot run on untracked `.py`
   buffers with tracked-only lists, and research a patch for eglot's watch cap.
   Done when: `RESEARCH_platform_differences.md` 3.8 with both answered by checks,

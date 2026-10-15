@@ -1,0 +1,69 @@
+From 7109ca12e122da9e45e05c0f550e5dad8982d0d2 Mon Sep 17 00:00:00 2001
+From: Ferdinand Vanmaele <ferdinand-joseph.vanmaele@uni-a.de>
+Date: Thu, 15 Oct 2026 16:39:17 +0200
+Subject: [PATCH] Keep partial file watches when the limit is reached or a
+ watch is refused
+
+When a workspace/didChangeWatchedFiles registration needed more
+directory watches than eglot-max-file-watches allows, eglot--watch-globs
+warned "not watching some directories", then signalled jsonrpc-error,
+removed every watch of the registration and answered it with an error.
+pyright exits about 80 ms after such an error.  The same happened when
+the system refused a watch (file-notify-error, e.g. kqueue's "no file
+descriptor left" on macOS at 975 watches).
+
+The limit, or a refused watch, now ends the setup for that registration
+with one warning, keeping the watches added so far, and the
+registration succeeds.  With 600 directories and a limit of 500, and
+with 1100 directories and no limit, pyright stays up.
+---
+ eglot.el | 22 +++++++++++++---------
+ 1 file changed, 13 insertions(+), 9 deletions(-)
+
+diff --git a/eglot.el b/eglot.el
+index 6ed3bb9..5734317 100644
+--- a/eglot.el
++++ b/eglot.el
+@@ -4875,7 +4875,7 @@ are not added.  Set to nil for unlimited watches.")
+ 
+ (cl-defun eglot--watch-globs (server id globs dir in-root
+                                      &aux (project (eglot--project server))
+-                                     success
++                                     success full
+                                      (watch-count (eglot--count-file-watches)))
+   "Set up file watching for relative file names matching GLOBS under DIR.
+ GLOBS is a list of (COMPILED-GLOB . KIND) pairs, where COMPILED-GLOB is
+@@ -4919,18 +4919,22 @@ happens to be inside or matching the project root."
+              (handle-event `(,desc deleted ,file))
+              (handle-event `(,desc created ,file1))))))
+        (add-watch (subdir)
+-         (cond ((not (file-readable-p subdir)))
++         (cond ((or full (not (file-readable-p subdir))))
+                ((and eglot-max-file-watches
+                      (>= watch-count eglot-max-file-watches))
++                (setq full t)
+                 (eglot--warn "Reached `eglot-max-file-watches' limit of %d, \
+-not watching some directories" eglot-max-file-watches)
+-                ;; Could `(setq success t)' here to keep partial watches.
+-                (jsonrpc-error "Reached `eglot-max-file-watches' limit of %d"
+-                               eglot-max-file-watches))
++not watching some directories" eglot-max-file-watches))
+                (t
+-                (push (file-notify-add-watch subdir '(change) #'handle-event)
+-                      (gethash id (eglot--file-watches server)))
+-                (cl-incf watch-count)))))
++                (condition-case err
++                    (progn
++                      (push (file-notify-add-watch subdir '(change) #'handle-event)
++                            (gethash id (eglot--file-watches server)))
++                      (cl-incf watch-count))
++                  (file-notify-error
++                   (setq full t)
++                   (eglot--warn "Cannot watch %s: %s, not watching some directories"
++                                subdir (error-message-string err))))))))
+     (let ((subdirs (if (or (null dir) in-root)
+                        (subdirs-using-project)
+                      (condition-case _ (subdirs-using-find)
+-- 
+2.56.0
+

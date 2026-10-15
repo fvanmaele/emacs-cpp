@@ -216,6 +216,8 @@ An Emacs started from the Dock does not read the shell profile; the config puts
 ### Differences from Arch
 - **eglot watches only project files** (D-054). macOS needs one file descriptor per
   watched directory, and pyright would otherwise ask for Python's whole library.
+  eglot comes from `lib/eglot` with a patch that keeps the watches it could set up
+  when the limit is reached, so pyright stays up in large trees (D-108).
 - **lldb instead of gdb.** Apple silicon has no gdb; debug with `C-x C-a d lldb-preset
   RET` (D-051). It starts `lldb-dap` from the PATH, which the lldb-23 port provides
   once selected; no codesigning was needed on the owner's Mac.
