@@ -496,6 +496,76 @@ under `.qtcreator/`), so nothing tracked changes. The pattern covers `build/` an
     when eglot's version is not 1.24.31; breaks on any Emacs update by design.
   - (d) None: (a) of 3.7 holds step-1; the next large untracked tree repeats it.
 
+### 3.9 Which files to watch, and large repositories (owner 2026-10-15, T-091, O-61)
+Owner, ruling O-60 (b) (vendor eglot, D-108): "untracked buffers still undecided;
+other definitions for files that should be tracked, outside of git status?; issue
+may resurface for very large git repositories with many committed files". Mac,
+2026-10-15; batch checks with the shipped config on the toy of 3.8.
+
+**Ways to leave files out of eglot's watches without `.gitignore`.** eglot watches
+the directories of `project-files`, which is projectile's list (3.8), so anything
+that list honours works. Checked on the toy, one directory per mechanism, each
+absent from `project-files`:
+| Mechanism | Committed? | `fd` (Mac) | `git ls-files` (no `fd`) |
+|---|---|---|---|
+| `.git/info/exclude` | no, local to the clone | honoured | honoured |
+| `.ignore`, `.fdignore` | either | honoured | not honoured |
+| `.projectile`, a `-/dir` line | either | honoured | (1) |
+| `projectile-globally-ignored-directories` | config, every project | (1) | (1) |
+(1) Not checked: projectile hands its own ignore rules to the tool as exclusions
+(`projectile-alien-honors-ignores`, t by default; `git ls-files` by pathspecs,
+`fd` by `--exclude`). The checked ones also leave the files out of `M-o` and
+`C-c p f`; the `git ls-files` column was checked with git alone. Not checked
+here: whether Arch has `fd` (projectile then takes `git ls-files`, which ignores
+`.ignore` / `.fdignore`).
+
+Other ways, not in place today:
+- By the server's language: watch only directories holding files the server reads
+  (for pyright `.py`, `.pyi`, `pyproject.toml`, `pyrightconfig.json`). pyright
+  registers `**` and `**/pyrightconfig.json` (repro events), so eglot watches every
+  directory today. A filter needs eglot code (a second patch on the vendored eglot,
+  D-108). Risk: a `.py` file created in a directory that held none goes unnoticed.
+- pyright's own `include` / `exclude` (`pyrightconfig.json`, `[tool.pyright]`):
+  steer what pyright analyses, not what eglot watches.
+- project.el's `project-vc-ignores`, `project-vc-include-untracked`: no effect,
+  projectile is the backend (3.8).
+
+**Large repositories with many committed files.** Counted with `git ls-files` in
+the owner's checkouts:
+| Repository | tracked files | directories | with `.py` / `.pyi` |
+|---|---|---|---|
+| `~/source/repos/dealii` | 33768 | 1754 | 6 (19 files) |
+| `~/source/repos/llvm-project` | 187428 | 14419 | 1779 (3191 files) |
+| step-1 with `build*/` ignored | 478 (with untracked) | 22 | not counted |
+- Visiting a `.py` file in deal.II's or LLVM's checkout starts pyright, which asks
+  for all 1754 / 14419 directories three times: past D-054's 500 on the Mac, and
+  for LLVM past eglot's default 10000 on Arch too (inotify allows far more; not
+  checked there). Unpatched, pyright exits; with D-108's patch it stays up,
+  watching the first 500 directories in list order, the rest silently unwatched.
+- By language, deal.II needs 6 directories, LLVM 1779 (still past 500).
+- One watch per directory shared by a server's registrations (the report's
+  suggestion 2) divides the count by three: LLVM 14419, still past every cap.
+- A whole-tree watcher would need one descriptor: Emacs's backend on the Mac is
+  kqueue (`file-notify--library`), one descriptor per directory; Emacs has no
+  FSEvents backend. pyright does not watch by itself when the client offers
+  watching (3.5).
+- So for such trees the choice is which directories get the watches, not whether
+  all can.
+
+**Options** (not ruled, O-61):
+- (a) Tracked-only lists (3.8 (b)): undecided by the owner; does not help with
+  committed files.
+- (b) Per-project exclusions as above, chosen per checkout (a `.projectile` line or
+  `.git/info/exclude` for trees one does not edit);
+  the config documents them, no code.
+- (c) Language filter in the vendored eglot (patch 0002): pyright in deal.II from
+  1754 to 6 directories.
+- (d) Priority under the cap: with the patch the first 500 in list order win;
+  instead the directories of open buffers and their parents first, then the rest
+  (patch 0002 or 0003).
+- (e) Suggestion 2, shared watches (patch, larger; also upstream).
+- (f) Nothing beyond D-108: partial watches, a warning, pyright stays up.
+
 ## 4. Other differences met so far
 Decided already; listed so that one document points at all of them.
 
