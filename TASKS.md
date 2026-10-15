@@ -284,6 +284,13 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-082 (opened 2026-10-15, owner): research a theme following the OS's dark / light
+  setting, stage 1 macOS. Done when: `RESEARCH_dark_theme.md` with what Emacs 31.1's
+  NS build offers, how to read the setting and its cost, options. Done 2026-10-15:
+  options as O-56.
+- T-081 (opened 2026-10-15, owner): research fuzzy matching in `M-o` and `C-c l s`.
+  Done when: `RESEARCH_go_to_anything.md` 14 with each prompt's matcher, checked
+  by hand, options. Done 2026-10-15: options as O-55.
 - T-080 (opened 2026-10-14, D-104, O-54 (b)): tests in a temporary HOME. Done when:
   `make test` creates an empty temporary HOME (mktemp -d), runs ERT with HOME set to
   it, deletes it afterwards, keeps ERT's exit status. The runner checks first, in that

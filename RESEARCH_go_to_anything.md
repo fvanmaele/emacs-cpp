@@ -2,7 +2,7 @@
 
 Findings only; verdicts go to DESIGN (O-30 -> D-074, O-31 -> D-076, O-32 -> D-075,
 performance: O-33 -> D-077, narrowed to symbols: O-34 -> D-079,
-path filter for symbols: O-52 -> D-082). Owner request
+path filter for symbols: O-52 -> D-082, fuzzy matching: O-55). Owner request
 2026-10-11: a "go to anything" key in Emacs that works like CLion's (the owner calls it
 `M-M`): symbols, project files, bookmarks and more from one prompt. Arch, Emacs 31.1,
 2026-10-11. Package facts from the vendored sources at their pins (consult 3.10,
@@ -557,6 +557,106 @@ run inside the index, before the top-`Limit` cut and before the `Limit * 100` ca
 - A new clangd patch is tier 3: a spike first, counting trigram matches of 3-letter
   queries in RMO's and deal.II's indexes and timing (b) against today.
 
+## 14. Fuzzy matching in `M-o` and `C-c l s` (owner request 2026-10-15, T-081)
+Question: how each prompt matches what is typed, and how far from fuzzy it is. Read
+in consult 3.10, consult-eglot (pinned), orderless 1.8 and clangd 23.1.1
+(`FindSymbols.cpp`, `FuzzyMatch.cpp`, `index/dex/Trigram.cpp`). Checked by hand,
+Mac, 2026-10-15: consult's and orderless's filters in `emacs -Q --batch` over six
+file names; clangd's replies with MacPorts' stock clangd 21.1.8 (the matcher files
+have the same rules in 23.1.1 as read) on a one-file toy, driven by a small JSON-RPC
+client in a scratch directory.
+
+**Three matchers, one per kind of candidate:**
+| Candidates | Matched by | Fuzzy? |
+|---|---|---|
+| `M-o` buffers, recent files, bookmarks, project files | consult's regexp compiler | no |
+| `M-o` symbols, `C-c l s` | clangd's `FuzzyMatcher` | yes, by word segments |
+| `C-x b`, `C-c p f`, `M-x` (static prompts) | orderless (literal, regexp) | no |
+
+**Static sources in `M-o`.** Once a source is async the whole prompt is
+(section 3): `consult--async-static` filters each static source with
+`consult--compile-regexp` (here `emacs-cpp-go--highlight-first`, wrapping
+`consult--default-regexp-compiler`): the input split at spaces, each word an Emacs
+regexp, all words in any order, through `completion-regexp-list`. Orderless never
+sees these candidates: `M-o` sets `consult-async-split-style` nil, so the split
+style is `none` and the completion-style pass (`consult--split-setup`) gets an
+empty filter string, which every candidate passes.
+- Case: matching follows `completion-ignore-case`, nil in this config, so the
+  match is case sensitive. Batch: `vectortools` misses `src/VectorTools.cc`,
+  `readme` misses `README.md`; orderless finds both (`orderless-smart-case`: an
+  input without capitals ignores case).
+- No orderless dispatchers: `!init` (orderless: "without init") matches nothing.
+- No initials or flex in either matcher: `igta` finds no `init-go-to-anything.el`,
+  `vt` no `VectorTools.cc` (orderless's `orderless-matching-styles` is its default,
+  literal and regexp; initialism and flex are off everywhere).
+- `vector tools` matches `vector_tools.h` in both, `VectorTools.cc` only with
+  orderless (case again).
+
+**Symbols (`M-o` `s` / `l`, `C-c l s`).** The input goes whole to clangd; the client
+filters nothing (`M-o`: split style `none`; `C-c l s`: perl style, the input after
+the inserted `#` is all async until a second `#`). clangd's `getWorkspaceSymbols`:
+- `a::b::name` splits at the last `::`: the scope part filters scopes loosely
+  (`approximateScopeMatch`: `geom::comp` finds `geom::detail::compute_norm`), a
+  leading `::` means the global scope. Only the name part is fuzzy matched.
+- Dex first narrows by trigrams (`generateQueryTrigrams`): every three letters in a
+  row of the query, lower-cased, separators dropped, must be among the symbol's
+  trigrams, which are built only along "next letter of this segment" or "first
+  letter of the next segment".
+- `FuzzyMatcher` then needs every query character, in order, case ignored;
+  the first must start a segment (`foo` misses `barefoot`), and after a skipped
+  character the next match must start a segment too (`pat` misses `patnther`).
+  Segments: `fooBar_baz` is foo, bar, baz; a space is a character like any other.
+- Toy replies: `pba`, `pb`, `pushback`, `push_back` find `push_back`; `pshbk`
+  does not (s inside a segment after a gap). `vt`, `vtools`, `vectools`,
+  `vectortools` find `VectorTools`; `toolsvec` does not (order counts). `upt`
+  finds `unique_ptr_helper`; `print` misses `sprintf_like`; `cn` and `cnorm` find
+  `compute_norm`.
+- **Spaces:** `push back`, `vec tools`, `comp norm` find nothing: no symbol name
+  has a space (operators aside). The same words joined (`pushback`, `vectools`)
+  do. In `M-o`, `vec tools` lists files and no symbols; in `C-c l s`, `#vec#tools`
+  sends `vec` and filters clangd's reply by `tools` with orderless, over the
+  candidate text (name, file, line).
+- **Three characters first:** both prompts ask clangd only from the third
+  character (`emacs-cpp-go--min-input` 3, `consult-async-min-input` 3), so two-letter
+  initials such as `vt` or `pb` never reach it; `vtx` and longer do.
+- **Ranking:** clangd's reply comes in order of its whole score, name match
+  included; the `score` field it sends excludes the name match ("for client-side
+  re-ranking", `FindSymbols.cpp`). consult-eglot (`consult-eglot-sort-results` t)
+  and `emacs-cpp-go--symbol-request` both re-sort by that field, so a better name
+  match can drop below a worse one. Toy, query `count`: clangd sends `count`
+  (in `geom`, score 0.275) before `count_vertices_globally` (global, 0.55); both
+  prompts show `count_vertices_globally` first. Within a score, `sort` keeps
+  clangd's order.
+- Highlighting: `C-c l s` marks the input as one regexp (`consult--async-highlight`),
+  case sensitive, so fuzzy hits (`vtools`) show no marks; `M-o`'s symbol source
+  marks nothing.
+
+**Options** (not ruled, O-55):
+- (a) Keep clangd's order: `M-o` appends the replies unsorted; `C-c l s` needs
+  `:sort nil` without consult-eglot's re-sort, which `consult-eglot-sort-results`
+  nil does not give (it turns vertico's sort on), so a consult-eglot patch (D-069)
+  or `C-c l s` built on `M-o`'s symbol source. With two servers (clangd and
+  pyright in one project) the two lists then follow each other, not interleaved.
+- (b) Case: `M-o`'s static sources ignore case, always (bind
+  `completion-ignore-case` t in the prompt) or smart as orderless (decided per
+  input; consult reads the variable at each input, so it would be set in the
+  minibuffer buffer on each change). Cost not measured.
+- (c) Orderless for `M-o`'s static sources: a regexp compiler built on
+  `orderless-compile` (orderless.el line 454; neither README shows one), giving
+  dispatchers and the same words as `C-x b`; must keep S11's per-key times (D-075,
+  D-077); not measured.
+- (d) Initials and flex for files and buffers (`orderless-initialism`,
+  `orderless-flex`, by dispatcher or in `orderless-matching-styles`): `igta`
+  would find `init-go-to-anything.el`; more hits per input, slower over deal.II's
+  34602 files; not measured.
+- (e) Several words to clangd: `M-o` sends the words joined (`vec tools` as
+  `vectools`), or the first word to clangd and the rest as a filter on the reply,
+  as `C-c l s`'s `#vec#tools`. Joining keeps the order rule; filtering keeps
+  any order.
+- (f) Two-letter symbol input: lower the minimum to 2 for symbols; more and larger
+  replies (`l` asks all of clangd's index; `s` up to
+  `emacs-cpp-go-symbol-limit`); not measured.
+
 ## Sources
 - JetBrains, CLion help "Search everywhere":
   https://www.jetbrains.com/help/clion/searching-everywhere.html
@@ -568,7 +668,9 @@ run inside the index, before the top-`Limit` cut and before the `Limit * 100` ca
 - clangd, LLVM 23.1.1: `clang-tools-extra/clangd/` `Protocol.h`, `ClangdLSPServer.cpp`,
   `ClangdServer.cpp`, `FindSymbols.cpp`, `index/Index.h`, `index/Merge.cpp`,
   `index/MemIndex.cpp`, `index/FileIndex.cpp`, `index/BackgroundRebuild.cpp`,
-  `index/Background.cpp`, `index/dex/Dex.cpp`.
+  `index/Background.cpp`, `index/dex/Dex.cpp`, `index/dex/Trigram.cpp`, `FuzzyMatch.cpp`,
+  `FuzzyMatch.h`.
+- orderless 1.8: `lib/orderless/orderless.el`.
 - D84811, "[clangd] Add an option to exclude symbols outside of project root from
   index": https://reviews.llvm.org/D84811
 - clangd issues 1101 and 707, discussion 1382:

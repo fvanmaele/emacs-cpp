@@ -1505,6 +1505,20 @@ presets, GoogleTest runner.
   and times before the run and fails when they changed after it. Options: (a) that check
   in `make test`; (b) run the tests with `HOME` set to a temporary directory; (c)
   neither. Owner rules.
+- O-55 (OPEN, owner request 2026-10-15, T-081): fuzzy matching in `M-o` and `C-c l s`
+  (`RESEARCH_go_to_anything.md` 14). Found: `M-o`'s buffers and files match by
+  consult's regexps, case sensitive, no orderless; symbols by clangd's segment-wise
+  fuzzy matcher, from the third character, no spaces; both prompts re-sort clangd's
+  reply by a score without the name match (toy: `count` below
+  `count_vertices_globally`). Options: (a) keep clangd's order, (b) ignore case in
+  `M-o`, (c) orderless for `M-o`'s static sources, (d) initials / flex, (e) several
+  words to clangd, (f) two-letter symbol input. Owner rules.
+- O-56 (OPEN, owner request 2026-10-15, T-082): a theme following macOS's dark / light
+  setting (`RESEARCH_dark_theme.md`). Found: the NS build of Emacs 31.1 sets no
+  `toolkit-theme` and runs no hook on a change; `defaults read -g
+  AppleInterfaceStyle` reads it in 6.4 ms. Options: (a) once at startup, (b) and
+  polling, (c) and a command, (d) auto-dark package, (e) another Emacs build. Owner
+  rules; Arch is stage 2.
 - O-49 (RESOLVED 2026-10-14 with D-099: (a); found 2026-10-14 checking order
   dependencies, D-098): `M-o`
   (`emacs-cpp-go-to-anything`, init-completion) calls projectile
