@@ -284,11 +284,16 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-104 (opened 2026-10-15, D-112, D-113, S14 PASS): clangd patches 0011 (loose
+  qualifier) and 0012 (mid-word matches), written fresh from S14's findings,
+  switched per request and announced as a capability (D-113), with clangd unit
+  tests; built with O-50's 0010; the Emacs side (`M-o` and `C-c l s` options, the
+  capability warning). Tier: 2. Done when: to agree.
 - T-103 (opened 2026-10-15, D-112): spike S14, CLion's mid-word and loose-scope
   symbol matches in clangd (`spikes/s14-symbol-matches/RUN.md`, pass criteria
   proposed 2026-10-15). Done when: RESULTS.md has a verdict on criteria 1 - 5 from
   the owner's run on step-1 (a dry run here first). Dry run 5 (2026-10-15): all five
-  pass; criteria refined during the dry runs, owner to confirm; left: the owner's run.
+  pass; criteria refined during the dry runs. Done 2026-10-15: PASS, owner's run.
 - T-102 (opened 2026-10-15, D-111): shared watches as `patches/eglot/0002`. Tier: 2.
   Done when: the revised draft
   (`docs/upstream/eglot-watch-shared-directories.patch`) as patch 0002 after 0001 in

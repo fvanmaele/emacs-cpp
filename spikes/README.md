@@ -47,9 +47,8 @@ code is written for it. Each spike is a self-contained directory with its own bu
   (T-077, `s13-symlinked-paths/RESULTS.md`).
 - **S14 symbol matches** - do CLion's mid-word (`ector`) and abbreviated-qualifier
   (`geom::vert`) symbol matches work in clangd on deal.II's index without changing
-  today's fuzzy replies or slowing them (O-57 (b), (c))? Dry run on a clone of
-  step-1's index passes all five criteria (refined, owner to confirm); verdict: the
-  owner's run (T-103, `s14-symbol-matches/DRY-RUN.md`).
+  today's fuzzy replies or slowing them (O-57 (b), (c))? PASS (owner's run on
+  step-1, 2026-10-15; T-103, `s14-symbol-matches/RESULTS.md`).
 - **S10 deal.II sources index** - does an offline index of deal.II's sources make
   `M-.` reach definitions and `M-?` uses inside the library on RMO, with the patched
   clangd, at what memory (O-12)?
