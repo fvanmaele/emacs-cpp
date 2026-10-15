@@ -476,6 +476,15 @@ Known defects: none yet (nothing built).
   entry (in RMO `fmt/src/format.cc`, wrong include paths). S1 live check: once an
   including `.cc` is open, clangd reuses its flags and the header is clean; opened
   first, it shows errors. The patched clangd takes an includer from its index (D-028).
+- DECIDED D-108 (owner 2026-10-15, O-60 (b): "Vendor eglot"; tier and done when to
+  agree): eglot comes from a submodule, `lib/eglot` from
+  github.com/emacs-straight/eglot (GNU ELPA's eglot, i.e. Emacs master's, no tags),
+  and carries patch 0001 keeping partial file watches at the cap or a refused watch
+  (`docs/upstream/eglot-watch-cap-partial-watches.patch`, D-069); it shadows Emacs's
+  built-in eglot (`lib/` first on `load-path`). The mirror at c79f727 (2026-10-14)
+  is newer than 31.1's eglot 1.24.31 (its header says 1.24): 182 lines differ outside
+  the watch code (`eglot-completion-replace-semantics`, fixes). The upstream report
+  (T-032) still goes out with the patch. Build: T-090.
 - DECIDED D-107 (owner 2026-10-15, O-59 (a): "build*/ to .gitignore"): a project's
   large untracked output trees belong in its `.gitignore`; eglot's watches and
   projectile's file lists follow git's ignore rules, and the config does not list
@@ -1237,7 +1246,8 @@ Mechanisms, each PROPOSED until measured:
   transient, compat, seq, cl-lib, org, which-key. Vendored, 30 repositories (26 to T-016,
   28 to T-045; code-cells and ESS by T-046, D-072):
   - completion: vertico, orderless, marginalia, consult, embark (holds embark-consult),
-    corfu, cape (vendored by T-003); consult-eglot v0.5.0 (T-004).
+    corfu, cape (vendored by T-003); consult-eglot v0.5.0 (T-004); eglot from GNU
+    ELPA's mirror, shadowing the built-in one (D-108, T-090).
   - IDE: dape (vendored 0.27.1 for S2, owner consent 2026-10-08; its `use-package`
     form is in `lisp/init-debug.el`, T-006), diff-hl, breadcrumb.
 - DECIDED D-042 (owner consent 2026-10-08, T-016): diff-hl vendored at tag 1.10.0
@@ -1558,19 +1568,28 @@ presets, GoogleTest runner.
   a loose qualifier (`geom::vec`); `count() const` first in both, re-sorted away
   here; no typo seen. Search Everywhere's files: case ignored, humps, space in
   order.
-- O-60 (OPEN, owner 2026-10-15 with D-107, T-089): (b) tracked-only file lists and
-  (c) an eglot patch keeping partial watches (`RESEARCH_platform_differences.md`
-  3.8). Found: eglot watches projectile's list (projectile is project.el's backend
-  here; `project-vc-include-untracked` has no effect); tracked-only is
-  `projectile-git-use-fd` nil plus `git ls-files -zc`, and an untracked `.py` buffer
-  still gets eglot, pyright and its symbols, but untracked files leave `M-o` and
-  `C-c p f`. The eglot change (`docs/upstream/eglot-watch-cap-partial-watches.patch`,
-  13 lines in, 9 out) keeps pyright running at the cap and at kqueue's refusal
-  (repro: exits before, runs after); upstream eglot is unchanged. Options for the
-  patch: (a) upstream only, with T-032's report; (b) vendor eglot
-  (`emacs-straight/eglot`) with the patch; (c) override `eglot--watch-globs` in the
-  config, loud on another eglot version; (d) none. For (b) of O-59: adopt
-  tracked-only, or not. Owner rules.
+- O-61 (OPEN, owner 2026-10-15 with D-108, T-091): which files eglot watches, and
+  large repositories (`RESEARCH_platform_differences.md` 3.9). Found: besides
+  `.gitignore`, `.git/info/exclude`, `.ignore`, `.fdignore` and `.projectile` keep a
+  tree out of the list (checked with `fd`); deal.II has 1754 tracked directories (6
+  with Python), LLVM 14419 (1779): pyright asks for all, three times. Options: (a)
+  tracked-only lists (undecided); (b) per-project exclusions, documented; (c) a
+  language filter in the vendored eglot; (d) open buffers' directories first under
+  the cap; (e) shared watches across registrations; (f) nothing beyond D-108.
+  Owner rules.
+- O-60 (RESOLVED 2026-10-15 with D-108: (b) vendor eglot; tracked-only lists still
+  undecided, moved to O-61; owner 2026-10-15 with D-107, T-089): (b) tracked-only file
+  lists and (c) an eglot patch keeping partial watches (`RESEARCH_platform_differences.md`
+  3.8). Found: eglot watches projectile's list (projectile is project.el's backend here;
+  `project-vc-include-untracked` has no effect); tracked-only is `projectile-git-use-fd`
+  nil plus `git ls-files -zc`, and an untracked `.py` buffer still gets eglot, pyright and
+  its symbols, but untracked files leave `M-o` and `C-c p f`. The eglot change
+  (`docs/upstream/eglot-watch-cap-partial-watches.patch`, 13 lines in, 9 out) keeps
+  pyright running at the cap and at kqueue's refusal (repro: exits before, runs after);
+  upstream eglot is unchanged. Options for the patch: (a) upstream only, with T-032's
+  report; (b) vendor eglot (`emacs-straight/eglot`) with the patch; (c) override
+  `eglot--watch-globs` in the config, loud on another eglot version; (d) none. For (b) of
+  O-59: adopt tracked-only, or not. Owner rules.
 - O-59 (RESOLVED 2026-10-15 with D-107: (a), `build*/`; (b) and (c) continue as
   O-60; owner report 2026-10-15, T-088): pyright exits in deal.II's step-1 at
   eglot's watch cap (`RESEARCH_platform_differences.md` 3.7). Found: `project-files`
@@ -2112,6 +2131,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-105 | 2026-10-15 | symbols in clangd's order; `M-o` ignores case | 10 | O-55 |
 | D-106 | 2026-10-15 | `M-o` symbols per server; `C-c l s` keeps kind groups | 10 | O-58 |
 | D-107 | 2026-10-15 | untracked output trees in the project's `.gitignore` | 7 | O-59 |
+| D-108 | 2026-10-15 | eglot vendored (GNU ELPA mirror) with a watch patch | 7 | O-60 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.

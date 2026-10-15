@@ -50,7 +50,8 @@ O-50 symlinked paths lose clangd references (S13 PASS on Arch, Mac run left);
 O-57 CLion's extra symbol matches; O-56 theme following macOS appearance;
 D-105 symbols in clangd's order, `M-o` ignores case: built (T-084, 0072);
 D-106 `M-o` symbol sources per server (T-087, 0073); D-107 `build*/` in
-step-1's `.gitignore` (owner); O-60 tracked-only lists, eglot watch patch;
+step-1's `.gitignore` (owner); D-108 eglot vendored with a
+watch patch: T-090 done when proposed; O-61 watched files, large repositories;
 T-025 round 2, T-026 queued.
 
 ## Hard rules (each with its reason)
