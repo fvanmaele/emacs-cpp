@@ -1020,6 +1020,12 @@ each, with a recommendation; the owner agreed to all of them (D-111):
   each. Terminal check (toy, clangd and pyright): `M-o` `vector` from the `.cc`
   buffer shows clangd's heading first, from the `.py` buffer pyright's; `< s` shows
   both.
+- DECIDED D-112 (owner 2026-10-15, O-57: "Spike for O-57 (b) + (c), drop (d)"): CLion's
+  loose qualifiers (`geom::vert`) and mid-word matches (`ector`) in clangd go to
+  spike S14 (`spikes/s14-symbol-matches`, T-103) before any patch; tier 3. Gaps
+  inside a word (`cml`) are dropped: clangd's trigrams refuse them before its
+  matcher, so they need a full scan or a far larger index. A PASS leads to clangd
+  patches 0011 / 0012 (0010 is O-50's), built with O-50's rebuild.
 - DECIDED D-105 (owner 2026-10-15, O-55: "(a) + (b)"; tier 2, done when to agree):
   symbols in clangd's order and `M-o` ignoring case, as CLion (RESEARCH_go_to_anything
   14, 15). (a) `M-o` and `C-c l s` list each server's `workspace/symbol` reply in the
@@ -1472,6 +1478,7 @@ presets, GoogleTest runner.
 | header opened first after a restart gets guessed flags | S9 (PASS) | owner | - |
 | deal.II sources index unused or too costly on RMO | S10 | owner | O-12 |
 | go-to-anything prompt slow on RMO / deal.II | S11 (runs 2, 3 PASS) | owner | T-049 |
+| CLion's mid-word / loose-scope symbol matches break or slow clangd | S14 | owner | O-57 |
 | own package build glue mis-orders compilation | none (tests) | - | v0.1 |
 | config fails on macOS (paths, tools, tests) | none (`make test`) | owner | D-050 |
 | clangd too slow / too large on deal.II scale | S1 numbers | owner | v0.1 |
@@ -1839,7 +1846,8 @@ presets, GoogleTest runner.
   buffer's server only; (f) interleave, not recommended; for `C-c l s`: (g) no kind
   groups (patch 0001 gains a hunk; kind narrowing stays), (h) keep them. Owner
   rules.
-- O-57 (OPEN, owner 2026-10-15 with D-105: "research Optional", T-085): the symbol
+- O-57 (RULED 2026-10-15 with D-112: spike S14 for (b) + (c), (d) dropped; owner
+  2026-10-15 with D-105: "research Optional", T-085): the symbol
   matches CLion makes and clangd refuses (`RESEARCH_go_to_anything.md` 16): mid-word
   (`ector`; clangd's trigrams admit it, only its matcher refuses), a gap inside a
   word (`cml`; its trigrams refuse it), a loose qualifier (`geom::vec`; only the
@@ -2381,6 +2389,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-109 | 2026-10-15 | fswatch built locally with a no-loss patch | 7 | O-61 |
 | D-110 | 2026-10-15 | eglot fswatch backend as DESIGN 7.1 | 7 | O-62 |
 | D-111 | 2026-10-15 | file-watch items as DESIGN 7.2 recommends | 7 | O-61 |
+| D-112 | 2026-10-15 | spike S14 for mid-word and loose-scope symbols | 10 | O-57 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.
