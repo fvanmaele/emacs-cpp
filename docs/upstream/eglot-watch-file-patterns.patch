@@ -1,0 +1,57 @@
+Narrow the directories eglot watches per server: eglot-watch-file-patterns
+
+DRAFT for the vendored eglot (D-108, T-090), to become patches/eglot/0002 once agreed
+(O-61 (c)). Against github.com/emacs-straight/eglot c79f727 with
+eglot-watch-cap-partial-watches.patch applied first. Not applied anywhere yet. For
+Emacs upstream it would need copyright paperwork (over 15 lines).
+
+--- a/eglot.el
++++ b/eglot.el
+@@ -4861,6 +4861,27 @@
+   "Maximum number of file watches across all Eglot servers.
+ If this limit is reached, a warning is issued and further watches
+ are not added.  Set to nil for unlimited watches.")
++
++(defvar eglot-watch-file-patterns nil
++  "Alist of (MODES . PATTERNS) narrowing the directories Eglot watches.
++MODES is a major mode or a list of major modes, as in
++`eglot-server-programs'.  For a server managing one of MODES, a
++project directory is watched only if it holds a file whose name
++matches one of PATTERNS, shell wildcards for the file's base name
++such as \"*.py\" or \"pyproject.toml\"; the project root itself is
++always watched.  A server without an entry watches every directory
++holding a project file.  This only narrows the directories watched
++for a registration based in the project; which changes are reported
++still follows the server's own patterns.")
++
++(defun eglot--watch-file-regexp (server)
++  "Return a regexp for the file names SERVER's directories need, or nil.
++See `eglot-watch-file-patterns'."
++  (when-let* ((modes (eglot--major-modes server))
++              (patterns (cl-loop for (key . patterns) in eglot-watch-file-patterns
++                                 when (cl-intersection (ensure-list key) modes)
++                                 append patterns)))
++    (mapconcat #'wildcard-to-regexp patterns "\\|")))
+ 
+ (defun eglot--count-file-watches ()
+   "Count total file watches across all Eglot servers."
+@@ -4884,9 +4905,16 @@
+ happens to be inside or matching the project root."
+   (cl-labels
+       ((subdirs-using-project ()
+-         (delete-dups
+-          (mapcar #'file-name-directory
+-                  (project-files project (and dir (list dir))))))
++         (let ((files (project-files project (and dir (list dir))))
++               (wanted (eglot--watch-file-regexp server)))
++           (delete-dups
++            (if (not wanted)
++                (mapcar #'file-name-directory files)
++              (cons (file-name-as-directory
++                     (expand-file-name (project-root project)))
++                    (cl-loop for file in files
++                             when (string-match-p wanted (file-name-nondirectory file))
++                             collect (file-name-directory file)))))))
+        (subdirs-using-find ()
+          (with-temp-buffer
+            (call-process find-program nil t nil dir "-type" "d" "-print0")
