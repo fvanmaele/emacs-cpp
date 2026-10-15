@@ -1020,6 +1020,18 @@ each, with a recommendation; the owner agreed to all of them (D-111):
   each. Terminal check (toy, clangd and pyright): `M-o` `vector` from the `.cc`
   buffer shows clangd's heading first, from the `.py` buffer pyright's; `< s` shows
   both.
+- DECIDED D-113 (owner 2026-10-15, O-63 (b)): CLion-style symbol matches (patches 0011
+  / 0012, if S14 passes) are switched per request: fields in `workspace/symbol`'s
+  parameters next to clangd's `limit` (e.g. `middleMatch` with its minimum length,
+  `looseScope`), off unless sent; Emacs options decide for `M-o` and `C-c l s`
+  separately (the latter through our consult-eglot patch). Our first own protocol
+  extension: patches 0001 - 0009 touch no `Protocol.h` / `.cpp` and switch by hidden
+  flags (`--navigation-from-index`, `--header-flags-from-index`; 0009 always on);
+  the config uses only clangd's own `limit` (D-083). A stock clangd ignores unknown
+  fields, so the patch also announces support in its `initialize` reply's
+  capabilities (as clangd's own extensions such as `memoryUsageProvider` do), and
+  Emacs warns when an option is on but the server lacks it (fail loudly, no silent
+  no-op).
 - DECIDED D-112 (owner 2026-10-15, O-57: "Spike for O-57 (b) + (c), drop (d)"): CLion's
   loose qualifiers (`geom::vert`) and mid-word matches (`ector`) in clangd go to
   spike S14 (`spikes/s14-symbol-matches`, T-103) before any patch; tier 3. Gaps
@@ -1028,7 +1040,8 @@ each, with a recommendation; the owner agreed to all of them (D-111):
   patches 0011 / 0012 (0010 is O-50's), built with O-50's rebuild. Dry run 5
   (2026-10-15, step-1's index cloned): all five criteria pass, mid-word matches
   ranked last by a negative score, identifiers only; criteria refined during the dry
-  runs (`spikes/s14-symbol-matches/DRY-RUN.md`); the verdict is the owner's run.
+  runs (`spikes/s14-symbol-matches/DRY-RUN.md`). S14 PASS (owner's run 2026-10-15,
+  `RESULTS.md`): all five criteria; next T-104, patches 0011 / 0012 per D-113.
 - DECIDED D-105 (owner 2026-10-15, O-55: "(a) + (b)"; tier 2, done when to agree):
   symbols in clangd's order and `M-o` ignoring case, as CLion (RESEARCH_go_to_anything
   14, 15). (a) `M-o` and `C-c l s` list each server's `workspace/symbol` reply in the
@@ -1481,7 +1494,7 @@ presets, GoogleTest runner.
 | header opened first after a restart gets guessed flags | S9 (PASS) | owner | - |
 | deal.II sources index unused or too costly on RMO | S10 | owner | O-12 |
 | go-to-anything prompt slow on RMO / deal.II | S11 (runs 2, 3 PASS) | owner | T-049 |
-| CLion's mid-word / loose-scope symbol matches break or slow clangd | S14 | owner | O-57 |
+| CLion-style symbol matches break or slow clangd | S14 (PASS) | owner | O-57 |
 | own package build glue mis-orders compilation | none (tests) | - | v0.1 |
 | config fails on macOS (paths, tools, tests) | none (`make test`) | owner | D-050 |
 | clangd too slow / too large on deal.II scale | S1 numbers | owner | v0.1 |
@@ -1759,18 +1772,17 @@ presets, GoogleTest runner.
   a loose qualifier (`geom::vec`); `count() const` first in both, re-sorted away
   here; no typo seen. Search Everywhere's files: case ignored, humps, space in
   order.
-- O-63 (OPEN, owner question 2026-10-15 on S14: "Can be new behavior be
-  configured?"): how patches 0011 / 0012 (if S14 passes) are switched. The spike has
-  them always on for workspace symbols. clangd reads `workspace/symbol` parameters
-  with an `ObjectMapper` that maps the keys it knows and ignores others, and has
-  one extension there already (`limit`, `Protocol.cpp`). Options: (a) hidden startup
-  flags, off by default, as patches 0001 - 0009 (`--navigation-from-index`): an
-  Emacs option adds them to the clangd command; a change needs a restart; `M-o`
-  and `C-c l s` alike. (b) request fields next to `limit` (e.g. `middleMatch`, with
-  the minimum length, and `looseScope`), off unless sent: Emacs options decide per
-  request, `M-o` and `C-c l s` may differ, no restart, a stock clangd ignores them;
-  `C-c l s` needs our consult-eglot patch extended (it sends only `query`).
-  Recommended (b). Owner rules.
+- O-63 (RESOLVED 2026-10-15 with D-113: (b); owner question 2026-10-15 on S14: "Can be new
+  behavior be configured?"): how patches 0011 / 0012 (if S14 passes) are switched. The
+  spike has them always on for workspace symbols. clangd reads `workspace/symbol`
+  parameters with an `ObjectMapper` that maps the keys it knows and ignores others, and
+  has one extension there already (`limit`, `Protocol.cpp`). Options: (a) hidden startup
+  flags, off by default, as patches 0001 - 0009 (`--navigation-from-index`): an Emacs
+  option adds them to the clangd command; a change needs a restart; `M-o` and `C-c l s`
+  alike. (b) request fields next to `limit` (e.g. `middleMatch`, with the minimum length,
+  and `looseScope`), off unless sent: Emacs options decide per request, `M-o` and
+  `C-c l s` may differ, no restart, a stock clangd ignores them; `C-c l s` needs our
+  consult-eglot patch extended (it sends only `query`). Recommended (b). Owner rules.
 - O-62 (RESOLVED 2026-10-15 with D-110: (a) - (e) as designed, details in DESIGN
   7.1; (f) build order: after T-090, done when to agree; owner request 2026-10-15,
   T-099): the fswatch backend for eglot as
@@ -1861,7 +1873,8 @@ presets, GoogleTest runner.
   buffer's server only; (f) interleave, not recommended; for `C-c l s`: (g) no kind
   groups (patch 0001 gains a hunk; kind narrowing stays), (h) keep them. Owner
   rules.
-- O-57 (RULED 2026-10-15 with D-112: spike S14 for (b) + (c), (d) dropped; owner
+- O-57 (RESOLVED 2026-10-15 with D-112, S14 PASS: (b) + (c) as patches 0011 / 0012
+  (T-104), (d) dropped; owner
   2026-10-15 with D-105: "research Optional", T-085): the symbol
   matches CLion makes and clangd refuses (`RESEARCH_go_to_anything.md` 16): mid-word
   (`ector`; clangd's trigrams admit it, only its matcher refuses), a gap inside a
@@ -2405,6 +2418,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-110 | 2026-10-15 | eglot fswatch backend as DESIGN 7.1 | 7 | O-62 |
 | D-111 | 2026-10-15 | file-watch items as DESIGN 7.2 recommends | 7 | O-61 |
 | D-112 | 2026-10-15 | spike S14 for mid-word and loose-scope symbols | 10 | O-57 |
+| D-113 | 2026-10-15 | symbol matches switched per request, a capability | 10 | O-63 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.

@@ -58,8 +58,8 @@ D-109 patched fswatch built locally (T-098, 0074; Arch build left); fswatch back
 for eglot ruled (D-110, DESIGN 7.1), watch items ruled (D-111, 7.2); eglot vendored
 (T-090, 0075; Arch make test left); shared watches as patch 0002
 (T-102, 0076; Arch make test left);
-O-57 (b) + (c) to spike S14 (D-112, T-103; dry run passes, owner's run left);
-O-63 how 0011 / 0012 are switched (flags or request fields);
+S14 PASS: O-57 (b) + (c) as clangd patches 0011 / 0012 (T-104, done when to agree);
+D-113 0011 / 0012 switched per request, announced as a capability;
 T-025 round 2, T-026 queued.
 
 ## Hard rules (each with its reason)
