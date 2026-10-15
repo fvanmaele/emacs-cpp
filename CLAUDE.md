@@ -48,8 +48,8 @@ S12 change signature: FAIL, calls in templates (0066), O-43 (b) to the owner.
 Open: O-12; O-38 rg.el / ag.el; O-39 R server; O-47 hover;
 O-50 symlinked paths lose clangd references (S13 PASS on Arch, Mac run left);
 O-57 CLion's extra symbol matches; O-56 theme following macOS appearance;
-D-105 symbols in clangd's order, `M-o` ignores case: built (T-084, 0072); O-58
-several servers' order and `C-c l s` kind groups;
+D-105 symbols in clangd's order, `M-o` ignores case: built (T-084, 0072);
+D-106 `M-o` symbol sources per server: T-087 done when proposed;
 T-025 round 2, T-026 queued.
 
 ## Hard rules (each with its reason)
