@@ -872,6 +872,69 @@ match penalised as `InBaseClass`).
 - A clangd patch is tier 3: spike first (deal.II index: replies and times for a set
   of mid-word and qualified queries, against today).
 
+## 17. Several servers' symbols, and `C-c l s`'s kind groups (owner 2026-10-15, T-086)
+Owner, approving T-084: "research options with several servers' replies following
+each other". Read in eglot 1.24.31 (Emacs 31.1), consult-eglot (pinned), vertico
+2.15; replies from pyright (MacPorts) and texlab on a toy (Mac, the JSON-RPC client
+of section 14); terminal check of T-084 on a CMake toy (tmux, `emacs -nw`, shipped
+config, clangd 21.1.8), 2026-10-15.
+
+**When a project has several servers:**
+- eglot runs one server per project and language; `consult-eglot--servers` (used by
+  both prompts) returns the project's servers that offer `workspace/symbol`, newest
+  started first (eglot pushes each new one onto `eglot--servers-by-project`).
+- Here: clangd (C++), pyright (Python, started when a `.py` file of the project is
+  visited, `emacs-cpp-python-eglot-ensure`), texlab (LaTeX, `.tex` / `.bib`). R's
+  server is not configured (O-39). deal.II's `step-1` holds `.py` files, so after
+  visiting one, `M-o` symbols there come from clangd and pyright.
+- pyright and texlab both answer `workspace/symbol` (`workspaceSymbolProvider`), each
+  symbol with a range, none with a `score`. Toy replies: pyright 1 - 7 ms, texlab
+  0.3 - 1 ms (`Vector spaces`, a section title, for `vec`).
+- Before D-105 both prompts sorted by `score`, so the score-less servers' symbols
+  always came after all of clangd's: a fixed order by accident. Since T-084 each
+  reply is appended as it arrives: whichever server answers first is on top, which
+  can differ from one key to the next; rows already shown do not move, the later
+  reply comes below them.
+
+**Options** (not ruled, O-58):
+- (a) Arrival order, as built (T-084).
+- (b) A fixed order: the server of the buffer `M-o` was called from first (clangd in
+  a C++ buffer, pyright in a Python one), then the others newest first. A reply
+  from a server ranked earlier that arrives later is inserted above rows already
+  shown; the selected row can change under the cursor.
+- (c) (b), but show nothing until every server has answered, or a timeout passes
+  (for example 0.2 s, then the rest below as they come): no rows move; the wait is
+  the slowest server's (ms on the toys), a hung server costs the timeout.
+- (d) One source per server in `M-o` ("Symbol clangd", "Symbol pyright"): each its
+  own group with a heading, in source order; same moving rows as (b) within the
+  prompt. Narrow keys per server or one shared key: not checked. `C-c l s` stays
+  one list.
+- (e) Only the current buffer's server: a C++ buffer asks clangd alone, as the
+  prompts did before pyright or texlab started. Loses the other languages' symbols.
+- (f) Interleave the replies (first of each, second of each, ...): servers' ranks are
+  not comparable; not recommended.
+
+**`C-c l s` groups by kind, which reorders too (found in T-084's terminal check):**
+- consult-eglot passes `:group (consult--type-group consult-eglot-narrow)`: each
+  candidate's group is its symbol kind (Method, Function, Variable, Class, ...).
+  vertico (`vertico--group-by`) then lists whole groups in the order each first
+  appears; inside a group the order stays.
+- Toy, `C-c l s` `count`: clangd sends 57 symbols, `std::...::count` methods first,
+  `geom::count` (Variable) at 21, `count_vertices_globally` (Function) at 25. A
+  Function appears before index 21, so the Function group, with
+  `count_vertices_globally`, comes before the Variable group with `geom::count`:
+  the exact name below the partial one again. Filtered to the toy's file
+  (`#count#src`), only the two remain and `count` is first. `vector`: `Vector`
+  (Class) first, as clangd sent.
+- `M-o` groups by source only ("Symbol", "All Symbols"), not by kind: clangd's
+  order shows unchanged (toy: `count` then `count_vertices_globally`; `Vector`,
+  `vector_n_rows_1d`, `VectorTools`).
+- CLion's Go to Symbol is one flat list (section 15). Narrowing by kind (`f`, `c`,
+  `v`, ... after `<`) uses `:narrow`, which reads the same `consult--type`
+  property, not `:group`.
+- Options (O-58 (g) / (h)): (g) no kind groups in `C-c l s` (consult-eglot patch 0001
+  gains a hunk dropping `:group`; narrowing by kind stays); (h) keep them.
+
 ## Sources
 - JetBrains, CLion help "Search everywhere":
   https://www.jetbrains.com/help/clion/searching-everywhere.html

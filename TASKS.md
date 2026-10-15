@@ -284,12 +284,16 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-086 (opened 2026-10-15, owner approving T-084): research the order of several
+  servers' symbols. Done when: `RESEARCH_go_to_anything.md` 17 with which servers
+  answer, how the order arises, options. Done 2026-10-15: options as O-58, with
+  `C-c l s`'s kind groups found in T-084's check.
 - T-085 (opened 2026-10-15, owner with D-105: "research Optional"): research the
   symbol matches CLion makes and clangd refuses. Done when:
   `RESEARCH_go_to_anything.md` 16 with where clangd refuses each, the change and
   files each needs, options. Done 2026-10-15: options as O-57.
 - T-084 (opened 2026-10-15, D-105, O-55 (a) + (b)): symbols in clangd's order, `M-o`
-  ignoring case. Done when (proposed 2026-10-15, not yet agreed):
+  ignoring case. Done when:
   `emacs-cpp-go--symbol-request` keeps each reply's order (no sort by `:score`),
   servers' replies one after the other in arrival order; `C-c l s` the same through
   consult-eglot patch 0001 (`patches/consult-eglot/`, D-069) dropping its re-sort,
@@ -299,7 +303,9 @@ with `done when: ...`).
   patched source; `readme` matches `README.md` through `M-o`'s static filter with
   the prompt's bindings; the patch applies at the pin. Terminal check on the toy:
   `count` lists `count` before `count_vertices_globally` in `M-o` `< s` and in
-  `C-c l s`. `make test` on the Mac. DESIGN D-105, journal.
+  `C-c l s`. `make test` on the Mac. DESIGN D-105, journal. Agreed 2026-10-15.
+  Built 2026-10-15 (0072): all met but the `C-c l s` `count` check, which
+  consult-eglot's kind groups reorder (O-58).
 - T-083 (opened 2026-10-15, owner: "O-55 - comparison to CLion"): compare O-55's
   findings with CLion's matching. Done when: `RESEARCH_go_to_anything.md` 15 with
   CLion's rules and their sources, a side-by-side table, O-55's options against it.

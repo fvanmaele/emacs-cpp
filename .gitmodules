@@ -122,6 +122,7 @@
 	path = lib/consult-eglot
 	url = https://github.com/mohkale/consult-eglot
 	ignore = untracked
+	patch = patches/consult-eglot/0001-Keep-each-server-s-workspace-symbol-reply-in-the-ord.patch
 [submodule "dape"]
 	path = lib/dape
 	url = https://github.com/svaante/dape

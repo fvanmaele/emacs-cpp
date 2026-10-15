@@ -101,7 +101,7 @@ asks for \"\" when its prompt opens, which lists clangd's first 100 symbols;
 that has since changed is dropped.  With ROOT-URIS, each request asks for up to
 `emacs-cpp-go-symbol-limit' matches (D-083) and only symbols under one of
 ROOT-URIS are kept (D-082): within clangd's usual 100, library symbols crowd the
-project's out."
+project's out.  Symbols keep the order each server sent them in (D-105)."
   (lambda (sink)
     (let (latest)
       (lambda (action)
@@ -126,9 +126,11 @@ project's out."
                      (setq reply (seq-filter (lambda (symbol)
                                                (emacs-cpp-go--under-root-p symbol root-uris))
                                              reply)))
-                   (setq replies (sort (append replies reply nil)
-                                       :key (lambda (symbol)
-                                              (- (or (plist-get symbol :score) 0)))))
+                   ;; In the order the server sent, best match first; its `score'
+                   ;; leaves the name match out, so sorting by it put a global
+                   ;; `vector_n_rows_1d' above `dealii::Vector' for `vector' (D-105).
+                   ;; A second server's reply follows the first one's.
+                   (setq replies (append replies reply nil))
                    (funcall sink 'flush)
                    (funcall sink replies)))
                :error-fn
@@ -227,9 +229,9 @@ Symbols are the project's (D-082); every symbol, deal.II's and the standard
 library's too (narrow with `l'), commands (`x') and known projects (`p') are
 hidden until narrowed.  Narrow with `<' and the letter (b r m f s l x p), or the
 letter and SPC; `<' first does not filter the files by the letter (D-079).
-`< <' widens again.  Symbols need three characters and a running eglot server.  The settings of
-D-077 hold only while the prompt is open; the command or project chosen runs
-after it, with the usual ones."
+`< <' widens again.  Symbols need three characters and a running eglot server.  Case
+is ignored (D-105).  The settings of D-077 hold only while the prompt is open; the
+command or project chosen runs after it, with the usual ones."
   (interactive)
   (require 'consult)
   (let* ((buffer (current-buffer))
@@ -245,6 +247,9 @@ after it, with the usual ones."
                   (consult-async-refresh-delay 0.05)
                   ;; No `#' in front of the input (D-078).
                   (consult-async-split-style nil)
+                  ;; Buffers, files, commands and projects match ignoring case, as
+                  ;; CLion: `readme' finds README.md (D-105).
+                  (completion-ignore-case t)
                   ;; Preview after a pause in typing, at once when browsing (D-088).
                   (consult-preview-key emacs-cpp-go--preview-key))
               (consult--multi sources :prompt "Go to: " :require-match t :sort nil)))))

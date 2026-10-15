@@ -320,5 +320,66 @@ widened at the same input, they come back."
       (should (text-property-not-all 0 3 'face nil (nth 1 strings)))
       (should-not (text-property-not-all 0 3 'face nil (nth 2 strings))))))
 
+(defun init-go-to-anything-test--replies (make-step order)
+  "Run the step MAKE-STEP returns for SINK on input \"vector\"; reply in ORDER.
+Server `clangd' sends dealii::Vector (exact name, `score' 0.275) before
+vector_n_rows_1d (0.55), as clangd 21.1.8 did on a toy (D-105); server `pyright'
+sends one symbol without a `score'.  ORDER lists the servers in the order their
+replies arrive.  Return the names of the last list the step sank."
+  (let ((replies `((clangd . [(:name "Vector" :score 0.275) (:name "vector_n_rows_1d" :score 0.55)])
+                   (pyright . [(:name "vector_norm")])))
+        pending shown)
+    (cl-letf (((symbol-function 'jsonrpc-async-request)
+               (lambda (server _method _params &rest args)
+                 (push (cons server (plist-get args :success-fn)) pending))))
+      (funcall (funcall make-step (lambda (action) (when (consp action) (setq shown action)) nil))
+               "vector")
+      (dolist (server order)
+        (funcall (alist-get server pending) (alist-get server replies))))
+    (mapcar (lambda (symbol) (plist-get symbol :name)) shown)))
+
+(ert-deftest init-go-to-anything-symbols-in-server-order ()
+  "D-105: each server's reply in the order it was sent, not re-sorted by its
+`score'; a second server's reply follows the first one's."
+  (init-test--load)
+  (require 'consult)
+  (let ((step (lambda (sink)
+                (funcall (emacs-cpp-go--symbol-request '(clangd pyright)) sink))))
+    (should (equal (init-go-to-anything-test--replies step '(clangd pyright))
+                   '("Vector" "vector_n_rows_1d" "vector_norm")))
+    (should (equal (init-go-to-anything-test--replies step '(pyright clangd))
+                   '("vector_norm" "Vector" "vector_n_rows_1d")))))
+
+(ert-deftest init-go-to-anything-consult-eglot-server-order ()
+  "consult-eglot patch 0001 (D-105): `C-c l s' keeps each reply's order too."
+  (init-test--load)
+  (require 'consult)
+  (require 'eglot)
+  (require 'consult-eglot)
+  (should consult-eglot-sort-results)   ; so its prompt passes `:sort' nil
+  (let ((step (lambda (sink)
+                (funcall (consult-eglot--make-async-source '(clangd pyright)) sink))))
+    (should (equal (init-go-to-anything-test--replies step '(clangd pyright))
+                   '("Vector" "vector_n_rows_1d" "vector_norm")))))
+
+(ert-deftest init-go-to-anything-ignores-case ()
+  "D-105: inside the prompt, `readme' finds README.md through consult's filter of
+the static sources; outside it, case still counts."
+  (init-test--load)
+  (require 'consult)
+  (let ((filter (lambda ()
+                  (let (shown)
+                    (funcall (funcall (consult--async-static '("README.md" "src/a.cc"))
+                                      (lambda (action) (when (consp action) (setq shown action)) nil))
+                             "readme")
+                    (mapcar #'substring-no-properties shown))))
+        inside)
+    (init-go-to-anything-test--with-project
+      (cl-letf (((symbol-function 'consult--multi)
+                 (lambda (&rest _) (setq inside (funcall filter)) nil)))
+        (emacs-cpp-go-to-anything)))
+    (should (equal inside '("README.md")))
+    (should (null (funcall filter)))))
+
 (provide 'init-go-to-anything-test)
 ;;; init-go-to-anything-test.el ends here
