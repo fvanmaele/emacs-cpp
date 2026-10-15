@@ -703,7 +703,7 @@ since 2026.2, plugin `clion-radler`), whose own rules JetBrains documents for Ri
 - From the first character; no minimum.
 
 **Side by side** (section 14's toy and batch inputs; CLion's column from the
-sources, not typed into CLion):
+sources; the owner's check in CLion follows below):
 | Input / rule | CLion | `M-o` files, buffers | `M-o` `s` / `l`, `C-c l s` |
 |---|---|---|---|
 | case | ignored | sensitive (`readme` misses `README.md`) | ignored |
@@ -735,10 +735,44 @@ sources, not typed into CLion):
 - New, (g) one typo: nothing in Emacs here; orderless has no such style, and clangd
   has none. Lowest value, as CLion's own use is not confirmed.
 
-**Owner's hand check in CLion** (to replace "from the sources" above): on the
-toy project of section 14 (or RMO), Search Everywhere and Go to Symbol, type each
-of `pshbk`, `vec tools`, `vectro`, `ector`, `count`, `readme`, `cml`, `geom::vec`,
-and note which items appear first.
+**Owner's hand check in CLion** (asked: Search Everywhere (All) and Go to Symbol,
+each input, the first item). Owner 2026-10-15, CLion 2026.2.3.1, the owner's
+project (RMO with deal.II, judging by the names). Next to it, clangd 21.1.8 on a
+toy holding the same names (Mac, the client of section 14), so the clangd column
+says whether that name matches, not how it ranks among RMO's symbols.
+| Input | CLion All | CLion Symbol | clangd, same names |
+|---|---|---|---|
+| `pshbk` | `pshtl.h.B...` (cut off) | none | none |
+| `vec tools` | `vector_tools.h` | none | none |
+| `vectro` | `vector_n_rows_1d` | `vector_n_rows_1d` | `vector_n_rows_1d` |
+| `ector` | `EvaluatorSelector` | `#r_rmo_#3A_3ATangentVector` | none |
+| `count` | `count() const` | `count() const` | `S::count` |
+| `readme` | `README.md` | `read_particle_data_from_memroy` | the same |
+| `cml` | `CMakeLists.txt` | `class_multilevel_experiment` | none |
+| `geom::vec` | `vertices_per_cell` | `vertices_per_cell` | none |
+`GeometryInfo::vec` finds `GeometryInfo::vertices_per_cell` in clangd; `Geom::vec`
+does not.
+
+What it shows:
+- Symbols: CLion and clangd agree on five of eight. Neither finds `push_back` from
+  `pshbk`, nor anything from `vec tools` (Go to Symbol takes the space as a
+  qualifier separator, as Rider's page says; `VectorTools` is a deal.II namespace).
+  `vectro` is no typo: `vect` + `r` at the start of `rows` + `o`, a hump match in
+  both; so the one-typo matcher stays unconfirmed in CLion.
+- Symbols, CLion only: mid-word matches (`ector` in `TangentVector`, 5 characters,
+  over the 3 that IntelliJ's middle match needs); `cml` with `l` inside
+  `multilevel`, which clangd refuses after a gap; a qualifier matched loosely
+  (`geom` against, presumably, `GeometryInfo`), where clangd needs each scope
+  segment whole (`approximateScopeMatch`).
+- `#r_rmo_#3A_3ATangentVector` looks like a percent-escaped name (`%3A` is `:`);
+  where Nova takes it from was not looked into.
+- Ranking: `count` puts `count() const` first in CLion, as clangd's reply order
+  does; `M-o` and `C-c l s` re-sort it away (section 14, option (a)).
+- All (files and more): case ignored (`README.md`), humps over `.` and `_`
+  (`pshtl.h.B...`, `CMakeLists.txt`), space as an in-order wildcard
+  (`vector_tools.h`), mid-word from 3 characters (`EvaluatorSelector`). `M-o`'s
+  files: `vec tools` and `ector` match (any substring), `readme`, `cml` and
+  `pshbk` do not.
 
 ## Sources
 - JetBrains, CLion help "Search everywhere":
