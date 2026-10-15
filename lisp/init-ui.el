@@ -87,13 +87,16 @@ Nil outside prompts, where the timer has its usual delay."
 (defconst emacs-cpp-info-directory (expand-file-name "lib/info" emacs-cpp-root)
   "Info manuals of the vendored packages, built by `make packages' (D-039).")
 
-;; C-h i lists them next to Emacs's own manuals.
+;; C-h i lists them next to Emacs's own manuals.  Searched first, so a manual
+;; Emacs ships too is the vendored package's own: eglot's (D-108), the only such
+;; one; its entry in C-h i appears once (identical entries are merged).
 (use-package info
   :config
   (unless (file-exists-p (expand-file-name "dir" emacs-cpp-info-directory))
     (error "emacs-cpp: no %s/dir; run `make packages' in %s (D-039)"
            emacs-cpp-info-directory emacs-cpp-root))
-  (add-to-list 'Info-additional-directory-list emacs-cpp-info-directory))
+  (info-initialize)
+  (add-to-list 'Info-directory-list emacs-cpp-info-directory))
 
 (provide 'init-ui)
 ;;; init-ui.el ends here

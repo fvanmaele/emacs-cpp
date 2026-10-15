@@ -517,7 +517,10 @@ Known defects: none yet (nothing built).
   `lib/eglot/eglot.elc`. With the cap at 5 on 20 directories pyright stays up (the
   test fails without the patch); `make test` 119 tests, 0 unexpected (Mac). eglot
   is not loaded at startup, so startup is unchanged: median 0.550 s on the Mac (10
-  runs, 0.531 - 0.560).
+  runs, 0.531 - 0.560). Its manual (owner 2026-10-15: "avoid listing two Eglot
+  manuals"): `lib/info` is searched first (`Info-directory-list`, not the
+  additional list), so `(eglot)` opens the vendored eglot's manual and `C-h i` lists
+  Eglot once; eglot is the only vendored package Emacs also documents.
 - DECIDED D-107 (owner 2026-10-15, O-59 (a): "build*/ to .gitignore"): a project's
   large untracked output trees belong in its `.gitignore`; eglot's watches and
   projectile's file lists follow git's ignore rules, and the config does not list
