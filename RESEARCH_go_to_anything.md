@@ -628,6 +628,18 @@ the inserted `#` is all async until a second `#`). clangd's `getWorkspaceSymbols
   (in `geom`, score 0.275) before `count_vertices_globally` (global, 0.55); both
   prompts show `count_vertices_globally` first. Within a score, `sort` keeps
   clangd's order.
+- Second toy (2026-10-15, owner asked for a concrete case), query `vector`, symbols
+  `dealii::Vector`, `dealii::VectorTools`, `::vector_n_rows_1d`:
+  | clangd sends | `score` | after the re-sort |
+  |---|---|---|
+  | 1. `dealii::Vector` (exact name) | 0.275 | 1. `::vector_n_rows_1d` |
+  | 2. `::vector_n_rows_1d` (prefix) | 0.550 | 2. `dealii::Vector` |
+  | 3. `dealii::VectorTools` (prefix) | 0.200 | 3. `dealii::VectorTools` |
+  Every `dealii::` symbol gets half the score of a global one for an unqualified
+  query (`InBaseClass`: its scope differs from the query's, which is empty), and
+  `score` divides the name match out, so in deal.II the re-sort lifts any global
+  match above every namespaced one, however exact. Query `vec` on the same toy:
+  both orders equal (exact `::vec` is global too).
 - Highlighting: `C-c l s` marks the input as one regexp (`consult--async-highlight`),
   case sensitive, so fuzzy hits (`vtools`) show no marks; `M-o`'s symbol source
   marks nothing.
