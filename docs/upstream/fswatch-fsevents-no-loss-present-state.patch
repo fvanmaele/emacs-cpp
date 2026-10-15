@@ -1,0 +1,134 @@
+fswatch (macOS): never block the FSEvents callback; report drops; report a path's present state
+
+DRAFT (T-096, O-61 (h1)), against github.com/emcrisostomo/fswatch tag 1.20.1 (97757d7).
+Prototype, built and checked in a scratch directory only; not used by this configuration.
+1. fswatch.cpp: records are queued and written by a separate thread, so a slow reader
+   no longer blocks the monitor's callback (FSEvents then drops events).
+2. fsevents_monitor.cpp: MustScanSubDirs / UserDropped / KernelDropped become an
+   overflow, as the inotify and kqueue monitors report it.
+3. fsevents_monitor.cpp: FSEvents accumulates a path's flags; lstat decides: a missing
+   path is Removed (no Created / Updated), a present one is not Removed.
+
+diff --git a/fswatch/src/fswatch.cpp b/fswatch/src/fswatch.cpp
+index d778f86..a0196f7 100644
+--- a/fswatch/src/fswatch.cpp
++++ b/fswatch/src/fswatch.cpp
+@@ -28,6 +28,12 @@
+ #include <array>
+ #include <map>
+ #include <filesystem>
++#include <condition_variable>
++#include <deque>
++#include <mutex>
++#include <sstream>
++#include <thread>
++#include <cstdio>
+ #include "libfswatch/c++/event.hpp"
+ #include "libfswatch/c++/monitor.hpp"
+ #include "libfswatch/c++/monitor_factory.hpp"
+@@ -456,12 +462,44 @@ static void write_events(const std::vector<event>& events)
+   }
+ }
+ 
++// Records are written by a separate thread, so the monitor's callback never
++// blocks on a slow reader: on macOS a blocked FSEvents callback makes the
++// system drop events.  Records wait in memory until the reader takes them.
++static std::mutex output_mutex;
++static std::condition_variable output_ready;
++static std::deque<std::string> output_queue;
++
++static void write_output()
++{
++  for (;;)
++  {
++    std::string chunk;
++    {
++      std::unique_lock<std::mutex> lock(output_mutex);
++      output_ready.wait(lock, [] { return !output_queue.empty(); });
++      chunk = std::move(output_queue.front());
++      output_queue.pop_front();
++    }
++    if (fwrite(chunk.data(), 1, chunk.size(), stdout) != chunk.size()
++        || fflush(stdout) != 0)
++      std::_Exit(FSW_EXIT_ERROR);
++  }
++}
++
+ static void process_events(const std::vector<event>& events, void *)
+ {
++  std::ostringstream records;
++  std::streambuf *console = std::cout.rdbuf(records.rdbuf());
+   if (oflag)
+     write_one_batch_event(events);
+   else
+     write_events(events);
++  std::cout.rdbuf(console);
++  {
++    std::lock_guard<std::mutex> lock(output_mutex);
++    output_queue.push_back(records.str());
++  }
++  output_ready.notify_one();
+ }
+ 
+ static void start_monitor(int argc, char **argv, int argIndex)
+@@ -531,6 +569,7 @@ static void start_monitor(int argc, char **argv, int argIndex)
+   active_monitor->set_watch_access(aflag);
+   active_monitor->set_bubble_events(bflag);
+ 
++  std::thread(write_output).detach();
+   active_monitor->start();
+ }
+ 
+diff --git a/libfswatch/src/libfswatch/c++/fsevents_monitor.cpp b/libfswatch/src/libfswatch/c++/fsevents_monitor.cpp
+index f3862c4..546cf87 100644
+--- a/libfswatch/src/libfswatch/c++/fsevents_monitor.cpp
++++ b/libfswatch/src/libfswatch/c++/fsevents_monitor.cpp
+@@ -23,6 +23,8 @@
+ #include "libfswatch_exception.hpp"
+ #include "libfswatch/c/libfswatch_log.h"
+ #include <mutex>
++#include <algorithm>
++#include <sys/stat.h>
+ 
+ namespace fsw
+ {
+@@ -277,9 +279,38 @@ namespace fsw
+         CFNumberGetValue(cf_inode, kCFNumberLongType, &inode);
+       }
+ 
++      // The system dropped events (a slow consumer, or the kernel): report an
++      // overflow, as the inotify and kqueue monitors do.
++      if (eventFlags[i] & (kFSEventStreamEventFlagMustScanSubDirs
++                           | kFSEventStreamEventFlagUserDropped
++                           | kFSEventStreamEventFlagKernelDropped))
++      {
++        fse_monitor->notify_overflow(std::string(path_buffer.data()));
++        continue;
++      }
++
++      // FSEvents accumulates the flags of a path: a file created and removed
++      // again carries both.  Report the state the path has now.
++      std::vector<fsw_event_flag> flags = decode_flags(eventFlags[i]);
++      auto has = [&flags](fsw_event_flag f)
++      { return std::find(flags.begin(), flags.end(), f) != flags.end(); };
++      auto drop = [&flags](fsw_event_flag f)
++      { flags.erase(std::remove(flags.begin(), flags.end(), f), flags.end()); };
++      struct stat st;
++      if (lstat(path_buffer.data(), &st) != 0)
++      {
++        drop(fsw_event_flag::Created);
++        drop(fsw_event_flag::Updated);
++        if (!has(fsw_event_flag::Removed)) flags.push_back(fsw_event_flag::Removed);
++      }
++      else
++      {
++        drop(fsw_event_flag::Removed);
++      }
++
+       events.emplace_back(std::string(path_buffer.data()),
+                           curr_time,
+-                          decode_flags(eventFlags[i]),
++                          flags,
+                           inode);
+ 
+ #else

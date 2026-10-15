@@ -808,6 +808,68 @@ directories, or to turn watching off.
 - (h3) Either on macOS only, `file-notify` on Arch (a D-055 platform default).
 - (h4) Neither: (e) / (g) and exclusions (3.9).
 
+### 3.13 Patching fswatch: no loss, created vs deleted (owner 2026-10-15, T-096)
+Owner: "(h1) Can fswatch be patched to not lose events and report created vs.
+deleted events?" Yes, both, in a prototype. Read in fswatch 1.20.1 (the MacPorts
+version; github.com/emcrisostomo/fswatch tag 1.20.1, 97757d7), built with CMake and
+Ninja in a scratch directory, checked on the LLVM-sized tree of 3.12. Draft:
+`docs/upstream/fswatch-fsevents-no-loss-present-state.patch` (71 lines in, 1 out,
+two files).
+
+**Why events were lost** (`libfswatch/.../fsevents_monitor.cpp`,
+`fswatch/src/fswatch.cpp`): the FSEvents callback builds the events and calls the
+monitor's callback, which prints each record to `std::cout` and flushes it. With a
+full pipe the write blocks, so the FSEvents callback does not return, and the system
+drops what arrives meanwhile. The drop is signalled: one record for the root with
+the flags `PlatformSpecific` (fswatch maps `MustScanSubDirs`, `UserDropped`,
+`KernelDropped` to `PlatformSpecific`, not to `Overflow`, so `--allow-overflow`
+shows nothing), seen in a paused-reader run.
+
+**Why created and deleted were mixed:** FSEvents with file events
+(`kFSEventStreamCreateFlagFileEvents`) accumulates the flags of a path; fswatch
+passes them on as they come. libfswatch already has the inode of each event
+(extended data) but no state per path.
+
+**The prototype:**
+1. `fswatch.cpp`: `process_events` writes the records of a batch into a string and
+   queues it; a writer thread takes the queue and writes to standard output. The
+   callback never waits for the reader; records wait in memory instead (unbounded
+   in the draft).
+2. `fsevents_monitor.cpp`: an event with `MustScanSubDirs`, `UserDropped` or
+   `KernelDropped` becomes `notify_overflow(path)`, as the inotify and kqueue
+   monitors already do (an `Overflow` record with `--allow-overflow`, else an error).
+3. `fsevents_monitor.cpp`: `lstat` at the time of the event decides: a missing path
+   loses `Created` and `Updated` and gets `Removed`; a present one loses `Removed`.
+
+**Checked** (10000 files created while the reader paused 5 s, then read; and four
+single cases; `LC_ALL=C`, see below):
+| | fswatch 1.20.1 (MacPorts) | patched |
+|---|---|---|
+| paused reader, 10000 creations | 959 records | 10001 records, no overflow |
+| created `created.py` | `Created,IsFile,Updated,AttributeModified` | same |
+| created, removed `gone.py` | all five flags (1) | `IsFile,Removed,AttributeModified` |
+| appended to `f2.cc` | `IsFile,Updated` | same |
+| removed `f3.cc` | `IsFile,Removed` | same |
+(1) `Created,IsFile,Updated,Removed,AttributeModified`.
+Not checked: change 2 (no drop happened once the callback stopped blocking; a
+kernel-side drop was not provoked); memory while a reader never reads; the inotify
+monitor (Arch), which the writer thread also serves.
+
+**Side finding:** this build rejects `-l 0.1` under the owner's German locale
+("Invalid value: 0.1", a decimal comma expected); MacPorts' build accepts it. A
+local build would need `LC_NUMERIC=C` in its environment or a fix; not looked into.
+
+**Upstream:** no fswatch issue found on a slow reader losing events or on mixed
+flags (four searches of its issues, 2026-10-15); #233 ("macosX inconsistent event
+reporting for options -x and -o", open since 2019) is the nearest.
+
+**Ways to carry it** (not ruled, O-61 (h1)):
+- (i) Offer the three changes upstream (GPL-3 project, a pull request); MacPorts
+  and Arch would follow a release.
+- (ii) A local build, as for clangd (`packaging/`), on both machines until then.
+- (iii) Only change 1 in fswatch; decide created / deleted in Emacs with a stat
+  per record (the prototype filter of 3.12 does so).
+
 ## 4. Other differences met so far
 Decided already; listed so that one document points at all of them.
 

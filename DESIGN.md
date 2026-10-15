@@ -1598,7 +1598,13 @@ presets, GoogleTest runner.
   loses nothing (all 20000 after a 20 s pause), writes cookie files into the root,
   AUR-only on Arch. Both report real paths (`/private/tmp`). Options: (h1)
   `fswatch` backend, (h2) Watchman backend, (h3) either on macOS only, (h4)
-  neither.
+  neither. Owner 2026-10-15 on (h1): can fswatch be patched? (T-096, research
+  3.13): yes, prototype (`docs/upstream/fswatch-fsevents-no-loss-present-state.patch`):
+  a writer thread keeps the FSEvents callback from blocking (paused reader: 10001
+  records against stock's 959), drops reported as overflow, `lstat` decides
+  removed or present (created-then-removed: `Removed` only). Ways: (i) upstream
+  pull request, (ii) a local build as for clangd, (iii) only the writer thread in
+  fswatch, the stat in Emacs.
 - O-60 (RESOLVED 2026-10-15 with D-108: (b) vendor eglot; tracked-only lists still
   undecided, moved to O-61; owner 2026-10-15 with D-107, T-089): (b) tracked-only file
   lists and (c) an eglot patch keeping partial watches (`RESEARCH_platform_differences.md`
