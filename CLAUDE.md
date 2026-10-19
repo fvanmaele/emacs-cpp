@@ -48,7 +48,7 @@ S12 change signature: FAIL, calls in templates (0066), O-43 (b) to the owner.
 Open: O-12; O-38 rg.el / ag.el; O-39 R server; O-47 hover;
 O-50 resolved: patch 0010 with T-104 (D-114);
 O-64 resolved: limits kept (D-115); O-65 resolved: eglot patch 0003 (D-117, T-106,
-0079); O-66 "Project Symbol" heading for `M-o`'s `s`;
+0079); O-66 resolved: "Project Symbol" heading (D-118);
 O-57 CLion's extra symbol matches; O-56 theme following macOS appearance;
 D-105 symbols in clangd's order, `M-o` ignores case: built (T-084, 0072);
 D-106 `M-o` symbol sources per server (T-087, 0073); D-107 `build*/` in
