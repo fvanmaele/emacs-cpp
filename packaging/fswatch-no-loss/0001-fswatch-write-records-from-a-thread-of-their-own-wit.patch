@@ -1,4 +1,4 @@
-From f766ac2148e910a745e3c49b0b694025930e86ec Mon Sep 17 00:00:00 2001
+From 876cc18848a825981792c10c8edab22ff15ae83b Mon Sep 17 00:00:00 2001
 From: Ferdinand Vanmaele <ferdinand-joseph.vanmaele@uni-a.de>
 Date: Thu, 15 Oct 2026 16:13:19 +0200
 Subject: [PATCH 1/4] fswatch: write records from a thread of their own, with a
@@ -11,17 +11,21 @@ while the reader paused, 959 records arrived.
 
 Records are now formatted in the callback and queued; a writer thread
 takes them to standard output.  At most --queue-limit=N records wait
-(default 200000, 0: no limit); past it the waiting records are dropped
-and one Overflow record per watched path takes their place, or, without
---allow-overflow, fswatch stops with "Event queue overflow.", as
-libfswatch does for monitor overflows.  After the monitor stops (-1),
-fswatch waits for the queue to be written.
+(default 200000, 0: no limit); past it the waiting records and the new
+ones are dropped and one Overflow record per watched path takes their
+place, or, without --allow-overflow, fswatch stops with "Event queue
+overflow.", as libfswatch does for monitor overflows.  After the monitor
+stops (-1), fswatch waits for the queue to be written.
+
+The queue, its mutex and its condition variables are never destroyed:
+the writer thread waits on them until the process ends, and glibc's
+pthread_cond_destroy waits for its waiters, so exit() would hang.
 ---
- fswatch/src/fswatch.cpp | 113 +++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 112 insertions(+), 1 deletion(-)
+ fswatch/src/fswatch.cpp | 120 +++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 119 insertions(+), 1 deletion(-)
 
 diff --git a/fswatch/src/fswatch.cpp b/fswatch/src/fswatch.cpp
-index 9cf607a..0c61478 100644
+index 9cf607a..f9f41dc 100644
 --- a/fswatch/src/fswatch.cpp
 +++ b/fswatch/src/fswatch.cpp
 @@ -28,6 +28,14 @@
@@ -55,7 +59,7 @@ index 9cf607a..0c61478 100644
    stream << " -a, --access          " << _("Watch file accesses.\n");
    stream << " -b, --bubble-events   " << _("Bubble events with the same timestamp and path.\n");
    stream << " -d, --directories     " << _("Watch directories only.\n");
-@@ -483,12 +493,95 @@ static void write_events(const std::vector<event>& events)
+@@ -483,12 +493,102 @@ static void write_events(const std::vector<event>& events)
    }
  }
  
@@ -64,15 +68,19 @@ index 9cf607a..0c61478 100644
 + * Records are written by a thread of their own, so the monitor's callback
 + * never waits for a slow reader: on macOS a blocked FSEvents callback makes the
 + * system drop events.  At most queue_limit records wait (0: no limit); past it
-+ * the waiting records are dropped and one Overflow record per watched path is
-+ * written instead, or, without --allow-overflow, fswatch stops.
++ * the waiting records and the new ones are dropped and one Overflow record per
++ * watched path is written instead, or, without --allow-overflow, fswatch stops.
 + */
 +static unsigned long queue_limit = 200000;
 +static std::vector<std::string> watched_paths;
-+static std::mutex output_mutex;
-+static std::condition_variable output_ready;
-+static std::condition_variable output_drained;
-+static std::deque<std::pair<std::string, size_t>> output_queue;
++// Never destroyed: the writer thread waits on output_ready until the process
++// ends, and glibc's pthread_cond_destroy waits for its waiters, so exit() (after
++// -1, or from the signal handler) would hang in the static destructors.
++static std::mutex& output_mutex = *new std::mutex;
++static std::condition_variable& output_ready = *new std::condition_variable;
++static std::condition_variable& output_drained = *new std::condition_variable;
++static std::deque<std::pair<std::string, size_t>>& output_queue =
++  *new std::deque<std::pair<std::string, size_t>>;
 +static size_t queued_records = 0;
 +static bool writing = false;
 +
@@ -145,14 +153,17 @@ index 9cf607a..0c61478 100644
 +      queued_records = oflag ? 1 : overflow.size();
 +      output_queue.emplace_back(format_events(overflow), queued_records);
 +    }
-+    output_queue.emplace_back(std::move(records), count);
-+    queued_records += count;
++    else
++    {
++      output_queue.emplace_back(std::move(records), count);
++      queued_records += count;
++    }
 +  }
 +  output_ready.notify_one();
  }
  
  static void start_monitor(int argc, char **argv, int argIndex)
-@@ -566,7 +659,10 @@ static void start_monitor(int argc, char **argv, int argIndex)
+@@ -566,7 +666,10 @@ static void start_monitor(int argc, char **argv, int argIndex)
    active_monitor->set_watch_access(aflag);
    active_monitor->set_bubble_events(bflag);
  
@@ -163,7 +174,7 @@ index 9cf607a..0c61478 100644
  }
  
  static void parse_opts(int argc, char **argv)
-@@ -608,6 +704,7 @@ static void parse_opts(int argc, char **argv)
+@@ -608,6 +711,7 @@ static void parse_opts(int argc, char **argv)
      {"one-event",            no_argument,       nullptr,       '1'},
      {"print0",               no_argument,       nullptr,       '0'},
      {"prune",                required_argument, nullptr,       OPT_PRUNE},
@@ -171,7 +182,7 @@ index 9cf607a..0c61478 100644
      {"recursive",            no_argument,       nullptr,       'r'},
      {"timestamp",            no_argument,       nullptr,       't'},
      {"utc-time",             no_argument,       nullptr,       'u'},
-@@ -750,6 +847,20 @@ static void parse_opts(int argc, char **argv)
+@@ -750,6 +854,20 @@ static void parse_opts(int argc, char **argv)
        allow_overflow = true;
        break;
  

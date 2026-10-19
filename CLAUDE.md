@@ -55,8 +55,9 @@ step-1's `.gitignore` (owner); D-108 eglot vendored with a
 watch patch: T-090 done when proposed (no startup check); O-61 watched files,
 large repositories: drafts (c) (e) (g), IDE research, (h) tree watcher via fswatch /
 Watchman researched, fswatch patch prototyped (T-092 .. T-097);
-D-109 patched fswatch built locally (T-098, 0074; Arch build left); fswatch backend
-for eglot ruled (D-110, DESIGN 7.1), watch items ruled (D-111, 7.2); eglot vendored
+D-109 patched fswatch built locally (T-098, 0074; Arch check passes at pkgrel 2,
+Mac re-check left); fswatch backend for eglot ruled (D-110, DESIGN 7.1), watch items
+ruled (D-111, 7.2); eglot vendored
 (T-090, 0075; Arch make test left); shared watches as patch 0002
 (T-102, 0076; Arch make test left);
 clangd patches 0010 - 0012 built (T-104, 0077; pkgrel 8, Arch build left);
