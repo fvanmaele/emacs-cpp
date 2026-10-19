@@ -999,6 +999,78 @@ completion too). None recorded as questions.
   non-project items" is ticked (section 15).
 - Options as O-66.
 
+## 19. Preferring mid-word matches (owner 2026-10-19)
+Owner: "Research preferring mid-word matches". Measured 2026-10-19 on Arch with
+`/opt/clangd-index-nav/bin/clangd` (pkgrel 8) on a toy whose one source includes
+Kokkos, deal.II 9.8 (grid, dofs, fe, lac, numerics) and, through them, Trilinos,
+PETSc, Boost and MPI headers (include flags taken from RMO's database, no RMO
+code), plus a project `Vector`, `TangentVector`, `assemble_system`. Every match
+fetched (`limit` 100000, `middleMatch` 3); clangd's own `FuzzyMatcher` (23.1.1
+source, built alone) scored each name. Twelve mid-word queries and S14's twenty
+fuzzy ones. Scripts in the session's scratch directory, not kept; lifted into a
+spike if one is run.
+
+**How clangd orders them today (patch 0012):**
+- A fuzzy match scores `FuzzyMatcher` (0 .. 1, 2 for an exact name) times the
+  symbol's quality and relevance; a mid-word match gets 1e-3 and minus 1e6, so it
+  follows every fuzzy match, whatever either's quality.
+- `ector`: 950 matches, 12 fuzzy, 938 mid-word. All 12 fuzzy are scattered over
+  word starts and score 0.05 - 0.7: ten Kokkos `EBOBaseImpl<T, ..., CtorNotOnDevice>`
+  constructors and destructors (`E` + `Ctor`), two Boost macros
+  (`BOOST_PP_TUPLE_REM_CTOR_O_1`). `egree` -> `ExcGridReadError` (0.7, E-G-R-E);
+  `ernel` -> four all-caps macros (`..._KOKKOSKERNELS_`, 0.05 - 0.2); `xecution` ->
+  `_PSTL_CPP17_EXECUTION_POLICIES_PRESENT` (0.31). Each is listed before every
+  mid-word match.
+- Among the mid-word matches the quality is flat (0.55 for classes, 0.5 for
+  constructors, from the toy's single source), so their order is ties: the toy's
+  `TangentVector` and `Vector` come 215th and 245th of 950, behind
+  `dealii::AlignedVector...`, `Epetra_MultiVector` and other Trilinos names. With
+  `C-c l s`'s 100 they are cut. `M-o` keeps them only because it filters to the
+  project (section 18).
+
+**What "prefer" can mean, simulated on the same replies** (the reply's `score` is
+clangd's ranking without the name match, so other name scores can be tried):
+- R1, mid-word scored by how much of the identifier the query covers (query
+  length / identifier length, template arguments and `~` dropped), still after
+  every fuzzy match: `ector` puts the project's `Vector` 14th (`TangentVector`
+  259th); the twelve scattered fuzzy matches stay on top.
+- R2, R1 doubled when the match ends a word segment (`Vector`, `TangentVector`):
+  about the same.
+- A score threshold for "weak" fuzzy matches does not work: good word-start
+  matches score as low (`bou` -> `has_boundary_lines` 0.58, `quad` ->
+  `get_quadrature_points` 0.69); 8051 of 16792 fuzzy matches of S14's fuzzy
+  queries are under 0.75, 371 of them in a top 100.
+- R4, by shape, not score: a fuzzy match whose query appears contiguously from a
+  word start (`bou` in `has_boundary_lines`) keeps today's place and order; a
+  scattered fuzzy match (`E` + `Ctor`) and a mid-word match rank together, by R2's
+  coverage (the fuzzy score if higher) times quality. Results:
+  - mid-word queries, first three: `ector` `Vector` x3 (the project's 3rd);
+    `egree` `degree`; `ernel` `is_graph_kernel`, `GraphKernelTrait`; `xecution`
+    `execution`, `ExecutionSpace`; `olicy` `Policy`; `ensor` `Tensor`; `atrix`
+    `matrix`, `Epetra_CrsMatrix`. The top 100 changes for 5 of 12 (`ector` all
+    of it).
+  - fuzzy queries: the top 100 is unchanged or nearly (93 - 100 kept) for 14 of
+    20; `mat` keeps 37, `cel` 86, `poi` 87, `fe_` 75. For `mat` the 63 dropped
+    are scattered (`MPI_Attr_delete` as M-At, `MapType`, `max_align_t`), the 63
+    added contiguous (`MatrixFreeFunctions`, `BlockMatrixBase`, `CrsMatrix`).
+- CLion ranks the other way: a match starting mid-word needs `*` and comes after
+  hump matches, scattered ones included (section 15). R4 departs from CLion on
+  purpose.
+
+**Where it could live:**
+- In clangd (as 0012): `getWorkspaceSymbols` tells contiguous from scattered
+  fuzzy matches and scores mid-word by coverage; Dex and MemIndex give mid-word a
+  positive score in that mode, since the index's own cut (100 times the limit) runs
+  first. Behind a request field next to `middleMatch`, so code completion and a
+  client that sends nothing are unchanged. Both prompts, and `C-c l s`'s 100 then
+  holds the better matches.
+- In Emacs: `M-o` already receives up to 10000 and could re-sort them by R4's shape
+  (the contiguity test and coverage in Lisp; the fuzzy score itself is not in the
+  reply, so contiguous fuzzy matches keep clangd's order). `C-c l s` gets 100 with
+  the mid-word ones mostly cut: it would need a `limit` (consult-eglot patch 0001's
+  parameter function can send one) and the same re-sort inside consult-eglot.
+- Options as O-67.
+
 ## Sources
 - JetBrains, CLion help "Search everywhere":
   https://www.jetbrains.com/help/clion/searching-everywhere.html

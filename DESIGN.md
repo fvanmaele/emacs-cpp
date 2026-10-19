@@ -1828,6 +1828,23 @@ presets, GoogleTest runner.
   a loose qualifier (`geom::vec`); `count() const` first in both, re-sorted away
   here; no typo seen. Search Everywhere's files: case ignored, humps, space in
   order.
+- O-67 (owner 2026-10-19: "Research preferring mid-word matches"): clangd ranks a
+  mid-word match after every fuzzy one (patch 0012), and mid-word matches tie
+  among themselves; scattered fuzzy matches such as Kokkos's
+  `EBOBaseImpl<..., CtorNotOnDevice>` (`E` + `Ctor` for `ector`) head the list and
+  the project's `Vector` falls outside `C-c l s`'s 100
+  (`RESEARCH_go_to_anything.md` 19). Options: (a) clangd patch 0013, rule R4: a
+  fuzzy match contiguous from a word start keeps its place; scattered fuzzy and
+  mid-word matches rank together by how much of the name they cover (doubled at
+  a word end) times quality; behind a request field; both prompts; tier 3, a
+  spike on step-1 first (replies and times for mid-word and fuzzy queries against
+  pkgrel 8), pkgrel 9 and a Mac rebuild. (b) R4 in Emacs: `M-o` re-sorts what it
+  receives; `C-c l s` sends a limit and re-sorts too (consult-eglot patch 0001
+  grows); contiguous fuzzy matches keep clangd's order; no rebuild; Lisp cost per
+  reply to measure. (c) R1 only (mid-word by coverage, still after every fuzzy
+  match), clangd or Emacs: the scattered fuzzy matches stay on top. (d) Keep
+  CLion's order (mid-word last). Recommendation (a): one rule for both prompts,
+  and `C-c l s`'s cut then keeps the better matches.
 - O-66 (RESOLVED 2026-10-19 with D-118: (a); owner 2026-10-19: "Research: Symbol
   (clangd) -> Project Symbol (clangd)"):
   the heading of `M-o`'s `s` symbols, which with a project root are the project's
