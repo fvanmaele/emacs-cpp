@@ -316,8 +316,9 @@ with `done when: ...`).
   D-114, its unit test in `BackgroundIndexTests.cpp`) in the same pkgrel and rebuild,
   and both Emacs options on by default (owner).
   Built 2026-10-19 (0077): met on the Mac (ClangdTests 1419 passed, Mac build
-  installed, terminal check, `make test`); left: the owner's hand check on step-1,
-  and on Arch `makepkg -si` (pkgrel 8) and `make test`.
+  installed, terminal check, `make test`). Arch 2026-10-19: pkgrel 8 installed,
+  `make test` 123 / 123 with the patched-clangd test run. Left: the owner's hand
+  check on step-1.
 - T-103 (opened 2026-10-15, D-112): spike S14, CLion's mid-word and loose-scope
   symbol matches in clangd (`spikes/s14-symbol-matches/RUN.md`, pass criteria
   proposed 2026-10-15). Done when: RESULTS.md has a verdict on criteria 1 - 5 from
@@ -333,8 +334,8 @@ with `done when: ...`).
   again; a failing handler leaves the other's notification and warns; removing the
   last registration on a directory stops its watch; `eglot-describe-connection`
   still lists watches per registration. `make test` on the Mac; Arch by the owner.
-  DESIGN D-111, journal. Agreed 2026-10-15. Done 2026-10-15 (0076): met on the Mac;
-  left: the owner's `make packages && make test` on Arch.
+  DESIGN D-111, journal. Agreed 2026-10-15. Done 2026-10-15 (0076): met on the Mac.
+  Arch 2026-10-19: `make packages` applies 8 patches, `make test` 123 / 123.
 - T-101 (opened 2026-10-15, owner: "Revisit shared watches (e)"): review the (e)
   draft against the vendored eglot. Done when: its downsides re-examined, those found
   fixed in the draft and checked with pyright, DESIGN 7.2 updated. Done 2026-10-15.
@@ -362,7 +363,8 @@ with `done when: ...`).
   the owner's. Nothing in the Emacs config uses it yet. DESIGN D-109, journal.
   Agreed 2026-10-15, with the cap configurable (owner). Built 2026-10-15 (0074):
   met on the Mac (check.sh: 7 of 7, installed to ~/opt/fswatch-no-loss); left: the
-  owner's `makepkg -si` on Arch (its `check()` runs check.sh).
+  owner's `makepkg -si` on Arch (its `check()` runs check.sh). Arch 2026-10-19:
+  pkgrel 2 (0074's Arch run) passes, installed; left: the Mac re-check of pkgrel 2.
 - T-097 (opened 2026-10-15, owner with D-109): check change 2 of the fswatch
   prototype and its memory use. Done when: `RESEARCH_platform_differences.md` 3.13
   with a real drop reported, memory with a reader that never reads, measured.
@@ -410,7 +412,8 @@ with `done when: ...`).
   (clangd, pyright, texlab, `M-o`, `C-c l s`) pass. `make test` on the Mac; startup
   time on the Mac noted (budgets bind on Arch, D-057); the owner runs `make test`
   on Arch. DESIGN D-108, journal. Agreed 2026-10-15 (D-111). Done 2026-10-15
-  (0075): met on the Mac; left: the owner's `make test` on Arch.
+  (0075): met on the Mac. Arch 2026-10-19: `make packages` (34 packages, 8 patches)
+  and `make test` 123 / 123.
 - T-089 (opened 2026-10-15, owner with D-107): can eglot run on untracked `.py`
   buffers with tracked-only lists, and research a patch for eglot's watch cap.
   Done when: `RESEARCH_platform_differences.md` 3.8 with both answered by checks,

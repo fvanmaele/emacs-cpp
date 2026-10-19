@@ -477,6 +477,12 @@ Known defects: none yet (nothing built).
   entry (in RMO `fmt/src/format.cc`, wrong include paths). S1 live check: once an
   including `.cc` is open, clangd reuses its flags and the header is clean; opened
   first, it shows errors. The patched clangd takes an includer from its index (D-028).
+- DECIDED D-115 (owner 2026-10-19, O-64 (a)): file-watch limits stay as they are on
+  Arch: `eglot-max-file-watches` 10000, the kernel's own. The owner's numbers on
+  step-1 (31 GB RAM): `fs.inotify.max_user_watches` 524288, `max_user_instances`
+  1024, `max_queued_events` 16384; the kernel limit is about fifty times eglot's,
+  so (b) is not needed; (c) and (d) not taken. The vendored eglot answers a refused
+  watch with success (D-108), so pyright does not exit into a reconnect loop.
 - DECIDED D-111 (owner 2026-10-15: "Agree to recommendations on open watch
   questions"): DESIGN 7.2 as recommended: T-090 agreed (vendor eglot, no startup
   check); patch 0001 kept; O-61 (a) tracked-only lists closed; (b) a README note,
@@ -500,7 +506,9 @@ Known defects: none yet (nothing built).
   0074): `packaging/fswatch-no-loss/` (fswatch 1.22.0, patches 0001 - 0004,
   `PKGBUILD`, `build-macos.sh`, `check.sh`); `--queue-limit=N` (default 200000,
   0: no limit). On the Mac all seven checks pass and it is installed to
-  `~/opt/fswatch-no-loss`; the Arch build is the owner's.
+  `~/opt/fswatch-no-loss`. Arch 2026-10-19: two fixes (pkgrel 2: exit under glibc,
+  the cap with inotify's batches; 0074), all seven checks pass, installed; the Mac
+  re-check of pkgrel 2 is left.
 - DECIDED D-108 (owner 2026-10-15, O-60 (b): "Vendor eglot"; tier and done when to
   agree): eglot comes from a submodule, `lib/eglot` from
   github.com/emacs-straight/eglot (GNU ELPA's eglot, i.e. Emacs master's, no tags),
@@ -1793,8 +1801,9 @@ presets, GoogleTest runner.
   a loose qualifier (`geom::vec`); `count() const` first in both, re-sorted away
   here; no typo seen. Search Everywhere's files: case ignored, humps, space in
   order.
-- O-64 (owner 2026-10-19: "Revisit maximum file watches (Arch, different variables)
-  and eglot restarting in a loop, if the watches are exceeded"): two limits on Arch,
+- O-64 (RESOLVED 2026-10-19 with D-115: (a); owner 2026-10-19: "Revisit maximum file
+  watches (Arch, different variables) and eglot restarting in a loop, if the watches
+  are exceeded"): two limits on Arch,
   eglot's `eglot-max-file-watches` (10000) and the kernel's per-user
   `fs.inotify.max_user_watches` (1% of RAM, 8192 .. 1048576); a failed watch request
   makes pyright exit, and stock eglot reconnects in a loop when the round lasts over
@@ -2451,6 +2460,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-112 | 2026-10-15 | spike S14 for mid-word and loose-scope symbols | 10 | O-57 |
 | D-113 | 2026-10-15 | symbol matches switched per request, a capability | 10 | O-63 |
 | D-114 | 2026-10-15 | clangd patch 0010, real paths, built with T-104 | 7 | O-50 |
+| D-115 | 2026-10-19 | Arch file-watch limits kept as they are | 7 | O-64 |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.

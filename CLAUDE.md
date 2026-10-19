@@ -47,7 +47,7 @@ own module (D-099).
 S12 change signature: FAIL, calls in templates (0066), O-43 (b) to the owner.
 Open: O-12; O-38 rg.el / ag.el; O-39 R server; O-47 hover;
 O-50 resolved: patch 0010 with T-104 (D-114);
-O-64 Arch watch limits, eglot reconnect loop: owner's `sysctl` numbers;
+O-64 resolved: limits kept (D-115);
 O-57 CLion's extra symbol matches; O-56 theme following macOS appearance;
 D-105 symbols in clangd's order, `M-o` ignores case: built (T-084, 0072);
 D-106 `M-o` symbol sources per server (T-087, 0073); D-107 `build*/` in
@@ -58,9 +58,9 @@ Watchman researched, fswatch patch prototyped (T-092 .. T-097);
 D-109 patched fswatch built locally (T-098, 0074; Arch check passes at pkgrel 2,
 Mac re-check left); fswatch backend for eglot ruled (D-110, DESIGN 7.1), watch items
 ruled (D-111, 7.2); eglot vendored
-(T-090, 0075; Arch make test left); shared watches as patch 0002
-(T-102, 0076; Arch make test left);
-clangd patches 0010 - 0012 built (T-104, 0077; pkgrel 8, Arch build left);
+(T-090, 0075; Arch passes); shared watches as patch 0002
+(T-102, 0076; Arch passes);
+clangd patches 0010 - 0012 built (T-104, 0077; pkgrel 8, Arch passes);
 D-113 0011 / 0012 switched per request, announced as a capability;
 T-025 round 2, T-026 queued.
 
