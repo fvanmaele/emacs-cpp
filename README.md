@@ -68,8 +68,13 @@ that names the fix (DESIGN 4).
 `packaging/clangd-index-nav` builds clangd 23.1.1 with local patches. It answers
 go-to-definition and find-usages from its index before a file is parsed, and gives a
 header the flags of a source file that includes it (D-026 .. D-028, D-046, D-047). It
-installs to `/opt/clangd-index-nav`, next to the system clangd, and pins `llvm-libs`
-and `clang` to 23.1.1 exactly (D-027).
+keeps a project's references when the project is reached through a symbolic link (on
+macOS every project under `/tmp`; D-114), and finds symbols as CLion does: abbreviated
+qualifiers (`geom::vert` for `GeometryInfo::vertices_per_cell`) and, after the usual
+matches, names containing the query mid-word (`ector` for `TangentVector`), in `M-o`
+and `C-c l s` (D-113; options `emacs-cpp-symbol-loose-scope`,
+`emacs-cpp-symbol-middle-match`). It installs to `/opt/clangd-index-nav`, next to the
+system clangd, and pins `llvm-libs` and `clang` to 23.1.1 exactly (D-027).
 ```sh
 cd ~/source/repos/emacs-cpp/packaging/clangd-index-nav
 makepkg -si

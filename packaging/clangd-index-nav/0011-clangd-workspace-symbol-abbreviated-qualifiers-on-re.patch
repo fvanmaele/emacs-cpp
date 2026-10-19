@@ -1,0 +1,255 @@
+From 5e4fda66c4f0629a5a41a574d9c2102da106ac56 Mon Sep 17 00:00:00 2001
+From: Ferdinand Vanmaele <ferdinand-joseph.vanmaele@uni-a.de>
+Date: Fri, 16 Oct 2026 16:56:54 +0200
+Subject: [PATCH 11/12] [clangd] workspace/symbol: abbreviated qualifiers on
+ request (looseScope)
+
+A client may send looseScope: true with workspace/symbol.  Then each
+segment of the query's qualifier may fuzzy-match a segment of the
+symbol's scope, in order, besides the exact sub-scope match: "geom::vert"
+finds "dealii::GeometryInfo::vertices_per_cell", "tria::n_act"
+"dealii::Triangulation::n_active_cells".  Off unless asked for; the
+initialize reply announces workspaceSymbolMatchesProvider.looseScope, so
+a client knows whether to ask.
+---
+ clang-tools-extra/clangd/ClangdLSPServer.cpp  |  7 +++-
+ clang-tools-extra/clangd/ClangdServer.cpp     |  6 ++--
+ clang-tools-extra/clangd/ClangdServer.h       |  2 ++
+ clang-tools-extra/clangd/FindSymbols.cpp      | 24 +++++++++++--
+ clang-tools-extra/clangd/FindSymbols.h        | 11 +++++-
+ clang-tools-extra/clangd/Protocol.cpp         |  3 +-
+ clang-tools-extra/clangd/Protocol.h           |  6 ++++
+ .../clangd/unittests/FindSymbolsTests.cpp     | 34 +++++++++++++++++--
+ 8 files changed, 81 insertions(+), 12 deletions(-)
+
+diff --git a/clang-tools-extra/clangd/ClangdLSPServer.cpp b/clang-tools-extra/clangd/ClangdLSPServer.cpp
+index 43e8b35..9136ff5 100644
+--- a/clang-tools-extra/clangd/ClangdLSPServer.cpp
++++ b/clang-tools-extra/clangd/ClangdLSPServer.cpp
+@@ -635,6 +635,9 @@ void ClangdLSPServer::onInitialize(const InitializeParams &Params,
+       {"selectionRangeProvider", true},
+       {"documentSymbolProvider", true},
+       {"workspaceSymbolProvider", true},
++      // emacs-cpp extension: workspace/symbol fields a client may send.
++      {"workspaceSymbolMatchesProvider",
++       llvm::json::Object{{"looseScope", true}}},
+       {"referencesProvider", true},
+       {"astProvider", true}, // clangd extension
+       {"typeHierarchyProvider", true},
+@@ -873,8 +876,10 @@ void ClangdLSPServer::applyEdit(WorkspaceEdit WE, llvm::json::Value Success,
+ void ClangdLSPServer::onWorkspaceSymbol(
+     const WorkspaceSymbolParams &Params,
+     Callback<std::vector<SymbolInformation>> Reply) {
++  WorkspaceSymbolOptions Matches;
++  Matches.LooseScope = Params.looseScope;
+   Server->workspaceSymbols(
+-      Params.query, Params.limit.value_or(Opts.CodeComplete.Limit),
++      Params.query, Params.limit.value_or(Opts.CodeComplete.Limit), Matches,
+       [Reply = std::move(Reply),
+        this](llvm::Expected<std::vector<SymbolInformation>> Items) mutable {
+         if (!Items)
+diff --git a/clang-tools-extra/clangd/ClangdServer.cpp b/clang-tools-extra/clangd/ClangdServer.cpp
+index 6f993d3..3021ac0 100644
+--- a/clang-tools-extra/clangd/ClangdServer.cpp
++++ b/clang-tools-extra/clangd/ClangdServer.cpp
+@@ -1094,13 +1094,13 @@ void ClangdServer::onFileEvent(const DidChangeWatchedFilesParams &Params) {
+ }
+ 
+ void ClangdServer::workspaceSymbols(
+-    llvm::StringRef Query, int Limit,
++    llvm::StringRef Query, int Limit, const WorkspaceSymbolOptions &Opts,
+     Callback<std::vector<SymbolInformation>> CB) {
+   WorkScheduler->run(
+       "getWorkspaceSymbols", /*Path=*/"",
+-      [Query = Query.str(), Limit, CB = std::move(CB), this]() mutable {
++      [Query = Query.str(), Limit, Opts, CB = std::move(CB), this]() mutable {
+         CB(clangd::getWorkspaceSymbols(Query, Limit, Index,
+-                                       WorkspaceRoot.value_or("")));
++                                       WorkspaceRoot.value_or(""), Opts));
+       });
+ }
+ 
+diff --git a/clang-tools-extra/clangd/ClangdServer.h b/clang-tools-extra/clangd/ClangdServer.h
+index 0d2e1bc..857dffc 100644
+--- a/clang-tools-extra/clangd/ClangdServer.h
++++ b/clang-tools-extra/clangd/ClangdServer.h
+@@ -14,6 +14,7 @@
+ #include "Diagnostics.h"
+ #include "DraftStore.h"
+ #include "FeatureModule.h"
++#include "FindSymbols.h"
+ #include "GlobalCompilationDatabase.h"
+ #include "Hover.h"
+ #include "ModulesBuilder.h"
+@@ -327,6 +328,7 @@ public:
+ 
+   /// Retrieve the top symbols from the workspace matching a query.
+   void workspaceSymbols(StringRef Query, int Limit,
++                        const WorkspaceSymbolOptions &Opts,
+                         Callback<std::vector<SymbolInformation>> CB);
+ 
+   /// Retrieve the symbols within the specified file.
+diff --git a/clang-tools-extra/clangd/FindSymbols.cpp b/clang-tools-extra/clangd/FindSymbols.cpp
+index 147dd38..3df0e09 100644
+--- a/clang-tools-extra/clangd/FindSymbols.cpp
++++ b/clang-tools-extra/clangd/FindSymbols.cpp
+@@ -253,6 +253,22 @@ bool approximateScopeMatch(llvm::StringRef Scope, llvm::StringRef Query) {
+   return Query.empty();
+ }
+ 
++// Returns true if each segment of \p Query fuzzy-matches a segment of \p Scope,
++// in order: "geom::" matches "dealii::GeometryInfo::".
++bool looseScopeMatch(llvm::StringRef Scope, llvm::StringRef Query) {
++  llvm::SmallVector<llvm::StringRef> Wanted, Segments;
++  Query.split(Wanted, "::", /*MaxSplit=*/-1, /*KeepEmpty=*/false);
++  Scope.split(Segments, "::", /*MaxSplit=*/-1, /*KeepEmpty=*/false);
++  size_t Found = 0;
++  for (llvm::StringRef Segment : Segments) {
++    if (Found == Wanted.size())
++      break;
++    if (FuzzyMatcher(Wanted[Found]).match(Segment))
++      ++Found;
++  }
++  return Found == Wanted.size();
++}
++
+ } // namespace
+ 
+ llvm::Expected<Location> indexToLSPLocation(const SymbolLocation &Loc,
+@@ -281,7 +297,8 @@ llvm::Expected<Location> symbolToLocation(const Symbol &Sym,
+ 
+ llvm::Expected<std::vector<SymbolInformation>>
+ getWorkspaceSymbols(llvm::StringRef Query, int Limit,
+-                    const SymbolIndex *const Index, llvm::StringRef HintPath) {
++                    const SymbolIndex *const Index, llvm::StringRef HintPath,
++                    const WorkspaceSymbolOptions &Opts) {
+   std::vector<SymbolInformation> Result;
+   if (!Index)
+     return Result;
+@@ -313,12 +330,13 @@ getWorkspaceSymbols(llvm::StringRef Query, int Limit,
+       Req.Limit.value_or(std::numeric_limits<size_t>::max()));
+   FuzzyMatcher Filter(Req.Query);
+ 
+-  Index->fuzzyFind(Req, [HintPath, &Top, &Filter, AnyScope = Req.AnyScope,
++  Index->fuzzyFind(Req, [HintPath, &Top, &Filter, &Opts, AnyScope = Req.AnyScope,
+                          ReqScope = Names.first](const Symbol &Sym) {
+     llvm::StringRef Scope = Sym.Scope;
+     // Fuzzyfind might return symbols from irrelevant namespaces if query was
+     // not fully-qualified, drop those.
+-    if (AnyScope && !approximateScopeMatch(Scope, ReqScope))
++    if (AnyScope && !approximateScopeMatch(Scope, ReqScope) &&
++        !(Opts.LooseScope && looseScopeMatch(Scope, ReqScope)))
+       return;
+ 
+     auto Loc = symbolToLocation(Sym, HintPath);
+diff --git a/clang-tools-extra/clangd/FindSymbols.h b/clang-tools-extra/clangd/FindSymbols.h
+index 97b99af..d6cf31a 100644
+--- a/clang-tools-extra/clangd/FindSymbols.h
++++ b/clang-tools-extra/clangd/FindSymbols.h
+@@ -49,9 +49,18 @@ llvm::Expected<Location> symbolToLocation(const Symbol &Sym,
+ /// \p Limit limits the number of results returned (0 means no limit).
+ /// \p HintPath This is used when resolving URIs. If empty, URI resolution can
+ /// fail if a hint path is required for the scheme of a specific URI.
++/// Matches a client may ask for beyond the default ones (clangd extensions).
++struct WorkspaceSymbolOptions {
++  /// Each segment of the query's qualifier fuzzy-matches a segment of the
++  /// symbol's scope, in order: "geom::vert" finds
++  /// "GeometryInfo::vertices_per_cell".
++  bool LooseScope = false;
++};
++
+ llvm::Expected<std::vector<SymbolInformation>>
+ getWorkspaceSymbols(llvm::StringRef Query, int Limit,
+-                    const SymbolIndex *const Index, llvm::StringRef HintPath);
++                    const SymbolIndex *const Index, llvm::StringRef HintPath,
++                    const WorkspaceSymbolOptions &Opts = {});
+ 
+ /// Retrieves the symbols contained in the "main file" section of an AST in the
+ /// same order that they appear.
+diff --git a/clang-tools-extra/clangd/Protocol.cpp b/clang-tools-extra/clangd/Protocol.cpp
+index d5c50cc..829faa3 100644
+--- a/clang-tools-extra/clangd/Protocol.cpp
++++ b/clang-tools-extra/clangd/Protocol.cpp
+@@ -937,7 +937,8 @@ bool fromJSON(const llvm::json::Value &Params, WorkspaceSymbolParams &R,
+               llvm::json::Path P) {
+   llvm::json::ObjectMapper O(Params, P);
+   return O && O.map("query", R.query) &&
+-         mapOptOrNull(Params, "limit", R.limit, P);
++         mapOptOrNull(Params, "limit", R.limit, P) &&
++         O.mapOptional("looseScope", R.looseScope);
+ }
+ 
+ llvm::json::Value toJSON(const Command &C) {
+diff --git a/clang-tools-extra/clangd/Protocol.h b/clang-tools-extra/clangd/Protocol.h
+index b511ca4..11e724e 100644
+--- a/clang-tools-extra/clangd/Protocol.h
++++ b/clang-tools-extra/clangd/Protocol.h
+@@ -1248,6 +1248,12 @@ struct WorkspaceSymbolParams {
+   /// Max results to return, overriding global default. 0 means no limit.
+   /// Clangd extension.
+   std::optional<int> limit;
++
++  /// Abbreviated qualifiers: each segment of the query's qualifier may
++  /// fuzzy-match a segment of the symbol's scope, in order ("geom::" finds
++  /// "GeometryInfo::"). Clangd extension (emacs-cpp), announced as
++  /// workspaceSymbolMatchesProvider.looseScope.
++  bool looseScope = false;
+ };
+ bool fromJSON(const llvm::json::Value &, WorkspaceSymbolParams &,
+               llvm::json::Path);
+diff --git a/clang-tools-extra/clangd/unittests/FindSymbolsTests.cpp b/clang-tools-extra/clangd/unittests/FindSymbolsTests.cpp
+index 2d23742..43700e6 100644
+--- a/clang-tools-extra/clangd/unittests/FindSymbolsTests.cpp
++++ b/clang-tools-extra/clangd/unittests/FindSymbolsTests.cpp
+@@ -49,10 +49,11 @@ template <typename... Tags>
+   return Field(&DocumentSymbol::tags, UnorderedElementsAre(tags...));
+ }
+ 
+-std::vector<SymbolInformation> getSymbols(TestTU &TU, llvm::StringRef Query,
+-                                          int Limit = 0) {
++std::vector<SymbolInformation>
++getSymbols(TestTU &TU, llvm::StringRef Query, int Limit = 0,
++           const WorkspaceSymbolOptions &Opts = {}) {
+   auto SymbolInfos = getWorkspaceSymbols(Query, Limit, TU.index().get(),
+-                                         testPath(TU.Filename));
++                                         testPath(TU.Filename), Opts);
+   EXPECT_TRUE(bool(SymbolInfos)) << "workspaceSymbols returned an error";
+   return *SymbolInfos;
+ }
+@@ -192,6 +193,33 @@ TEST(WorkspaceSymbols, Namespaces) {
+               UnorderedElementsAre(qName("ans1::ans2::ans3::ai3")));
+ }
+ 
++TEST(WorkspaceSymbols, LooseScope) {
++  TestTU TU;
++  TU.Code = R"cpp(
++      namespace dealii {
++      struct GeometryInfo { static const int vertices_per_cell = 4; };
++      struct Triangulation { int n_active_cells(); };
++      }
++      )cpp";
++  WorkspaceSymbolOptions Loose;
++  Loose.LooseScope = true;
++  // Off unless asked for: an abbreviated qualifier finds nothing.
++  EXPECT_THAT(getSymbols(TU, "geom::vert"), IsEmpty());
++  // Each segment fuzzy-matches a segment of the scope, in order.
++  EXPECT_THAT(getSymbols(TU, "geom::vert", 0, Loose),
++              ElementsAre(qName("dealii::GeometryInfo::vertices_per_cell")));
++  EXPECT_THAT(getSymbols(TU, "dealii::gi::vert", 0, Loose),
++              ElementsAre(qName("dealii::GeometryInfo::vertices_per_cell")));
++  EXPECT_THAT(getSymbols(TU, "tria::n_act", 0, Loose),
++              ElementsAre(qName("dealii::Triangulation::n_active_cells")));
++  // Out of order, or no segment to match: nothing.
++  EXPECT_THAT(getSymbols(TU, "geom::dealii::vert", 0, Loose), IsEmpty());
++  EXPECT_THAT(getSymbols(TU, "mesh::vert", 0, Loose), IsEmpty());
++  // Exact qualifiers match as before.
++  EXPECT_THAT(getSymbols(TU, "GeometryInfo::vert", 0, Loose),
++              ElementsAre(qName("dealii::GeometryInfo::vertices_per_cell")));
++}
++
+ TEST(WorkspaceSymbols, AnonymousNamespace) {
+   TestTU TU;
+   TU.Code = R"cpp(
+-- 
+2.56.0
+

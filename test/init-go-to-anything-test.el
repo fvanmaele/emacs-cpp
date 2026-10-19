@@ -9,7 +9,8 @@
 ;; limit; consult's patch 0001 (D-079) drops a source hidden by narrowing from the
 ;; candidates and brings it back on widening.  `consult--multi' and
 ;; `jsonrpc-async-request' are replaced by stubs, so no prompt and no clangd are
-;; needed.  Needs git.  Moved from init-completion-test.el with the module (D-099).
+;; needed; with them `emacs-cpp-lsp-symbol-params', since the fake servers have no
+;; capabilities (D-113 is tested in init-lsp-test.el).  Needs git.  Moved from init-completion-test.el with the module (D-099).
 
 ;;; Code:
 
@@ -100,7 +101,8 @@
 Replies come at once with one symbol named after the query, or, with
 REPLY-LATER, after all inputs, newest first."
   (let (queries sunk pending)
-    (cl-letf (((symbol-function 'jsonrpc-async-request)
+    (cl-letf (((symbol-function 'emacs-cpp-lsp-symbol-params) #'ignore)
+              ((symbol-function 'jsonrpc-async-request)
                (lambda (_server _method params &rest args)
                  (let ((query (plist-get params :query))
                        (success (plist-get args :success-fn)))
@@ -139,6 +141,7 @@ takes every input for initial input and sends it at once."
     (cl-letf (((symbol-function 'consult-eglot--servers) (lambda () '(server)))
               ((symbol-function 'eglot-current-server) #'ignore)
               ((symbol-function 'emacs-cpp-go--server-name) #'symbol-name)
+              ((symbol-function 'emacs-cpp-lsp-symbol-params) #'ignore)
               ((symbol-function 'jsonrpc-async-request)
                (lambda (_server _method params &rest _) (push (plist-get params :query) queries))))
       (let* ((source (car (emacs-cpp-go--symbol-sources "/project/")))
@@ -169,7 +172,8 @@ keeps that list for one or two characters; `s' asks nothing for either."
     (should (equal (funcall steps t '("" "a" "an" "ans")) '("" cancel cancel "ans")))
     (should (equal (funcall steps nil '("" "a" "an" "ans")) '(cancel cancel cancel "ans"))))
   (let (queries)
-    (cl-letf (((symbol-function 'jsonrpc-async-request)
+    (cl-letf (((symbol-function 'emacs-cpp-lsp-symbol-params) #'ignore)
+              ((symbol-function 'jsonrpc-async-request)
                (lambda (_server _method params &rest _) (push params queries))))
       (funcall (funcall (emacs-cpp-go--symbol-request '(server) nil t) #'ignore) "")
       (funcall (funcall (emacs-cpp-go--symbol-request '(server) '(("file:///p/" . "file:///p/")))
@@ -217,6 +221,7 @@ first; the narrow keys shared, one entry each; no root, `s' only."
     (cl-letf (((symbol-function 'consult-eglot--servers) (lambda () (list 'clangd 'pyright)))
               ((symbol-function 'eglot-current-server) #'ignore)
               ((symbol-function 'emacs-cpp-go--server-name) #'symbol-name)
+              ((symbol-function 'emacs-cpp-lsp-symbol-params) #'ignore)
               ((symbol-function 'jsonrpc-async-request)
                (lambda (server &rest _) (push server asked))))
       (pcase-dolist (`(,source . ,server)
@@ -257,7 +262,8 @@ without, clangd's usual limit and no filter."
                                            (concat (directory-file-name real) "-other/a.cc"))))
                    (run (lambda (root-uris)
                           (let (params sunk messages)
-                            (cl-letf (((symbol-function 'jsonrpc-async-request)
+                            (cl-letf (((symbol-function 'emacs-cpp-lsp-symbol-params) #'ignore)
+                                      ((symbol-function 'jsonrpc-async-request)
                                        (lambda (_server _method p &rest args)
                                          (setq params p)
                                          (funcall (plist-get args :success-fn) reply)))
@@ -369,7 +375,8 @@ replies arrive.  Return the names of the last list the step sank."
   (let ((replies `((clangd . [(:name "Vector" :score 0.275) (:name "vector_n_rows_1d" :score 0.55)])
                    (pyright . [(:name "vector_norm")])))
         pending shown)
-    (cl-letf (((symbol-function 'jsonrpc-async-request)
+    (cl-letf (((symbol-function 'emacs-cpp-lsp-symbol-params) #'ignore)
+              ((symbol-function 'jsonrpc-async-request)
                (lambda (server _method _params &rest args)
                  (push (cons server (plist-get args :success-fn)) pending))))
       (funcall (funcall make-step (lambda (action) (when (consp action) (setq shown action)) nil))

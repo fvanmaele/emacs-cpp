@@ -315,6 +315,9 @@ with `done when: ...`).
   `make test` by the owner. DESIGN D-113, journal. Agreed 2026-10-15, with patch 0010 (S13,
   D-114, its unit test in `BackgroundIndexTests.cpp`) in the same pkgrel and rebuild,
   and both Emacs options on by default (owner).
+  Built 2026-10-19 (0077): met on the Mac (ClangdTests 1419 passed, Mac build
+  installed, terminal check, `make test`); left: the owner's hand check on step-1,
+  and on Arch `makepkg -si` (pkgrel 8) and `make test`.
 - T-103 (opened 2026-10-15, D-112): spike S14, CLion's mid-word and loose-scope
   symbol matches in clangd (`spikes/s14-symbol-matches/RUN.md`, pass criteria
   proposed 2026-10-15). Done when: RESULTS.md has a verdict on criteria 1 - 5 from

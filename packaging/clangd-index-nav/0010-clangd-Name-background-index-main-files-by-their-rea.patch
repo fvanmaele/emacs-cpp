@@ -1,0 +1,176 @@
+From a2a94ba914857dcb7e59373e457d5976d37f6ebf Mon Sep 17 00:00:00 2001
+From: Ferdinand Vanmaele <ferdinand-joseph.vanmaele@uni-a.de>
+Date: Fri, 16 Oct 2026 16:56:52 +0200
+Subject: [PATCH 10/12] [clangd] Name background-index main files by their real
+ directory
+
+When the compilation database spells a file through a symbolic link (a
+project reached through a linked directory; on macOS every project under
+/tmp, which CMake 3.31 writes as /tmp while the files are under
+/private/tmp), the background index asked for the command by the
+database's spelling, so the include graph named the main file that way,
+while the symbol collector named its symbols by the real path.  The
+shard update then dropped every symbol and reference of the main file:
+3 references to a function used in 26 files were left (S13).
+
+The files a database change brings are now named by their directory's
+real path and their own name, one real-path lookup per directory, and
+the command is indexed under the name asked for, since a database may
+answer with its own spelling.  A log line counts the renamed files.
+---
+ clang-tools-extra/clangd/index/Background.cpp | 42 ++++++++++-
+ .../clangd/unittests/BackgroundIndexTests.cpp | 71 +++++++++++++++++++
+ 2 files changed, 112 insertions(+), 1 deletion(-)
+
+diff --git a/clang-tools-extra/clangd/index/Background.cpp b/clang-tools-extra/clangd/index/Background.cpp
+index f07abf7..1e7587b 100644
+--- a/clang-tools-extra/clangd/index/Background.cpp
++++ b/clang-tools-extra/clangd/index/Background.cpp
+@@ -88,6 +88,42 @@ bool shardIsStale(const LoadedShard &LS, llvm::vfs::FileSystem *FS) {
+   return digest(Buf->get()->getBuffer()) != LS.Digest;
+ }
+ 
++// Names each file by its directory's real path and its own name: the spelling
++// the symbol collector gives a main file (getCanonicalPath()).  With the
++// database's spelling instead, a symlink above the file names the main file one
++// way in the include graph and another way in its symbols, and the shard update
++// drops the symbols and references of the main file.  One real-path lookup per
++// distinct directory.
++std::vector<std::string> namedByRealDirectory(std::vector<std::string> Files,
++                                              llvm::vfs::FileSystem &FS) {
++  llvm::StringMap<std::string> RealDirs;
++  size_t Renamed = 0;
++  for (std::string &File : Files) {
++    llvm::StringRef Dir = llvm::sys::path::parent_path(File);
++    auto [It, Inserted] = RealDirs.try_emplace(Dir);
++    if (Inserted) {
++      llvm::SmallString<256> Real;
++      if (auto EC = FS.getRealPath(Dir, Real)) {
++        elog("Background-index: no real path for {0}: {1}", Dir, EC.message());
++        It->second = Dir.str();
++      } else {
++        It->second = std::string(Real.str());
++      }
++    }
++    if (It->second == Dir)
++      continue;
++    llvm::SmallString<256> Path(It->second);
++    llvm::sys::path::append(Path, llvm::sys::path::filename(File));
++    File = std::string(Path.str());
++    ++Renamed;
++  }
++  if (Renamed)
++    log("Background-index: {0} of {1} main files named by their real path "
++        "({2} directories)",
++        Renamed, Files.size(), RealDirs.size());
++  return Files;
++}
++
+ } // namespace
+ 
+ BackgroundIndex::BackgroundIndex(
+@@ -134,7 +170,8 @@ BackgroundQueue::Task BackgroundIndex::changedFilesTask(
+     log("Enqueueing {0} commands for indexing", ChangedFiles.size());
+     SPAN_ATTACH(Tracer, "files", int64_t(ChangedFiles.size()));
+ 
+-    auto NeedsReIndexing = loadProject(std::move(ChangedFiles));
++    auto NeedsReIndexing = loadProject(namedByRealDirectory(
++        std::move(ChangedFiles), *TFS.view(/*CWD=*/std::nullopt)));
+     // Run indexing for files that need to be updated.
+     std::shuffle(NeedsReIndexing.begin(), NeedsReIndexing.end(),
+                  std::mt19937(std::random_device{}()));
+@@ -165,6 +202,9 @@ BackgroundQueue::Task BackgroundIndex::indexFileTask(std::string Path) {
+     auto Cmd = CDB.getCompileCommand(Path);
+     if (!Cmd)
+       return;
++    // A database may answer with its own spelling of the file; index it under the
++    // name asked for (namedByRealDirectory()).
++    Cmd->Filename = Path;
+     if (auto Error = index(std::move(*Cmd)))
+       elog("Indexing {0} failed: {1}", Path, std::move(Error));
+   });
+diff --git a/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp b/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp
+index 4a33dd9..c2a91fb 100644
+--- a/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp
++++ b/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp
+@@ -660,6 +660,77 @@ TEST_F(BackgroundIndexTest, MainFileRefs) {
+                            AllOf(named("main_sym"), numReferences(1U))));
+ }
+ 
++// A database that spells its files through a symbolic link, as CMake 3.31
++// writes /tmp on macOS, where /tmp is a link to /private/tmp, and answers for
++// either spelling, as a JSON database does.  The input file of the command is
++// the one asked for, as clangd's CommandMangler makes it.
++class LinkSpellingCDB : public OverlayCDB {
++public:
++  LinkSpellingCDB(std::string Link, std::string Real)
++      : OverlayCDB(/*Base=*/nullptr), Link(std::move(Link)),
++        Real(std::move(Real)) {}
++  std::optional<tooling::CompileCommand>
++  getCompileCommand(PathRef File) const override {
++    std::string Asked = File.str();
++    if (llvm::StringRef(Asked).starts_with(Real))
++      Asked = Link + Asked.substr(Real.size());
++    auto Cmd = OverlayCDB::getCompileCommand(Asked);
++    if (Cmd)
++      Cmd->CommandLine.back() = File.str();
++    return Cmd;
++  }
++
++private:
++  std::string Link, Real;
++};
++
++#ifndef _WIN32 // Symbolic links need privileges there.
++// On disk, as clangd meets it: only the real file system resolves the link
++// for every part of clangd (the main file's buffer sits in an overlay).
++TEST_F(BackgroundIndexTest, MainFileThroughASymlink) {
++  llvm::SmallString<128> Temp, Root;
++  ASSERT_FALSE(llvm::sys::fs::createUniqueDirectory("clangd-symlink", Temp));
++  // The temporary directory may itself be reached through a link (/var on macOS).
++  ASSERT_FALSE(llvm::sys::fs::real_path(Temp, Root));
++  std::string Real = (Root + "/real").str(), Link = (Root + "/link").str();
++  ASSERT_FALSE(llvm::sys::fs::create_directories(Real));
++  ASSERT_FALSE(llvm::sys::fs::create_link(Real, Link));
++  auto Write = [](llvm::StringRef Path, llvm::StringRef Text) {
++    std::error_code EC;
++    llvm::raw_fd_ostream Out(Path, EC);
++    ASSERT_FALSE(EC);
++    Out << Text;
++  };
++  Write(Real + "/A.h", "void header_sym();");
++  Write(Real + "/A.cc",
++        "#include \"A.h\"\nstatic void main_sym() { (void)header_sym; }");
++
++  RealThreadsafeFS FS;
++  llvm::StringMap<std::string> Storage;
++  size_t CacheHits = 0;
++  MemoryShardStorage MSS(Storage, CacheHits);
++  LinkSpellingCDB CDB(Link, Real);
++  BackgroundIndex::Options Opts;
++  BackgroundIndex Idx(
++      FS, CDB, [&](llvm::StringRef) { return &MSS; }, Opts);
++
++  tooling::CompileCommand Cmd;
++  Cmd.Filename = Link + "/A.cc";
++  Cmd.Directory = Link;
++  Cmd.CommandLine = {"clang++", Link + "/A.cc"};
++  CDB.setCompileCommand(Link + "/A.cc", Cmd);
++
++  ASSERT_TRUE(Idx.blockUntilIdleForTest());
++  // Without the real-path naming the main file's own symbol and references are
++  // dropped, as clangd loses them for projects under /tmp on macOS.
++  EXPECT_THAT(
++      runFuzzyFind(Idx, ""),
++      UnorderedElementsAre(AllOf(named("header_sym"), numReferences(1U)),
++                           AllOf(named("main_sym"), numReferences(1U))));
++  llvm::sys::fs::remove_directories(Root);
++}
++#endif
++
+ TEST_F(BackgroundIndexTest, ShardStorageTest) {
+   MockFS FS;
+   FS.Files[testPath("root/A.h")] = R"cpp(
+-- 
+2.56.0
+

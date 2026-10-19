@@ -6,14 +6,19 @@
 # --header-flags-from-index; O-5), also when the header is the first file opened
 # (patch 0006, O-21, S9), without waiting for the index rebuild (patch 0007), and a
 # known includer answered at once (patch 0008, T-020), and sources whose shards were
-# indexed with errors reindexed at startup (patch 0009, T-033).
+# indexed with errors reindexed at startup (patch 0009, T-033); main files named by
+# their real directory, so a project reached through a symbolic link (on macOS any
+# under /tmp) keeps its references (patch 0010, D-114, S13); and workspace/symbol's
+# abbreviated qualifiers and mid-word matches on request, announced as the
+# capability workspaceSymbolMatchesProvider (patches 0011, 0012, D-113, S14).
 # Built against the system LLVM 23.1.1 and installed to /opt, next to (not instead
-# of) the clang package's clangd.  Patches: `git format-patch 6e2cc8df7..HEAD` in
-# ~/source/repos/llvm-clangd.
+# of) the clang package's clangd.  Patches 0001 - 0009: `git format-patch
+# 6e2cc8df7..HEAD` in ~/source/repos/llvm-clangd; 0010 - 0012: `git format-patch
+# --start-number 10` on the tree of build-macos.sh (T-104).
 
 pkgname=clangd-index-nav
 pkgver=23.1.1
-pkgrel=7
+pkgrel=8
 pkgdesc="clangd $pkgver answering navigation from its index before parsing (emacs-cpp patches)"
 arch=(x86_64)
 url="https://github.com/llvm/llvm-project"
@@ -32,7 +37,10 @@ source=("https://github.com/llvm/llvm-project/releases/download/llvmorg-$pkgver/
         0006-clangd-Header-flags-from-the-index-wait-for-the-proj.patch
         0007-clangd-Header-flags-from-the-index-stop-waiting-once.patch
         0008-clangd-Header-flags-from-the-index-answer-a-known-in.patch
-        0009-clangd-Reindex-sources-whose-stored-shards-were-inde.patch)
+        0009-clangd-Reindex-sources-whose-stored-shards-were-inde.patch
+        0010-clangd-Name-background-index-main-files-by-their-rea.patch
+        0011-clangd-workspace-symbol-abbreviated-qualifiers-on-re.patch
+        0012-clangd-workspace-symbol-mid-word-matches-on-request-.patch)
 sha256sums=('ebe9be46fe8756d58c5b198ffad0fa2a766257add81a4dc52179bfacc7888ee6'
             'a8c5acda8b7e43611f22297cb9ba6f95e62c464a6ac78f8027c267973d4702bb'
             '3b3cce804554ab484a2f5396f28cb87f66b87ad4ccd4d6e8e65f4bc7e89feab1'
@@ -42,11 +50,15 @@ sha256sums=('ebe9be46fe8756d58c5b198ffad0fa2a766257add81a4dc52179bfacc7888ee6'
             '6743669f1489a3e5706caa0f8cf0e189790bf8639f077acd9bc3cb34c4524bd6'
             'cad497f49407fb8b641306ac67449ec6071e855a169789fc2a98257b7abfeb03'
             'df591dec53884b9f6447027d394ccc94053e92a134d02bf7adde0d6b6c9d4191'
-            'cdd37033c24713bee22e939c4be1a6fb7c7d5dc210b833a1ac67b4e911fc29ad')
+            'cdd37033c24713bee22e939c4be1a6fb7c7d5dc210b833a1ac67b4e911fc29ad'
+            '6c540fd6f7cbedaeaab01ff2f64c959ec3f34347e479c1b15c8fc2e7b41defc0'
+            'a33ceaa56e0e7386a33b93493ba5753fbb80ccffb8fcb3332cb03c39e1cc5206'
+            'fbf034d9717d2411d94d6e02af0d8693ff9502368ea4ef9b2a98aee1ae8d756a')
 
 prepare() {
   cd llvm-project-$pkgver.src
-  for patch in "$srcdir"/000*.patch; do
+  # Four digits: "000*" would skip 0010 and later.
+  for patch in "$srcdir"/[0-9][0-9][0-9][0-9]-*.patch; do
     patch -Np1 -i "$patch"
   done
   # Standalone clang build, as Arch's clang package does: tools/extra is picked up.
