@@ -1894,6 +1894,17 @@ presets, GoogleTest runner.
   a loose qualifier (`geom::vec`); `count() const` first in both, re-sorted away
   here; no typo seen. Search Everywhere's files: case ignored, humps, space in
   order.
+- O-70 (owner 2026-10-20: "Revisit a higher watches cap for Arch"): with the built-in
+  eglot, pyright's watch of Python's library on Arch (6358 directories) peaks at
+  12788 eglot watches (two registrations), 6393 at the end, 6393 kernel watches; a
+  cap of about 13000 or more keeps pyright up, at about 0.6 s of frozen Emacs and
+  19 MB per pyright start, for library changes heard without a restart
+  (`RESEARCH_eglot_fork.md` 8). Options: (a) keep project-only watches (D-121); (b)
+  Arch: outside the project, cap 30000; (c) as (b), cap from the kernel's limit; (d)
+  the macOS advice on Arch too (peak 6393, default cap), against D-121's platform
+  split. Recommendation (a): a library change is rare and `M-x eglot-reconnect`
+  picks it up, while the freeze comes at every pyright start; (b) if the owner
+  updates packages while editing.
 - O-69 (RESOLVED 2026-10-20 with D-121: (c) + (d); owner 2026-10-20: "how the fork
   on eglot may be dropped"): the vendored eglot
   (D-108) carries patches 0001 / 0002 for file watches, needed on macOS for pyright

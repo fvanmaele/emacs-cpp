@@ -148,3 +148,42 @@ specification leaves watching to the client (`workspace/didChangeWatchedFiles`).
   project (`eglot-watch-files-outside-project-root` nil) and raising the cap to
   30000 both made the test pass (1.3 s and 2.1 s); the owner chose project-only on
   both platforms.
+
+## 8. A higher watch cap on Arch (owner 2026-10-20: "Revisit a higher watches cap for Arch")
+Measured on Arch, 2026-10-20: batch Emacs with the shipped config and Emacs 31.1's
+eglot, pyright 1.1.412, a two-directory toy project, Python 3.14's library at
+`/usr/lib/python3.14` (6358 directories); `eglot-watch-files-outside-project-root`
+and `eglot-max-file-watches` set after loading; watches counted by
+`eglot--count-file-watches` (eglot) and the `inotify` lines of Emacs's
+`/proc/self/fdinfo` (kernel); the longest freeze is the largest gap of a 10 ms timer.
+
+| cap | outside | pyright | eglot peak / end | kernel | settled | freeze | RSS |
+|---|---|---|---|---|---|---|---|
+| 10000 | no (shipped) | up | 2 / 2 | 2 | 0.9 s | 0.12 s | 114 MB |
+| 10000 | yes | exits | - / 0 | 0 | 1.8 s | 0.59 s | 130 MB |
+| 15000 | yes | up | 12788 / 6393 | 6393 | 1.9 s | 0.65 s | 133 MB |
+| 30000 | yes | up | 12788 / 6393 | 6393 | 1.9 s | 0.62 s | 133 MB |
+
+- pyright registers its library and the project, keeps one registration and drops
+  the others; at the peak two registrations hold watches (12788), at the end one
+  (6393). eglot's cap counts the peak, so the smallest cap that works is about 13000
+  for one Python project, about 6400 more for each further one started at the same
+  time; the cap counts all eglot servers of the session.
+- The kernel sees 6393 at most: Emacs uses one inotify instance, and the kernel gives
+  a second watch on the same directory the same descriptor. A second Python project
+  watching the same library costs eglot 6393 more, the kernel nothing. Far below the
+  owner's `fs.inotify.max_user_watches` of 524288 (D-115).
+- Cost per pyright start: Emacs freezes about 0.6 s while eglot lists the library
+  (`find`) and adds the watches (0.12 s without), the watches settle after 1.9 s
+  (0.9 s), and Emacs's memory grows by about 19 MB.
+- Benefit: pyright hears of changes in the library while it runs (a `pacman -Syu`,
+  a `pip install --user`); without it, `M-x eglot-reconnect` or reopening Emacs
+  picks them up. Not checked here: that pyright re-analyses on such an event (the
+  toy cannot write to `/usr/lib`).
+- Options (O-70): (a) keep project-only watches (D-121); (b) on Arch watch outside
+  the project with a cap of 30000 (two Python projects at once, room for texlab),
+  0.6 s per pyright start; (c) as (b) with the cap from the kernel's limit (half of
+  `fs.inotify.max_user_watches`, D-115's option (b)); (d) load
+  `emacs-cpp-eglot-watch` on Arch too: shared watches put the peak at 6393, under
+  the default 10000, but the advice was ruled macOS-only.
+
