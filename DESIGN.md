@@ -1815,6 +1815,24 @@ presets, GoogleTest runner.
   a loose qualifier (`geom::vec`); `count() const` first in both, re-sorted away
   here; no typo seen. Search Everywhere's files: case ignored, humps, space in
   order.
+- O-65 (owner report 2026-10-19, native-compiler warnings "the function
+  `xref-read-identifier' / `xref-find-by-kind' is not known to be defined"): the
+  vendored eglot (D-108, c79f727) took upstream's 2026-09-08 rewrite of its finders
+  (2677293), which calls two functions only Emacs master's xref has; Emacs 31.1
+  ships xref 1.7.0 without them, although eglot declares `(xref "1.7.0")`. So
+  `C-c l i`, `C-c l d` and the implementation click (D-093) stop with
+  `(void-function xref-read-identifier)`, since T-090. The same rewrite renamed
+  `eglot-find-typeDefinition` to `eglot-find-type-definition`, but eglot's own menu
+  and command list and our type-definition click (`init-lsp.el`) still name the old
+  one. The tests check the key bindings only. Options: (a) eglot patch 0003 (D-069):
+  the finders fall back, when `xref-find-by-kind' is missing, to showing
+  `xref-backend-xrefs-by-kind' through `xref-show-xrefs' (both in 1.7.0), and the
+  old name becomes an alias; ERT runs each finder against clangd; reported upstream
+  with T-032. (b) vendor xref from emacs-straight/xref as well: shadows the built-in
+  xref for every package (project, consult, dape), new dependency. (c) pin eglot
+  before 2677293 and rebase patches 0001 / 0002: loses about five weeks of fixes
+  that D-108 chose c79f727 for. (d) our own finder commands in `init-lsp.el`: the
+  Lisp workaround D-069 rejects. Recommendation (a).
 - O-64 (RESOLVED 2026-10-19 with D-115: (a); owner 2026-10-19: "Revisit maximum file
   watches (Arch, different variables) and eglot restarting in a loop, if the watches
   are exceeded"): two limits on Arch,
