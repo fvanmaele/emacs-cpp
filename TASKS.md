@@ -284,6 +284,20 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-110 (opened 2026-10-20, D-121, O-69 (c) + (d)): drop the vendored eglot; the
+  macOS watch fixes as config Lisp. Tier: 2. Done when (agreed 2026-10-20, owner
+  adding "also remove vendored xref": none exists, 0003 goes with eglot): submodule
+  `lib/eglot` and `patches/eglot/0001 - 0003` removed, `make packages` 33 packages, 6
+  patches, 9 manuals, both machines on Emacs 31.1's eglot 1.24.31 with its manual
+  listed once; `lisp/emacs-cpp-eglot-watch.el` (NEW), loaded from init-lsp's eglot
+  form on macOS only, carrying 0001 / 0002 as advice and refusing loudly at load for
+  any eglot but 1.24.31; init-lsp's type-definition click on
+  `eglot-find-typeDefinition`; tests: the module off on Arch, the shipped profile on
+  the built-in eglot, 0001 / 0002's tests with the advice switched on (on Arch too),
+  the finders with built-in names; `make test` on Arch, the Mac's by the owner;
+  docs. Done 2026-10-20 (0083): `make test` 133 / 133 (Arch); both watch tests fail
+  with the advice stubbed out; project-only watches on both platforms (owner, after
+  pyright died on Arch's library watch). Left: the Mac's `make test`.
 - T-109 (opened 2026-10-20, D-120): LSP 3.18 matching with tiers on the Emacs side.
   Tier: 2. Done when (proposed 2026-10-20, owner to agree): orderless's matching
   styles literal, regexp, initialism and flex, case always ignored

@@ -9,8 +9,8 @@
 ;; reads prompts without a minibuffer, so `minibuffer-depth' is replaced by a stub
 ;; and the hook functions are called as the minibuffer would call them.
 ;;
-;; The vendored packages' manuals come first (D-039, D-108): eglot's manual is the
-;; vendored eglot's, listed once in C-h i.
+;; The vendored packages' manuals come first (D-039); eglot's is Emacs's own again
+;; (D-121), listed once in C-h i.
 
 ;;; Code:
 
@@ -61,12 +61,13 @@
     (which-key--start-timer)))
 
 (ert-deftest init-ui-vendored-manuals-first ()
-  "D-108: (eglot) opens lib/info's manual, not Emacs's; C-h i lists it once;
-Emacs's own manuals still come from Emacs."
+  "D-039, D-121: the vendored packages' manuals come from lib/info; eglot's and
+Emacs's own manuals from Emacs; C-h i lists Eglot once."
   (init-test--load)
   (require 'info)
   (let ((lib-info (file-name-as-directory emacs-cpp-info-directory)))
-    (should (file-in-directory-p (Info-find-file "eglot") lib-info))
+    (should (file-in-directory-p (Info-find-file "magit") lib-info))
+    (should-not (file-in-directory-p (Info-find-file "eglot") lib-info))
     (should-not (file-in-directory-p (Info-find-file "emacs") lib-info))
     (with-temp-buffer
       (Info-mode)

@@ -133,3 +133,18 @@ specification leaves watching to the client (`workspace/didChangeWatchedFiles`).
   (Arch fine, the Mac loses large Python trees); (c) split per platform; (d) copy the
   fix into the config (rejected by D-069); (e) shrink the fork by following ELPA
   releases.
+
+## 7. Ruling, and a correction (2026-10-20)
+- Owner: "(c) + (d) - use the mac specific fixes as Lisp in the config, and keep it as
+  platform-specific code" (D-121): the built-in eglot on both machines, the former
+  0001 / 0002 as advice in `lisp/emacs-cpp-eglot-watch.el` on macOS only.
+- Correction to section 4 (b), "Arch: practically unaffected": that counted the
+  project's directories only. The config let eglot watch outside the project on
+  Arch, and pyright asks to watch Python's library and site-packages: 6358
+  directories on the owner's Arch machine (`/usr/lib/python3.14`), three
+  registrations, about 19000 watches against eglot's 10000. With the built-in eglot
+  the registration failed and pyright exited (`make test`:
+  `init-python-pyright-navigates-and-renames`, "Server died"). Watching only the
+  project (`eglot-watch-files-outside-project-root` nil) and raising the cap to
+  30000 both made the test pass (1.3 s and 2.1 s); the owner chose project-only on
+  both platforms.

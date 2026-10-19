@@ -29,7 +29,7 @@ can still set its own."
 (use-package eglot
   ;; Not autoloaded by eglot; `C-c l' (below) can come before eglot has loaded.
   :commands (eglot-rename eglot-code-actions eglot-format eglot-format-buffer
-             eglot-find-implementation eglot-find-type-definition eglot-find-declaration
+             eglot-find-implementation eglot-find-typeDefinition eglot-find-declaration
              eglot-show-call-hierarchy eglot-show-type-hierarchy eglot-inlay-hints-mode)
   :config
   ;; RET indents by Emacs's rules (electric indentation, D-062's rules), not by the
@@ -44,18 +44,21 @@ can still set its own."
         ;; Library headers reached with M-. (deal.II, Boost) join the project's
         ;; clangd, so M-. keeps working inside them (D-019).
         eglot-extend-to-xref t)
-  ;; macOS watches files with kqueue, one file descriptor per directory, and Emacs
-  ;; refuses watches beyond 975: pyright asks to watch Python's library and
-  ;; site-packages, about 2000 directories, and exits when the request fails.
-  ;; Watch only the project, and cap the watches well below 975 (D-054).  The
-  ;; vendored eglot keeps the watches made up to the cap and answers success
-  ;; (D-108), so pyright stays up, watching 500 directories (one watch per
-  ;; directory for all three registrations, D-111); stock eglot fails the request
-  ;; and pyright exits (RESEARCH_platform_differences 3.14).  On Arch eglot's
-  ;; default of 10000 stays, under the kernel's inotify limit (O-64).
+  ;; pyright asks to watch Python's library and site-packages too: about 2000
+  ;; directories on the Mac, 6358 on Arch, three registrations each.  Past
+  ;; `eglot-max-file-watches' (or a refused watch) the built-in eglot fails the
+  ;; registration and pyright exits (RESEARCH_platform_differences 3.14).  So eglot
+  ;; watches only the project, on both platforms (D-121); changes to installed
+  ;; packages reach pyright when it restarts.  macOS also watches with kqueue, one
+  ;; descriptor per directory, refused beyond 975: the cap is 500 there (D-054),
+  ;; and emacs-cpp-eglot-watch keeps the watches made up to it, answers success
+  ;; and shares one watch per directory among the registrations (D-121).  On Arch
+  ;; eglot's default cap of 10000 stays, under the kernel's inotify limit (D-115).
+  (setq eglot-watch-files-outside-project-root nil)
   (when (eq system-type 'darwin)
-    (setq eglot-watch-files-outside-project-root nil
-          eglot-max-file-watches 500)))
+    (setq eglot-max-file-watches 500)
+    (require 'emacs-cpp-eglot-watch)
+    (emacs-cpp-eglot-watch-enable)))
 
 (use-package flymake
   :commands flymake-show-project-diagnostics)
@@ -145,7 +148,7 @@ click is on its definition, as CLion's Cmd+Click (D-093)."
   "Go to the type of the symbol clicked (D-093)."
   (interactive "e")
   (mouse-set-point event)
-  (call-interactively #'eglot-find-type-definition))
+  (call-interactively #'eglot-find-typeDefinition))
 
 ;; Navigation clicks, CLion's (D-093): Cmd on the Mac, Super on Arch
 ;; (`emacs-cpp-default-mouse-modifier', D-055); with Opt / Alt implementations,

@@ -88,8 +88,8 @@ Nil outside prompts, where the timer has its usual delay."
   "Info manuals of the vendored packages, built by `make packages' (D-039).")
 
 ;; C-h i lists them next to Emacs's own manuals.  Searched first, so a manual
-;; Emacs ships too is the vendored package's own: eglot's (D-108), the only such
-;; one; its entry in C-h i appears once (identical entries are merged).
+;; Emacs ships too would be the vendored package's own; none since eglot is
+;; Emacs's own again (D-121, was D-108).
 (use-package info
   :config
   (unless (file-exists-p (expand-file-name "dir" emacs-cpp-info-directory))

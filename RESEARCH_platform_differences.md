@@ -907,6 +907,9 @@ prototype applies to 1.22.0 unchanged; built there, the paused-reader run gave
 10001 records and the four single cases the same flags as on 1.20.1.
 
 ### 3.14 Watch limits on Arch, and eglot reconnecting in a loop (owner 2026-10-19, O-64)
+(Superseded in part 2026-10-20 by D-121: no vendored eglot; Arch runs the built-in
+eglot and, like the Mac, watches only the project; the Mac's partial and shared
+watches are advice in `lisp/emacs-cpp-eglot-watch.el`. RESEARCH_eglot_fork 7.)
 Owner 2026-10-19: "Revisit maximum file watches (Arch, different variables) and eglot
 restarting in a loop, if the watches are exceeded". Read from the kernel's
 `fs/notify/inotify/inotify_user.c`, Emacs's `src/inotify.c`, `lisp/filenotify.el`

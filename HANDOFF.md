@@ -38,7 +38,8 @@ divergence from upstream below exists to keep the editor interactive in front of
 - `early-init.el`, `init.el`, then `lisp/init-*.el` in a fixed order; each module
   loads alone (test `init-modules-load-alone`, D-098). One `use-package` form per
   package (DESIGN 4).
-- Language server: eglot (vendored, D-108) with clangd; pyright, texlab for the riders.
+- Language server: Emacs 31.1's own eglot (D-121) with clangd; pyright, texlab for the
+  riders.
   clangd is started only for a project with `CMakePresets.json`, pointed at the active
   preset's `binaryDir` with `--compile-commands-dir` (D-005, D-016). eglot is refused
   loudly on any preset or database error (D-018; a source missing from the database
@@ -170,14 +171,17 @@ Decisions D-028, D-046, D-047, D-059.
 ## 6. Other divergences from upstream
 All as patch files, applied by `make packages` after resetting the touched files to
 the pinned commit (D-069, D-116):
-- eglot, vendored from GNU ELPA's mirror at c79f727 (D-108) for three patches: 0001
-  keeps partial file watches when `eglot-max-file-watches` is reached or a watch is
-  refused (stock eglot answered failure, pyright exited, and eglot reconnected in a
-  loop; RESEARCH_platform_differences 3.8, 3.14); 0002 shares one watch per directory
-  among a server's registrations (macOS kqueue needs a descriptor per directory);
-  0003 makes eglot's finders work with Emacs 31's xref 1.7.0 (the vendored eglot calls
-  `xref-find-by-kind`, which only Emacs master has; `C-c l i` failed with
-  `void-function`, D-117).
+- eglot: from 2026-10-15 to 2026-10-20 vendored from GNU ELPA's devel mirror with
+  three patches (D-108, D-117); since D-121 Emacs's own eglot 1.24.31. On macOS only,
+  `lisp/emacs-cpp-eglot-watch.el` adds, as advice, what patches 0001 / 0002 did: keep
+  the file watches made when `eglot-max-file-watches` is reached or a watch is
+  refused, and answer success (stock eglot answers failure, pyright exits, eglot
+  reconnects in a loop; RESEARCH_platform_differences 3.8, 3.14); one watch per
+  directory shared by a server's registrations (kqueue needs a descriptor per
+  directory). It refuses to install for any other eglot version. Patch 0003 (eglot's
+  finders with Emacs 31's xref) went with the vendored eglot, which needed master's
+  xref. Both platforms watch only the project (pyright otherwise asks for Python's
+  library: 6358 directories on Arch). `RESEARCH_eglot_fork.md`.
 - consult 0001: hidden sources leave asynchronous candidate lists (D-079).
   consult-eglot 0001: keep each server's `workspace/symbol` order (clangd's `score`
   omits the name match) and pass extra request fields (D-105, D-113).
@@ -249,7 +253,12 @@ the pinned commit (D-069, D-116):
 - S12 change signature FAIL: calls in templates the index cannot settle. Changed: feature
   not shipped; O-43 with the owner.
 - Vendored eglot needed Emacs master's xref (found from native-compiler warnings).
-  Changed: eglot patch 0003; tests run the finders, not only the key bindings.
+  Changed: eglot patch 0003, later the fork dropped altogether (D-121); tests run the
+  finders, not only the key bindings.
+- Dropping the fork: the research's "Arch unaffected" counted project directories
+  only; pyright's library watch (6358 directories) then made it exit under the
+  built-in eglot. Changed: project-only watches on both platforms; `make test` run
+  before committing a ruling's consequences.
 - A grown consult-eglot patch broke `make packages` on the other machine. Changed: files
   reset to the pin before applying (D-116); uninitialised submodules named.
 - fswatch fork hung on exit under glibc (condition variable destroyed while waited on).
@@ -264,7 +273,9 @@ the pinned commit (D-069, D-116):
   there (T-108), fswatch pkgrel 2 on the Mac, T-104's hand check, S10 (O-12).
 - Open questions: O-12 (deal.II sources index), O-38, O-39, O-47, O-56, O-57, O-68.
 - Internal APIs used: `vertico--metadata`, `consult--tofu-get`, `consult--multi`,
-  `orderless--highlight`; pinned submodules make breakage visible in tests.
+  `orderless--highlight`; pinned submodules make breakage visible in tests. On macOS
+  `eglot--watch-globs`, `eglot--count-file-watches`, `eglot--on-shutdown` and
+  `eglot--file-watches` of Emacs's own eglot (version-checked at startup, D-121).
 - Two LLVM releases per platform; patches checked on one platform per change.
 - A flaky debugger test (`init-debug-lldb-preset-builds-stops-and-steps`, 0067).
 - `lisp/` is interpreted: per-candidate Lisp loops in prompts are expensive.
