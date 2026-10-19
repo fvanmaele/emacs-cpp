@@ -129,4 +129,5 @@ Commits: <hash> tier N <subject> ...
 
 ## Layout
 - `DESIGN.md`, `POSTMORTEM.md`, `JOURNAL.md` + `docs/journal/`, `TASKS.md`, `spikes/`,
+  `HANDOFF.md` (summary for outside reviewers, 2026-10-20; cites ids, not a source),
   `RESEARCH_*.md`, `standard.mk` + `scripts/check-standard.sh`, then the code directories.
