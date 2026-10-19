@@ -85,6 +85,15 @@ Then set `emacs-cpp-clangd-program` to `/opt/clangd-index-nav/bin/clangd` with
 program that is missing or lacks the patched flags refuses to start, it never falls
 back silently. An LLVM upgrade needs a rebuild of this package.
 
+`make test` checks the patched clangd too (`init-cpp-patched-clangd-navigates`;
+skipped when it is not installed). It looks in `/opt/clangd-index-nav/bin/clangd`
+(Arch) and `~/opt/clangd-index-nav/bin/clangd` (macOS, in your real home, though
+the tests run in a temporary one); `EMACS_CPP_PATCHED_CLANGD` names another build:
+```sh
+EMACS_CPP_PATCHED_CLANGD=/opt/clangd-index-nav/bin/clangd make test          # Arch
+EMACS_CPP_PATCHED_CLANGD=$HOME/opt/clangd-index-nav/bin/clangd make test     # macOS
+```
+
 `C-c l N` renames a namespace with clang-change-namespace, whose LLVM 23 release
 crashes on two or more sources (D-094). `packaging/clang-change-namespace/build.sh`
 builds it with the fix against the installed LLVM 23 (pacman's `llvm` and `clang`,
