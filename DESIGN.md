@@ -1793,6 +1793,16 @@ presets, GoogleTest runner.
   a loose qualifier (`geom::vec`); `count() const` first in both, re-sorted away
   here; no typo seen. Search Everywhere's files: case ignored, humps, space in
   order.
+- O-64 (owner 2026-10-19: "Revisit maximum file watches (Arch, different variables)
+  and eglot restarting in a loop, if the watches are exceeded"): two limits on Arch,
+  eglot's `eglot-max-file-watches` (10000) and the kernel's per-user
+  `fs.inotify.max_user_watches` (1% of RAM, 8192 .. 1048576); a failed watch request
+  makes pyright exit, and stock eglot reconnects in a loop when the round lasts over
+  `eglot-autoreconnect` (3 s); the vendored eglot (D-108) answers success, no loop
+  (reproduced, RESEARCH_platform_differences 3.14). Options: (a) keep as is; (b) cap
+  eglot at half the kernel's limit on Arch; (c) name the kernel limit in patch
+  0001's warning; (d) guard the stock eglot. Recommendation (a), plus (b) if the
+  owner's `sysctl` numbers show the kernel limit near 10000.
 - O-63 (RESOLVED 2026-10-15 with D-113: (b); owner question 2026-10-15 on S14: "Can be new
   behavior be configured?"): how patches 0011 / 0012 (if S14 passes) are switched. The
   spike has them always on for workspace symbols. clangd reads `workspace/symbol`
