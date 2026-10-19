@@ -298,8 +298,9 @@ with `done when: ...`).
   completes `/u/s/e`. Speed: S11's harness (`spikes/s11-go-to-anything`) on RMO on
   Arch (D-057) meets run 2's criteria: opening under 150 ms, each key's results
   under 100 ms; `make test`. DESIGN D-120, journal. Agreed 2026-10-20. Built
-  2026-10-20 (0082): `make test` 132 / 132 (Arch); left: the owner's S11 run on RMO
-  (journal 0082, How to verify), the Mac's `make test`.
+  2026-10-20 (0082): `make test` 132 / 132 (Arch). Done 2026-10-20: S11 run 6 on RMO
+  PASS (opening 88.6 - 101.0 ms, keys at most 87.8 ms); the Mac's `make test` when
+  next there (D-058).
 - T-108 (opened 2026-10-19, D-119, S15 PASS): clangd patch 0013, rule R4 written
   fresh (`spikes/s15-mid-word-rank/RESULTS.md`, Decision) with clangd unit tests,
   pkgrel 9, a Mac rebuild. Tier: 2. Done when (agreed 2026-10-19): patch 0013 in

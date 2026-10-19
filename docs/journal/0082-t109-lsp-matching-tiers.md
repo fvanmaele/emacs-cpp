@@ -74,7 +74,8 @@ and do not reach tier 3 until its pre-filter changes (O-68).
   `consult--tofu-get` stay as they are (pinned submodules). **Would break if:** an
   update renames them; the tests call both paths.
 - **Risk:** on a deal.II-sized tree `eto` sorts in up to 89 ms on Arch, near S11's
-  100 ms per key; RMO is far below. The owner's S11 run decides.
+  100 ms per key. S11 run 6 on RMO (4286 files): keys at most 87.8 ms, median 57.9
+  (run 3: 29.5 / 17.7 on 2673 files); PASS, with less margin than before.
 - **Risk:** orderless's dispatchers (`!` to exclude) still do nothing in `M-o`, as
   before: the compiler's predicate part is not used there.
 

@@ -8,6 +8,28 @@ same criteria. Run 4 (recorded, D-079): narrowed to symbols, `M-o` updates in a 
 1.4 ms per key against `C-c l s`'s 3.0 - 3.3 ms, results 107 - 186 ms after the last
 key against 406 - 461 ms. Run 1 below.
 
+## Run 6 (2026-10-20 00:59, Arch, load 0.47; T-109, D-120)
+Raw output: `results-run6.log`. The shipped `M-o` with D-120 (orderless's compiler for
+the static sources: literal, regexp, initials, letters in order; sorting by source and
+tier), RMO with 4286 files (run 3: 2673), patched clangd pkgrel 9, words `main vec
+eto Tri assemble Sol`, twice. Judged on T-109's criteria (run 2's first two):
+
+| | run 6 | run 3 | criterion |
+|---|---|---|---|
+| opening, first screen after `M-o` | 88.6 - 101.0 ms | 63 - 74 ms | 150 ms |
+| file listing | 70 - 79 ms | 54.5 ms | |
+| each key, first screen | median 57.9, max 87.8 ms | median 17.7, max 29.5 ms | 100 ms |
+| garbage collections while typing | 0 | 0 | |
+
+PASS on both. Keys are about three times slower than in run 3: 1.6 times the files,
+letters-in-order regexps and the tier sort; the slowest keys are the fourth to
+fifth letters of `assemble` and `Sol` (3300 - 3900 candidates). Symbols: requests go
+out 224 - 231 ms after the key (consult's 0.2 s debounce, D-087, so run 2's 200 ms
+symbol criterion no longer applies) and reach the screen about 100 ms after the
+reply; `eto` got 495 project symbols. The first two attempts at this run never got
+ready: a relative `S11_LOG` was written from the opened file's directory (fixed
+3202fe7), and setup errors were not logged (fixed a8bcd42).
+
 ## Run 5 (2026-10-13 19:13, Mac, load not logged: no /proc there)
 Raw output: `results-run5.log`. O-37, T-059. The owner's deal.II project
 `~/CLionProjects/step-1` (449 files, `src/main.cc`) on the Mac with the patched clangd
