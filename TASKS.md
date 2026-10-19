@@ -284,6 +284,20 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-109 (opened 2026-10-20, D-120): LSP 3.18 matching with tiers on the Emacs side.
+  Tier: 2. Done when (proposed 2026-10-20, owner to agree): orderless's matching
+  styles literal, regexp, initialism and flex, case always ignored
+  (`orderless-smart-case` nil, `completion-ignore-case` t), `C-x C-f` unchanged
+  (`partial-completion`); `M-o`'s static sources filtered by orderless's compiler
+  (consult's regexp compiler replaced, the first-100 highlighting kept); a tier
+  function (NEW, `emacs-cpp-match-tier`) and a stable sort by tier for vertico's
+  prompts and `M-o`, `M-o` sorting within each source and leaving symbol sources in
+  clangd's order. ERT: `eto` finds `Vector.cc` in `C-c p f` and `M-o`, below
+  `ectorial.h`-style unbroken matches; `VT` and `vt` find `VectorTools.cc`; tier
+  order on a fixed list; `M-o`'s groups stay in source order; `C-x C-f` still
+  completes `/u/s/e`. Speed: S11's harness (`spikes/s11-go-to-anything`) on RMO on
+  Arch (D-057) meets run 2's criteria: opening under 150 ms, each key's results
+  under 100 ms; `make test`. DESIGN D-120, journal.
 - T-108 (opened 2026-10-19, D-119, S15 PASS): clangd patch 0013, rule R4 written
   fresh (`spikes/s15-mid-word-rank/RESULTS.md`, Decision) with clangd unit tests,
   pkgrel 9, a Mac rebuild. Tier: 2. Done when (agreed 2026-10-19): patch 0013 in

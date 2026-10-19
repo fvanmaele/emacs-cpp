@@ -477,6 +477,21 @@ Known defects: none yet (nothing built).
   entry (in RMO `fmt/src/format.cc`, wrong include paths). S1 live check: once an
   including `.cc` is open, clangd reuses its flags and the header is clean; opened
   first, it shows errors. The patched clangd takes an includer from its index (D-028).
+- DECIDED D-120 (owner 2026-10-20: "Go with LSP 3.18 as far as possible--in particular
+  the consistent config--but leave changing the three-letter pre-filter for a later
+  stage"; answers the same day: ignore case, tiers everywhere, paths keep
+  partial-completion): the config's definition of a match is LSP 3.18's
+  (`workspace/symbol`'s `query`: "match case-insensitive and ... check that the
+  characters of query appear in their order in a candidate"), ranked in tiers as
+  clangd ranks with patch 0013: (1) the input runs unbroken from a word start; (2) it
+  runs unbroken inside a word, or its letters start several words; (3) letters in
+  order with gaps inside a word. Every prompt but path completion (`C-x C-f` keeps
+  `partial-completion`, the documented exception): orderless's prompts (`C-x b`,
+  `C-c p f`, `M-x`, ...) and `M-o`'s buffers, recent files, bookmarks and project
+  files; case always ignored (smart case off; D-105 already for `M-o`); sorted by
+  tier, the present order kept within a tier, `M-o` keeping its sources apart and
+  clangd's symbols in clangd's order. clangd's own matcher stays as it is until O-68's
+  later stage, so tier 3 does not reach symbols yet. Build: T-109.
 - DECIDED D-119 (owner 2026-10-19, O-67 (a): "O-67 (a) agree"): mid-word matches
   ranked by shape in clangd (rule R4, `RESEARCH_go_to_anything.md` 19) go to spike
   S15 (`spikes/s15-mid-word-rank`, T-107) before any patch; tier 3. A fuzzy match
@@ -1851,6 +1866,13 @@ presets, GoogleTest runner.
   a loose qualifier (`geom::vec`); `count() const` first in both, re-sorted away
   here; no typo seen. Search Everywhere's files: case ignored, humps, space in
   order.
+- O-68 (owner 2026-10-20, after `eto` found no `Vector`: "Go with LSP 3.18 as far as
+  possible--in particular the consistent config--but leave changing the three-letter
+  pre-filter for a later stage"): clangd's index keeps only symbols containing the
+  query's three-letter fragments, and its matcher wants the first letter at a word
+  start, so letters in order with a gap inside a word (`eto` -> `Vector`) never reach
+  the ranking. Later stage: a clangd change past the pre-filter (a third tier, tier
+  3, a spike on RMO first: scan time, reply sizes). Not scheduled.
 - O-67 (RESOLVED 2026-10-19 with D-119: (a); owner 2026-10-19: "Research preferring
   mid-word matches"): clangd ranks a
   mid-word match after every fuzzy one (patch 0012), and mid-word matches tie
@@ -2556,6 +2578,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-113 | 2026-10-15 | symbol matches switched per request, a capability | 10 | O-63 |
 | D-114 | 2026-10-15 | clangd patch 0010, real paths, built with T-104 | 7 | O-50 |
 | D-115 | 2026-10-19 | Arch file-watch limits kept as they are | 7 | O-64 |
+| D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |
 | D-117 | 2026-10-19 | eglot patch 0003: finders with Emacs 31's xref | 7 | O-65 |
