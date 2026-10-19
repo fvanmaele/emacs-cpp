@@ -287,8 +287,12 @@ with `done when: ...`).
 - T-107 (opened 2026-10-19, D-119): spike S15, mid-word matches ranked by shape in
   clangd (`spikes/s15-mid-word-rank/RUN.md`, pass criteria proposed 2026-10-19).
   Done when: RESULTS.md has a verdict on criteria 1 - 7 from the owner's run on
-  step-1 (a dry run here first). Dry run 3 (2026-10-19, Arch toy): 7 of 7, criteria
-  refined in dry runs 1 - 2; owner to confirm them.
+  RMO on Arch (owner 2026-10-19; was step-1 on the Mac; a dry run here first). Dry
+  run 3 (2026-10-19, Arch toy): 7 of 7, criteria refined in dry runs 1 - 2. Owner's
+  run 1 (2026-10-19, RMO, `build-release`): 6 of 7, criterion 4 failed for `ass`
+  only, where baseline run 1 held 24 Boost type-traits symbols that baseline run 2
+  and the spike lack (the spike equals baseline run 2 in all 32 queries); owner:
+  "Rerun first".
 - T-106 (opened 2026-10-19, D-117, O-65 (a)): eglot patch 0003, the finders with
   Emacs 31's xref. Tier: 2. Done when (O-65 (a)): patch 0003 after 0002 in
   `.gitmodules`, `make packages` applies 9 patches; an ERT test runs

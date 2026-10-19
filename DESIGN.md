@@ -491,8 +491,9 @@ Known defects: none yet (nothing built).
   with unit tests, pkgrel 9, a Mac rebuild. Dry run 3 (2026-10-19, Arch, a toy with
   Kokkos, deal.II, Trilinos headers): 7 of 7 criteria, after the criteria were
   refined in dry runs 1 - 2 (`spikes/s15-mid-word-rank/DRY-RUN.md`); `ector` ->
-  `dealii::Vector` first, no good fuzzy match moved; owner to confirm the criteria
-  and run on step-1.
+  `dealii::Vector` first, no good fuzzy match moved. Owner 2026-10-19: RMO on Arch
+  decides (not step-1). Owner's run 1 on RMO: 6 of 7, criterion 4 failed for `ass`
+  only, the baseline differing from itself between its two runs; owner: rerun.
 - DECIDED D-118 (owner 2026-10-19, O-66 (a)): with a project root, `M-o`'s `s`
   symbols (the project's only, D-082) are headed "Project Symbol (server)", narrow
   label "Project Symbol", as "Project File"; without a root `s` (every symbol) stays
