@@ -180,6 +180,7 @@ and `eglot-max-file-watches` set after loading; watches counted by
   a `pip install --user`); without it, `M-x eglot-reconnect` or reopening Emacs
   picks them up. Not checked here: that pyright re-analyses on such an event (the
   toy cannot write to `/usr/lib`).
+- Ruled 2026-10-20: (a), D-122.
 - Options (O-70): (a) keep project-only watches (D-121); (b) on Arch watch outside
   the project with a cap of 30000 (two Python projects at once, room for texlab),
   0.6 s per pyright start; (c) as (b) with the cap from the kernel's limit (half of

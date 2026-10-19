@@ -477,6 +477,11 @@ Known defects: none yet (nothing built).
   entry (in RMO `fmt/src/format.cc`, wrong include paths). S1 live check: once an
   including `.cc` is open, clangd reuses its flags and the header is clean; opened
   first, it shows errors. The patched clangd takes an includer from its index (D-028).
+- DECIDED D-122 (owner 2026-10-20, O-70 (a)): Arch keeps project-only watches and
+  eglot's default cap of 10000, as D-121 set; no watch of Python's library. A
+  higher cap would keep pyright up (13000 or more) but freezes Emacs about 0.6 s at
+  every pyright start for library changes that `M-x eglot-reconnect` also picks up
+  (`RESEARCH_eglot_fork.md` 8). No code change.
 - DECIDED D-121 (owner 2026-10-20, O-69: "(c) + (d) - use the mac specific fixes as
   Lisp in the config, and keep it as platform-specific code"; "also remove vendored
   xref": none is vendored, the xref patch 0003 goes with eglot): eglot is Emacs
@@ -1894,7 +1899,8 @@ presets, GoogleTest runner.
   a loose qualifier (`geom::vec`); `count() const` first in both, re-sorted away
   here; no typo seen. Search Everywhere's files: case ignored, humps, space in
   order.
-- O-70 (owner 2026-10-20: "Revisit a higher watches cap for Arch"): with the built-in
+- O-70 (RESOLVED 2026-10-20 with D-122: (a); owner 2026-10-20: "Revisit a higher
+  watches cap for Arch"): with the built-in
   eglot, pyright's watch of Python's library on Arch (6358 directories) peaks at
   12788 eglot watches (two registrations), 6393 at the end, 6393 kernel watches; a
   cap of about 13000 or more keeps pyright up, at about 0.6 s of frozen Emacs and
@@ -2632,6 +2638,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-113 | 2026-10-15 | symbol matches switched per request, a capability | 10 | O-63 |
 | D-114 | 2026-10-15 | clangd patch 0010, real paths, built with T-104 | 7 | O-50 |
 | D-115 | 2026-10-19 | Arch file-watch limits kept as they are | 7 | O-64 |
+| D-122 | 2026-10-20 | Arch keeps project-only watches, default cap | 7 | O-70 |
 | D-121 | 2026-10-20 | Emacs's own eglot; macOS watch fixes as config Lisp | 7 | O-69 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |

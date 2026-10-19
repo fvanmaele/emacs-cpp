@@ -54,7 +54,7 @@ matches ranked by shape: S15 PASS (D-119, T-107, 0080), patch 0013 built (T-108,
 tiers in every prompt: done (T-109, 0082; S11 run 6 PASS on RMO); O-68 clangd
 pre-filter, later; O-69 resolved: Emacs's own eglot, macOS watch advice in
 lisp/emacs-cpp-eglot-watch.el, project-only watches (D-121, T-110, 0083); O-70
-higher Arch watch cap (measured, RESEARCH_eglot_fork 8);
+resolved: Arch keeps project-only watches (D-122);
 O-57 CLion's extra symbol matches; O-56 theme following macOS appearance;
 D-105 symbols in clangd's order, `M-o` ignores case: built (T-084, 0072);
 D-106 `M-o` symbol sources per server (T-087, 0073); D-107 `build*/` in
