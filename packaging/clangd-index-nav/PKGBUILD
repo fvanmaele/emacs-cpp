@@ -10,15 +10,18 @@
 # their real directory, so a project reached through a symbolic link (on macOS any
 # under /tmp) keeps its references (patch 0010, D-114, S13); and workspace/symbol's
 # abbreviated qualifiers and mid-word matches on request, announced as the
-# capability workspaceSymbolMatchesProvider (patches 0011, 0012, D-113, S14).
+# capability workspaceSymbolMatchesProvider (patches 0011, 0012, D-113, S14); mid-word
+# matches ranked by shape, after those contiguous from a word start (patch 0013,
+# D-119, S15).
 # Built against the system LLVM 23.1.1 and installed to /opt, next to (not instead
 # of) the clang package's clangd.  Patches 0001 - 0009: `git format-patch
 # 6e2cc8df7..HEAD` in ~/source/repos/llvm-clangd; 0010 - 0012: `git format-patch
-# --start-number 10` on the tree of build-macos.sh (T-104).
+# --start-number 10` on the tree of build-macos.sh (T-104); 0013: `git format-patch
+# --start-number 13` on the makepkg tree (T-108).
 
 pkgname=clangd-index-nav
 pkgver=23.1.1
-pkgrel=8
+pkgrel=9
 pkgdesc="clangd $pkgver answering navigation from its index before parsing (emacs-cpp patches)"
 arch=(x86_64)
 url="https://github.com/llvm/llvm-project"
@@ -40,7 +43,8 @@ source=("https://github.com/llvm/llvm-project/releases/download/llvmorg-$pkgver/
         0009-clangd-Reindex-sources-whose-stored-shards-were-inde.patch
         0010-clangd-Name-background-index-main-files-by-their-rea.patch
         0011-clangd-workspace-symbol-abbreviated-qualifiers-on-re.patch
-        0012-clangd-workspace-symbol-mid-word-matches-on-request-.patch)
+        0012-clangd-workspace-symbol-mid-word-matches-on-request-.patch
+        0013-clangd-workspace-symbol-rank-mid-word-matches-by-sha.patch)
 sha256sums=('ebe9be46fe8756d58c5b198ffad0fa2a766257add81a4dc52179bfacc7888ee6'
             'a8c5acda8b7e43611f22297cb9ba6f95e62c464a6ac78f8027c267973d4702bb'
             '3b3cce804554ab484a2f5396f28cb87f66b87ad4ccd4d6e8e65f4bc7e89feab1'
@@ -53,7 +57,8 @@ sha256sums=('ebe9be46fe8756d58c5b198ffad0fa2a766257add81a4dc52179bfacc7888ee6'
             'cdd37033c24713bee22e939c4be1a6fb7c7d5dc210b833a1ac67b4e911fc29ad'
             '6c540fd6f7cbedaeaab01ff2f64c959ec3f34347e479c1b15c8fc2e7b41defc0'
             'a33ceaa56e0e7386a33b93493ba5753fbb80ccffb8fcb3332cb03c39e1cc5206'
-            'fbf034d9717d2411d94d6e02af0d8693ff9502368ea4ef9b2a98aee1ae8d756a')
+            'fbf034d9717d2411d94d6e02af0d8693ff9502368ea4ef9b2a98aee1ae8d756a'
+            'f0981e869cd5d156bc65eee07e3cdeed3314881a199dfd6a642e023c7869ed7b')
 
 prepare() {
   cd llvm-project-$pkgver.src
