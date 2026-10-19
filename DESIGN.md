@@ -477,6 +477,22 @@ Known defects: none yet (nothing built).
   entry (in RMO `fmt/src/format.cc`, wrong include paths). S1 live check: once an
   including `.cc` is open, clangd reuses its flags and the header is clean; opened
   first, it shows errors. The patched clangd takes an includer from its index (D-028).
+- DECIDED D-119 (owner 2026-10-19, O-67 (a): "O-67 (a) agree"): mid-word matches
+  ranked by shape in clangd (rule R4, `RESEARCH_go_to_anything.md` 19) go to spike
+  S15 (`spikes/s15-mid-word-rank`, T-107) before any patch; tier 3. A fuzzy match
+  contiguous from a word start keeps its place and order; scattered fuzzy and
+  mid-word matches follow, by the share of the name they cover (doubled at a word
+  end) times quality, in Dex and MemIndex too, whose own cut at the limit runs
+  first. Found on the way: patch 0012's Dex and MemIndex score a mid-word match -1
+  times quality, so among mid-word matches the better symbol ranks lower and a
+  limit keeps the worst; and they subtract 1e6 from a float, whose steps there are
+  0.0625, so mid-word matches tie (S15 dry run 2). Recorded, fixed by the patch S15
+  leads to (a Low score becomes -1 / (1 + score)). A PASS leads to clangd patch 0013
+  with unit tests, pkgrel 9, a Mac rebuild. Dry run 3 (2026-10-19, Arch, a toy with
+  Kokkos, deal.II, Trilinos headers): 7 of 7 criteria, after the criteria were
+  refined in dry runs 1 - 2 (`spikes/s15-mid-word-rank/DRY-RUN.md`); `ector` ->
+  `dealii::Vector` first, no good fuzzy match moved; owner to confirm the criteria
+  and run on step-1.
 - DECIDED D-118 (owner 2026-10-19, O-66 (a)): with a project root, `M-o`'s `s`
   symbols (the project's only, D-082) are headed "Project Symbol (server)", narrow
   label "Project Symbol", as "Project File"; without a root `s` (every symbol) stays
@@ -1538,6 +1554,7 @@ presets, GoogleTest runner.
 | deal.II sources index unused or too costly on RMO | S10 | owner | O-12 |
 | go-to-anything prompt slow on RMO / deal.II | S11 (runs 2, 3 PASS) | owner | T-049 |
 | CLion-style symbol matches break or slow clangd | S14 (PASS) | owner | O-57 |
+| Mid-word ranking changes good fuzzy matches or slows clangd | S15 | owner | O-67 |
 | own package build glue mis-orders compilation | none (tests) | - | v0.1 |
 | config fails on macOS (paths, tools, tests) | none (`make test`) | owner | D-050 |
 | clangd too slow / too large on deal.II scale | S1 numbers | owner | v0.1 |
@@ -1828,7 +1845,8 @@ presets, GoogleTest runner.
   a loose qualifier (`geom::vec`); `count() const` first in both, re-sorted away
   here; no typo seen. Search Everywhere's files: case ignored, humps, space in
   order.
-- O-67 (owner 2026-10-19: "Research preferring mid-word matches"): clangd ranks a
+- O-67 (RESOLVED 2026-10-19 with D-119: (a); owner 2026-10-19: "Research preferring
+  mid-word matches"): clangd ranks a
   mid-word match after every fuzzy one (patch 0012), and mid-word matches tie
   among themselves; scattered fuzzy matches such as Kokkos's
   `EBOBaseImpl<..., CtorNotOnDevice>` (`E` + `Ctor` for `ector`) head the list and
@@ -2532,6 +2550,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-113 | 2026-10-15 | symbol matches switched per request, a capability | 10 | O-63 |
 | D-114 | 2026-10-15 | clangd patch 0010, real paths, built with T-104 | 7 | O-50 |
 | D-115 | 2026-10-19 | Arch file-watch limits kept as they are | 7 | O-64 |
+| D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |
 | D-117 | 2026-10-19 | eglot patch 0003: finders with Emacs 31's xref | 7 | O-65 |
 | D-116 | 2026-10-19 | `make packages` resets patched files; pins checked | 12 | owner |
