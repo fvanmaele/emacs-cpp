@@ -906,6 +906,107 @@ MacPorts 1.20.1); 33 commits since 1.20.1, none in `fsevents_monitor.cpp`. The
 prototype applies to 1.22.0 unchanged; built there, the paused-reader run gave
 10001 records and the four single cases the same flags as on 1.20.1.
 
+### 3.14 Watch limits on Arch, and eglot reconnecting in a loop (owner 2026-10-19, O-64)
+Owner 2026-10-19: "Revisit maximum file watches (Arch, different variables) and eglot
+restarting in a loop, if the watches are exceeded". Read from the kernel's
+`fs/notify/inotify/inotify_user.c`, Emacs's `src/inotify.c`, `lisp/filenotify.el`
+and the vendored eglot; the loop reproduced on the Mac, 2026-10-19.
+
+**Two limits, of different owners.** On Arch a directory watch passes two limits:
+- eglot's `eglot-max-file-watches`: 10000 (eglot's default; this config sets it to
+  500 on the Mac only, D-054). Counted across all eglot servers of the Emacs
+  session; with eglot patch 0002 one per directory and server, before 0002 one per
+  directory and registration (pyright registers three times).
+- the kernel's inotify limits, per user, shared by every program of the user (Emacs,
+  the desktop, Syncthing, other editors), read with `sysctl`:
+  - `fs.inotify.max_user_watches`: since Linux 5.11 1% of RAM divided by the cost of
+    one watch (about 1 KB on 64-bit), clamped to 8192 .. 1048576: about 159000 at
+    16 GB, 318000 at 32 GB. Above it `inotify_add_watch` fails with ENOSPC.
+  - `fs.inotify.max_user_instances`: 128. Emacs opens one instance for all its
+    watches (`inotify_init1` once), so this does not bind for Emacs.
+  - `fs.inotify.max_queued_events`: 16384 events waiting per instance; beyond them
+    the kernel drops events and sends one `IN_Q_OVERFLOW`. Emacs reads its queue
+    whenever it waits for input, so only a burst while Emacs is busy (a large `git
+    checkout` during a long command) fills it; the lost events are not noticed by
+    eglot, the server misses those changes until the next one in the directory.
+  The kernel shares one watch per inode, so Emacs watching a directory twice (eglot,
+  auto-revert, dired) costs one kernel watch; eglot's own count is per eglot watch.
+  At 16 GB and more the kernel limit is far above 10000, so eglot's cap binds first;
+  near the minimum of 8192 (under 1 GB of RAM, or a limit set lower in
+  `/etc/sysctl.d`) the kernel's binds first.
+
+**What exceeding them does.** Either way eglot's watch request for a registration
+fails or stops short:
+- eglot's cap: stock eglot answers the server's `client/registerCapability` with
+  an error; eglot patch 0001 (D-108) keeps the watches made so far, warns "Reached
+  `eglot-max-file-watches' limit", and answers success.
+- the kernel's: Emacs signals `file-notify-error` ("Could not add watch for file
+  ...", `report_file_notify_error`); stock eglot again fails the registration;
+  patch 0001 catches it, warns "Cannot watch DIR: ..., not watching some
+  directories" and answers success.
+pyright exits about 0.1 s after a failed registration (3.3, 3.7); clangd registers
+no watches.
+
+**The loop.** eglot restarts a server that exits on its own only when the connection
+lasted longer than `eglot-autoreconnect` (3 s by default, untouched here); a shorter
+one ends with "Not auto-reconnecting, last one didn't last long" (the owner's report
+in 3.7). So with stock eglot a failed registration loops when connecting, listing
+the project's directories and failing take longer than 3 s together: a large tree
+on Arch (many directories to list and watch before the cap) or a slow first
+`project-files`. Each round starts pyright afresh, walks the tree again and warns
+again. Reproduced on the Mac (600-directory toy of 3.11, pyright, cap 500,
+`eglot-autoreconnect` lowered to 0.1 s so the toy's 0.33 s rounds count as long),
+15 s each:
+
+| eglot | connections | server at the end |
+|-------|-------------|-------------------|
+| stock (mirror c79f727) | 38, "Server exited with status 1" each | restarting |
+| vendored (patches 0001, 0002) | 1, the cap warning three times | running |
+
+With the vendored eglot the registration no longer fails, so neither limit makes
+pyright exit and no loop starts; a server exiting for another reason after 3 s
+still reconnects, as wanted. The loop is left only where the stock eglot is loaded
+instead (the vendored one is not forced, owner 2026-10-15, D-108).
+
+**Left over with the vendored eglot:**
+- Exhausting the kernel limit hurts others: once eglot has taken the user's last
+  watches, auto-revert, dired, magit and other programs fail to watch until eglot
+  releases them. Only possible where the kernel limit is below eglot's cap plus the
+  other programs' watches.
+- The warnings say which limit was hit but not the numbers to change: the kernel's
+  message names the directory, not `fs.inotify.max_user_watches`.
+
+Options (not ruled, O-64):
+- (a) Keep as is: eglot's 10000 on Arch, the kernel's limit above it on the owner's
+  machine (to check with the commands below); this section and the corrected comment
+  in `init-lsp.el` record why no loop.
+- (b) On Arch, cap eglot below the kernel's limit: read
+  `/proc/sys/fs/inotify/max_user_watches` at startup and set
+  `eglot-max-file-watches` to the smaller of 10000 and half of it, so the cap binds
+  first and leaves the rest to other programs. A per-platform default (D-055).
+- (c) Name the kernel limit in patch 0001's warning when the error is ENOSPC
+  ("raise fs.inotify.max_user_watches"); a change to a vendored patch (D-069).
+- (d) Guard the stock eglot: set `eglot-autoreconnect` to nil when the vendored
+  eglot is not the one loaded, losing reconnects after real crashes; or warn at
+  startup. Against the owner's ruling that the vendored eglot is the user's choice
+  (D-108); listed for completeness.
+Recommendation: (a), plus (b) only if the owner's numbers show the kernel limit near
+10000.
+
+Owner's commands (Arch), read only:
+```
+sysctl fs.inotify.max_user_watches fs.inotify.max_user_instances \
+       fs.inotify.max_queued_events
+free -g
+grep -rs inotify /etc/sysctl.d /usr/lib/sysctl.d /run/sysctl.d
+for p in /proc/[0-9]*; do
+  n=$(cat $p/fdinfo/* 2>/dev/null | grep -c '^inotify')
+  [ "$n" -gt 0 ] && echo "$n $(cat $p/comm)"
+done | sort -rn | head
+```
+The last line counts each process's inotify watches (largest first); run it once
+with Emacs and pyright up on step-1.
+
 ## 4. Other differences met so far
 Decided already; listed so that one document points at all of them.
 
