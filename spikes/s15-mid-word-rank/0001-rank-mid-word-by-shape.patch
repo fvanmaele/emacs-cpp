@@ -1,0 +1,171 @@
+diff --git a/clang-tools-extra/clangd/FindSymbols.cpp b/clang-tools-extra/clangd/FindSymbols.cpp
+index ae1801c..108dd7c 100644
+--- a/clang-tools-extra/clangd/FindSymbols.cpp
++++ b/clang-tools-extra/clangd/FindSymbols.cpp
+@@ -355,12 +355,13 @@ getWorkspaceSymbols(llvm::StringRef Query, int Limit,
+     // If symbol and request scopes do not match exactly, apply a penalty.
+     Relevance.InBaseClass = AnyScope && Scope != ReqScope;
+     auto NameMatch = Filter.match(Sym.Name);
+-    // A mid-word match (MiddleMatch) ranks after every fuzzy one, below.
++    // S15 spike: scattered fuzzy and mid-word matches (Low) rank after every
++    // other, among themselves by the share of the name they cover, below.
+     bool MidWord = false;
+-    if (!NameMatch && Req.MiddleMatch && Req.Query.size() >= Req.MiddleMatch &&
+-        containsInIdentifier(Sym.Name, Req.Query)) {
+-      NameMatch = 1e-3f;
+-      MidWord = true;
++    if (Req.MiddleMatch && Req.Query.size() >= Req.MiddleMatch) {
++      auto Rank = middleRank(Sym.Name, Req.Query, NameMatch, Req.MiddleMatch);
++      NameMatch = Rank ? std::optional<float>(Rank->Score) : std::nullopt;
++      MidWord = Rank && !Rank->High;
+     }
+     if (NameMatch)
+       Relevance.NameMatch = *NameMatch;
+@@ -387,10 +388,13 @@ getWorkspaceSymbols(llvm::StringRef Query, int Limit,
+     Info.score = Relevance.NameMatch > std::numeric_limits<float>::epsilon()
+                      ? Score / Relevance.NameMatch
+                      : QualScore;
+-    // Below every fuzzy match, whose scores are at least 0, and first to go at
+-    // the limit.
++    // S15 spike: the ranking score itself, so compare.py can tell ties.
++    Info.score = Score;
++    // Below every High match, whose scores are at least 0, and first to go at
++    // the limit; -1 / (1 + Score) keeps their order in (-1, 0), where subtracting
++    // 1e6 from a float left steps of 0.0625 (S15 dry run 2).
+     if (MidWord)
+-      Score -= 1e6f;
++      Score = -1.0f / (1.0f + Score);
+     Top.push({Score, std::move(Info)});
+   });
+   for (auto &R : std::move(Top).items())
+diff --git a/clang-tools-extra/clangd/FuzzyMatch.cpp b/clang-tools-extra/clangd/FuzzyMatch.cpp
+index 2df9395..686905c 100644
+--- a/clang-tools-extra/clangd/FuzzyMatch.cpp
++++ b/clang-tools-extra/clangd/FuzzyMatch.cpp
+@@ -86,6 +86,37 @@ FuzzyMatcher::FuzzyMatcher(llvm::StringRef Pattern)
+                               llvm::MutableArrayRef(PatRole, PatN));
+ }
+ 
++std::optional<MiddleRank> middleRank(llvm::StringRef Word, llvm::StringRef Query,
++                                     std::optional<float> Fuzzy,
++                                     unsigned MiddleMatch) {
++  llvm::StringRef Ident = Word.take_until([](char C) { return C == '<'; });
++  Ident.consume_front("~");
++  if (Ident.empty() || Query.empty()) {
++    if (Fuzzy)
++      return MiddleRank{*Fuzzy, true};
++    return std::nullopt;
++  }
++  llvm::SmallVector<CharRole, 64> Roles(Ident.size());
++  calculateRoles(Ident, Roles);
++  std::string LowIdent = Ident.lower(), LowQuery = Query.lower();
++  float Cover = 0;
++  for (size_t Pos = LowIdent.find(LowQuery); Pos != std::string::npos;
++       Pos = LowIdent.find(LowQuery, Pos + 1)) {
++    if (Fuzzy && Roles[Pos] == Head)
++      return MiddleRank{*Fuzzy, true};
++    size_t End = Pos + Query.size();
++    float C = float(Query.size()) / Ident.size();
++    if (End == Ident.size() || Roles[End] != Tail)
++      C *= 2;
++    Cover = std::max(Cover, C);
++  }
++  if (Fuzzy)
++    return MiddleRank{std::max(Cover, *Fuzzy), false};
++  if (Cover > 0 && Query.size() >= MiddleMatch)
++    return MiddleRank{Cover, false};
++  return std::nullopt;
++}
++
+ std::optional<float> FuzzyMatcher::match(llvm::StringRef Word) {
+   if (!(WordContainsPattern = init(Word)))
+     return std::nullopt;
+diff --git a/clang-tools-extra/clangd/FuzzyMatch.h b/clang-tools-extra/clangd/FuzzyMatch.h
+index 532e709..bfeb126 100644
+--- a/clang-tools-extra/clangd/FuzzyMatch.h
++++ b/clang-tools-extra/clangd/FuzzyMatch.h
+@@ -78,6 +78,20 @@ inline bool containsInIdentifier(llvm::StringRef Word, llvm::StringRef Pattern)
+       .contains_insensitive(Pattern);
+ }
+ 
++// S15 spike: the place of a workspace-symbol match when mid-word matches are
++// asked for.  A fuzzy match whose query appears contiguously from a word start
++// of the identifier (before template arguments, without `~`) keeps its fuzzy
++// score and is High.  A scattered fuzzy match and a mid-word match are Low,
++// scored by the share of the identifier the query covers, doubled when the
++// match ends a word segment (a scattered match's fuzzy score if higher).
++struct MiddleRank {
++  float Score;
++  bool High;
++};
++std::optional<MiddleRank> middleRank(llvm::StringRef Word, llvm::StringRef Query,
++                                     std::optional<float> Fuzzy,
++                                     unsigned MiddleMatch);
++
+ class FuzzyMatcher {
+ public:
+   // Characters beyond MaxPat are ignored.
+diff --git a/clang-tools-extra/clangd/index/MemIndex.cpp b/clang-tools-extra/clangd/index/MemIndex.cpp
+index c4c97f7..72d3f1b 100644
+--- a/clang-tools-extra/clangd/index/MemIndex.cpp
++++ b/clang-tools-extra/clangd/index/MemIndex.cpp
+@@ -46,13 +46,20 @@ bool MemIndex::fuzzyFind(
+       continue;
+ 
+     auto Score = Filter.match(Sym->Name);
+-    // A mid-word match scores below zero, after every fuzzy match (Dex.cpp).
+-    if (!Score && Req.MiddleMatch && Req.Query.size() >= Req.MiddleMatch &&
+-        containsInIdentifier(Sym->Name, Req.Query))
+-      Score = -1.0f;
+-    if (Score)
+-      if (Top.push({*Score * quality(*Sym), Sym}))
++    // S15 spike: as Dex.cpp.
++    bool Low = false;
++    if (Req.MiddleMatch && Req.Query.size() >= Req.MiddleMatch) {
++      auto Rank = middleRank(Sym->Name, Req.Query, Score, Req.MiddleMatch);
++      Score = Rank ? std::optional<float>(Rank->Score) : std::nullopt;
++      Low = Rank && !Rank->High;
++    }
++    if (Score) {
++      float Final = *Score * quality(*Sym);
++      if (Low)
++        Final = -1.0f / (1.0f + Final);
++      if (Top.push({Final, Sym}))
+         More = true; // An element with smallest score was discarded.
++    }
+   }
+   auto Results = std::move(Top).items();
+   SPAN_ATTACH(Tracer, "results", static_cast<int>(Results.size()));
+diff --git a/clang-tools-extra/clangd/index/dex/Dex.cpp b/clang-tools-extra/clangd/index/dex/Dex.cpp
+index 9bbbda7..2401bef 100644
+--- a/clang-tools-extra/clangd/index/dex/Dex.cpp
++++ b/clang-tools-extra/clangd/index/dex/Dex.cpp
+@@ -283,17 +283,22 @@ bool Dex::fuzzyFind(const FuzzyFindRequest &Req,
+     const DocID SymbolDocID = IDAndScore.first;
+     const auto *Sym = Symbols[SymbolDocID];
+     std::optional<float> Score = Filter.match(Sym->Name);
+-    // A mid-word match scores below zero: after every fuzzy match whatever the
+-    // symbol's quality, which multiplies the score, and first to go at the limit.
+-    if (!Score && Req.MiddleMatch && Req.Query.size() >= Req.MiddleMatch &&
+-        containsInIdentifier(Sym->Name, Req.Query))
+-      Score = -1.0f;
++    // S15 spike: scattered fuzzy and mid-word matches (Low) after every other,
++    // ordered among themselves by their score times quality, mapped into (-1, 0).
++    bool Low = false;
++    if (Req.MiddleMatch && Req.Query.size() >= Req.MiddleMatch) {
++      auto Rank = middleRank(Sym->Name, Req.Query, Score, Req.MiddleMatch);
++      Score = Rank ? std::optional<float>(Rank->Score) : std::nullopt;
++      Low = Rank && !Rank->High;
++    }
+     if (!Score)
+       continue;
+     // Combine Fuzzy Matching score, precomputed symbol quality and boosting
+     // score for a cumulative final symbol score.
+-    const float FinalScore =
++    float FinalScore =
+         (*Score) * SymbolQuality[SymbolDocID] * IDAndScore.second;
++    if (Low)
++      FinalScore = -1.0f / (1.0f + FinalScore);
+     // If Top.push(...) returns true, it means that it had to pop an item. In
+     // this case, it is possible to retrieve more symbols.
+     if (Top.push({SymbolDocID, FinalScore}))

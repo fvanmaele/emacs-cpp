@@ -284,6 +284,11 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-107 (opened 2026-10-19, D-119): spike S15, mid-word matches ranked by shape in
+  clangd (`spikes/s15-mid-word-rank/RUN.md`, pass criteria proposed 2026-10-19).
+  Done when: RESULTS.md has a verdict on criteria 1 - 7 from the owner's run on
+  step-1 (a dry run here first). Dry run 3 (2026-10-19, Arch toy): 7 of 7, criteria
+  refined in dry runs 1 - 2; owner to confirm them.
 - T-106 (opened 2026-10-19, D-117, O-65 (a)): eglot patch 0003, the finders with
   Emacs 31's xref. Tier: 2. Done when (O-65 (a)): patch 0003 after 0002 in
   `.gitmodules`, `make packages` applies 9 patches; an ERT test runs
