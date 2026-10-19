@@ -62,7 +62,8 @@ ruled (D-111, 7.2); eglot vendored
 (T-102, 0076; Arch passes);
 clangd patches 0010 - 0012 built (T-104, 0077; pkgrel 8, Arch passes);
 D-113 0011 / 0012 switched per request, announced as a capability;
-T-025 round 2, T-026 queued.
+T-025 round 2, T-026 queued. D-116 `make packages` resets patched files, submodules
+at the pin (T-105, 0078).
 
 ## Hard rules (each with its reason)
 - Change-size ladder: tier 1 trivial = commit with Reasoning only; tier 2 feature = `done

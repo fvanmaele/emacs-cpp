@@ -284,6 +284,16 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-105 (opened 2026-10-19, D-116, owner after the Arch run): `make packages` resets
+  the files a patch series touches to the pinned commit before applying it, and stops
+  naming each submodule not checked out or not at the pin. Tier: 2. Done when: ERT on
+  throw-away repositories: an earlier version of a patch in the working tree gives way
+  to the current one, a file the series creates is made again on a second run, a hand
+  edit in an untouched file stays; a submodule at another commit and one not checked
+  out each stop the build with the `git submodule update` command that fixes it (both
+  tests fail with the old script); on the repository consult-eglot's earlier 0001
+  applied by hand is replaced, and a deinitialised `lib/s` stops the build; `make
+  test` on Arch. DESIGN D-116, journal. Done 2026-10-19 (0078).
 - T-104 (opened 2026-10-15, D-112, D-113, S14 PASS): clangd patches 0011 (loose
   qualifier) and 0012 (mid-word matches), written fresh from S14's findings, switched
   per request and announced as a capability (D-113), with clangd unit tests; built with
