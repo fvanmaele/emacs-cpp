@@ -22,18 +22,37 @@
 
 (defun emacs-cpp-go--highlight-first (limit)
   "Return a consult regexp compiler that highlights only LIMIT strings per input.
-Highlighting every hit of a one-letter input is most of the filter's time (S11);
-with `:sort nil' the first hits are the ones on screen."
+The input is compiled as orderless compiles it, so buffers, files and bookmarks
+match as every other prompt does (D-120: letters in order, initials, literal,
+regexp); consult's own compiler took each word as a regexp.  Highlighting every
+hit of a one-letter input is most of the filter's time (S11); the first hits are
+the ones on screen."
   (lambda (input type ignore-case)
-    (pcase-let ((`(,regexps . ,highlight)
-                 (consult--default-regexp-compiler input type ignore-case))
-                (count 0))
-      (cons regexps
-            (and highlight
+    (let ((regexps (cdr (orderless-compile input)))
+          (count 0))
+      (cons (mapcar (lambda (regexp) (consult--convert-regexp regexp type)) regexps)
+            (and regexps
                  (lambda (string)
                    (setq count (1+ count))
                    (when (<= count limit)
-                     (funcall highlight string))))))))
+                     (orderless--highlight regexps ignore-case string))))))))
+
+(defun emacs-cpp-go--sort (candidates)
+  "Sort `M-o''s CANDIDATES by source, then by tier (D-120), stably.
+The sources keep their order, so their groups do; symbols keep the order of
+their server, which ranks them itself (clangd's tiers, patch 0013)."
+  (let ((input (buffer-substring-no-properties (minibuffer-prompt-end) (point-max))))
+    (sort candidates
+          :key (lambda (candidate)
+                 (let ((source (consult--tofu-get candidate)))
+                   (+ (* 10 source)
+                      (if (or (string-blank-p input)
+                              (eq (car-safe (get-text-property 0 'multi-category
+                                                               candidate))
+                                  'consult-eglot-symbols))
+                          0
+                        ;; Without the source's tofu, the last character.
+                        (emacs-cpp-match-tier input (substring candidate 0 -1)))))))))
 
 (defcustom emacs-cpp-go-symbol-limit 10000
   "Most symbols `M-o' asks clangd for per input before keeping the project's.
@@ -276,7 +295,9 @@ command or project chosen runs after it, with the usual ones."
                   ;; CLion: `readme' finds README.md (D-105).
                   (completion-ignore-case t)
                   ;; Preview after a pause in typing, at once when browsing (D-088).
-                  (consult-preview-key emacs-cpp-go--preview-key))
+                  (consult-preview-key emacs-cpp-go--preview-key)
+                  ;; By source, then by tier (D-120); `:sort nil' no longer decides.
+                  (vertico-sort-override-function #'emacs-cpp-go--sort))
               (consult--multi sources :prompt "Go to: " :require-match t :sort nil)))))
     (when-let* ((action (plist-get (cdr selected) :emacs-cpp-action)))
       (funcall action (car selected)))))
