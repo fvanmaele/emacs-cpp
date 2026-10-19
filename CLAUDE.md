@@ -51,7 +51,8 @@ O-64 resolved: limits kept (D-115); O-65 resolved: eglot patch 0003 (D-117, T-10
 0079); O-66 resolved: "Project Symbol" heading (D-118); O-67 resolved: mid-word
 matches ranked by shape: S15 PASS (D-119, T-107, 0080), patch 0013 built (T-108,
 0081; pkgrel 9, owner's install and Mac build left); D-120 LSP 3.18 matching with
-tiers in every prompt (T-109, done when proposed); O-68 clangd pre-filter, later;
+tiers in every prompt: built (T-109, 0082; owner's S11 run left); O-68 clangd
+pre-filter, later;
 O-57 CLion's extra symbol matches; O-56 theme following macOS appearance;
 D-105 symbols in clangd's order, `M-o` ignores case: built (T-084, 0072);
 D-106 `M-o` symbol sources per server (T-087, 0073); D-107 `build*/` in
