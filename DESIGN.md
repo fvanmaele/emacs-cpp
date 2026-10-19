@@ -1823,6 +1823,13 @@ presets, GoogleTest runner.
   a loose qualifier (`geom::vec`); `count() const` first in both, re-sorted away
   here; no typo seen. Search Everywhere's files: case ignored, humps, space in
   order.
+- O-66 (owner 2026-10-19: "Research: Symbol (clangd) -> Project Symbol (clangd)"):
+  the heading of `M-o`'s `s` symbols, which with a project root are the project's
+  only (D-082) (`RESEARCH_go_to_anything.md` 18). Options: (a) "Project Symbol
+  (server)" and narrow label "Project Symbol" when there is a root, "Symbol
+  (server)" without one (then every symbol); "All Symbols" unchanged; matches
+  "Project File"; tier 1 (one function, four test assertions). (b) Keep "Symbol".
+  Recommendation (a).
 - O-65 (RESOLVED 2026-10-19 with D-117: (a); owner report 2026-10-19, native-compiler
   warnings "the function
   `xref-read-identifier' / `xref-find-by-kind' is not known to be defined"): the

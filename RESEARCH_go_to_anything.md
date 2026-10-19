@@ -935,6 +935,70 @@ config, clangd 21.1.8), 2026-10-15.
 - Options (O-58 (g) / (h)): (g) no kind groups in `C-c l s` (consult-eglot patch 0001
   gains a hunk dropping `:group`; narrowing by kind stays); (h) keep them.
 
+## 18. `M-o` and `C-c l s` on mid-word matches (owner 2026-10-19)
+Owner, on RMO-gross-pitaevskii (deal.II, Kokkos), patched clangd pkgrel 8: `ector`
+gives `Vector` in `M-o` (project files only) but `EBOBaseImpl<T, ...>` from
+`/usr/include/kokkos/...` first in `C-c l s`; `Vector` gives deal.II's `Vector` in
+`C-c l s`. Read in `lisp/init-go-to-anything.el`, `lisp/init-lsp.el`, clangd patch
+0012; S14's step-1 numbers (`spikes/s14-symbol-matches/RESULTS.md`); a toy with
+Kokkos's `EBOBaseImpl` pattern, queried over JSON-RPC with
+`/opt/clangd-index-nav/bin/clangd` (Arch, 2026-10-19).
+
+**What each prompt asks clangd, and keeps:**
+
+| | `M-o`, `s` (default) | `M-o`, `< l` | `C-c l s` |
+|---|---|---|---|
+| request `limit` | 10000 (D-083) | none: clangd's 100 | none: clangd's 100 |
+| `looseScope`, `middleMatch` | yes (D-113) | yes | yes (consult-eglot 0001) |
+| kept | defined under the project root (D-082) | all | all |
+| order | clangd's (D-105) | clangd's | grouped by kind (D-106) |
+
+**Why `ector` differs:**
+- Patch 0012 ranks a mid-word match (`ector` in `Vector`) below every fuzzy match,
+  so mid-word matches are the first to go at the limit (its commit message). On
+  step-1, `ector` has 13 fuzzy and 924 mid-word matches (S14): within 100, the 13
+  fuzzy come first and 87 of the 924 follow, ordered by clangd's quality (how often
+  a symbol is referenced), which favours deal.II's and Kokkos's symbols over the
+  project's. `M-o` asks for 10000, so all 937 arrive and the project's are kept.
+- `EBOBaseImpl` is a fuzzy match, not a mid-word one. Kokkos's partial
+  specialization `EBOBaseImpl<T, true, CtorNotOnDevice>` has a constructor clangd
+  names with the template arguments, and the fuzzy matcher matches `ector` as `E`
+  plus `ctor` in `CtorNotOnDevice` (each a word start). Toy: `ector` at limit 100
+  lists that constructor first, then the mid-word `TangentVector` and `Vector`.
+  Patch 0012 skips template arguments for mid-word matches only; clangd's own
+  fuzzy matching has always included them.
+- `C-c l s` then groups the 100 by kind: the group of the first symbol clangd sent
+  (here the constructor's) heads the list, `Vector` (Class) lands in a later
+  group if it is among the 100 at all.
+
+**Why `Vector` gives deal.II's in `C-c l s`:** an exact name is a fuzzy match of the
+best kind, so every `Vector` and `vector` in the index competes on quality; nothing
+filters by location, and deal.II's `dealii::Vector` is referenced far more than a
+project's own. Toy: `Vector` at limit 2 gives the project's `::Vector` (no rival
+named `Vector` there), then `std::pmr::vector`. `M-o` `s` keeps the project's only;
+`M-o` `< l` lists what `C-c l s` lists, in clangd's order without kind groups.
+
+**Not asked, possible follow-ups:** a project-only `C-c l s` (as `M-o` `s`, or a
+key in `C-c l s` to drop library symbols); a clangd change skipping template
+arguments in fuzzy matches of constructor names (upstream behaviour, affects
+completion too). None recorded as questions.
+
+**The heading "Symbol (clangd)" (owner: research "Project Symbol (clangd)"):**
+- `emacs-cpp-go--symbol-sources` names `s` "Symbol (server)" and `l` "All Symbols
+  (server)"; the narrow labels are "Symbol" and "All Symbols" (shown after `<`,
+  D-080). With a project root, `s` keeps the project's symbols only (D-082); without
+  one (a buffer outside any project) `s` is every symbol, as `l`.
+- The other project-only source is already named so: "Project File" (`f`); the
+  known projects are "Project" (`p`, hidden).
+- pyright and texlab only list the workspace's symbols (section 10), so "Project
+  Symbol" is true for them too.
+- Places that name it: `lisp/init-go-to-anything.el` (`emacs-cpp-go--symbol-sources`,
+  its docstring), `test/init-go-to-anything-test.el` (four assertions), DESIGN D-082
+  / D-106 text; no README text.
+- CLion calls its tab "Symbols" and limits it to the project unless "Include
+  non-project items" is ticked (section 15).
+- Options as O-66.
+
 ## Sources
 - JetBrains, CLion help "Search everywhere":
   https://www.jetbrains.com/help/clion/searching-everywhere.html
