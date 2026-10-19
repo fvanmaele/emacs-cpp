@@ -52,8 +52,8 @@ code is written for it. Each spike is a self-contained directory with its own bu
 - **S15 mid-word rank** - does rule R4 in clangd (contiguous fuzzy matches first,
   then scattered fuzzy and mid-word ones by how much of the name they cover) put
   `Vector` first for `ector` within `C-c l s`'s 100, without changing the order of
-  good fuzzy matches or slowing replies (O-67 (a), D-119)? T-107,
-  `s15-mid-word-rank/RUN.md`.
+  good fuzzy matches or slowing replies (O-67 (a), D-119)? PASS (owner's run on RMO,
+  2026-10-19; T-107, `s15-mid-word-rank/RESULTS.md`).
 - **S10 deal.II sources index** - does an offline index of deal.II's sources make
   `M-.` reach definitions and `M-?` uses inside the library on RMO, with the patched
   clangd, at what memory (O-12)?

@@ -49,7 +49,7 @@ Open: O-12; O-38 rg.el / ag.el; O-39 R server; O-47 hover;
 O-50 resolved: patch 0010 with T-104 (D-114);
 O-64 resolved: limits kept (D-115); O-65 resolved: eglot patch 0003 (D-117, T-106,
 0079); O-66 resolved: "Project Symbol" heading (D-118); O-67 resolved: mid-word
-matches ranked by shape, spike S15 first (D-119, T-107);
+matches ranked by shape: S15 PASS (D-119, T-107, 0080), patch 0013 next (T-108);
 O-57 CLion's extra symbol matches; O-56 theme following macOS appearance;
 D-105 symbols in clangd's order, `M-o` ignores case: built (T-084, 0072);
 D-106 `M-o` symbol sources per server (T-087, 0073); D-107 `build*/` in

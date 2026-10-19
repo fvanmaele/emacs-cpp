@@ -284,6 +284,9 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-108 (opened 2026-10-19, D-119, S15 PASS): clangd patch 0013, rule R4 written
+  fresh (`spikes/s15-mid-word-rank/RESULTS.md`, Decision) with clangd unit tests,
+  pkgrel 9, a Mac rebuild. Tier: 2. Done when: to agree.
 - T-107 (opened 2026-10-19, D-119): spike S15, mid-word matches ranked by shape in
   clangd (`spikes/s15-mid-word-rank/RUN.md`, pass criteria proposed 2026-10-19).
   Done when: RESULTS.md has a verdict on criteria 1 - 7 from the owner's run on
@@ -292,7 +295,7 @@ with `done when: ...`).
   run 1 (2026-10-19, RMO, `build-release`): 6 of 7, criterion 4 failed for `ass`
   only, where baseline run 1 held 24 Boost type-traits symbols that baseline run 2
   and the spike lack (the spike equals baseline run 2 in all 32 queries); owner:
-  "Rerun first".
+  "Rerun first". Done 2026-10-19 (0080): PASS, owner's run 2, 7 of 7.
 - T-106 (opened 2026-10-19, D-117, O-65 (a)): eglot patch 0003, the finders with
   Emacs 31's xref. Tier: 2. Done when (O-65 (a)): patch 0003 after 0002 in
   `.gitmodules`, `make packages` applies 9 patches; an ERT test runs
