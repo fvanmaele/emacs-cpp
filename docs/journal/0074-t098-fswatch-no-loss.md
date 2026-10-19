@@ -77,3 +77,21 @@ This package builds fswatch with four fixes, on both machines, as clangd is buil
   `packaging/fswatch-no-loss/check.sh` against an installed binary.
 - Arch (owner): `cd packaging/fswatch-no-loss && makepkg -si`; `check()` runs
   `check.sh`.
+
+## Arch run (2026-10-19)
+The owner's `makepkg` on Arch failed two checks; both fixed, pkgrel 2:
+- **`-l 0.1 -1` hung.** On exit (after `-1`, or from the SIGTERM handler) the static
+  destructors destroyed the condition variable the writer thread still waited on;
+  glibc's `pthread_cond_destroy` waits for waiters, so fswatch hung for good (a gdb
+  backtrace showed `exit` -> `~condition_variable` -> `pthread_cond_destroy`). macOS's
+  libc does not wait, so the Mac run passed. Patch 0001 now allocates the queue, its
+  mutex and its condition variables with `new` and never frees them.
+  The check also watched `d0/locale.py` without `-r`; inotify, unlike FSEvents,
+  watches only the named directory, so the file is now created at the root.
+- **2107 records waited at a cap of 1000.** inotify hands over larger batches than
+  FSEvents; a batch that crossed the cap was still queued behind the `Overflow`
+  record. It is now dropped with the rest (the `Overflow` covers it). At most one
+  chunk being written plus the cap can still reach the reader (1126 and 1920 in two
+  runs; the check allows 2000).
+- **Left:** the Mac check of pkgrel 2 (`build-macos.sh`); install on Arch
+  (`makepkg -si`), the owner's.

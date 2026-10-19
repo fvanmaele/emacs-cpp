@@ -1,4 +1,4 @@
-From efddeec8a8423e54c61721554171bca6deaa0e86 Mon Sep 17 00:00:00 2001
+From 8b82c355abcdd6efde8966f8f75ffc69c6cb1e4d Mon Sep 17 00:00:00 2001
 From: Ferdinand Vanmaele <ferdinand-joseph.vanmaele@uni-a.de>
 Date: Thu, 15 Oct 2026 16:13:39 +0200
 Subject: [PATCH 4/4] fswatch: read numbers on the command line in the C locale
@@ -11,10 +11,10 @@ with "Invalid value: 0.1".  LC_NUMERIC is set back to "C".
  1 file changed, 3 insertions(+)
 
 diff --git a/fswatch/src/fswatch.cpp b/fswatch/src/fswatch.cpp
-index 0c61478..914a2ac 100644
+index f9f41dc..8b09745 100644
 --- a/fswatch/src/fswatch.cpp
 +++ b/fswatch/src/fswatch.cpp
-@@ -1058,6 +1058,9 @@ int main(int argc, char **argv)
+@@ -1065,6 +1065,9 @@ int main(int argc, char **argv)
    // Trigger gettext operations
  #ifdef ENABLE_NLS
    setlocale(LC_ALL, "");

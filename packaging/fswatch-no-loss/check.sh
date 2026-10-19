@@ -146,7 +146,7 @@ try:
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                 env=dict(os.environ, LC_ALL=comma_locale))
         time.sleep(1)
-        with open(os.path.join(root, 'd0', 'locale.py'), 'w') as f:
+        with open(os.path.join(root, 'locale.py'), 'w') as f:
             f.write('x')
         try:
             status = proc.wait(timeout=10)

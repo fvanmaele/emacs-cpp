@@ -10,7 +10,7 @@
 
 pkgname=fswatch-no-loss
 pkgver=1.22.0
-pkgrel=1
+pkgrel=2
 pkgdesc="fswatch $pkgver that does not lose events to a slow reader (emacs-cpp patches)"
 arch=(x86_64)
 url="https://github.com/emcrisostomo/fswatch"
@@ -25,11 +25,11 @@ source=("https://github.com/emcrisostomo/fswatch/releases/download/$pkgver/fswat
         0004-fswatch-read-numbers-on-the-command-line-in-the-C-lo.patch
         check.sh)
 sha256sums=('fa6e2becba0a629964b466b39c5997e72d8a6da40d82b88190aae7359065c758'
-            'f153a50d7397c6fa67f21ccbcf8e2b190bf55777abb3f35dbaebadbefc449b2d'
-            '72528ffc463ff0b0dc3d121c820f93d4951bb52c901dc9429417d48c390c334a'
-            'f75a6e33d8d0a1827452901ee9b040b6d0ed5655bf4eb904c8038e4d4da3853d'
-            'cd805ba2912aec47eb31ada09301d51c4c6fe940e50796c6f2aa3d247acb55b2'
-            'ec93654a8467acc740e553333e6761570b55314f3e2ee95235159d68b232319e')
+            'e57bc17f183b01fb682b8e2326de9870db163567c0fd0f8ada1c4a568363ff20'
+            'fb7c75176d14673f0bea2694879a3865b1ee3207e0b11df1da3c5b0d79819a34'
+            'ae76e9229f46b4c685e5b3670ff61cd9ac88ac5bff7be38db7b0f2f7a9203a7e'
+            '641fc5e7826f1f76827bf913834b919c2af9111eb0f9d94bb2c9b2c59c6d5448'
+            'ee7115303181154544f9e2304914bbf53a4e1782a48e71da0d35ecef0dee0712')
 
 prepare() {
   cd fswatch-$pkgver
