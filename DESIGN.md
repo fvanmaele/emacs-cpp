@@ -493,7 +493,9 @@ Known defects: none yet (nothing built).
   clangd's symbols in clangd's order. clangd's own matcher stays as it is until O-68's
   later stage, so tier 3 does not reach symbols yet. Build: T-109. Built (T-109,
   0082): tiers by regexps compiled once per input (1 - 7 ms for 2767 names, at most
-  89 ms for 35000, Arch); `make test` 132; the owner's S11 run left.
+  89 ms for 35000, Arch); `make test` 132. S11 run 6 (owner, RMO, 4286 files):
+  opening 88.6 - 101.0 ms, each key's first screen at most 87.8 ms, within 150 / 100
+  ms (run 3: 63 - 74 / 29.5 ms on 2673 files).
 - DECIDED D-119 (owner 2026-10-19, O-67 (a): "O-67 (a) agree"): mid-word matches
   ranked by shape in clangd (rule R4, `RESEARCH_go_to_anything.md` 19) go to spike
   S15 (`spikes/s15-mid-word-rank`, T-107) before any patch; tier 3. A fuzzy match
