@@ -26,6 +26,8 @@ elif [ -n "${S11_SHIPPED:-}" ]; then RUN=3; ROOTS=$PROJECT
 else RUN=2; ROOTS="$PROJECT $TREE"; fi
 DELAY=${S11_KEY_DELAY:-$( [ "$RUN" = 4 ] && echo 0.1 || echo 0.3)}
 LOG=${S11_LOG:-$HERE/results-run$RUN.log}
+# Absolute: Emacs writes the log from the opened file's directory (run 6).
+case $LOG in /*) ;; *) LOG=$PWD/$LOG ;; esac
 command -v tmux > /dev/null || { echo "s11: tmux is not installed" >&2; exit 1; }
 [ -x "$CLANGD" ] || { echo "s11: no clangd at $CLANGD" >&2; exit 1; }
 [ -f "$PROJECT/CMakePresets.json" ] || { echo "s11: no CMakePresets.json in $PROJECT" >&2; exit 1; }
