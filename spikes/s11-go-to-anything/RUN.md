@@ -112,6 +112,9 @@ S11_SHIPPED=1 sh spikes/s11-go-to-anything/prompt.sh \
     ~/source/repos/RMO-gross-pitaevskii ~/source/repos/dealii src/main.cc
 ```
 Hand back `spikes/s11-go-to-anything/results-run3.log`. Criteria: run 2's, RMO.
+Since 2026-10-20 (run 6, D-120) a failure while opening the file or waiting for
+eglot is written to the log as `# setup failed: ...` and stops `prompt.sh` at once;
+`S11_LOG` names another log, `S11_WORDS` other words.
 Dry run (toy, 2026-10-11): opening 18 - 34 ms, keys 7 - 23 ms, symbols on screen
 about 120 ms after the key, no `#`, no collection.
 

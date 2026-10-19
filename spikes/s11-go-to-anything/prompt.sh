@@ -52,6 +52,7 @@ emacs -nw -Q -L scripts -L lisp -L test -l '$HERE/prompt.el'"
     i=0
     until [ "$(grep -c '^# ready' "$LOG")" -gt "$( [ "$root" = "$PROJECT" ] && echo 0 || echo 1)" ]; do
         sleep 0.5; i=$((i + 1))
+        grep -q '^# setup failed' "$LOG" && { grep '^# setup failed' "$LOG" >&2; exit 1; }
         [ $i -lt 240 ] || { echo "s11: Emacs did not get ready; see $LOG" >&2; exit 1; }
     done
     for word in $WORDS; do
