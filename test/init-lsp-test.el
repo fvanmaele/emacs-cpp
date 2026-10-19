@@ -226,5 +226,77 @@ registration's removal stops its watches; `eglot-describe-connection' lists them
           (should (zerop (eglot--count-file-watches)))
           (should-not (seq-some #'file-notify-valid-p descriptors)))))))
 
+(defmacro init-lsp-test--with-servers (&rest body)
+  "Run BODY with fake servers: `patched' (clangd announcing both matches),
+`stock' (clangd announcing none) and `pyright'; warnings go to `warned'."
+  (declare (indent 0))
+  `(let ((warned nil)
+         (emacs-cpp-lsp--symbol-warned nil))
+     (cl-letf (((symbol-function 'eglot--capabilities)
+                (lambda (server)
+                  (and (eq server 'patched)
+                       '(:workspaceSymbolMatchesProvider
+                         (:looseScope t :middleMatch t)))))
+               ((symbol-function 'eglot--server-info)
+                (lambda (server)
+                  (list :name (if (eq server 'pyright) "pyright" "clangd"))))
+               ((symbol-function 'display-warning)
+                (lambda (_type message &rest _) (push message warned))))
+       ,@body)))
+
+(ert-deftest init-lsp-symbol-params ()
+  "D-113: CLion-style matches asked for only of a server that announces them;
+a clangd announcing none gets one warning, other servers none."
+  (init-test--load)
+  (let ((emacs-cpp-symbol-loose-scope t)
+        (emacs-cpp-symbol-middle-match 3))
+    (init-lsp-test--with-servers
+      (should (equal (emacs-cpp-lsp-symbol-params 'patched)
+                     '(:looseScope t :middleMatch 3)))
+      (should-not (emacs-cpp-lsp-symbol-params 'pyright))
+      (should-not warned)
+      (should-not (emacs-cpp-lsp-symbol-params 'stock))
+      (should-not (emacs-cpp-lsp-symbol-params 'stock))
+      (should (= 1 (length warned)))
+      (should (string-match-p "emacs-cpp-clangd-program" (car warned)))))
+  ;; Options off: nothing asked for, nothing warned about.
+  (let ((emacs-cpp-symbol-loose-scope nil)
+        (emacs-cpp-symbol-middle-match nil))
+    (init-lsp-test--with-servers
+      (should-not (emacs-cpp-lsp-symbol-params 'patched))
+      (should-not (emacs-cpp-lsp-symbol-params 'stock))
+      (should-not warned)))
+  (let ((emacs-cpp-symbol-loose-scope nil)
+        (emacs-cpp-symbol-middle-match 4))
+    (init-lsp-test--with-servers
+      (should (equal (emacs-cpp-lsp-symbol-params 'patched) '(:middleMatch 4))))))
+
+(ert-deftest init-lsp-symbol-params-in-requests ()
+  "D-113: `M-o' and `C-c l s' put each server's parameters into its request."
+  (init-test--load)
+  (require 'consult)
+  (require 'consult-eglot)
+  (require 'init-go-to-anything)
+  (let ((emacs-cpp-symbol-loose-scope t)
+        (emacs-cpp-symbol-middle-match 3)
+        (sent nil))
+    (init-lsp-test--with-servers
+      (cl-letf (((symbol-function 'jsonrpc-async-request)
+                 (lambda (server _method params &rest _)
+                   (push (cons server params) sent))))
+        (funcall (funcall (emacs-cpp-go--symbol-request '(patched pyright))
+                          #'ignore)
+                 "vec")
+        (should (equal (alist-get 'patched sent)
+                       '(:query "vec" :looseScope t :middleMatch 3)))
+        (should (equal (alist-get 'pyright sent) '(:query "vec")))
+        (setq sent nil)
+        (funcall (funcall (consult-eglot--make-async-source '(patched pyright))
+                          #'ignore)
+                 "vec")
+        (should (equal (alist-get 'patched sent)
+                       '(:query "vec" :looseScope t :middleMatch 3)))
+        (should (equal (alist-get 'pyright sent) '(:query "vec")))))))
+
 (provide 'init-lsp-test)
 ;;; init-lsp-test.el ends here

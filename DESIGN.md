@@ -1025,7 +1025,8 @@ each, with a recommendation; the owner agreed to all of them (D-111):
   directory (S13, PASS on Arch and the Mac), written fresh with a unit test in
   `BackgroundIndexTests.cpp`, built together with T-104's 0011 / 0012: one pkgrel
   (8), one Mac rebuild, one Arch package. Projects reached through a symlink, and
-  every project under `/tmp` on the Mac, keep their references.
+  every project under `/tmp` on the Mac, keep their references. Built (T-104, 0077):
+  `packaging/clangd-index-nav/0010-...`, its test on a real symlink fails without it.
 - DECIDED D-113 (owner 2026-10-15, O-63 (b)): CLion-style symbol matches (patches 0011
   / 0012, if S14 passes) are switched per request: fields in `workspace/symbol`'s
   parameters next to clangd's `limit` (e.g. `middleMatch` with its minimum length,
@@ -1037,7 +1038,8 @@ each, with a recommendation; the owner agreed to all of them (D-111):
   fields, so the patch also announces support in its `initialize` reply's
   capabilities (as clangd's own extensions such as `memoryUsageProvider` do), and
   Emacs warns when an option is on but the server lacks it (fail loudly, no silent
-  no-op).
+  no-op). Built (T-104, 0077): patches 0011 / 0012, pkgrel 8, options
+  `emacs-cpp-symbol-loose-scope` (t) and `emacs-cpp-symbol-middle-match` (3).
 - DECIDED D-112 (owner 2026-10-15, O-57: "Spike for O-57 (b) + (c), drop (d)"): CLion's
   loose qualifiers (`geom::vert`) and mid-word matches (`ector`) in clangd go to
   spike S14 (`spikes/s14-symbol-matches`, T-103) before any patch; tier 3. Gaps

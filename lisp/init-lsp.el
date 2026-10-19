@@ -57,8 +57,55 @@ can still set its own."
 (use-package flymake
   :commands flymake-show-project-diagnostics)
 
+(defcustom emacs-cpp-symbol-loose-scope t
+  "Non-nil: symbol prompts find abbreviated qualifiers (D-113, clangd patch 0011).
+`geom::vert' then finds `GeometryInfo::vertices_per_cell', as in CLion.  Asked
+for in each `workspace/symbol' request of `M-o' and `C-c l s', of a server that
+announces it (the patched clangd); other servers get nothing extra."
+  :type 'boolean
+  :group 'tools)
+
+(defcustom emacs-cpp-symbol-middle-match 3
+  "Shortest query that also finds names containing it mid-word; nil for never.
+D-113, clangd patch 0012: `ector' then finds `TangentVector', ranked after every
+fuzzy match, as in CLion.  Values below 3 count as 3.  Asked for as
+`emacs-cpp-symbol-loose-scope' is."
+  :type '(choice (const :tag "Never" nil) natnum)
+  :group 'tools)
+
+(defvar emacs-cpp-lsp--symbol-warned nil
+  "Servers already warned about lacking `workspaceSymbolMatchesProvider'.")
+
+(defun emacs-cpp-lsp-symbol-params (server)
+  "Return the extra `workspace/symbol' parameters for SERVER, a plist (D-113).
+Only those SERVER announces under `workspaceSymbolMatchesProvider' and the
+options ask for.  A clangd that announces none while an option is on is not the
+patched one, so the option does nothing there: one warning per server says so."
+  (let ((offered (plist-get (eglot--capabilities server)
+                            :workspaceSymbolMatchesProvider))
+        params)
+    (when (and emacs-cpp-symbol-middle-match (plist-get offered :middleMatch))
+      (setq params (list :middleMatch emacs-cpp-symbol-middle-match)))
+    (when (and emacs-cpp-symbol-loose-scope (plist-get offered :looseScope))
+      (setq params (append (list :looseScope t) params)))
+    (when (and (not offered)
+               (or emacs-cpp-symbol-loose-scope emacs-cpp-symbol-middle-match)
+               (equal (plist-get (eglot--server-info server) :name) "clangd")
+               (not (memq server emacs-cpp-lsp--symbol-warned)))
+      (push server emacs-cpp-lsp--symbol-warned)
+      (display-warning
+       'emacs-cpp
+       "This clangd does not offer CLion-style symbol matches (abbreviated \
+qualifiers, mid-word names): set `emacs-cpp-clangd-program' to the patched clangd \
+(patches 0011, 0012), or turn off `emacs-cpp-symbol-loose-scope' and \
+`emacs-cpp-symbol-middle-match' (D-113)"))
+    params))
+
 (use-package consult-eglot
-  :after (consult eglot))
+  :after (consult eglot)
+  :config
+  ;; `C-c l s' asks for what `M-o' asks for (D-113; consult-eglot patch 0001).
+  (setq consult-eglot-symbol-params-function #'emacs-cpp-lsp-symbol-params))
 
 (defun emacs-cpp-lsp--defined-here-p (identifier)
   "Non-nil when every definition of IDENTIFIER is on the line at point."

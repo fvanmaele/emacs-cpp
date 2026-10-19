@@ -58,7 +58,7 @@ D-109 patched fswatch built locally (T-098, 0074; Arch build left); fswatch back
 for eglot ruled (D-110, DESIGN 7.1), watch items ruled (D-111, 7.2); eglot vendored
 (T-090, 0075; Arch make test left); shared watches as patch 0002
 (T-102, 0076; Arch make test left);
-S14 PASS: O-57 (b) + (c) as clangd patches 0011 / 0012; T-104 agreed (0010 - 0012);
+clangd patches 0010 - 0012 built (T-104, 0077; pkgrel 8, Arch build left);
 D-113 0011 / 0012 switched per request, announced as a capability;
 T-025 round 2, T-026 queued.
 

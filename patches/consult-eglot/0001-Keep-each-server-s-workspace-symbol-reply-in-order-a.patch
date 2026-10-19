@@ -1,0 +1,64 @@
+From a03b7b6ac1e9679fe0dd5ba206806838b80f475d Mon Sep 17 00:00:00 2001
+From: Ferdinand Vanmaele <ferdinand-joseph.vanmaele@uni-a.de>
+Date: Thu, 15 Oct 2026 20:17:13 +0200
+Subject: [PATCH] Keep each server's workspace/symbol reply in order; allow
+ more parameters
+
+consult-eglot--make-async-source re-sorted the replies by their `score'
+field when consult-eglot-sort-results was set.  clangd ranks its reply
+with the name match included, but the `score' it sends leaves the name
+match out ("for client-side re-ranking"), and halves it for a symbol in
+a namespace when the query names none.  So for the query "vector" the
+re-sort put a global vector_n_rows_1d above dealii::Vector, which clangd
+had sent first.  Servers without a `score' (pyright, texlab) had theirs
+sorted below every clangd symbol.
+
+The replies now stay as sent; a second server's reply follows the first
+one's.  `:sort' stays nil, so the completion UI does not sort them
+either.
+
+consult-eglot-symbol-params-function, when set, is called with each
+server and its plist is added to that server's workspace/symbol
+request, so a server's own extensions (clangd's `limit', or fields it
+announces among its capabilities) can be asked for per server.
+---
+ consult-eglot.el | 13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
+
+diff --git a/consult-eglot.el b/consult-eglot.el
+index 0792b00..e18dc4e 100644
+--- a/consult-eglot.el
++++ b/consult-eglot.el
+@@ -97,6 +97,10 @@ values in `eglot--symbol-kind-names'."
+ 
+ (make-obsolete 'consult-eglot-show-kind-name nil "0.3")
+ 
++(defvar consult-eglot-symbol-params-function nil
++  "Function of a server returning more `workspace/symbol' parameters, a plist.
++Nil, or what it returns, adds nothing to the query.")
++
+ (defun consult-eglot--format-file-line-match (file line &optional match)
+   "Format string FILE LINE and MATCH with faces."
+   (setq line (number-to-string line)
+@@ -120,12 +124,15 @@ symbols in the workspace tied to SERVERS."
+             for server in servers
+             do (jsonrpc-async-request
+                 server :workspace/symbol
+-                `(:query ,query)
++                `(:query ,query
++                         ,@(and consult-eglot-symbol-params-function
++                                (funcall consult-eglot-symbol-params-function
++                                         server)))
+                 :success-fn
+                 (lambda (resp)
++                  ;; Keep the order the server sent: clangd ranks with the name
++                  ;; match, which the `score' it sends leaves out.
+                   (setq responses (append responses resp nil))
+-                  (when consult-eglot-sort-results
+-                    (setq responses (cl-sort responses #'> :key (lambda (c) (cl-getf c :score 0)))))
+                   (funcall async 'flush)
+                   (funcall async responses))
+                 :error-fn
+-- 
+2.56.0
+
