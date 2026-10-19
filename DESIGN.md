@@ -494,6 +494,8 @@ Known defects: none yet (nothing built).
   `dealii::Vector` first, no good fuzzy match moved. Owner 2026-10-19: RMO on Arch
   decides (not step-1). Owner's run 1 on RMO: 6 of 7, criterion 4 failed for `ass`
   only, the baseline differing from itself between its two runs; owner: rerun.
+  S15 PASS (owner's run 2, 2026-10-19, RMO, `RESULTS.md`): 7 of 7; next T-108,
+  patch 0013.
 - DECIDED D-118 (owner 2026-10-19, O-66 (a)): with a project root, `M-o`'s `s`
   symbols (the project's only, D-082) are headed "Project Symbol (server)", narrow
   label "Project Symbol", as "Project File"; without a root `s` (every symbol) stays
@@ -1555,7 +1557,7 @@ presets, GoogleTest runner.
 | deal.II sources index unused or too costly on RMO | S10 | owner | O-12 |
 | go-to-anything prompt slow on RMO / deal.II | S11 (runs 2, 3 PASS) | owner | T-049 |
 | CLion-style symbol matches break or slow clangd | S14 (PASS) | owner | O-57 |
-| Mid-word ranking changes good fuzzy matches or slows clangd | S15 | owner | O-67 |
+| Mid-word ranking changes good fuzzy matches or slows clangd | S15 (PASS) | owner | O-67 |
 | own package build glue mis-orders compilation | none (tests) | - | v0.1 |
 | config fails on macOS (paths, tools, tests) | none (`make test`) | owner | D-050 |
 | clangd too slow / too large on deal.II scale | S1 numbers | owner | v0.1 |
