@@ -1,0 +1,323 @@
+From 19a56c4fd954e67431d6858d9de20467d984bde0 Mon Sep 17 00:00:00 2001
+From: Ferdinand Vanmaele <ferdinand-joseph.vanmaele@uni-a.de>
+Date: Fri, 16 Oct 2026 16:56:56 +0200
+Subject: [PATCH 12/12] [clangd] workspace/symbol: mid-word matches on request
+ (middleMatch)
+
+A client may send middleMatch: N with workspace/symbol.  Then, for a
+query of at least N characters (3 or more), a symbol whose identifier
+contains the query in any case matches too ("ector" finds
+"TangentVector"), which FuzzyMatcher refuses because the query does not
+start a word segment.  Template arguments are not searched: a class
+template's constructor is named "Holder<VectorType>".  Such matches
+score below zero in Dex and MemIndex and below every fuzzy match in
+getWorkspaceSymbols, so they rank last and go first at a limit; the
+index's quality factor multiplies the score, so a small positive score
+was not enough.  The request field FuzzyFindRequest::MiddleMatch is set
+by workspace symbols only; code completion leaves it 0.  The initialize
+reply announces workspaceSymbolMatchesProvider.middleMatch.
+---
+ clang-tools-extra/clangd/ClangdLSPServer.cpp  |  4 +++-
+ clang-tools-extra/clangd/FindSymbols.cpp      | 18 +++++++++++++--
+ clang-tools-extra/clangd/FindSymbols.h        |  4 ++++
+ clang-tools-extra/clangd/FuzzyMatch.h         | 10 +++++++++
+ clang-tools-extra/clangd/Protocol.cpp         |  3 ++-
+ clang-tools-extra/clangd/Protocol.h           |  7 ++++++
+ clang-tools-extra/clangd/index/Index.cpp      |  4 +++-
+ clang-tools-extra/clangd/index/Index.h        | 11 +++++++---
+ clang-tools-extra/clangd/index/MemIndex.cpp   |  7 +++++-
+ clang-tools-extra/clangd/index/dex/Dex.cpp    |  7 +++++-
+ .../clangd/unittests/DexTests.cpp             | 15 +++++++++++++
+ .../clangd/unittests/FindSymbolsTests.cpp     | 22 +++++++++++++++++++
+ 12 files changed, 102 insertions(+), 10 deletions(-)
+
+diff --git a/clang-tools-extra/clangd/ClangdLSPServer.cpp b/clang-tools-extra/clangd/ClangdLSPServer.cpp
+index 9136ff5..a82489a 100644
+--- a/clang-tools-extra/clangd/ClangdLSPServer.cpp
++++ b/clang-tools-extra/clangd/ClangdLSPServer.cpp
+@@ -637,7 +637,7 @@ void ClangdLSPServer::onInitialize(const InitializeParams &Params,
+       {"workspaceSymbolProvider", true},
+       // emacs-cpp extension: workspace/symbol fields a client may send.
+       {"workspaceSymbolMatchesProvider",
+-       llvm::json::Object{{"looseScope", true}}},
++       llvm::json::Object{{"looseScope", true}, {"middleMatch", true}}},
+       {"referencesProvider", true},
+       {"astProvider", true}, // clangd extension
+       {"typeHierarchyProvider", true},
+@@ -878,6 +878,8 @@ void ClangdLSPServer::onWorkspaceSymbol(
+     Callback<std::vector<SymbolInformation>> Reply) {
+   WorkspaceSymbolOptions Matches;
+   Matches.LooseScope = Params.looseScope;
++  if (Params.middleMatch > 0)
++    Matches.MiddleMatch = std::max(3, Params.middleMatch);
+   Server->workspaceSymbols(
+       Params.query, Params.limit.value_or(Opts.CodeComplete.Limit), Matches,
+       [Reply = std::move(Reply),
+diff --git a/clang-tools-extra/clangd/FindSymbols.cpp b/clang-tools-extra/clangd/FindSymbols.cpp
+index 3df0e09..ae1801c 100644
+--- a/clang-tools-extra/clangd/FindSymbols.cpp
++++ b/clang-tools-extra/clangd/FindSymbols.cpp
+@@ -311,6 +311,7 @@ getWorkspaceSymbols(llvm::StringRef Query, int Limit,
+ 
+   FuzzyFindRequest Req;
+   Req.Query = std::string(Names.second);
++  Req.MiddleMatch = Opts.MiddleMatch;
+ 
+   // FuzzyFind doesn't want leading :: qualifier.
+   auto HasLeadingColons = Names.first.consume_front("::");
+@@ -330,7 +331,8 @@ getWorkspaceSymbols(llvm::StringRef Query, int Limit,
+       Req.Limit.value_or(std::numeric_limits<size_t>::max()));
+   FuzzyMatcher Filter(Req.Query);
+ 
+-  Index->fuzzyFind(Req, [HintPath, &Top, &Filter, &Opts, AnyScope = Req.AnyScope,
++  Index->fuzzyFind(Req, [HintPath, &Top, &Filter, &Opts, &Req,
++                         AnyScope = Req.AnyScope,
+                          ReqScope = Names.first](const Symbol &Sym) {
+     llvm::StringRef Scope = Sym.Scope;
+     // Fuzzyfind might return symbols from irrelevant namespaces if query was
+@@ -352,7 +354,15 @@ getWorkspaceSymbols(llvm::StringRef Query, int Limit,
+     Relevance.Query = SymbolRelevanceSignals::Generic;
+     // If symbol and request scopes do not match exactly, apply a penalty.
+     Relevance.InBaseClass = AnyScope && Scope != ReqScope;
+-    if (auto NameMatch = Filter.match(Sym.Name))
++    auto NameMatch = Filter.match(Sym.Name);
++    // A mid-word match (MiddleMatch) ranks after every fuzzy one, below.
++    bool MidWord = false;
++    if (!NameMatch && Req.MiddleMatch && Req.Query.size() >= Req.MiddleMatch &&
++        containsInIdentifier(Sym.Name, Req.Query)) {
++      NameMatch = 1e-3f;
++      MidWord = true;
++    }
++    if (NameMatch)
+       Relevance.NameMatch = *NameMatch;
+     else {
+       log("Workspace symbol: {0} didn't match query {1}", Sym.Name,
+@@ -377,6 +387,10 @@ getWorkspaceSymbols(llvm::StringRef Query, int Limit,
+     Info.score = Relevance.NameMatch > std::numeric_limits<float>::epsilon()
+                      ? Score / Relevance.NameMatch
+                      : QualScore;
++    // Below every fuzzy match, whose scores are at least 0, and first to go at
++    // the limit.
++    if (MidWord)
++      Score -= 1e6f;
+     Top.push({Score, std::move(Info)});
+   });
+   for (auto &R : std::move(Top).items())
+diff --git a/clang-tools-extra/clangd/FindSymbols.h b/clang-tools-extra/clangd/FindSymbols.h
+index d6cf31a..48c12ce 100644
+--- a/clang-tools-extra/clangd/FindSymbols.h
++++ b/clang-tools-extra/clangd/FindSymbols.h
+@@ -55,6 +55,10 @@ struct WorkspaceSymbolOptions {
+   /// symbol's scope, in order: "geom::vert" finds
+   /// "GeometryInfo::vertices_per_cell".
+   bool LooseScope = false;
++  /// A name containing a query of at least this many characters (3 or more)
++  /// matches, ranked after every fuzzy match: "ector" finds "TangentVector".
++  /// 0 means off.
++  unsigned MiddleMatch = 0;
+ };
+ 
+ llvm::Expected<std::vector<SymbolInformation>>
+diff --git a/clang-tools-extra/clangd/FuzzyMatch.h b/clang-tools-extra/clangd/FuzzyMatch.h
+index a8621d6..532e709 100644
+--- a/clang-tools-extra/clangd/FuzzyMatch.h
++++ b/clang-tools-extra/clangd/FuzzyMatch.h
+@@ -68,6 +68,16 @@ CharTypeSet calculateRoles(llvm::StringRef Text,
+ 
+ // A matcher capable of matching and scoring strings against a single pattern.
+ // It's optimized for matching against many strings - match() does not allocate.
++// Whether \p Word's identifier (the part before any template arguments: the
++// constructor of a class template is named "Holder<VectorType>") contains
++// \p Pattern, in any case. A match of last resort for workspace symbols
++// ("ector" in "TangentVector"), which FuzzyMatcher refuses because the pattern
++// does not start a word segment.
++inline bool containsInIdentifier(llvm::StringRef Word, llvm::StringRef Pattern) {
++  return Word.take_until([](char C) { return C == '<'; })
++      .contains_insensitive(Pattern);
++}
++
+ class FuzzyMatcher {
+ public:
+   // Characters beyond MaxPat are ignored.
+diff --git a/clang-tools-extra/clangd/Protocol.cpp b/clang-tools-extra/clangd/Protocol.cpp
+index 829faa3..f87fa1a 100644
+--- a/clang-tools-extra/clangd/Protocol.cpp
++++ b/clang-tools-extra/clangd/Protocol.cpp
+@@ -938,7 +938,8 @@ bool fromJSON(const llvm::json::Value &Params, WorkspaceSymbolParams &R,
+   llvm::json::ObjectMapper O(Params, P);
+   return O && O.map("query", R.query) &&
+          mapOptOrNull(Params, "limit", R.limit, P) &&
+-         O.mapOptional("looseScope", R.looseScope);
++         O.mapOptional("looseScope", R.looseScope) &&
++         O.mapOptional("middleMatch", R.middleMatch);
+ }
+ 
+ llvm::json::Value toJSON(const Command &C) {
+diff --git a/clang-tools-extra/clangd/Protocol.h b/clang-tools-extra/clangd/Protocol.h
+index 11e724e..64a64e6 100644
+--- a/clang-tools-extra/clangd/Protocol.h
++++ b/clang-tools-extra/clangd/Protocol.h
+@@ -1254,6 +1254,13 @@ struct WorkspaceSymbolParams {
+   /// "GeometryInfo::"). Clangd extension (emacs-cpp), announced as
+   /// workspaceSymbolMatchesProvider.looseScope.
+   bool looseScope = false;
++
++  /// Mid-word matches: a symbol whose name contains the query, in any case
++  /// ("ector" finds "TangentVector"), for queries of at least this many
++  /// characters, ranked after every fuzzy match. 0 means off; values below 3
++  /// count as 3. Clangd extension (emacs-cpp), announced as
++  /// workspaceSymbolMatchesProvider.middleMatch.
++  int middleMatch = 0;
+ };
+ bool fromJSON(const llvm::json::Value &, WorkspaceSymbolParams &,
+               llvm::json::Path);
+diff --git a/clang-tools-extra/clangd/index/Index.cpp b/clang-tools-extra/clangd/index/Index.cpp
+index a2ec910..3117ce2 100644
+--- a/clang-tools-extra/clangd/index/Index.cpp
++++ b/clang-tools-extra/clangd/index/Index.cpp
+@@ -36,7 +36,8 @@ bool fromJSON(const llvm::json::Value &Parameters, FuzzyFindRequest &Request,
+       O.map("AnyScope", Request.AnyScope) && O.map("Limit", Limit) &&
+       O.map("RestrictForCodeCompletion", Request.RestrictForCodeCompletion) &&
+       O.map("ProximityPaths", Request.ProximityPaths) &&
+-      O.map("PreferredTypes", Request.PreferredTypes);
++      O.map("PreferredTypes", Request.PreferredTypes) &&
++      O.mapOptional("MiddleMatch", Request.MiddleMatch);
+   if (OK && Limit <= std::numeric_limits<uint32_t>::max())
+     Request.Limit = Limit;
+   return OK;
+@@ -51,6 +52,7 @@ llvm::json::Value toJSON(const FuzzyFindRequest &Request) {
+       {"RestrictForCodeCompletion", Request.RestrictForCodeCompletion},
+       {"ProximityPaths", Request.ProximityPaths},
+       {"PreferredTypes", Request.PreferredTypes},
++      {"MiddleMatch", Request.MiddleMatch},
+   };
+ }
+ 
+diff --git a/clang-tools-extra/clangd/index/Index.h b/clang-tools-extra/clangd/index/Index.h
+index b62b15d..48be1b0 100644
+--- a/clang-tools-extra/clangd/index/Index.h
++++ b/clang-tools-extra/clangd/index/Index.h
+@@ -42,6 +42,11 @@ struct FuzzyFindRequest {
+   std::optional<uint32_t> Limit;
+   /// If set to true, only symbols for completion support will be considered.
+   bool RestrictForCodeCompletion = false;
++  /// If nonzero, a symbol whose identifier contains Query in any case matches
++  /// too, when Query has at least this many characters (3 or more: shorter
++  /// queries use other trigrams); it scores below zero, after every fuzzy
++  /// match. Workspace symbols set it on request; code completion never does.
++  unsigned MiddleMatch = 0;
+   /// Contextually relevant files (e.g. the file we're code-completing in).
+   /// Paths should be absolute.
+   std::vector<std::string> ProximityPaths;
+@@ -50,10 +55,10 @@ struct FuzzyFindRequest {
+ 
+   bool operator==(const FuzzyFindRequest &Req) const {
+     return std::tie(Query, Scopes, Limit, RestrictForCodeCompletion,
+-                    ProximityPaths, PreferredTypes) ==
++                    MiddleMatch, ProximityPaths, PreferredTypes) ==
+            std::tie(Req.Query, Req.Scopes, Req.Limit,
+-                    Req.RestrictForCodeCompletion, Req.ProximityPaths,
+-                    Req.PreferredTypes);
++                    Req.RestrictForCodeCompletion, Req.MiddleMatch,
++                    Req.ProximityPaths, Req.PreferredTypes);
+   }
+   bool operator!=(const FuzzyFindRequest &Req) const { return !(*this == Req); }
+ };
+diff --git a/clang-tools-extra/clangd/index/MemIndex.cpp b/clang-tools-extra/clangd/index/MemIndex.cpp
+index feac1cf..c4c97f7 100644
+--- a/clang-tools-extra/clangd/index/MemIndex.cpp
++++ b/clang-tools-extra/clangd/index/MemIndex.cpp
+@@ -45,7 +45,12 @@ bool MemIndex::fuzzyFind(
+         !(Sym->Flags & Symbol::IndexedForCodeCompletion))
+       continue;
+ 
+-    if (auto Score = Filter.match(Sym->Name))
++    auto Score = Filter.match(Sym->Name);
++    // A mid-word match scores below zero, after every fuzzy match (Dex.cpp).
++    if (!Score && Req.MiddleMatch && Req.Query.size() >= Req.MiddleMatch &&
++        containsInIdentifier(Sym->Name, Req.Query))
++      Score = -1.0f;
++    if (Score)
+       if (Top.push({*Score * quality(*Sym), Sym}))
+         More = true; // An element with smallest score was discarded.
+   }
+diff --git a/clang-tools-extra/clangd/index/dex/Dex.cpp b/clang-tools-extra/clangd/index/dex/Dex.cpp
+index 179d8c4..9bbbda7 100644
+--- a/clang-tools-extra/clangd/index/dex/Dex.cpp
++++ b/clang-tools-extra/clangd/index/dex/Dex.cpp
+@@ -282,7 +282,12 @@ bool Dex::fuzzyFind(const FuzzyFindRequest &Req,
+   for (const auto &IDAndScore : IDAndScores) {
+     const DocID SymbolDocID = IDAndScore.first;
+     const auto *Sym = Symbols[SymbolDocID];
+-    const std::optional<float> Score = Filter.match(Sym->Name);
++    std::optional<float> Score = Filter.match(Sym->Name);
++    // A mid-word match scores below zero: after every fuzzy match whatever the
++    // symbol's quality, which multiplies the score, and first to go at the limit.
++    if (!Score && Req.MiddleMatch && Req.Query.size() >= Req.MiddleMatch &&
++        containsInIdentifier(Sym->Name, Req.Query))
++      Score = -1.0f;
+     if (!Score)
+       continue;
+     // Combine Fuzzy Matching score, precomputed symbol quality and boosting
+diff --git a/clang-tools-extra/clangd/unittests/DexTests.cpp b/clang-tools-extra/clangd/unittests/DexTests.cpp
+index ca8b81b..7071263 100644
+--- a/clang-tools-extra/clangd/unittests/DexTests.cpp
++++ b/clang-tools-extra/clangd/unittests/DexTests.cpp
+@@ -536,6 +536,21 @@ TEST(DexTest, FuzzyMatch) {
+               UnorderedElementsAre("LaughingOutLoud", "LittleOldLady"));
+ }
+ 
++TEST(DexTest, MiddleMatch) {
++  auto I = Dex::build(generateSymbols({"Ector", "TangentVector", "Unrelated"}),
++                      RefSlab(), RelationSlab(), true);
++  FuzzyFindRequest Req;
++  Req.Query = "ector";
++  Req.AnyScope = true;
++  // Off by default, as code completion asks: only the fuzzy match.
++  EXPECT_THAT(match(*I, Req), UnorderedElementsAre("Ector"));
++  Req.MiddleMatch = 3;
++  EXPECT_THAT(match(*I, Req), UnorderedElementsAre("Ector", "TangentVector"));
++  // The mid-word match scores below the fuzzy one, so it goes first at a limit.
++  Req.Limit = 1;
++  EXPECT_THAT(match(*I, Req), UnorderedElementsAre("Ector"));
++}
++
+ TEST(DexTest, ShortQuery) {
+   auto I = Dex::build(generateSymbols({"_OneTwoFourSix"}), RefSlab(),
+                       RelationSlab(), true);
+diff --git a/clang-tools-extra/clangd/unittests/FindSymbolsTests.cpp b/clang-tools-extra/clangd/unittests/FindSymbolsTests.cpp
+index 43700e6..4d6bef9 100644
+--- a/clang-tools-extra/clangd/unittests/FindSymbolsTests.cpp
++++ b/clang-tools-extra/clangd/unittests/FindSymbolsTests.cpp
+@@ -220,6 +220,28 @@ TEST(WorkspaceSymbols, LooseScope) {
+               ElementsAre(qName("dealii::GeometryInfo::vertices_per_cell")));
+ }
+ 
++TEST(WorkspaceSymbols, MiddleMatch) {
++  TestTU TU;
++  TU.Code = R"cpp(
++      struct Ector {};
++      struct TangentVector {};
++      template <typename VectorType> struct Holder { Holder(); };
++      )cpp";
++  WorkspaceSymbolOptions Middle;
++  Middle.MiddleMatch = 3;
++  // Off unless asked for: only the fuzzy match.
++  EXPECT_THAT(getSymbols(TU, "ector"), ElementsAre(qName("Ector")));
++  // Asked for: mid-word matches after every fuzzy one; not inside template
++  // arguments (Holder's constructor is named "Holder<VectorType>").
++  EXPECT_THAT(getSymbols(TU, "ector", 0, Middle),
++              ElementsAre(qName("Ector"), qName("TangentVector")));
++  // First to go at the limit.
++  EXPECT_THAT(getSymbols(TU, "ector", 1, Middle), ElementsAre(qName("Ector")));
++  // Below the minimum length nothing is added.
++  Middle.MiddleMatch = 6;
++  EXPECT_THAT(getSymbols(TU, "ector", 0, Middle), ElementsAre(qName("Ector")));
++}
++
+ TEST(WorkspaceSymbols, AnonymousNamespace) {
+   TestTU TU;
+   TU.Code = R"cpp(
+-- 
+2.56.0
+

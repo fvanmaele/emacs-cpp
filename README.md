@@ -20,7 +20,7 @@ sudo pacman -S --needed emacs git make texinfo \
     tree-sitter-python pyright python-debugpy r \
     fd ripgrep \
     texlab texlive-basic texlive-latex texlive-latexrecommended texlive-latexextra \
-    texlive-binextra zathura zathura-pdf-mupdf
+    texlive-binextra perl-yaml-tiny perl-file-homedir zathura zathura-pdf-mupdf
 ```
 - **Emacs 31** with native compilation and tree-sitter (the Arch `emacs` package).
 - **tree-sitter-cpp** must also be installed as a pacman package. On the owner machine
@@ -31,7 +31,8 @@ sudo pacman -S --needed emacs git make texinfo \
 - **texinfo** provides `makeinfo` and `install-info`; `make packages` fails without
   them (D-039).
 - **LaTeX** (D-090): texlab is the language server, `texlive-binextra` brings latexmk
-  and latexindent (`C-c l f`, D-101), zathura shows the line `C-c l b` built. Leave
+  and latexindent (`C-c l f`, D-101; on Arch its optional `perl-yaml-tiny` and
+  `perl-file-homedir` are needed too), zathura shows the line `C-c l b` built. Leave
   these out if you write no LaTeX; only `.tex` buffers use them.
 
 ### 2. Clone and build the packages
@@ -68,8 +69,13 @@ that names the fix (DESIGN 4).
 `packaging/clangd-index-nav` builds clangd 23.1.1 with local patches. It answers
 go-to-definition and find-usages from its index before a file is parsed, and gives a
 header the flags of a source file that includes it (D-026 .. D-028, D-046, D-047). It
-installs to `/opt/clangd-index-nav`, next to the system clangd, and pins `llvm-libs`
-and `clang` to 23.1.1 exactly (D-027).
+keeps a project's references when the project is reached through a symbolic link (on
+macOS every project under `/tmp`; D-114), and finds symbols as CLion does: abbreviated
+qualifiers (`geom::vert` for `GeometryInfo::vertices_per_cell`) and, after the usual
+matches, names containing the query mid-word (`ector` for `TangentVector`), in `M-o`
+and `C-c l s` (D-113; options `emacs-cpp-symbol-loose-scope`,
+`emacs-cpp-symbol-middle-match`). It installs to `/opt/clangd-index-nav`, next to the
+system clangd, and pins `llvm-libs` and `clang` to 23.1.1 exactly (D-027).
 ```sh
 cd ~/source/repos/emacs-cpp/packaging/clangd-index-nav
 makepkg -si
@@ -78,6 +84,15 @@ Then set `emacs-cpp-clangd-program` to `/opt/clangd-index-nav/bin/clangd` with
 `M-x customize-variable`. Nil, the default, uses the system clangd. A configured
 program that is missing or lacks the patched flags refuses to start, it never falls
 back silently. An LLVM upgrade needs a rebuild of this package.
+
+`make test` checks the patched clangd too (`init-cpp-patched-clangd-navigates`;
+skipped when it is not installed). It looks in `/opt/clangd-index-nav/bin/clangd`
+(Arch) and `~/opt/clangd-index-nav/bin/clangd` (macOS, in your real home, though
+the tests run in a temporary one); `EMACS_CPP_PATCHED_CLANGD` names another build:
+```sh
+EMACS_CPP_PATCHED_CLANGD=/opt/clangd-index-nav/bin/clangd make test          # Arch
+EMACS_CPP_PATCHED_CLANGD=$HOME/opt/clangd-index-nav/bin/clangd make test     # macOS
+```
 
 `C-c l N` renames a namespace with clang-change-namespace, whose LLVM 23 release
 crashes on two or more sources (D-094). `packaging/clang-change-namespace/build.sh`

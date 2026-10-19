@@ -1,4 +1,4 @@
-From 460ea7906b14338cffc1d9d3707ef310077beec1 Mon Sep 17 00:00:00 2001
+From ffefde02375f1e82d9e45ab1c76fe5c050e8b21c Mon Sep 17 00:00:00 2001
 From: Ferdinand Vanmaele <ferdinand-joseph.vanmaele@uni-a.de>
 Date: Thu, 15 Oct 2026 16:13:39 +0200
 Subject: [PATCH 3/4] fsevents_monitor: report the present state of a path
