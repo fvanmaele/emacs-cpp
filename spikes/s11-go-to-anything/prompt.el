@@ -142,18 +142,26 @@
                                              query (length reply) (ms key-time))
                                         (funcall success reply)))))))))
 
-;; Open the source once the terminal is up, wait for eglot and the index.
+;; Open the source once the terminal is up, wait for eglot and the index.  An
+;; error in a timer reaches no log (run 6's first try stopped here without a word),
+;; so it is written to the log before prompt.sh gives up.
 (run-with-timer
  0.5 nil
  (lambda ()
-   (let ((emacs-cpp-presets-state-file (getenv "S11_STATE"))
-         (emacs-cpp-clangd-program (getenv "S11_CLANGD")))
-     (find-file (expand-file-name (getenv "S11_FILE") (getenv "S11_PROJECT")))
-     (run-hooks 'post-command-hook)
-     (say "# files from %s; managed %s; %s; gc-cons-threshold %d"
-          files-root (init-test--wait-managed 60)
-          (car (process-command (jsonrpc--process (eglot-current-server))))
-          gc-cons-threshold))
-   (let ((e (+ (float-time) (string-to-number (or (getenv "S11_SETTLE") "20")))))
-     (while (< (float-time) e) (accept-process-output nil 0.2)))
-   (say "# ready%s" (if (getenv "S11_SHIPPED") ", shipped command" ""))))
+   (condition-case err
+       (progn
+         (let ((emacs-cpp-presets-state-file (getenv "S11_STATE"))
+               (emacs-cpp-clangd-program (getenv "S11_CLANGD")))
+           (find-file (expand-file-name (getenv "S11_FILE") (getenv "S11_PROJECT")))
+           (run-hooks 'post-command-hook)
+           (let ((managed (init-test--wait-managed 60)))
+             (unless managed
+               (error "eglot did not manage %s within 60 s" (getenv "S11_FILE")))
+             (say "# files from %s; managed %s; %s; gc-cons-threshold %d"
+                  files-root managed
+                  (car (process-command (jsonrpc--process (eglot-current-server))))
+                  gc-cons-threshold)))
+         (let ((e (+ (float-time) (string-to-number (or (getenv "S11_SETTLE") "20")))))
+           (while (< (float-time) e) (accept-process-output nil 0.2)))
+         (say "# ready%s" (if (getenv "S11_SHIPPED") ", shipped command" "")))
+     (error (say "# setup failed: %S" err)))))
