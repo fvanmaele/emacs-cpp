@@ -491,7 +491,9 @@ Known defects: none yet (nothing built).
   files; case always ignored (smart case off; D-105 already for `M-o`); sorted by
   tier, the present order kept within a tier, `M-o` keeping its sources apart and
   clangd's symbols in clangd's order. clangd's own matcher stays as it is until O-68's
-  later stage, so tier 3 does not reach symbols yet. Build: T-109.
+  later stage, so tier 3 does not reach symbols yet. Build: T-109. Built (T-109,
+  0082): tiers by regexps compiled once per input (1 - 7 ms for 2767 names, at most
+  89 ms for 35000, Arch); `make test` 132; the owner's S11 run left.
 - DECIDED D-119 (owner 2026-10-19, O-67 (a): "O-67 (a) agree"): mid-word matches
   ranked by shape in clangd (rule R4, `RESEARCH_go_to_anything.md` 19) go to spike
   S15 (`spikes/s15-mid-word-rank`, T-107) before any patch; tier 3. A fuzzy match

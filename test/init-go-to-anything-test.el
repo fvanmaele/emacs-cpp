@@ -411,8 +411,8 @@ replies arrive.  Return the names of the last list the step sank."
                    '("Vector" "vector_n_rows_1d" "vector_norm")))))
 
 (ert-deftest init-go-to-anything-ignores-case ()
-  "D-105: inside the prompt, `readme' finds README.md through consult's filter of
-the static sources; outside it, case still counts."
+  "D-105, D-120: inside the prompt, `readme' finds README.md through consult's
+filter of the static sources; outside it too, since D-120 ignores case everywhere."
   (init-test--load)
   (require 'consult)
   (let ((filter (lambda ()
@@ -427,7 +427,52 @@ the static sources; outside it, case still counts."
                  (lambda (&rest _) (setq inside (funcall filter)) nil)))
         (emacs-cpp-go-to-anything)))
     (should (equal inside '("README.md")))
-    (should (null (funcall filter)))))
+    (should (equal (funcall filter) '("README.md")))))
+
+(ert-deftest init-go-to-anything-letters-in-order ()
+  "D-120: the static sources match as every prompt does: `eto' finds Vector.cc,
+`vt' VectorTools.cc."
+  (init-test--load)
+  (require 'consult)
+  (let ((filter (lambda (input)
+                  (let (shown)
+                    (funcall (funcall (consult--async-static
+                                       '("Vector.cc" "VectorTools.cc" "README.md"))
+                                      (lambda (action)
+                                        (when (consp action) (setq shown action))
+                                        nil))
+                             input)
+                    (mapcar #'substring-no-properties shown))))
+        inside)
+    (init-go-to-anything-test--with-project
+      (cl-letf (((symbol-function 'consult--multi)
+                 (lambda (&rest _)
+                   (setq inside (list (funcall filter "eto") (funcall filter "vt")))
+                   nil)))
+        (emacs-cpp-go-to-anything)))
+    (should (member "Vector.cc" (nth 0 inside)))
+    (should (member "VectorTools.cc" (nth 1 inside)))))
+
+(ert-deftest init-go-to-anything-sort-by-source-and-tier ()
+  "D-120: `M-o' sorts by tier within each source, the sources in their order;
+symbols keep their server's order."
+  (init-test--load)
+  (require 'consult)
+  (let* ((file (lambda (name) (let ((c (consult--tofu-append name 0)))
+                                (put-text-property 0 1 'multi-category (cons 'file name) c)
+                                c)))
+         (symbol (lambda (name) (let ((c (consult--tofu-append name 1)))
+                                  (put-text-property 0 1 'multi-category
+                                                     (cons 'consult-eglot-symbols name) c)
+                                  c)))
+         (candidates (list (funcall symbol "TangentVector") (funcall file "Vector.cc")
+                           (funcall symbol "eto") (funcall file "eto.h")
+                           (funcall file "veto.h"))))
+    (with-temp-buffer
+      (insert "eto")
+      (cl-letf (((symbol-function 'minibuffer-prompt-end) #'point-min))
+        (should (equal (mapcar #'consult--tofu-strip (emacs-cpp-go--sort candidates))
+                       '("eto.h" "veto.h" "Vector.cc" "TangentVector" "eto")))))))
 
 (provide 'init-go-to-anything-test)
 ;;; init-go-to-anything-test.el ends here

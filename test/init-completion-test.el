@@ -19,6 +19,75 @@
   (should (eq (keymap-lookup vertico-map "<prior>") #'vertico-scroll-down))
   (should (eq (keymap-lookup minibuffer-local-map "M-n") #'next-history-element)))
 
+;;;; Matching and tiers (D-120)
+
+(ert-deftest init-completion-match-tiers ()
+  "D-120: tier 1 unbroken from a word start, 2 unbroken inside a word or initials,
+3 letters in order with gaps inside a word; case ignored; the worst word decides."
+  (init-test--load)
+  (pcase-dolist (`(,input ,candidate ,tier)
+                 '(("vec" "Vector.cc" 1) ("vec" "src/vector.h" 1) ("ser" "HTTPServer" 1)
+                   ("tools" "VectorTools.cc" 1) ("ector" "Vector.cc" 2)
+                   ("vt" "VectorTools.cc" 2) ("VT" "VectorTools.cc" 2)
+                   ("eto" "Vector.cc" 3) ("vec eto" "Vector.cc" 3) ("" "Vector.cc" 1)
+                   ;; A run of capitals: its last one starts a word before a small one.
+                   ("vfoo" "ATVfoo" 1) ("tv" "ATVfoo" 2) ("s" "HTTPServer" 1)
+                   ("hs" "HTTPServer" 2) ("n" "max_n" 1)))
+    (should (equal (list input candidate (emacs-cpp-match-tier input candidate))
+                   (list input candidate tier))))
+  ;; Stable within a tier.
+  (should (equal (emacs-cpp-match-sort-by-tier
+                  "eto" (list "Vector.cc" "fetor.c" "eto.h" "veto.h" "Petrol.cc"))
+                 '("eto.h" "fetor.c" "veto.h" "Vector.cc" "Petrol.cc"))))
+
+(ert-deftest init-completion-letters-in-order ()
+  "D-120: the prompts match letters in order and initials, ignoring case."
+  (init-test--load)
+  (let ((files '("Vector.cc" "VectorTools.cc" "eto.h" "README.md")))
+    (should (member "Vector.cc" (completion-all-completions "eto" files nil 3)))
+    (dolist (input '("vt" "VT"))
+      (should (member "VectorTools.cc" (completion-all-completions input files nil 2))))
+    (should (member "README.md" (completion-all-completions "readme" files nil 6)))))
+
+(defun init-completion-test--sort (input candidates metadata &optional file-name)
+  "Sort CANDIDATES as vertico would for INPUT in a prompt with METADATA."
+  (with-temp-buffer
+    (insert input)
+    (setq-local vertico--metadata metadata)
+    (cl-letf (((symbol-function 'minibuffer-prompt-end) #'point-min))
+      (let ((minibuffer-completing-file-name file-name)
+            (vertico-sort-function nil))
+        (emacs-cpp-completion-sort (copy-sequence candidates))))))
+
+(ert-deftest init-completion-sort-by-tier ()
+  "D-120: vertico ranks by tier after the prompt's own order; paths typed in
+`C-x C-f' and places in a buffer keep their order."
+  (init-test--load)
+  (should (eq vertico-sort-override-function #'emacs-cpp-completion-sort))
+  (let ((files '("Vector.cc" "veto.h" "eto.h")))
+    (should (equal (init-completion-test--sort
+                    "eto" files '(metadata (category . project-file)))
+                   '("eto.h" "veto.h" "Vector.cc")))
+    (should (equal (init-completion-test--sort "eto" files '(metadata (category . file)) t)
+                   files))
+    (should (equal (init-completion-test--sort
+                    "eto" files '(metadata (category . consult-location)))
+                   files))))
+
+(ert-deftest init-completion-paths-keep-partial-completion ()
+  "D-120's exception: `C-x C-f' completes `u/s/e' as before."
+  (init-test--load)
+  (let ((root (file-name-as-directory (make-temp-file "emacs-cpp-paths" t))))
+    (unwind-protect
+        (progn
+          (make-directory (expand-file-name "usr1/share1/emacs1" root) t)
+          (let ((default-directory root))
+            (should (equal (car (completion-try-completion
+                                 "u/s/e" #'read-file-name-internal nil 5
+                                 '(metadata (category . file))))
+                           "usr1/share1/emacs1/"))))
+      (delete-directory root t))))
+
 ;;;; Snippets (D-095)
 
 (defmacro init-completion-test--with-snippet-buffer (name text &rest body)

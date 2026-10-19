@@ -23,6 +23,115 @@
 
 ;;; Code:
 
+;;;; Match tiers (D-120)
+
+;; A match is LSP 3.18's: the input's letters in order, case ignored.  Matches rank
+;; in three tiers, as clangd ranks symbols with patch 0013: (1) the input runs
+;; unbroken from a word start; (2) it runs unbroken inside a word, or its letters
+;; start several words (`vt' in VectorTools); (3) letters in order with gaps inside
+;; a word (`eto' in Vector).  Word starts as clangd's: the string's start, after a
+;; character that is no letter or digit, a capital after a small letter or digit,
+;; and the last of several capitals before a small letter (S in HTTPServer).
+
+;; Each word of the input becomes three regexps, built once per input: tier 1, a
+;; word start then the rest; tier 2, the word anywhere, or its letters each at a
+;; word start.  Matching then runs in C; a loop over characters in Lisp took 0.5 ms
+;; per candidate.
+
+(defun emacs-cpp--match-class (char &optional lower-only)
+  "Return a case-sensitive regexp for CHAR in either case, or LOWER-ONLY."
+  (let ((lower (downcase char)) (upper (upcase char)))
+    (cond ((= lower upper) (regexp-quote (char-to-string char)))
+          (lower-only (char-to-string lower))
+          (t (format "[%c%c]" lower upper)))))
+
+(defun emacs-cpp--match-word-start (char &optional next)
+  "Return a case-sensitive regexp for CHAR at a word start, NEXT the class after it.
+After the start or a character that is no letter or digit; as a capital after a
+small letter or digit; as a capital ending a run of capitals before a small letter
+\(then NEXT, lower case, or any small letter, is matched too)."
+  (let ((any (emacs-cpp--match-class char))
+        (upper (char-to-string (upcase char))))
+    (if (= (downcase char) (upcase char))
+        (concat "\\(?:\\`\\|[^[:alnum:]]\\)" any)
+      (concat "\\(?:\\(?:\\`\\|[^[:alnum:]]\\)" any
+              "\\|[[:lower:][:digit:]]" upper
+              "\\|[[:upper:]]" upper (or next "[[:lower:]]") "\\)"))))
+
+(defun emacs-cpp--match-compile (component)
+  "Return COMPONENT's tier-1, unbroken and initials regexps (case-sensitive,
+case-insensitive, case-sensitive)."
+  (let* ((chars (string-to-list component))
+         (first (car chars))
+         (letter (/= (downcase first) (upcase first)))
+         (upper (char-to-string (upcase first)))
+         (rest (mapconcat #'emacs-cpp--match-class (cdr chars) "")))
+    (list
+     (concat "\\(?:\\(?:\\`\\|[^[:alnum:]]\\)" (emacs-cpp--match-class first) rest
+             (if letter
+                 (concat "\\|[[:lower:][:digit:]]" upper rest
+                         ;; Ending a run of capitals: the next character is small.
+                         "\\|[[:upper:]]" upper
+                         (if (cdr chars)
+                             (concat (emacs-cpp--match-class (cadr chars) t)
+                                     (mapconcat #'emacs-cpp--match-class (cddr chars) ""))
+                           "[[:lower:]]"))
+               "")
+             "\\)")
+     (regexp-quote component)
+     (mapconcat #'emacs-cpp--match-word-start chars ".*"))))
+
+(defvar emacs-cpp--match-cache nil
+  "The last input and its compiled words, as (INPUT . REGEXPS).")
+
+(defun emacs-cpp-match-tier (input candidate)
+  "Return the tier, 1 - 3, of CANDIDATE for INPUT (D-120); 1 for an empty INPUT.
+INPUT's words, separated by spaces, each match somewhere; the worst decides."
+  (unless (equal (car emacs-cpp--match-cache) input)
+    (setq emacs-cpp--match-cache
+          (cons input (mapcar #'emacs-cpp--match-compile (split-string input " " t)))))
+  (let ((tier 1))
+    (dolist (regexps (cdr emacs-cpp--match-cache) tier)
+      (unless (let ((case-fold-search nil)) (string-match-p (nth 0 regexps) candidate))
+        (setq tier (max tier
+                        (if (or (let ((case-fold-search t))
+                                  (string-match-p (nth 1 regexps) candidate))
+                                (let ((case-fold-search nil))
+                                  (string-match-p (nth 2 regexps) candidate)))
+                            2
+                          3)))))))
+
+(defun emacs-cpp-match-sort-by-tier (input candidates &optional key)
+  "Return CANDIDATES sorted by tier for INPUT, in their order within a tier.
+KEY, if given, maps a candidate to the string to rank (default: itself)."
+  (if (string-blank-p input)
+      candidates
+    (sort candidates
+          :key (lambda (candidate)
+                 (emacs-cpp-match-tier input (if key (funcall key candidate) candidate))))))
+
+(defconst emacs-cpp-match-ordered-categories
+  '(consult-location consult-grep consult-xref xref-location consult-compile-error
+    consult-flymake-error kill-ring)
+  "Completion categories whose candidates keep their order: places in a buffer
+or a search's hits, not names to rank (D-120).")
+
+(defun emacs-cpp-completion-sort (candidates)
+  "Sort CANDIDATES as the prompt sorts them, then stably by tier (D-120).
+Vertico's `vertico-sort-override-function'.  File names typed as paths
+\(`C-x C-f') and the categories of `emacs-cpp-match-ordered-categories' keep
+the prompt's order."
+  (let* ((base (or (completion-metadata-get vertico--metadata 'display-sort-function)
+                   vertico-sort-function))
+         (sorted (if base (funcall base candidates) candidates)))
+    (if (or minibuffer-completing-file-name
+            (memq (completion-metadata-get vertico--metadata 'category)
+                  emacs-cpp-match-ordered-categories))
+        sorted
+      (emacs-cpp-match-sort-by-tier
+       (buffer-substring-no-properties (minibuffer-prompt-end) (point-max))
+       sorted))))
+
 ;;;; Minibuffer
 
 ;; PgDn / PgUp page through the candidates, as `C-v' / `M-v' do (vertico remaps
@@ -34,6 +143,8 @@
               ("<next>" . vertico-scroll-up)
               ("<prior>" . vertico-scroll-down))
   :init
+  ;; Ranked by tier after the prompt's own order (D-120).
+  (setopt vertico-sort-override-function #'emacs-cpp-completion-sort)
   (vertico-mode))
 
 ;; Typing a path: DEL removes a whole directory, RET enters a directory.
@@ -66,10 +177,18 @@
 (use-package orderless
   :demand t
   :config
+  ;; LSP 3.18's match (D-120): letters in order (flex) besides literal, regexp and
+  ;; initials, case always ignored.  Paths typed in `C-x C-f' keep
+  ;; partial-completion (`/u/s/e'), the one exception.
   (setopt completion-styles '(orderless basic)
           completion-category-defaults nil
           completion-category-overrides '((file (styles partial-completion)))
-          completion-pcm-leading-wildcard t))
+          completion-pcm-leading-wildcard t
+          orderless-matching-styles '(orderless-literal orderless-regexp
+                                      orderless-initialism orderless-flex)
+          orderless-smart-case nil
+          completion-ignore-case t
+          read-buffer-completion-ignore-case t))
 
 (use-package marginalia
   :init

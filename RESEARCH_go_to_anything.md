@@ -567,7 +567,9 @@ file names; clangd's replies with MacPorts' stock clangd 21.1.8 (the matcher fil
 have the same rules in 23.1.1 as read) on a one-file toy, driven by a small JSON-RPC
 client in a scratch directory.
 
-**Three matchers, one per kind of candidate:**
+**Three matchers, one per kind of candidate** (superseded 2026-10-20 by D-120: one
+definition, LSP 3.18's letters in order with tiers, in every prompt but `C-x C-f`;
+clangd's symbols keep their own matcher until O-68):
 | Candidates | Matched by | Fuzzy? |
 |---|---|---|
 | `M-o` buffers, recent files, bookmarks, project files | consult's regexp compiler | no |
