@@ -127,6 +127,78 @@ any eglot server shut down."
             (accept-process-output nil 0.2)))
         (should (init-cpp-test--tidy-diagnostic))))))
 
+;; O-65: the vendored eglot's finders called xref functions only Emacs master's
+;; xref has; with Emacs 31's xref 1.7.0 each stopped with a void function.
+(defconst init-cpp-test--finder-files
+  `(,@(cl-remove-if (lambda (file) (string-prefix-p "src/" (car file)))
+                    init-cpp-test--files)
+    ("include/toy/shape.h" . "#pragma once
+struct Shape {
+  virtual ~Shape() = default;
+  virtual int area() const;
+};
+struct Square : Shape {
+  int area() const override;
+};
+int sides();
+")
+    ("src/answer.cc" . "#include <toy/shape.h>
+int Shape::area() const { return 0; }
+int Square::area() const { return 4; }
+int sides() { return 4; }
+")
+    ("src/main.cc" . "#include <toy/shape.h>
+int main() {
+  Square square;
+  const Shape& shape = square;
+  return shape.area() + sides();
+}
+"))
+  "The toy project with a class hierarchy: an override to find as the
+implementation, a declaration in a header, a type to find from a variable.")
+
+(defun init-cpp-test--find (command text)
+  "Run COMMAND as a key would, on the identifier TEXT in main.cc; return the
+places it shows, as (FILE . LINE)."
+  (goto-char (point-min))
+  (search-forward text)
+  (goto-char (1+ (match-beginning 0)))
+  (let* (places
+         (xref-show-xrefs-function
+          (lambda (fetcher _alist)
+            (setq places
+                  (mapcar (lambda (item)
+                            (let ((location (xref-item-location item)))
+                              (cons (file-name-nondirectory (xref-location-group location))
+                                    (xref-location-line location))))
+                          (funcall fetcher))))))
+    (let ((this-command command))
+      (call-interactively command))
+    places))
+
+(ert-deftest init-cpp-eglot-finders-with-emacs-31-xref ()
+  "O-65: `C-c l i', `C-c l d' and the type-definition click find what clangd
+answers, with the xref Emacs ships, and without asking for the identifier."
+  (init-test--load)
+  (init-cpp-test--with-project init-cpp-test--finder-files
+    (should (eql 0 (call-process "cmake" nil nil nil "--preset" "debug")))
+    (with-current-buffer (init-cpp-test--visit (expand-file-name "src/main.cc" root))
+      (should (init-test--wait-managed))
+      (cl-letf (((symbol-function 'completing-read)
+                 (lambda (&rest _) (error "Asked for the identifier"))))
+        ;; The override of Shape::area.
+        (should (member '("shape.h" . 7)
+                        (init-cpp-test--find #'eglot-find-implementation "area()")))
+        ;; sides() is declared in the header.
+        (should (equal (init-cpp-test--find #'eglot-find-declaration "sides()")
+                       '(("shape.h" . 9))))
+        ;; The type of shape, by the new name and the old one (eglot's own menu
+        ;; named it until patch 0003).
+        (should (equal (init-cpp-test--find #'eglot-find-type-definition "shape.area")
+                       '(("shape.h" . 2))))
+        (should (equal (init-cpp-test--find 'eglot-find-typeDefinition "shape.area")
+                       '(("shape.h" . 2))))))))
+
 (defun init-cpp-test--complete (prefix)
   "Complete PREFIX before point through eglot with its first candidate.
 Return the candidate, or nil when clangd offers none."

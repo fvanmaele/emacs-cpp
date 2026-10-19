@@ -477,6 +477,14 @@ Known defects: none yet (nothing built).
   entry (in RMO `fmt/src/format.cc`, wrong include paths). S1 live check: once an
   including `.cc` is open, clangd reuses its flags and the header is clean; opened
   first, it shows errors. The patched clangd takes an includer from its index (D-028).
+- DECIDED D-117 (owner 2026-10-19, O-65 (a)): eglot patch 0003 (D-069): the
+  finders `eglot-find-declaration`, `-implementation`, `-type-definition` call
+  `xref-find-by-kind` where xref has it, else show the backend's
+  `xref-backend-xrefs-by-kind` through `xref-show-xrefs` (xref 1.7.0, Emacs 31),
+  asking for the identifier only with a prefix argument or none at point, as
+  Emacs 31's finders; `eglot-find-typeDefinition` is an alias of the new name,
+  which eglot's menu and command list and `init-lsp.el` now use. Goes upstream
+  with T-032. Built (T-106, 0079).
 - DECIDED D-115 (owner 2026-10-19, O-64 (a)): file-watch limits stay as they are on
   Arch: `eglot-max-file-watches` 10000, the kernel's own. The owner's numbers on
   step-1 (31 GB RAM): `fs.inotify.max_user_watches` 524288, `max_user_instances`
@@ -1815,7 +1823,8 @@ presets, GoogleTest runner.
   a loose qualifier (`geom::vec`); `count() const` first in both, re-sorted away
   here; no typo seen. Search Everywhere's files: case ignored, humps, space in
   order.
-- O-65 (owner report 2026-10-19, native-compiler warnings "the function
+- O-65 (RESOLVED 2026-10-19 with D-117: (a); owner report 2026-10-19, native-compiler
+  warnings "the function
   `xref-read-identifier' / `xref-find-by-kind' is not known to be defined"): the
   vendored eglot (D-108, c79f727) took upstream's 2026-09-08 rewrite of its finders
   (2677293), which calls two functions only Emacs master's xref has; Emacs 31.1
@@ -2493,6 +2502,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-113 | 2026-10-15 | symbol matches switched per request, a capability | 10 | O-63 |
 | D-114 | 2026-10-15 | clangd patch 0010, real paths, built with T-104 | 7 | O-50 |
 | D-115 | 2026-10-19 | Arch file-watch limits kept as they are | 7 | O-64 |
+| D-117 | 2026-10-19 | eglot patch 0003: finders with Emacs 31's xref | 7 | O-65 |
 | D-116 | 2026-10-19 | `make packages` resets patched files; pins checked | 12 | owner |
 
 ## Parity verdicts (from RESEARCH_*.md)

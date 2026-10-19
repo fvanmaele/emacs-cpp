@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0079 | 2026-10-19 | T-106: eglot finders with Emacs 31's xref | T-106 | D-117 |
 | 0078 | 2026-10-19 | T-105: `make packages` resets patched files | T-105 | D-116 |
 | 0077 | 2026-10-19 | T-104: clangd 0010 - 0012, symbol options | T-104 | D-113, D-114 |
 | 0076 | 2026-10-15 | T-102: one shared watch per directory | T-102 | D-111 |
