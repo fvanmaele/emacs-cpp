@@ -1870,6 +1870,20 @@ presets, GoogleTest runner.
   a loose qualifier (`geom::vec`); `count() const` first in both, re-sorted away
   here; no typo seen. Search Everywhere's files: case ignored, humps, space in
   order.
+- O-69 (owner 2026-10-20: "how the fork on eglot may be dropped"): the vendored eglot
+  (D-108) carries patches 0001 / 0002 for file watches, needed on macOS for pyright
+  and texlab (clangd registers no watches), and 0003 only because the vendored
+  devel eglot needs Emacs master's xref (`RESEARCH_eglot_fork.md`). pyright does not
+  watch files itself when the client offers no watching (pyright 1.1.412: outside
+  changes missed). Upstream master equals the pin; nothing reported yet (T-032).
+  Options: (a) upstream first (send T-032 with 0001, 0002 as a suggestion, and the
+  devel regression of 0003), then an unpatched ELPA release or a later Emacs's
+  built-in eglot; (b) the built-in eglot now on both machines (Arch unaffected; on
+  the Mac pyright exits for trees over about 166 directories, or loses outside
+  changes with watching off); (c) built-in on Arch, vendored on the Mac; (d) the
+  fixes as Lisp in the config (about 100 lines on eglot's internals, against D-069);
+  (e) keep the fork on ELPA's 1.24 release instead of devel, dropping 0003.
+  Recommendation (a); (e) meanwhile if the release commit is easy to pin.
 - O-68 (owner 2026-10-20, after `eto` found no `Vector`: "Go with LSP 3.18 as far as
   possible--in particular the consistent config--but leave changing the three-letter
   pre-filter for a later stage"): clangd's index keeps only symbols containing the
