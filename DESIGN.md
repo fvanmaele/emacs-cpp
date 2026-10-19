@@ -1404,9 +1404,11 @@ Mechanisms, each PROPOSED until measured:
   the pin, in `patches/<submodule>/NNNN-*.patch`, listed in order with the repeatable
   `.gitmodules` key `patch` (relative to the repository root). `make packages` applies
   each submodule's series before compiling: a series already in (a second run) is first
-  taken out whole, in reverse, then applied whole; `git apply` changes nothing unless
-  every patch fits, so a series that no longer applies (a pin bump, a hand edit) stops
-  the build with git's message. A listed patch that is missing and a patch file no
+  taken out whole, in reverse (superseded 2026-10-19 by D-116: the files the series
+  touches are reset to the pinned commit), then applied whole; `git apply` changes
+  nothing unless every patch fits, so a series that no longer applies (a pin bump, a
+  hand edit; the latter superseded by D-116) stops the build with git's message.
+  A listed patch that is missing and a patch file no
   `patch` line lists are build errors. A patched submodule shows "modified content" in
   `git status`, on purpose (no `ignore = dirty`, which would hide hand edits too).
   Rejected: a commit in the submodule (on no remote, a fresh clone breaks), a fork
@@ -1415,6 +1417,18 @@ Mechanisms, each PROPOSED until measured:
   treemacs 0001, T-041, replacing D-067's stand-in timer. Second: consult 0001 (D-079).
   Third: projectile 0001 (D-081). Later: auctex 0001 (D-090), yasnippet-snippets 0001
   (D-095).
+- DECIDED D-116 (owner 2026-10-19, after the Arch run: "make packages should
+  reset patched submodule's files to the pinned commit before applying, and stop
+  with a clear message when a submodule is uninitialized"): amends D-069. Before a series is
+  applied, the files it changes, creates or renames (`git apply --numstat`) get the
+  pinned commit's content; a file the commit lacks is deleted. A changed patch
+  (consult-eglot 0001 grew in d06e07e) then replaces its older version, which
+  D-069's reverse could not take out; a hand edit in such a file is lost, other
+  files keep theirs. Before that, `git submodule status` over every submodule stops
+  the build naming each one not checked out (`git submodule update --init <path>`;
+  `lib/eglot` on Arch after D-108) or at another commit than the pin (`git
+  submodule update <path>`, or `git add` to pin it), so the commit checked out is
+  the pinned one. Built (T-105, 0078).
 - DECIDED D-089 (owner report 2026-10-13, tier 1): on macOS the config puts
   `/opt/local/bin`, `/opt/local/sbin` (MacPorts, D-053) and `/usr/local/bin` (CRAN's
   R) in front of `exec-path` and PATH at startup when missing
@@ -2461,6 +2475,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-113 | 2026-10-15 | symbol matches switched per request, a capability | 10 | O-63 |
 | D-114 | 2026-10-15 | clangd patch 0010, real paths, built with T-104 | 7 | O-50 |
 | D-115 | 2026-10-19 | Arch file-watch limits kept as they are | 7 | O-64 |
+| D-116 | 2026-10-19 | `make packages` resets patched files; pins checked | 12 | owner |
 
 ## Parity verdicts (from RESEARCH_*.md)
 None yet; see section 1 (R) rows.

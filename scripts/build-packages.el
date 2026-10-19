@@ -288,21 +288,79 @@ A forgotten `patch' line would otherwise leave the patch silently unapplied."
           (error "build-packages: patch file(s) no .gitmodules `patch' line lists:\n  %s"
                  (string-join unlisted "\n  ")))))))
 
+(defun build-packages-check-submodules (root specs)
+  "Signal an error unless every submodule of SPECS under ROOT is checked out at
+the commit ROOT pins (D-116).  `git submodule status' marks a submodule not
+initialized with `-' (a submodule added since the last `git submodule update'
+is an empty directory) and one at another commit with `+'."
+  (let* ((paths (mapcar (lambda (spec) (plist-get spec :path)) specs))
+         (lines (split-string (apply #'build-packages--run "git" "-C" root
+                                     "submodule" "status" "--" paths)
+                              "\n" t))
+         missing moved)
+    (dolist (line lines)
+      (when (string-match "\\`\\([-+U ]\\)[0-9a-f]+ \\([^ ]+\\)" line)
+        (pcase (match-string 1 line)
+          ("-" (push (match-string 2 line) missing))
+          ((or "+" "U") (push (match-string 2 line) moved)))))
+    (setq missing (nreverse missing) moved (nreverse moved))
+    (when missing
+      (error "build-packages: submodule(s) not checked out:\n  %s\nrun `git submodule \
+update --init %s'"
+             (string-join missing "\n  ") (string-join missing " ")))
+    (when moved
+      (error "build-packages: submodule(s) not at the pinned commit:\n  %s\nrun `git \
+submodule update %s', or `git add' them to pin the commit checked out"
+             (string-join moved "\n  ") (string-join moved " ")))))
+
+(defun build-packages-patched-paths (dir patches)
+  "Return the paths, relative to DIR, that PATCHES change, create or rename.
+From `git apply --numstat -z', which reads the patches without applying them; a
+rename is listed as an empty name followed by the old and the new one."
+  (let ((fields (split-string (apply #'build-packages--run "git" "-C" dir "apply"
+                                     "--numstat" "-z" patches)
+                              "\0"))
+        paths)
+    (while fields
+      (let ((field (pop fields)))
+        (cond ((string-match "\\`[-0-9]+\t[-0-9]+\t\\(.*\\)\\'" field)
+               (if (string-empty-p (match-string 1 field))
+                   (progn (push (pop fields) paths) (push (pop fields) paths))
+                 (push (match-string 1 field) paths)))
+              ((string-empty-p field))
+              (t (error "build-packages: unexpected `git apply --numstat' output in %s: %S"
+                        dir field)))))
+    (delete-dups (nreverse paths))))
+
+(defun build-packages-reset-paths (dir paths)
+  "Give PATHS, relative to DIR, the content of DIR's checked-out commit (D-116).
+A path the commit lacks (a file a patch creates) is deleted."
+  (let (tracked)
+    (dolist (path paths)
+      (if (eql 0 (call-process "git" nil nil nil "-C" dir "cat-file" "-e"
+                               (concat "HEAD:" path)))
+          (push path tracked)
+        (let ((file (expand-file-name path dir)))
+          (when (file-exists-p file)
+            (delete-file file)))))
+    (when tracked
+      (apply #'build-packages--run "git" "-C" dir "checkout" "HEAD" "--"
+             (nreverse tracked)))))
+
 (defun build-packages-apply-patches (root specs)
   "Apply the patches of SPECS to their submodules under ROOT; return how many.
-Each submodule's series is first taken back out, whole and in reverse order, if
-it is in (a second `make packages'), then applied whole.  `git apply' changes
-nothing unless every patch fits, and `--check' does not chain patches that touch
-the same lines, hence the real reverse.  A series that does not apply, after a
-pin bump or on a submodule edited by hand, stops the build with git's message."
+The files a submodule's series touches are first reset to the checked-out commit
+\(D-116), whatever is in them: an earlier version of the series, the same one
+from a second `make packages', or a hand edit, which is lost.  Then the series
+is applied whole; `git apply' changes nothing unless every patch fits, so a
+series that does not apply after a pin bump stops the build with git's message."
   (build-packages-check-unlisted-patches root specs)
   (let ((count 0))
     (dolist (spec specs)
       (let ((dir (expand-file-name (plist-get spec :path) root))
             (patches (build-packages-patch-files root spec)))
         (when patches
-          (apply #'call-process "git" nil nil nil "-C" dir "apply" "--reverse"
-                 (reverse patches))
+          (build-packages-reset-paths dir (build-packages-patched-paths dir patches))
           (apply #'build-packages--run "git" "-C" dir "apply" patches)
           (setq count (+ count (length patches))))))
     count))
@@ -332,7 +390,8 @@ Signal an error listing every file that failed."
   "Build all packages of the repository at ROOT."
   (let* ((specs (build-packages-read-specs root))
          (lib (expand-file-name "lib" root))
-         (patches (build-packages-apply-patches root specs)))
+         (patches (progn (build-packages-check-submodules root specs)
+                         (build-packages-apply-patches root specs))))
     ;; Dependencies must be loadable while their dependents compile.
     (setq load-path (append (cl-loop for spec in specs
                                      append (build-packages-load-path-dirs root spec))

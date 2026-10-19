@@ -201,14 +201,15 @@ that no longer fits, a missing one and an unlisted one stop the build."
       (should (equal (build-packages-apply-patches root (list spec)) 2))
       (should (equal (with-temp-buffer (insert-file-contents file) (buffer-string))
                      "(defun p () 3)\n"))
-      ;; The pin moved under the patches: they no longer apply, and git leaves
-      ;; the file as it was.
-      (build-packages-test--git dir "checkout" "-q" "--" "p.el")
+      ;; The pin moved under the patches: they no longer apply, and the file
+      ;; stays as the new pin has it.
       (write-region "(defun p () 9)\n" nil file)
+      (build-packages-test--git dir "-c" "user.name=t" "-c" "user.email=t@t"
+                                "commit" "-q" "-a" "-m" "bump")
       (should-error (build-packages-apply-patches root (list spec)))
       (should (equal (with-temp-buffer (insert-file-contents file) (buffer-string))
                      "(defun p () 9)\n"))
-      (build-packages-test--git dir "checkout" "-q" "--" "p.el")
+      (build-packages-test--git dir "reset" "-q" "--hard" "HEAD~1")
       ;; Listed but missing; present but not listed.
       (should-error (build-packages-apply-patches
                      root (list (plist-put (copy-sequence spec) :patch
@@ -221,6 +222,79 @@ that no longer fits, a missing one and an unlisted one stop the build."
       ;; Neither error touched the files.
       (should (equal (with-temp-buffer (insert-file-contents file) (buffer-string))
                      "(defun p () 1)\n")))))
+
+;; D-116: the reset before applying.
+(ert-deftest build-packages-patches-reset-files-first ()
+  "D-116: the files a series touches are reset to the checked-out commit before it
+is applied, so an earlier version of a patch gives way to the current one and a
+file the series creates is made again; files it does not touch keep hand edits."
+  (build-packages-test--with-tree '("lib/p/p.el" "lib/p/q.el")
+    (let* ((dir (expand-file-name "lib/p" root))
+           (file (expand-file-name "p.el" dir))
+           (other (expand-file-name "q.el" dir))
+           (made (expand-file-name "new.el" dir))
+           (spec (list :name "p" :path "lib/p" :patch '("patches/p/0001-one.patch"))))
+      (write-region "(defun p () 1)\n" nil file)
+      (write-region "(defun q () 1)\n" nil other)
+      (build-packages-test--git dir "init" "-q")
+      (build-packages-test--git dir "add" "p.el" "q.el")
+      (build-packages-test--git dir "-c" "user.name=t" "-c" "user.email=t@t"
+                                "commit" "-q" "-m" "pin")
+      ;; The current patch changes p.el and creates new.el.
+      (make-directory (expand-file-name "patches/p" root) t)
+      (write-region "(defun p () 3)\n" nil file)
+      (write-region "(defun n () 1)\n" nil made)
+      (build-packages-test--git dir "add" "-N" "new.el")
+      (with-temp-buffer
+        (call-process "git" nil t nil "-C" dir "diff")
+        (write-region nil nil (expand-file-name "patches/p/0001-one.patch" root)))
+      (build-packages-test--git dir "reset" "-q")
+      ;; An earlier version of the patch is in, and q.el carries a hand edit.
+      (write-region "(defun p () 2)\n" nil file)
+      (write-region "(defun q () 7)\n" nil other)
+      (should (equal (build-packages-apply-patches root (list spec)) 1))
+      (should (equal (with-temp-buffer (insert-file-contents file) (buffer-string))
+                     "(defun p () 3)\n"))
+      (should (equal (with-temp-buffer (insert-file-contents made) (buffer-string))
+                     "(defun n () 1)\n"))
+      (should (equal (with-temp-buffer (insert-file-contents other) (buffer-string))
+                     "(defun q () 7)\n"))
+      ;; A second run: new.el exists already and is made again.
+      (should (equal (build-packages-apply-patches root (list spec)) 1))
+      (should (equal (with-temp-buffer (insert-file-contents made) (buffer-string))
+                     "(defun n () 1)\n")))))
+
+(ert-deftest build-packages-submodules-checked-out-at-the-pin ()
+  "D-116: a submodule not checked out, or at another commit than the pin, stops
+the build with the command that fixes it."
+  (build-packages-test--with-tree '("lib/p/p.el")
+    (let ((dir (expand-file-name "lib/p" root))
+          (spec (list :name "p" :path "lib/p")))
+      (build-packages-test--git dir "init" "-q")
+      (build-packages-test--git dir "add" "p.el")
+      (build-packages-test--git dir "-c" "user.name=t" "-c" "user.email=t@t"
+                                "commit" "-q" "-m" "pin")
+      (write-region "[submodule \"p\"]\n\tpath = lib/p\n\turl = ./p\n" nil
+                    (expand-file-name ".gitmodules" root))
+      (build-packages-test--git root "init" "-q")
+      (build-packages-test--git root "add" ".gitmodules" "lib/p")
+      (build-packages-test--git root "config" "submodule.p.url" "./p")
+      ;; At the pin: no error.
+      (build-packages-check-submodules root (list spec))
+      ;; Another commit checked out.
+      (write-region "(defun p () 2)\n" nil (expand-file-name "p.el" dir))
+      (build-packages-test--git dir "-c" "user.name=t" "-c" "user.email=t@t"
+                                "commit" "-q" "-a" "-m" "moved")
+      (let ((err (should-error (build-packages-check-submodules root (list spec)))))
+        (should (string-match-p "not at the pinned commit:\n  lib/p\n.*git submodule update lib/p"
+                                (cadr err))))
+      ;; Not checked out: an empty directory, as a submodule added since the last
+      ;; `git submodule update' is.
+      (delete-directory dir t)
+      (make-directory dir)
+      (let ((err (should-error (build-packages-check-submodules root (list spec)))))
+        (should (string-match-p "not checked out:\n  lib/p\n.*git submodule update --init lib/p"
+                                (cadr err)))))))
 
 ;; ESS's doc/ess.texi has `@include ../VERSION', a path from its own directory.
 (ert-deftest build-packages-info-includes-relative-to-the-manual ()
