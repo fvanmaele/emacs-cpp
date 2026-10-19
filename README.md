@@ -20,7 +20,7 @@ sudo pacman -S --needed emacs git make texinfo \
     tree-sitter-python pyright python-debugpy r \
     fd ripgrep \
     texlab texlive-basic texlive-latex texlive-latexrecommended texlive-latexextra \
-    texlive-binextra zathura zathura-pdf-mupdf
+    texlive-binextra perl-yaml-tiny perl-file-homedir zathura zathura-pdf-mupdf
 ```
 - **Emacs 31** with native compilation and tree-sitter (the Arch `emacs` package).
 - **tree-sitter-cpp** must also be installed as a pacman package. On the owner machine
@@ -31,7 +31,8 @@ sudo pacman -S --needed emacs git make texinfo \
 - **texinfo** provides `makeinfo` and `install-info`; `make packages` fails without
   them (D-039).
 - **LaTeX** (D-090): texlab is the language server, `texlive-binextra` brings latexmk
-  and latexindent (`C-c l f`, D-101), zathura shows the line `C-c l b` built. Leave
+  and latexindent (`C-c l f`, D-101; on Arch its optional `perl-yaml-tiny` and
+  `perl-file-homedir` are needed too), zathura shows the line `C-c l b` built. Leave
   these out if you write no LaTeX; only `.tex` buffers use them.
 
 ### 2. Clone and build the packages
