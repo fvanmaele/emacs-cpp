@@ -29,7 +29,7 @@ can still set its own."
 (use-package eglot
   ;; Not autoloaded by eglot; `C-c l' (below) can come before eglot has loaded.
   :commands (eglot-rename eglot-code-actions eglot-format eglot-format-buffer
-             eglot-find-implementation eglot-find-typeDefinition eglot-find-declaration
+             eglot-find-implementation eglot-find-type-definition eglot-find-declaration
              eglot-show-call-hierarchy eglot-show-type-hierarchy eglot-inlay-hints-mode)
   :config
   ;; RET indents by Emacs's rules (electric indentation, D-062's rules), not by the
@@ -145,7 +145,7 @@ click is on its definition, as CLion's Cmd+Click (D-093)."
   "Go to the type of the symbol clicked (D-093)."
   (interactive "e")
   (mouse-set-point event)
-  (call-interactively #'eglot-find-typeDefinition))
+  (call-interactively #'eglot-find-type-definition))
 
 ;; Navigation clicks, CLion's (D-093): Cmd on the Mac, Super on Arch
 ;; (`emacs-cpp-default-mouse-modifier', D-055); with Opt / Alt implementations,

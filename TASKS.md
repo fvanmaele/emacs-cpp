@@ -284,6 +284,16 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-106 (opened 2026-10-19, D-117, O-65 (a)): eglot patch 0003, the finders with
+  Emacs 31's xref. Tier: 2. Done when (O-65 (a)): patch 0003 after 0002 in
+  `.gitmodules`, `make packages` applies 9 patches; an ERT test runs
+  `eglot-find-implementation`, `-declaration`, `-type-definition` and the old
+  `eglot-find-typeDefinition` against clangd on a toy class hierarchy, with no
+  prompt for the identifier, and fails without the patch; `init-lsp.el` names the
+  new command; `make test`; the patch joins the upstream report (T-032). DESIGN
+  D-117, journal. Done 2026-10-19 (0079): met on Arch (`make test` 126 / 126; the
+  test fails with `(void-function xref-read-identifier)` without 0003); the
+  report is the owner's (T-032).
 - T-105 (opened 2026-10-19, D-116, owner after the Arch run): `make packages` resets
   the files a patch series touches to the pinned commit before applying it, and stops
   naming each submodule not checked out or not at the pin. Tier: 2. Done when: ERT on

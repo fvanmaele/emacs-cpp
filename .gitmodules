@@ -176,3 +176,4 @@
 	info = eglot.texi
 	patch = patches/eglot/0001-Keep-partial-file-watches-when-the-limit-is-reached-.patch
 	patch = patches/eglot/0002-Share-one-file-watch-per-directory-among-a-server-s-.patch
+	patch = patches/eglot/0003-Find-declarations-implementations-type-definitions-w.patch
