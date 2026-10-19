@@ -495,7 +495,10 @@ Known defects: none yet (nothing built).
   decides (not step-1). Owner's run 1 on RMO: 6 of 7, criterion 4 failed for `ass`
   only, the baseline differing from itself between its two runs; owner: rerun.
   S15 PASS (owner's run 2, 2026-10-19, RMO, `RESULTS.md`): 7 of 7; next T-108,
-  patch 0013.
+  patch 0013. Built (T-108, 0081): `packaging/clangd-index-nav/0013-...`, pkgrel 9;
+  ClangdTests 1426 passed on Arch (6 new; 4 fail with 0012's ranking); the package
+  built from the clean tarball. Left: install and `make test` on both machines, the
+  Mac build, the owner's check on RMO.
 - DECIDED D-118 (owner 2026-10-19, O-66 (a)): with a project root, `M-o`'s `s`
   symbols (the project's only, D-082) are headed "Project Symbol (server)", narrow
   label "Project Symbol", as "Project File"; without a root `s` (every symbol) stays

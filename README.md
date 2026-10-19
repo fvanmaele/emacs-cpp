@@ -71,16 +71,18 @@ go-to-definition and find-usages from its index before a file is parsed, and giv
 header the flags of a source file that includes it (D-026 .. D-028, D-046, D-047). It
 keeps a project's references when the project is reached through a symbolic link (on
 macOS every project under `/tmp`; D-114), and finds symbols as CLion does: abbreviated
-qualifiers (`geom::vert` for `GeometryInfo::vertices_per_cell`) and, after the usual
-matches, names containing the query mid-word (`ector` for `TangentVector`), in `M-o`
-and `C-c l s` (D-113; options `emacs-cpp-symbol-loose-scope`,
-`emacs-cpp-symbol-middle-match`). The two prompts differ: `M-o` keeps the project's
-symbols and asks clangd for up to 10000, so `ector` finds the project's `Vector`;
-`C-c l s` (and `M-o` `< l`) lists every symbol, deal.II's and Kokkos's too, within
-clangd's 100, where mid-word matches rank after every other match and are the first
-cut, so `ector` there may show library symbols only, grouped by kind
-(`RESEARCH_go_to_anything.md` 18). It installs to `/opt/clangd-index-nav`, next to the
-system clangd, and pins `llvm-libs` and `clang` to 23.1.1 exactly (D-027).
+qualifiers (`geom::vert` for `GeometryInfo::vertices_per_cell`) and names containing
+the query mid-word (`ector` for `TangentVector`), in `M-o` and `C-c l s` (D-113;
+options `emacs-cpp-symbol-loose-scope`, `emacs-cpp-symbol-middle-match`). Matches
+whose query runs from a word start come first; then the mid-word ones and those
+scattered over several words, the ones covering most of the name first, so `ector`
+lists `Vector` before `AlignedVectorCopyConstruct` and before Kokkos's
+`EBOBaseImpl<..., CtorNotOnDevice>` (D-119, patch 0013). The two prompts differ:
+`M-o` keeps the project's symbols and asks clangd for up to 10000; `C-c l s` (and
+`M-o` `< l`) lists every symbol, deal.II's and Kokkos's too, clangd's best 100,
+grouped by kind (`RESEARCH_go_to_anything.md` 18, 19). It installs to
+`/opt/clangd-index-nav`, next to the system clangd, and pins `llvm-libs` and `clang`
+to 23.1.1 exactly (D-027).
 ```sh
 cd ~/source/repos/emacs-cpp/packaging/clangd-index-nav
 makepkg -si

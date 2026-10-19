@@ -286,7 +286,20 @@ with `done when: ...`).
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
 - T-108 (opened 2026-10-19, D-119, S15 PASS): clangd patch 0013, rule R4 written
   fresh (`spikes/s15-mid-word-rank/RESULTS.md`, Decision) with clangd unit tests,
-  pkgrel 9, a Mac rebuild. Tier: 2. Done when: to agree.
+  pkgrel 9, a Mac rebuild. Tier: 2. Done when (agreed 2026-10-19): patch 0013 in
+  `packaging/clangd-index-nav`: matches contiguous from a word start keep their
+  order; scattered fuzzy and mid-word matches follow by the share of the name they
+  cover (doubled at a word end), in Dex, MemIndex and `getWorkspaceSymbols`; a
+  second-tier score -1 / (1 + score), replacing 0012's -1 times quality and minus
+  1e6; behind `middleMatch`, no new field or Emacs option. Unit tests: the tiers and
+  coverage scores; on a toy index `ector` puts `Vector` before an `E` + `Ctor`
+  constructor and keeps quality order among mid-word matches; a limit keeps the best;
+  code completion unchanged; the other ClangdTests pass. pkgrel 9: `makepkg -si`
+  (Arch), `build-macos.sh` (Mac); `make test` on both; terminal check on RMO:
+  `C-c l s ector` shows `dealii::Vector` first. Built 2026-10-19 (0081): patch 0013,
+  ClangdTests 1426 passed (Arch), pkgrel 9 built from the clean tarball; left: the
+  owner's install (`pacman -U`), `make test` with it, the RMO check, the Mac build
+  and `make test`.
 - T-107 (opened 2026-10-19, D-119): spike S15, mid-word matches ranked by shape in
   clangd (`spikes/s15-mid-word-rank/RUN.md`, pass criteria proposed 2026-10-19).
   Done when: RESULTS.md has a verdict on criteria 1 - 7 from the owner's run on
