@@ -177,8 +177,9 @@ places it shows, as (FILE . LINE)."
     places))
 
 (ert-deftest init-cpp-eglot-finders-with-emacs-31-xref ()
-  "O-65: `C-c l i', `C-c l d' and the type-definition click find what clangd
-answers, with the xref Emacs ships, and without asking for the identifier."
+  "O-65, D-121: `C-c l i', `C-c l d' and the type-definition click find what
+clangd answers, with Emacs 31's eglot and xref, without asking for the
+identifier."
   (init-test--load)
   (init-cpp-test--with-project init-cpp-test--finder-files
     (should (eql 0 (call-process "cmake" nil nil nil "--preset" "debug")))
@@ -192,11 +193,8 @@ answers, with the xref Emacs ships, and without asking for the identifier."
         ;; sides() is declared in the header.
         (should (equal (init-cpp-test--find #'eglot-find-declaration "sides()")
                        '(("shape.h" . 9))))
-        ;; The type of shape, by the new name and the old one (eglot's own menu
-        ;; named it until patch 0003).
-        (should (equal (init-cpp-test--find #'eglot-find-type-definition "shape.area")
-                       '(("shape.h" . 2))))
-        (should (equal (init-cpp-test--find 'eglot-find-typeDefinition "shape.area")
+        ;; The type of shape (Emacs 31's eglot names it eglot-find-typeDefinition).
+        (should (equal (init-cpp-test--find #'eglot-find-typeDefinition "shape.area")
                        '(("shape.h" . 2))))))))
 
 (defun init-cpp-test--complete (prefix)

@@ -477,6 +477,23 @@ Known defects: none yet (nothing built).
   entry (in RMO `fmt/src/format.cc`, wrong include paths). S1 live check: once an
   including `.cc` is open, clangd reuses its flags and the header is clean; opened
   first, it shows errors. The patched clangd takes an includer from its index (D-028).
+- DECIDED D-121 (owner 2026-10-20, O-69: "(c) + (d) - use the mac specific fixes as
+  Lisp in the config, and keep it as platform-specific code"; "also remove vendored
+  xref": none is vendored, the xref patch 0003 goes with eglot): eglot is Emacs
+  31.1's own (1.24.31) on both machines; submodule `lib/eglot` and patches
+  `patches/eglot/0001 - 0003` removed (supersedes D-108, D-117). On macOS only,
+  `lisp/emacs-cpp-eglot-watch.el` carries the former 0001 / 0002 as advice on the
+  built-in eglot (`eglot--watch-globs`, `eglot--count-file-watches` overridden,
+  `eglot-unregister-capability` wrapped, `eglot--on-shutdown` preceded): partial
+  watches at the cap or a refused watch, the registration answered with success;
+  one watch per directory shared by a server's registrations. It refuses loudly to
+  install for any eglot but 1.24.31 (its library header). The owner's exception to
+  D-069's "no Lisp workarounds beyond a line or two". Found while building (owner
+  2026-10-20: "Project only, as Mac"): with the built-in eglot on Arch, pyright's
+  watch of Python's library (6358 directories, three registrations) passed eglot's
+  10000 and pyright exited, so `eglot-watch-files-outside-project-root` is nil on
+  both platforms (RESEARCH_eglot_fork 7 corrects its Arch estimate). Built (T-110,
+  0083).
 - DECIDED D-120 (owner 2026-10-20: "Go with LSP 3.18 as far as possible--in particular
   the consistent config--but leave changing the three-letter pre-filter for a later
   stage"; answers the same day: ignore case, tiers everywhere, paths keep
@@ -522,7 +539,8 @@ Known defects: none yet (nothing built).
   symbols (the project's only, D-082) are headed "Project Symbol (server)", narrow
   label "Project Symbol", as "Project File"; without a root `s` (every symbol) stays
   "Symbol (server)"; "All Symbols" unchanged. Built (tier 1).
-- DECIDED D-117 (owner 2026-10-19, O-65 (a)): eglot patch 0003 (D-069): the
+- DECIDED D-117 (SUPERSEDED 2026-10-20 by D-121: the built-in eglot's finders work
+  with xref 1.7.0, no patch; owner 2026-10-19, O-65 (a)): eglot patch 0003 (D-069): the
   finders `eglot-find-declaration`, `-implementation`, `-type-definition` call
   `xref-find-by-kind` where xref has it, else show the backend's
   `xref-backend-xrefs-by-kind` through `xref-show-xrefs` (xref 1.7.0, Emacs 31),
@@ -534,7 +552,8 @@ Known defects: none yet (nothing built).
   Arch: `eglot-max-file-watches` 10000, the kernel's own. The owner's numbers on
   step-1 (31 GB RAM): `fs.inotify.max_user_watches` 524288, `max_user_instances`
   1024, `max_queued_events` 16384; the kernel limit is about fifty times eglot's,
-  so (b) is not needed; (c) and (d) not taken. The vendored eglot answers a refused
+  so (b) is not needed; (c) and (d) not taken. (Since D-121 Arch runs the built-in
+  eglot and every platform watches only the project.) The vendored eglot answers a refused
   watch with success (D-108), so pyright does not exit into a reconnect loop.
 - DECIDED D-111 (owner 2026-10-15: "Agree to recommendations on open watch
   questions"): DESIGN 7.2 as recommended: T-090 agreed (vendor eglot, no startup
@@ -562,8 +581,9 @@ Known defects: none yet (nothing built).
   `~/opt/fswatch-no-loss`. Arch 2026-10-19: two fixes (pkgrel 2: exit under glibc,
   the cap with inotify's batches; 0074), all seven checks pass, installed; the Mac
   re-check of pkgrel 2 is left.
-- DECIDED D-108 (owner 2026-10-15, O-60 (b): "Vendor eglot"; tier and done when to
-  agree): eglot comes from a submodule, `lib/eglot` from
+- DECIDED D-108 (SUPERSEDED 2026-10-20 by D-121: Emacs's own eglot, no submodule;
+  owner 2026-10-15, O-60 (b): "Vendor eglot"; tier and done when to agree): eglot
+  comes from a submodule, `lib/eglot` from
   github.com/emacs-straight/eglot (GNU ELPA's eglot, i.e. Emacs master's, no tags),
   and carries patch 0001 keeping partial file watches at the cap or a refused watch
   (`docs/upstream/eglot-watch-cap-partial-watches.patch`, D-069); it shadows Emacs's
@@ -663,7 +683,9 @@ Known defects: none yet (nothing built).
 
 ### 7.1 File watches: an fswatch backend for eglot (D-110, 2026-10-15)
 Owner request 2026-10-15: "Design fswatch backend for eglot". A patch on the
-vendored eglot (D-108, T-090), reading the patched fswatch (D-109). Findings behind
+vendored eglot (D-108, T-090), reading the patched fswatch (D-109). (Since D-121
+there is no vendored eglot: the backend would be Lisp in the config on top of the
+built-in eglot, as `lisp/emacs-cpp-eglot-watch.el` is; not redesigned yet.) Findings behind
 it: `RESEARCH_platform_differences.md` 3.9 - 3.13. Ruled by the owner as O-62
 (a) - (e) (D-110), built after T-090 (owner, O-62 (f) open).
 
@@ -797,7 +819,9 @@ each, with a recommendation; the owner agreed to all of them (D-111):
     `stopped` removes the entry, the parent's `created` brings a valid watch back,
     and a failing handler next to the real one leaves one notification sent and one
     warning. `docs/upstream/eglot-watch-shared-directories.patch`; build: T-102.
-  - Built (T-102, 0076): `patches/eglot/0002-Share-one-file-watch-...`, 8 patches in
+  - Built (T-102, 0076; since D-121 the same logic as advice in
+    `lisp/emacs-cpp-eglot-watch.el`, macOS only):
+    `patches/eglot/0002-Share-one-file-watch-...`, 8 patches in
     force; the shipped-profile test with pyright (cap 500, 400 directories): at
     most 401 watches, 401 left (fails without 0002: 500 reached).
 - O-61 (g), retry what the cap cut short: drafted, checked (3.11). Drop if (e) is
@@ -1870,7 +1894,8 @@ presets, GoogleTest runner.
   a loose qualifier (`geom::vec`); `count() const` first in both, re-sorted away
   here; no typo seen. Search Everywhere's files: case ignored, humps, space in
   order.
-- O-69 (owner 2026-10-20: "how the fork on eglot may be dropped"): the vendored eglot
+- O-69 (RESOLVED 2026-10-20 with D-121: (c) + (d); owner 2026-10-20: "how the fork
+  on eglot may be dropped"): the vendored eglot
   (D-108) carries patches 0001 / 0002 for file watches, needed on macOS for pyright
   and texlab (clangd registers no watches), and 0003 only because the vendored
   devel eglot needs Emacs master's xref (`RESEARCH_eglot_fork.md`). pyright does not
@@ -2596,6 +2621,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-113 | 2026-10-15 | symbol matches switched per request, a capability | 10 | O-63 |
 | D-114 | 2026-10-15 | clangd patch 0010, real paths, built with T-104 | 7 | O-50 |
 | D-115 | 2026-10-19 | Arch file-watch limits kept as they are | 7 | O-64 |
+| D-121 | 2026-10-20 | Emacs's own eglot; macOS watch fixes as config Lisp | 7 | O-69 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |
