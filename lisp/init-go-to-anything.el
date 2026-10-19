@@ -159,12 +159,12 @@ The others follow in eglot's order, newest started first (D-106)."
 
 (defun emacs-cpp-go--symbol-sources (root)
   "Return the symbol sources for project ROOT, nil when no server has one.
-Each server gets its own sources under its own heading, such as Symbol (clangd),
-so the servers' symbols never mix (D-106); the narrow keys are shared.
-`s': symbols defined under ROOT (D-082).  `l', hidden until narrowed: every
+Each server gets its own sources under its own heading, such as Project Symbol
+\(clangd), so the servers' symbols never mix (D-106); the narrow keys are shared.
+`s': symbols defined under ROOT (D-082), as Project Symbol (D-118).  `l', hidden until narrowed: every
 symbol of the server's index, deal.II's and the standard library's too, clangd's
 best 100 as `C-c l s' shows them, its first 100 for an empty input (D-086).
-Without ROOT, `s' is the latter but asks nothing for an empty input."
+Without ROOT, `s' is the latter, as Symbol, but asks nothing for an empty input."
   (when (featurep 'eglot)
     (require 'consult-eglot)
     (let* ((servers (emacs-cpp-go--servers))
@@ -176,7 +176,7 @@ Without ROOT, `s' is the latter but asks nothing for an empty input."
                                  (cons narrow name) hidden (list server) uris empty))
                               servers))))
       (if root
-          (append (funcall sources "Symbol" ?s nil root-uris nil)
+          (append (funcall sources "Project Symbol" ?s nil root-uris nil)
                   (funcall sources "All Symbols" ?l t nil t))
         (funcall sources "Symbol" ?s nil nil nil)))))
 

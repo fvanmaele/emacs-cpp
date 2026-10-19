@@ -146,7 +146,7 @@ takes every input for initial input and sends it at once."
                (lambda (_server _method params &rest _) (push (plist-get params :query) queries))))
       (let* ((source (car (emacs-cpp-go--symbol-sources "/project/")))
              (step (funcall (plist-get source :async) (lambda (_) nil))))
-        (should (equal (plist-get source :narrow) '(?s . "Symbol")))
+        (should (equal (plist-get source :narrow) '(?s . "Project Symbol")))
         (funcall step 'setup)
         (dolist (input '("v" "ve"))
           (funcall step input)
@@ -182,9 +182,10 @@ keeps that list for one or two characters; `s' asks nothing for either."
     (should (equal queries '((:query ""))))))
 
 (ert-deftest init-go-to-anything-symbol-sources ()
-  "D-082, D-106: per server an `s' source with the project's symbols and a hidden
-`l' source with all, under the server's heading, the current buffer's server
-first; the narrow keys shared, one entry each; no root, `s' only."
+  "D-082, D-106, D-118: per server an `s' source with the project's symbols, as
+Project Symbol, and a hidden `l' source with all, under the server's heading, the
+current buffer's server first; the narrow keys shared, one entry each; no root,
+`s' only, as Symbol."
   (init-test--load)
   (require 'consult)
   (require 'eglot)
@@ -194,11 +195,11 @@ first; the narrow keys shared, one entry each; no root, `s' only."
             ((symbol-function 'emacs-cpp-go--server-name) #'symbol-name))
     (let ((sources (emacs-cpp-go--symbol-sources "/project/")))
       (should (equal (mapcar (lambda (s) (plist-get s :name)) sources)
-                     '("Symbol (clangd)" "Symbol (pyright)"
+                     '("Project Symbol (clangd)" "Project Symbol (pyright)"
                        "All Symbols (clangd)" "All Symbols (pyright)")))
       (should (equal (mapcar (lambda (s) (plist-get s :hidden)) sources) '(nil nil t t)))
       (should (equal (consult--multi-narrow sources)
-                     '((?s . "Symbol") (?l . "All Symbols"))))
+                     '((?s . "Project Symbol") (?l . "All Symbols"))))
       (let ((consult--narrow ?s))
         (should (equal (mapcar #'consult--multi-visible-p sources) '(t t nil nil))))
       (let ((consult--narrow ?l))

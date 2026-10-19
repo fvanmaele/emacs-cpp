@@ -477,6 +477,10 @@ Known defects: none yet (nothing built).
   entry (in RMO `fmt/src/format.cc`, wrong include paths). S1 live check: once an
   including `.cc` is open, clangd reuses its flags and the header is clean; opened
   first, it shows errors. The patched clangd takes an includer from its index (D-028).
+- DECIDED D-118 (owner 2026-10-19, O-66 (a)): with a project root, `M-o`'s `s`
+  symbols (the project's only, D-082) are headed "Project Symbol (server)", narrow
+  label "Project Symbol", as "Project File"; without a root `s` (every symbol) stays
+  "Symbol (server)"; "All Symbols" unchanged. Built (tier 1).
 - DECIDED D-117 (owner 2026-10-19, O-65 (a)): eglot patch 0003 (D-069): the
   finders `eglot-find-declaration`, `-implementation`, `-type-definition` call
   `xref-find-by-kind` where xref has it, else show the backend's
@@ -1031,7 +1035,8 @@ each, with a recommendation; the owner agreed to all of them (D-111):
   arrival order (RESEARCH_go_to_anything 17). `C-c l s` keeps consult-eglot's
   groups by symbol kind; T-084's `C-c l s` `count` check is waived by this.
   Build: T-087. Built (T-087, 0073): per server an `s` and a hidden `l` source,
-  headed `Symbol (clangd)`, `All Symbols (pyright-langserver)` ...; the calling
+  headed `Symbol (clangd)` (`Project Symbol (clangd)` since D-118),
+  `All Symbols (pyright-langserver)` ...; the calling
   buffer's server first, then eglot's order; narrow keys `s` / `l` shared, one entry
   each. Terminal check (toy, clangd and pyright): `M-o` `vector` from the `.cc`
   buffer shows clangd's heading first, from the `.py` buffer pyright's; `< s` shows
@@ -1823,7 +1828,8 @@ presets, GoogleTest runner.
   a loose qualifier (`geom::vec`); `count() const` first in both, re-sorted away
   here; no typo seen. Search Everywhere's files: case ignored, humps, space in
   order.
-- O-66 (owner 2026-10-19: "Research: Symbol (clangd) -> Project Symbol (clangd)"):
+- O-66 (RESOLVED 2026-10-19 with D-118: (a); owner 2026-10-19: "Research: Symbol
+  (clangd) -> Project Symbol (clangd)"):
   the heading of `M-o`'s `s` symbols, which with a project root are the project's
   only (D-082) (`RESEARCH_go_to_anything.md` 18). Options: (a) "Project Symbol
   (server)" and narrow label "Project Symbol" when there is a root, "Symbol
@@ -2509,6 +2515,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-113 | 2026-10-15 | symbol matches switched per request, a capability | 10 | O-63 |
 | D-114 | 2026-10-15 | clangd patch 0010, real paths, built with T-104 | 7 | O-50 |
 | D-115 | 2026-10-19 | Arch file-watch limits kept as they are | 7 | O-64 |
+| D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |
 | D-117 | 2026-10-19 | eglot patch 0003: finders with Emacs 31's xref | 7 | O-65 |
 | D-116 | 2026-10-19 | `make packages` resets patched files; pins checked | 12 | owner |
 
