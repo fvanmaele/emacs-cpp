@@ -4,9 +4,9 @@ Fed by DESIGN rulings (open questions, parity verdicts) and spike results. A row
 list only by landing as a journal entry, whose number replaces the status. Nothing here is
 a commitment; order is the owner's priority.
 
-Columns: id | status (open / next / done NNNN) | size (S / M / L) | title | source (D-nnn,
-RESEARCH section, spike, owner ask) | what (one line, concrete enough to start from, ending
-with `done when: ...`).
+Columns: id | status (open / next / done NNNN) | size (S / M / L) | title | source
+(D-nnn, defect Dn, RESEARCH section, spike, owner ask, another repo's `<repo>:D-nnn`) |
+what (one line, concrete enough to start from, ending with `done when: ...`).
 
 ## v0.1 navigation
 | id | status | size | title | source | what |
@@ -289,7 +289,7 @@ with `done when: ...`).
   loaded the old eglot (1.24); `init-packages-are-built-and-fresh` does not see a load
   path naming a directory that is no submodule. Proposed tier 1: the test checks
   that every load-path entry is a submodule's; the owner removes the untracked
-  `lib/eglot/`. Owner rules.
+  `lib/eglot/` (H-11). Owner rules.
 - T-114 (opened 2026-10-20, review 0084 B-3 - B-5, deferred by the owner): send the
   drafted upstream reports and patches in the review's order: treemacs and
   clang-change-namespace first, then consult, projectile, yasnippet-snippets,
@@ -302,7 +302,7 @@ with `done when: ...`).
   the form, the owner's Arch run, then O-71 and the build step written fresh.
 - T-112 (opened 2026-10-20, D-124): spike S16, the match tiers as a function
   (`spikes/s16-match-function`). Tier: 3 (spike first). Mac dry run 2026-10-20
-  (0084): spec and agreement hold, faster only compiled; left: the owner's Arch run;
+  (0084): spec and agreement hold, faster only compiled; left: the owner's Arch run (H-2);
   the function written fresh only with D-125.
 - T-111 (opened 2026-10-20, D-123, review 0084 B-1): the Arch clangd package at the
   installed LLVM's version through `make clangd`. Tier: 2 (owner ruled). Done when:
@@ -465,6 +465,8 @@ with `done when: ...`).
   met on the Mac (check.sh: 7 of 7, installed to ~/opt/fswatch-no-loss); left: the
   owner's `makepkg -si` on Arch (its `check()` runs check.sh). Arch 2026-10-19:
   pkgrel 2 (0074's Arch run) passes, installed; left: the Mac re-check of pkgrel 2.
+  Mac 2026-10-20 (0086): the installed binary is pkgrel 1 (2026-10-15) and passes
+  pkgrel 2's `check.sh`, 7 of 7; left: the Mac rebuild at pkgrel 2 (H-5).
 - T-097 (opened 2026-10-15, owner with D-109): check change 2 of the fswatch
   prototype and its memory use. Done when: `RESEARCH_platform_differences.md` 3.13
   with a real drop reported, memory with a reader that never reads, measured.

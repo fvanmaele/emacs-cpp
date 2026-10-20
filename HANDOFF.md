@@ -22,7 +22,7 @@ divergence from upstream below exists to keep the editor interactive in front of
 - Process (CLAUDE.md, `standard.mk`): tier 1 trivial, tier 2 feature with an agreed
   "done when", tier 3 risky with a PASS spike first. Every decision is a `D-nnn` row;
   every tier 2/3 change has a journal entry with an assumptions + risks ledger.
-  `make check` checks the docs; `make test` runs ERT in a temporary HOME (D-104).
+  `make docs-check` checks the docs; `make test` runs ERT in a temporary HOME (D-104).
 - Spikes (`spikes/`) are throwaway code that turns one risk into a measured verdict;
   spike code is never promoted, the shipped code is written fresh (S8 -> patches
   0001 - 0004, S15 -> patch 0013).
@@ -288,5 +288,5 @@ the pinned commit (D-069, D-116):
 3. `lisp/init-lsp.el`, `lisp/emacs-cpp-presets.el` (server command, refusals),
    `lisp/init-completion.el` and `lisp/init-go-to-anything.el` (matching, `M-o`).
 4. `scripts/build-packages.el` and `patches/` (how upstream code is changed).
-5. Verify: `make packages`, `make test`, `make check`; the patched clangd's tests are
+5. Verify: `make packages`, `make test`, `make docs-check`; the patched clangd's tests are
    `ClangdTests` in a build with `-DCLANG_INCLUDE_TESTS=ON` (journal 0081).

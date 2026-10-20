@@ -1,5 +1,7 @@
 # Written by `make adopt` of llm_vibecoding_standard. Bare `make` prints help.
 .DEFAULT_GOAL := help
+# Prose width: this repository keeps 92 columns (standard default 128).
+STANDARD_WIDTH = 92
 include standard.mk
 
 .PHONY: help

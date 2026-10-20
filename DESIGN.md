@@ -1988,20 +1988,73 @@ presets, GoogleTest runner.
   a loose qualifier (`geom::vec`); `count() const` first in both, re-sorted away
   here; no typo seen. Search Everywhere's files: case ignored, humps, space in
   order.
-- O-71 (OPEN, D-125, 2026-10-20): a stale `lisp/*.elc` after an edit; options in
-  DESIGN 11.1: (a) startup refuses (recommended), (b) `load-prefer-newer` plus a
-  warning, (c) compile on load. Owner rules with S17.
-- O-70 (OPEN, review 0084 B-2, 2026-10-20): `packaging/fswatch-no-loss/` (4 patches,
-  336 lines, a PKGBUILD, `build-macos.sh`, `check.sh`) serves DESIGN 7.1's backend,
-  designed on the vendored eglot that D-121 removed and not redesigned; the config
-  runs no fswatch (README: "not used by the config yet"), while D-121's advice gives
-  project-only watches on macOS. Options: (a) keep it in main as PROTOTYPE (two
-  builds and pkgrel checks to keep, T-098's Mac re-check open); (b) park it on a
-  branch from a tag with DESIGN 7.1, main keeps a pointer, back when O-61's large
-  trees show a need on macOS with the built-in eglot (recommended: nothing uses it,
-  the branch keeps every line); (c) its own repository. Either way 0002 (drops
-  reported as an overflow) and 0004 (numbers in the C locale) are upstream bug
-  fixes, sent with B-3 when the owner sends reports (deferred, T-114).
+- O-71 (OPEN, D-125, 2026-10-20; revisited the same day, owner: "Revisit O-70 and
+  O-71"): a `lisp/*.elc` older than its `.el` after an edit loads without a word
+  (`load-prefer-newer` is set nowhere here). It matters only once D-125 compiles
+  `lisp/`, which waits on S17 (native modules load magit at startup). Options, each
+  with its case against:
+  (a) startup refuses with "run make packages" naming the stale modules. Against: one
+  command after every edit of a module, which the owner edits daily.
+  (b) `load-prefer-newer` t plus a warning naming the stale modules. Against: the
+  source runs interpreted, slower without anyone noticing (D-124's function is 1.3 -
+  1.9 times the regexps' time interpreted, S16), and the warning repeats every start.
+  (c) at startup, before the `require`s, byte-compile each stale module (warnings as
+  errors, as the build), then load it. Against: an interactive start writes `.elc`
+  files into the repository; the first start after an edit pays the compile
+  (UNVERIFIED: about 40 ms per module, the review's 0.57 s for 15); compiling loads
+  the module's `require`s early, which init.el's order (D-098) makes harmless but S17
+  has not checked (UNVERIFIED); a warning a new Emacs release adds stops startup.
+  Combined: (c), and where (c) fails the compiler's message stops startup as (a)
+  would. Recommended: the combined (c), checked in S17 run 2 (a stale module
+  recompiled at startup: time, features loaded). Owner rules.
+- O-70 (OPEN, review 0084 B-2, 2026-10-20; revisited the same day, owner: "on both Mac
+  and Arch, watches should work on very large projects, which was the initial point of
+  fswatch"): the goal is a project tree of LLVM's size (about 17000 directories,
+  187000 files) watched for the servers that ask (pyright, texlab), on both machines.
+  Premises, checked 2026-10-20:
+  - Mac: kqueue, one descriptor per watched directory, 975 per Emacs at most
+    (RESEARCH_platform_differences 3.1, measured); the config caps eglot at 500
+    (`lisp/init-lsp.el:59`) and the advice keeps partial watches past it
+    (`lisp/emacs-cpp-eglot-watch.el:148-152`): a large tree is watched in part.
+  - Arch: inotify; eglot's cap is its default 10000, and past it the built-in eglot
+    fails the whole registration and pyright exits (3.3, 3.14), so an LLVM-sized tree
+    loses pyright today; the kernel's `fs.inotify.max_user_watches` is about 318000 at
+    32 GB by the kernel's formula (the owner's value UNVERIFIED); a burst while Emacs
+    is busy can overflow the kernel queue (16384 events) and drop changes unnoticed
+    (3.14; how Emacs's `inotify.c` reports `IN_Q_OVERFLOW` UNVERIFIED).
+  - fswatch: FSEvents needs 8 descriptors for LLVM's checkout (3.12); patch 0001's
+    writer thread and queue (all platforms) drain the monitor while the reader
+    pauses; fswatch's inotify monitor reports `IN_Q_OVERFLOW`
+    (`libfswatch/c++/inotify_monitor.cpp:443`, 1.22.0) and watches directories
+    created later (`:369`); 0002 / 0003 are FSEvents only.
+  Options, each with its case against:
+  (a) `file-notify` on both: on Arch the advice too (partial watches instead of a
+  failed registration) and the cap from the kernel's limit (half of
+  `max_user_watches`, O-64 (b)). Against: the Mac stays at kqueue's 975, so the goal
+  fails there; Arch keeps the unnoticed overflow loss.
+  (b) an fswatch backend on both: config Lisp over the built-in eglot (overriding
+  `eglot--watch-globs` per server and project root, as `emacs-cpp-eglot-watch.el`
+  does today), the patched fswatch of `packaging/fswatch-no-loss` on both (the Arch
+  PKGBUILD and `build-macos.sh` exist). Against: one more eglot internal under the
+  version pin, re-read at every Emacs release (B-6's cost grows); a patched C++
+  program built and kept on two platforms (D-109's cost stays); Emacs's share was 3.7 -
+  4.1 s of CPU per 20000 records with the prototype (3.12) until glob matching is one
+  regexp per pattern; real paths mapped back (O-50); on Arch fswatch still takes one
+  inotify watch per directory from the same per-user pool: eglot's cap goes, the
+  kernel's stays.
+  (c) (b) on the Mac, (a) on Arch. Against: two mechanisms to test and keep; Arch keeps
+  the overflow loss and still needs the kernel-limit reading.
+  (d) Watchman on both. Against: a daemon of about 100 MB at LLVM's size, a crawl at
+  first watch, cookie files written into the project root, AUR only on Arch (a
+  dependency outside Arch's repositories).
+  Combined: (b) is the union of what each machine needs (FSEvents on the Mac, the
+  no-loss queue on both), so no further combination. Recommended: (b), tier 3, spike
+  S18 first on both machines: a generated LLVM-sized tree (3.12's recipe), pyright on
+  it, a burst of 20000 changes while Emacs is blocked for 5 s, every change reaching
+  `workspace/didChangeWatchedFiles`, Emacs's CPU per 1000 records, startup unchanged;
+  then DESIGN 7.1 rewritten for the built-in eglot. `packaging/fswatch-no-loss` stays
+  in main meanwhile (the review's "park it" withdrawn with the owner's goal). Owner
+  rules.
 - O-69 (RESOLVED 2026-10-20 with D-121: (c) + (d); owner 2026-10-20: "how the fork
   on eglot may be dropped"): the vendored eglot
   (D-108) carries patches 0001 / 0002 for file watches, needed on macOS for pyright
@@ -2748,5 +2801,5 @@ static analysis against CLion's data flow, the debugger's memory view.
 
 ## Conventions
 ASCII; no invented abbreviations; commits with Reasoning and tier; journal with code;
-tests with logic; docs-sync same commit and `make check` before commit; decisions cite
-D-nnn; Makefile/justfile default target = help.
+tests with logic; docs-sync same commit and `docs-check` before a docs commit; decisions
+cite D-nnn; Makefile/justfile default target = help.
