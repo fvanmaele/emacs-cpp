@@ -284,14 +284,21 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-117 (opened 2026-10-21, D-130, owner: "research patch clangd for waiting for
+  library index, and possible downsides"): research a clangd patch so that the first
+  `M-.` after an open waits for a static index still loading (S10 run 2, criterion
+  1). Tier: research (findings in a RESEARCH doc, verdict to the owner). Done when:
+  the loading path read in clangd's source, the patch's shape and its downsides
+  written with evidence or marked UNVERIFIED, the ruling asked as an O-n.
 - T-116 (opened 2026-10-20, D-127): spike S18, an fswatch backend over the built-in
   eglot on both machines (`spikes/s18-fswatch-backend`, NEW). Tier: 3 (spike first).
   Built 2026-10-20 (0087): RUN.md, pass criteria proposed; Mac dry run 5 of 5
   (20000 of 20000 changes with Emacs blocked, 7 - 9 ms per 1000 records; Emacs's own
   watches: 0, kqueue refuses at 975). Criteria confirmed by the owner; the owner's
   own run was on the Mac too (run 3, 5 of 5). Owner's Arch run 2026-10-20 (0089):
-  FAIL on cost only (194 ms per 1000 records, at most 50); left: run 2 on Arch by the
-  session (filter calls counted, sends batched by a timer), then the Mac rerun.
+  FAIL on cost only (194 ms per 1000 records, at most 50). Session's run 2 on Arch
+  2026-10-21 (0090): PASS in mode `dedup` (URIs from the root's, records merged per
+  path; 37 - 39 ms); left: the Mac rerun of `dedup` (H-13).
 - T-115 (opened 2026-10-20, review 0084 fold-in): `lib/load-path.el` still named the
   removed `lib/eglot` after D-121 until `make packages` ran again, and the session
   loaded the old eglot (1.24); `init-packages-are-built-and-fresh` does not see a load

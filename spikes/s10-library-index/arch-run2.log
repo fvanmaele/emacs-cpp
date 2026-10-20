@@ -1,0 +1,48 @@
+# S10 run 2026-10-20T23:59:24+02:00 on copy of /home/alad/source/repos/RMO-gross-pitaevskii; probe; names: n_active_cells refine_global
+deal-ii 9.8.0; system clangd version 23.1.3; patched /opt/clangd-index-nav/bin/clangd
+load: 0.45 0.95 1.24
+deal.II index: reused /tmp/s10/lib/dealii.dex
+index index: 306 shards after 12232 ms
+system n_active_cells: first M-. tria.h:3376 (5539 ms, 15860 ms after open); after 10 s tria.h:3376; M-? 1
+system refine_global: first M-. tria.h:2220 (4 ms, 26024 ms after open); after 10 s tria.h:2220; M-? 5
+system clangd RSS 6994 MB
+  log: V[23:59:40.316] >>> {"id":0,"jsonrpc":"2.0","method":"window/workDoneProgress/create","params":{"token":"backgroundIndexProgress"}}
+  log: I[23:59:40.316] Enqueueing 11 commands for indexing
+  log: V[23:59:40.320] >>> {"jsonrpc":"2.0","method":"$/progress","params":{"token":"backgroundIndexProgress","value":{"kind":"begin","percentage":0,"title":"indexing"}}}
+  log: V[23:59:40.320] >>> {"jsonrpc":"2.0","method":"$/progress","params":{"token":"backgroundIndexProgress","value":{"kind":"report","message":"0/1","percentage":0}}}
+system+dealii n_active_cells: first M-. tria.h:3376 (4782 ms, 14964 ms after open); after 10 s tria.cc:15874; M-? 19
+system+dealii refine_global: first M-. tria.cc:13792 (4 ms, 25037 ms after open); after 10 s tria.cc:13792; M-? 14
+system+dealii clangd RSS 1205 MB
+  log: V[00:00:07.850] >>> {"id":0,"jsonrpc":"2.0","method":"window/workDoneProgress/create","params":{"token":"backgroundIndexProgress"}}
+  log: I[00:00:07.850] Enqueueing 11 commands for indexing
+  log: V[00:00:07.854] >>> {"jsonrpc":"2.0","method":"$/progress","params":{"token":"backgroundIndexProgress","value":{"kind":"begin","percentage":0,"title":"indexing"}}}
+  log: V[00:00:07.854] >>> {"jsonrpc":"2.0","method":"$/progress","params":{"token":"backgroundIndexProgress","value":{"kind":"report","message":"0/1","percentage":0}}}
+patched n_active_cells: first M-. tria.h:3376 (5018 ms, 15060 ms after open); after 10 s tria.h:3376; M-? 2
+patched refine_global: first M-. tria.h:2220 (4 ms, 25107 ms after open); after 10 s tria.h:2220; M-? 5
+patched clangd RSS 990 MB
+  log: I[00:00:34.055] argv[0]: /opt/clangd-index-nav/bin/clangd
+  log: I[00:00:34.055] argv[3]: --navigation-from-index
+  log: I[00:00:34.055] argv[4]: --header-flags-from-index
+  log: V[00:00:34.059] >>> {"id":0,"jsonrpc":"2.0","method":"window/workDoneProgress/create","params":{"token":"backgroundIndexProgress"}}
+patched+dealii n_active_cells: first M-. tria.h:3376 (5075 ms, 15291 ms after open); after 10 s tria.cc:15874; M-? 19
+patched+dealii refine_global: first M-. tria.cc:13792 (5 ms, 25368 ms after open); after 10 s tria.cc:13792; M-? 14
+patched+dealii clangd RSS 1208 MB
+  log: I[00:01:00.336] argv[0]: /opt/clangd-index-nav/bin/clangd
+  log: I[00:01:00.336] argv[3]: --navigation-from-index
+  log: I[00:01:00.336] argv[4]: --header-flags-from-index
+  log: V[00:01:00.340] >>> {"id":0,"jsonrpc":"2.0","method":"window/workDoneProgress/create","params":{"token":"backgroundIndexProgress"}}
+patched+dealii-root n_active_cells: first M-. tria.h:3376 (4980 ms, 15241 ms after open); after 10 s tria.cc:15874; M-? 18
+patched+dealii-root refine_global: first M-. tria.cc:13792 (5 ms, 25313 ms after open); after 10 s tria.cc:13792; M-? 10
+patched+dealii-root clangd RSS 881 MB
+  log: I[00:01:26.969] argv[0]: /opt/clangd-index-nav/bin/clangd
+  log: I[00:01:26.969] argv[3]: --navigation-from-index
+  log: I[00:01:26.969] argv[4]: --header-flags-from-index
+  log: V[00:01:26.972] >>> {"id":0,"jsonrpc":"2.0","method":"window/workDoneProgress/create","params":{"token":"backgroundIndexProgress"}}
+patched+dealii-flag n_active_cells: first M-. tria.h:3376 (5273 ms, 15518 ms after open); after 10 s tria.cc:15874; M-? 19
+patched+dealii-flag refine_global: first M-. tria.cc:13792 (5 ms, 25593 ms after open); after 10 s tria.cc:13792; M-? 14
+patched+dealii-flag clangd RSS 1210 MB
+  log: I[00:01:53.445] argv[0]: /opt/clangd-index-nav/bin/clangd
+  log: I[00:01:53.445] argv[3]: --navigation-from-index
+  log: I[00:01:53.445] argv[4]: --header-flags-from-index
+  log: I[00:01:53.445] CLANGD_FLAGS: --log=verbose --index-file=/tmp/s10/lib/dealii.dex
+load after: 1.46 1.47 1.42

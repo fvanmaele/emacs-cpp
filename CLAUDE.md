@@ -79,6 +79,9 @@ magit at startup); DESIGN 1 ruled (D-126); llm_vibecoding_standard 2.14.0 (0086)
 2.15.1 without its `B-n` ids (D-129, 0088). Owner's Arch runs folded in (0089):
 S16 PASS compiled (criteria to confirm), S18 FAIL on cost on Arch, S10 FAIL (its
 config turned off the project index), runs 2 the session's; ty researched, O-72.
+2026-10-21 (0090): S18 PASS on Arch (`dedup`, Mac rerun H-13); S10 run 2 FAIL on the
+first `M-.` only; library index by `--index-file` (D-130), a waiting patch researched
+(T-117); S17 FAIL (native modules +222 ms); S16 criteria confirmed.
 
 ## Self-test (before the first edit of a session)
 Answer from the docs, not from memory; a miss means re-read, not edit.

@@ -7,7 +7,9 @@
 ;; `sit-for' (which delivers file-notify events and process output alike), appends
 ;; one block to S18_OUT and exits.
 ;; MODE: baseline (Emacs's own `file-notify' watches), eglot or regexp (s18-backend.el
-;; with that matcher).  SERVER: fake (fake_server.py, counts every change) or pyright
+;; with that matcher), fast (regexp, URIs from the root's; run 2), batch (fast, sends
+;; batched by a timer; run 2), dedup (fast, a filter call's records merged per path;
+;; run 2).  SERVER: fake (fake_server.py, counts every change) or pyright
 ;; (registration and survival only).  N: files in the burst.
 
 (require 'cl-lib)
@@ -67,10 +69,13 @@
        (eglot-autoreconnect nil)
        (eglot-events-buffer-config '(:size 0 :format full))
        reg-start reg-time server buffer)
-  (unless (memq mode '(baseline eglot regexp)) (error "s18: MODE %s" mode))
+  (unless (memq mode '(baseline eglot regexp fast batch dedup)) (error "s18: MODE %s" mode))
   (unless (eq mode 'baseline)
     (load (expand-file-name "s18-backend.el" s18-here) nil t)
-    (setq s18-matcher mode)
+    (setq s18-matcher (if (memq mode '(fast batch dedup)) 'regexp mode)
+          s18-prefix-uri (memq mode '(fast batch dedup))
+          s18-dedup (eq mode 'dedup)
+          s18-batch (eq mode 'batch))
     (s18-enable))
   (advice-add 'eglot-register-capability :around
               (lambda (fn &rest args)
@@ -148,6 +153,11 @@
         (funcall out "records read %d, sent %d, skipped %d, overflow %d"
                  records (or (plist-get s18-stats :sent) 0)
                  (or (plist-get s18-stats :skipped) 0) (or (plist-get s18-stats :overflow) 0))
+        (when (plist-get s18-stats :handled)
+          (funcall out "records after merging per path: %d" (plist-get s18-stats :handled)))
+        (funcall out "filter calls %d (%.2f s inside, sends excluded), notifications %d (%.2f s sending)"
+                 (or (plist-get s18-stats :calls) 0) (or (plist-get s18-stats :filter-s) 0)
+                 (or (plist-get s18-stats :notifies) 0) (or (plist-get s18-stats :notify-s) 0))
         (let ((cpu (- cpu1 cpu0 s18-run--poll-cpu)))
           (funcall out "Emacs CPU after the block: %.2f s (log polling %.2f s taken out), %s per 1000 records"
                    cpu s18-run--poll-cpu

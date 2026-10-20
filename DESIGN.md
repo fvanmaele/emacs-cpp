@@ -729,6 +729,17 @@ Known defects: none yet (nothing built).
   access in `prepare`), so on a header without a source it fails with "Couldn't find
   a suitable implementation file." (owner report, RMO). That error is accurate; no
   patch 0010 to hide the action.
+- DECIDED D-130 (owner 2026-10-21, O-12 (b): "O-12 (b)"): a library's offline index
+  reaches clangd through `--index-file=<index>`, added by the config to clangd's
+  command for a project that names the library; the index's path per machine in the
+  platform defaults file (D-055), the project naming only the library (a
+  `.dir-locals.el` value, as D-062). No clangd config file is written. Reason: S10
+  run 2 (`spikes/s10-library-index/RESULTS.md`): with the flag, `M-?` 2 -> 19 and
+  RMO's own index kept (14 uses of `refine_global`, against 10 with a config's
+  `MountPoint: /`), +218 MB. Open before code: the first `M-.` lands on the
+  declaration while the index loads (S10 criterion 1); a clangd patch that waits for
+  it is researched (T-117). Built with the index's build step (offline, about 2.5 min,
+  10 GB peak; DESIGN 7, O-9); tier and done when proposed with T-117's result.
 
 ### 7.1 File watches: an fswatch backend for eglot (D-110, 2026-10-15)
 - DECIDED D-127 (owner 2026-10-20, O-70 (b): "O-70 (b) agree"): watches work on very
@@ -2027,8 +2038,9 @@ presets, GoogleTest runner.
   projects.
   (b) ty on Arch, pyright on the Mac (per platform, D-055's defaults files). Against:
   two servers to keep working, the Python tests run a different server per machine;
-  ty is a 0.0.x beta, its rules change between releases and its reports differ from
-  pyright's (15 against 48 on the same file, not checked for truth).
+  ty is a 0.0.x beta, its rules change between releases; on argparse.py it reports 7
+  errors to pyright's 15 (RESEARCH_python_ty 4a: 5 shared, 2 from rules ty has off
+  by default, 8 from pyright's inference of unannotated code; 2 ty alone).
   (c) ty everywhere, installed on the Mac outside MacPorts. Against: needs a ruling
   against D-053 (MacPorts only), the owner deferred the Mac.
   Combined: (b) now, with (c) or (a) on the Mac once a port exists or the owner rules
@@ -2631,12 +2643,36 @@ presets, GoogleTest runner.
 - O-20 (RESOLVED 2026-10-08 with D-044): gud (`M-x pdb`, `M-x perldb`, `M-x gdb`) binds
   its map on `C-x C-a` globally when it loads, which takes dape's prefix for the session.
   Proposed: `gud-key-prefix` on a free key (`C-x M-a`, `C-x M-d` or `C-x C-y`).
-- O-12 (OPEN, owner 2026-10-09: run S10 on Arch, `spikes/s10-library-index/RUN.md`;
+- O-12 (RESOLVED 2026-10-21 with D-130: (b); owner: "O-12 (b)"; was OPEN, owner
+  2026-10-09: run S10 on Arch, `spikes/s10-library-index/RUN.md`;
   owner 2026-10-08: adopt, spike S10 first; T-020 folded into the same
   clangd rebuild): S10 run 1 (owner, Arch, 2026-10-20): FAIL, its name was
   RMO's own; it found that the external index's `MountPoint: /` switches off the
   project's background index (`M-?` 7 -> 2), so run 2 adds a later config fragment
-  and a deal.II name (`spikes/s10-library-index/RESULTS.md`). S10 dry run (synthetic
+  and a deal.II name (`spikes/s10-library-index/RESULTS.md`). S10 run 2 (session,
+  Arch, 2026-10-21): FAIL on the first `M-.` only (declaration; the definition 10 s
+  later, the deal.II index still loading), `M-?` 2 -> 19, +218 MB; the mount-point
+  fix confirmed by a second fragment and by `--index-file` alike. Options for giving
+  clangd the library index, each with its case against:
+  (a) the user config `~/.config/clangd/config.yaml`: the index with `MountPoint: /`,
+  then a second fragment `Index: {Background: Build}`. Against: a file outside the
+  repository (needs its D-nnn), read by every clangd of the machine, so every project
+  loads the deal.II index (about 200 MB each); the second fragment also overrides a
+  project config placed before it (user fragments come first, so a project's own
+  `.clangd` still wins: UNVERIFIED by a run).
+  (b) the config adds `--index-file=<index>` to clangd's command for a project that
+  names an index (a `.dir-locals.el` value, as D-062's indentation values). Against:
+  clangd calls the flag experimental and "will be removed eventually" (still in
+  23.1.3; the patched build is pinned, the system clangd is not); one index per
+  clangd; a project-specific absolute path in a dir-locals file.
+  (c) a `.clangd` in the project with the index and the second fragment. Against:
+  written into the owner's project (RMO), per project, an absolute machine path in a
+  tracked file, and both machines need different paths.
+  Combined: (b) with the index's path per machine in the platform defaults file
+  (D-055) and the project naming only which library. Recommended: (b), plus a fix for
+  the first request (criterion 1): load the index before the first `M-.`, or the
+  patched clangd's index-first path waiting for the static index too (a clangd patch,
+  was planned as 0009). Owner rules. S10 dry run (synthetic
   project): the patched clangd with the deal.II
   index answers the first `M-.` with the definition (`vector.templates.h:477`,
   `tria.cc:15874`), `M-?` 2 -> 8 and 2 -> 18, +30 MB; no clangd patch needed (the
@@ -2843,6 +2879,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-127 | 2026-10-20 | fswatch backend for eglot on both machines, spike S18 | 7 | O-70 |
 | D-128 | 2026-10-20 | stale `lisp/` modules recompiled at startup, with D-125 | 11 | O-71 |
 | D-129 | 2026-10-20 | standard 2.15.1 `B-n` ids not adopted; `review:` prefix kept | Conventions | owner |
+| D-130 | 2026-10-21 | library index through clangd's `--index-file` (O-12 (b)) | 7 | O-12 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |

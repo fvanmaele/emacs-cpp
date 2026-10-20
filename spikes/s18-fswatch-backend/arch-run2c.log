@@ -1,0 +1,96 @@
+S18 run 2026-10-20T22:02:54Z, Linux x86_64, GNU Emacs 31.1
+tree: 15625 directories, 187395 files
+load: 1.28 1.42 1.40
+
+S18 run: mode eglot, server fake, burst 20000, gnu/linux, GNU Emacs 31.1 (build 2, x86_64-pc-linux-gnu, GTK+ Version 3.24.52, cairo version 1.18.4)
+connect + registration: 0.10 s (registration in Emacs: 0.02 s)
+registration answer: registered ok
+ready (a probe change reported): 0.36 s
+burst: 20000 of 20000 created files reached the server (20000 reports, repeats included), 35.0 s after the start
+records read 60004, sent 60004, skipped 0, overflow 0
+filter calls 62 (25.75 s inside, sends excluded), notifications 62 (24.13 s sending)
+Emacs CPU after the block: 25.97 s (log polling 3.21 s taken out), 433 ms per 1000 records
+after shutdown: fswatch processes alive: 0
+messages (last 12 lines):
+For information about GNU Emacs and the GNU system, type C-h C-a.
+Wrote /tmp/s18-tree/s18-open.txt
+[eglot] Connected! Server ‘EGLOT (s18-tree/(text-mode))’ now managing ‘(text-mode)’ buffers in project ‘s18-tree’.
+[eglot] Asking EGLOT (s18-tree/(text-mode)) politely to terminate
+[jsonrpc] Server exited with status 0
+
+S18 run: mode regexp, server fake, burst 20000, gnu/linux, GNU Emacs 31.1 (build 2, x86_64-pc-linux-gnu, GTK+ Version 3.24.52, cairo version 1.18.4)
+connect + registration: 0.13 s (registration in Emacs: 0.01 s)
+registration answer: registered ok
+ready (a probe change reported): 0.34 s
+burst: 20000 of 20000 created files reached the server (20000 reports, repeats included), 23.5 s after the start
+records read 60005, sent 60005, skipped 0, overflow 0
+filter calls 60 (15.83 s inside, sends excluded), notifications 60 (35.03 s sending)
+Emacs CPU after the block: 15.90 s (log polling 2.07 s taken out), 265 ms per 1000 records
+after shutdown: fswatch processes alive: 0
+messages (last 12 lines):
+For information about GNU Emacs and the GNU system, type C-h C-a.
+Wrote /tmp/s18-tree/s18-open.txt
+[eglot] Connected! Server ‘EGLOT (s18-tree/(text-mode))’ now managing ‘(text-mode)’ buffers in project ‘s18-tree’.
+[eglot] Asking EGLOT (s18-tree/(text-mode)) politely to terminate
+[jsonrpc] Server exited with status 0
+
+S18 run: mode fast, server fake, burst 20000, gnu/linux, GNU Emacs 31.1 (build 2, x86_64-pc-linux-gnu, GTK+ Version 3.24.52, cairo version 1.18.4)
+connect + registration: 0.13 s (registration in Emacs: 0.00 s)
+registration answer: registered ok
+ready (a probe change reported): 0.33 s
+burst: 20000 of 20000 created files reached the server (20000 reports, repeats included), 9.1 s after the start
+records read 60004, sent 60004, skipped 0, overflow 0
+filter calls 56 (3.36 s inside, sends excluded), notifications 56 (102.07 s sending)
+Emacs CPU after the block: 3.45 s (log polling 0.20 s taken out), 57 ms per 1000 records
+after shutdown: fswatch processes alive: 0
+messages (last 12 lines):
+For information about GNU Emacs and the GNU system, type C-h C-a.
+Wrote /tmp/s18-tree/s18-open.txt
+[eglot] Connected! Server ‘EGLOT (s18-tree/(text-mode))’ now managing ‘(text-mode)’ buffers in project ‘s18-tree’.
+[eglot] Asking EGLOT (s18-tree/(text-mode)) politely to terminate
+[jsonrpc] Server exited with status 0
+
+S18 run: mode batch, server fake, burst 20000, gnu/linux, GNU Emacs 31.1 (build 2, x86_64-pc-linux-gnu, GTK+ Version 3.24.52, cairo version 1.18.4)
+connect + registration: 0.12 s (registration in Emacs: 0.00 s)
+registration answer: registered ok
+ready (a probe change reported): 0.39 s
+burst: 20000 of 20000 created files reached the server (20000 reports, repeats included), 11.0 s after the start
+records read 60005, sent 20017, skipped 0, overflow 0
+filter calls 59 (4.54 s inside, sends excluded), notifications 22 (1.36 s sending)
+Emacs CPU after the block: 4.84 s (log polling 0.54 s taken out), 81 ms per 1000 records
+after shutdown: fswatch processes alive: 0
+messages (last 12 lines):
+For information about GNU Emacs and the GNU system, type C-h C-a.
+Wrote /tmp/s18-tree/s18-open.txt
+[eglot] Connected! Server ‘EGLOT (s18-tree/(text-mode))’ now managing ‘(text-mode)’ buffers in project ‘s18-tree’.
+[eglot] Asking EGLOT (s18-tree/(text-mode)) politely to terminate
+[jsonrpc] Server exited with status 0
+
+S18 run: mode dedup, server fake, burst 20000, gnu/linux, GNU Emacs 31.1 (build 2, x86_64-pc-linux-gnu, GTK+ Version 3.24.52, cairo version 1.18.4)
+connect + registration: 0.12 s (registration in Emacs: 0.00 s)
+registration answer: registered ok
+ready (a probe change reported): 0.33 s
+burst: 20000 of 20000 created files reached the server (20000 reports, repeats included), 8.0 s after the start
+records read 60004, sent 20035, skipped 0, overflow 0
+records after merging per path: 20035
+filter calls 60 (2.14 s inside, sends excluded), notifications 60 (0.04 s sending)
+Emacs CPU after the block: 2.25 s (log polling 0.35 s taken out), 37 ms per 1000 records
+after shutdown: fswatch processes alive: 0
+messages (last 12 lines):
+For information about GNU Emacs and the GNU system, type C-h C-a.
+Wrote /tmp/s18-tree/s18-open.txt
+[eglot] Connected! Server ‘EGLOT (s18-tree/(text-mode))’ now managing ‘(text-mode)’ buffers in project ‘s18-tree’.
+[eglot] Asking EGLOT (s18-tree/(text-mode)) politely to terminate
+[jsonrpc] Server exited with status 0
+
+S18 run: mode dedup, server pyright, burst 20000, gnu/linux, GNU Emacs 31.1 (build 2, x86_64-pc-linux-gnu, GTK+ Version 3.24.52, cairo version 1.18.4)
+connect + registration: 0.25 s (registration in Emacs: 0.00 s)
+pyright after 30 s: running; fswatch processes: 8
+after shutdown: fswatch processes alive: 0
+messages (last 12 lines):
+For information about GNU Emacs and the GNU system, type C-h C-a.
+Wrote /tmp/s18-tree/s18-open.py
+Can’t guess python-indent-offset, using defaults: 4 [2 times]
+[eglot] Connected! Server ‘EGLOT (s18-tree/(python-mode))’ now managing ‘(python-mode)’ buffers in project ‘s18-tree’.
+[eglot] Asking EGLOT (s18-tree/(python-mode)) politely to terminate
+[jsonrpc] Server exited with status 0

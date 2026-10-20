@@ -11,10 +11,18 @@
 # the deal.II index (a private XDG_CONFIG_HOME whose clangd/config.yaml names it).
 # Never writes to the project or to ~/.config/clangd.  Writes results.log next to this
 # script, never over one.
+# Run 2 (2026-10-20): SOURCE `probe' (the default) writes src/s10_probe.cc into the copy
+# only, so the names are deal.II's (clangd infers its flags from a neighbour in the
+# database).  The deal.II config has a second fragment that turns the background index
+# back on: an external index sets `Background: Skip' for every file under its mount
+# point, a later fragment overrides it (ConfigCompile.cpp).  The run-1 config (one
+# fragment) is measured once more as `patched+dealii-root', for contrast, and the
+# index given by clangd's `--index-file' flag instead of a config as
+# `patched+dealii-flag' (no mount point, the background policy left alone).
 set -eu
 SRC=${1:-$HOME/source/repos/RMO-gross-pitaevskii}
-SOURCE=${2:-src/main_sparsity.cc}
-NAMES=${3:-n_active_cells}
+SOURCE=${2:-probe}
+NAMES=${3:-n_active_cells refine_global}
 DIR=${S10_DIR:-/tmp/s10/lib}
 WORK=${S10_WORK:-/tmp/s10/work/$(basename "$SRC")}
 DEALII=${S10_DEALII:-$HOME/source/repos/dealii}
@@ -28,7 +36,8 @@ VERSION=$(pacman -Q deal-ii | awk '{print $2}' | cut -d- -f1)
 [ -e "$WORK" ] && { echo "s10: $WORK exists; remove it first" >&2; exit 1; }
 [ -x "$INDEXER" ] || { echo "s10: no clangd-indexer at $INDEXER" >&2; exit 1; }
 [ -x "$PATCHED" ] || { echo "s10: no patched clangd at $PATCHED" >&2; exit 1; }
-[ -f "$SRC/$SOURCE" ] || { echo "s10: no $SOURCE in $SRC" >&2; exit 1; }
+[ "$SOURCE" = probe ] || [ -f "$SRC/$SOURCE" ] \
+    || { echo "s10: no $SOURCE in $SRC" >&2; exit 1; }
 git -C "$DEALII" rev-parse -q --verify "v$VERSION" > /dev/null \
     || { echo "s10: no tag v$VERSION in $DEALII" >&2; exit 1; }
 { echo "# S10 run $(date -Iseconds) on copy of $SRC; $SOURCE; names: $NAMES"
@@ -51,17 +60,40 @@ peak $(awk '/Maximum resident/ {print int($6/1024)}' "$DIR/indexer.log") MB" >> 
 else
     echo "deal.II index: reused $DIR/dealii.dex" >> "$LOG"
 fi
-mkdir -p "$DIR/xdg/clangd"
-# MountPoint is required in a user config; "/" applies the index to every file.
+mkdir -p "$DIR/xdg/clangd" "$DIR/xdg-root/clangd"
+# MountPoint is required in a user config; "/" applies the index to every file.  Run 1's
+# config: that fragment alone.  Run 2's: a second fragment restores the background index.
 printf 'Index:\n  External:\n    File: %s\n    MountPoint: /\n' "$DIR/dealii.dex" \
+    > "$DIR/xdg-root/clangd/config.yaml"
+{ cat "$DIR/xdg-root/clangd/config.yaml"; printf -- '---\nIndex:\n  Background: Build\n'; } \
     > "$DIR/xdg/clangd/config.yaml"
 mkdir -p "$(dirname "$WORK")"
 rsync -a --exclude build-release --exclude build "$SRC"/ "$WORK"/
+# RMO 0188cc2 (2026-10-20) keeps its presets per platform; the copy gets Linux's under
+# the name CMake reads.
+if [ ! -f "$WORK/CMakePresets.json" ] && [ -f "$WORK/CMakePresets-gnu-linux.json" ]; then
+    cp "$WORK/CMakePresets-gnu-linux.json" "$WORK/CMakePresets.json"
+fi
+if [ "$SOURCE" = probe ]; then
+    SOURCE=src/s10_probe.cc
+    cat > "$WORK/$SOURCE" <<'PROBE'
+#include <deal.II/grid/grid_generator.h>
+#include <deal.II/grid/tria.h>
+
+int main()
+{
+    dealii::Triangulation<2> tria;
+    dealii::GridGenerator::hyper_cube(tria);
+    tria.refine_global(2);
+    return tria.n_active_cells() > 0 ? 0 : 1;
+}
+PROBE
+fi
 ( cd "$WORK" && cmake --preset debug > configure.log 2>&1 ) \
     || { echo "s10: configure failed, see $WORK/configure.log" >&2; exit 1; }
-session() {  # clangd xdg mode label
+session() {  # clangd xdg mode label [flags]
     S10_ROOT=$WORK S10_SOURCE=$SOURCE S10_OUT=$LOG S10_CLANGD=$1 S10_XDG=$2 S10_MODE=$3 \
-        S10_LABEL=$4 S10_NAMES=$NAMES \
+        S10_LABEL=$4 S10_NAMES=$NAMES S10_FLAGS=${5:-} \
         emacs -Q --batch -L "$REPO/scripts" -L "$REPO/lisp" -L "$REPO/test" \
         -l "$HERE/s10.el" > "$WORK/s10-$4.out" 2>&1 \
         || echo "s10: session $4 failed, see $WORK/s10-$4.out" >> "$LOG"
@@ -71,5 +103,7 @@ session clangd "" measure system
 session clangd "$DIR/xdg" measure system+dealii
 session "$PATCHED" "" measure patched
 session "$PATCHED" "$DIR/xdg" measure patched+dealii
+session "$PATCHED" "$DIR/xdg-root" measure patched+dealii-root
+session "$PATCHED" "" measure patched+dealii-flag "--index-file=$DIR/dealii.dex"
 echo "load after: $(cut -d' ' -f1-3 /proc/loadavg)" >> "$LOG"
 echo "done; see $LOG"
