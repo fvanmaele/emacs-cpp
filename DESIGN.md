@@ -2039,8 +2039,8 @@ presets, GoogleTest runner.
   here; no typo seen. Search Everywhere's files: case ignored, humps, space in
   order.
 - O-73 (RESOLVED 2026-10-21 with D-131: (a); owner: "O-73 (a), with proper user
-  diagnostics"; was OPEN, owner 2026-10-21: "research patch clangd for waiting for
-  library index, and possible downsides"; D-130, T-117): the first `M-.` after opening gives the
+  diagnostics"; was OPEN, owner 2026-10-21: "research patch clangd for waiting for library
+  index, and possible downsides"; D-130, T-117): the first `M-.` after opening gives the
   declaration while the library index loads (`RESEARCH_library_sources_index.md` 7).
   clangd loads an `--index-file` index only on the first query, in 1.1 - 1.3 s; patch
   0002's shard path answers in 0.95 s, before it. Options, each with its case against:
