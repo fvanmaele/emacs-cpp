@@ -1,0 +1,15 @@
+s17: compiler warnings: 36
+s17-compile: 19 files, 0 failed, 19 .elc written
+S17 run 2026-10-20T12:55:34Z, Darwin arm64, GNU Emacs 31.1
+round 1  interp jit on   median 0.397 s, min 0.382, max 0.414  (load: 6.01 5.96 5.40)
+round 1  interp jit off  median 0.363 s, min 0.336, max 0.385  (load: 5.86 5.93 5.39)
+round 1  byte   jit on   median 0.915 s, min 0.841, max 0.967  (load: 5.56 5.85 5.39)
+round 1  byte   jit off  median 0.360 s, min 0.327, max 0.389  (load: 5.16 5.76 5.36)
+round 2  interp jit on   median 0.407 s, min 0.391, max 0.458  (load: 5.01 5.68 5.34)
+round 2  interp jit off  median 0.374 s, min 0.355, max 0.403  (load: 4.93 5.64 5.33)
+round 2  byte   jit on   median 0.909 s, min 0.861, max 1.213  (load: 5.20 5.63 5.34)
+round 2  byte   jit off  median 0.372 s, min 0.356, max 0.757  (load: 5.09 5.58 5.32)
+probe  interp jit on   emacs-cpp-match-tier=interpreted emacs-cpp-presets-resolve=interpreted consult-buffer=autoload
+probe  interp jit off  emacs-cpp-match-tier=interpreted emacs-cpp-presets-resolve=interpreted consult-buffer=autoload
+probe  byte   jit on   emacs-cpp-match-tier=native emacs-cpp-presets-resolve=native consult-buffer=autoload
+probe  byte   jit off  emacs-cpp-match-tier=byte emacs-cpp-presets-resolve=byte consult-buffer=autoload
