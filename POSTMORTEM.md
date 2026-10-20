@@ -1,9 +1,17 @@
 # emacs-cpp postmortems
 
-One entry per direction that went bad enough to revert, rewrite, or reopen a DESIGN
-decision. Input = the assumptions + risks ledgers of the journal entries that bet on the
-direction. Output = a DESIGN change so it cannot recur the same way. Write it while the
-failure is fresh.
+Two sizes. A full entry per direction that went bad enough to revert, rewrite, or reopen a
+DESIGN decision: input = the assumptions + risks ledgers of the journal entries that bet on
+the direction, output = a DESIGN change so it cannot recur the same way. A short entry per
+failure that reached a person or did damage: the owner or a user hit it, or it cost data,
+a process, a device or the owner's time. Normal work gets neither: a test that fails
+before the work is called done, a typo, a command that errored and was rerun. Write the
+entry while the failure is fresh, in the commit that fixes it. In "Which assumptions
+broke", each line as `D-nnn, journal NNNN: <the line>` (since 2026-10-20, standard 2.14.0).
+
+Short entry shape:
+- What failed / Caught by / Cause / Fix (commit) / Lesson, one line each, under
+  `## <YYYY-MM-DD> - <short title> (short)`.
 
 Entries below were written on 2026-10-08 from the git history (79 commits, v0.1.0 to
 v0.4.1) and the journal; oldest first. Not entries: spikes that failed as designed (S1

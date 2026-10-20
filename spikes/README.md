@@ -5,8 +5,9 @@ code is written for it. Each spike is a self-contained directory with its own bu
 
 ## Rules
 - One spike answers one risk from the DESIGN risk register. It produces a verdict, not code.
-- Two docs per spike: `RUN.md` (which risk, prerequisites, exact commands, ends by pointing
-  at RESULTS.md) and `RESULTS.md` (opens with `Verdict: PASS/FAIL`, then environment,
+- Two docs per spike: `RUN.md` (which risk, prerequisites, what the session runs and what
+  the owner does, or the script and its report; ends by pointing at RESULTS.md) and
+  `RESULTS.md` (opens with `Verdict: PASS/FAIL`, then environment,
   measurements against the stated budget, Decision, gotchas, follow-ups folded elsewhere).
 - Spike code is NEVER promoted into app code. Lift patterns and numbers into DESIGN and a
   journal entry, then write app code fresh.
@@ -80,15 +81,18 @@ code is written for it. Each spike is a self-contained directory with its own bu
   (D-008) and CMake editing uses the system `cmake-mode` (O-4), so no grammar is built.
 
 ## Status
+Status words: `not started`, `ready` (RUN.md written, the owner runs it; no RESULTS.md yet),
+`running`, `PASS`, `FAIL` (copied from RESULTS.md).
 | Spike | Status | RESULTS |
 |---|---|---|
 | S1 | PASS (run 2) | s1-compile-db/RESULTS.md |
 | S5 | FAIL, closed by owner ruling (D-021) | s5-preamble-warmup/RESULTS.md |
 | S6 | PASS | s6-ccls/RESULTS.md |
-| S7 | PKGBUILD ready, owner to build | |
+| S7 | ready (PKGBUILD built here; owner to build and run) | |
+| S10 | ready (owner's run on Arch, O-12) | |
 | S8 | PASS (run 2) | s8-clangd-index-navigation/RESULTS.md |
 | S2 | PASS (run 1) | s2-dape-gdb/RESULTS.md |
 | S11 | runs 2, 3 PASS; run 4 recorded; run 1 FAIL in part | s11-go-to-anything/RESULTS.md |
 | S12 | FAIL (runs 1, 2); owner rules O-43 (b) | s12-change-signature/RESULTS.md |
-| S16 | dry run (Mac) recorded; Arch run by the owner | s16-match-function/DRY-RUN.md |
-| S17 | dry run (Mac) recorded; Arch run by the owner | s17-compiled-lisp/DRY-RUN.md |
+| S16 | ready (Mac dry run recorded; owner's Arch run) | s16-match-function/DRY-RUN.md |
+| S17 | ready (Mac dry run recorded; run 2, then owner's Arch run) | s17-compiled-lisp/DRY-RUN.md |

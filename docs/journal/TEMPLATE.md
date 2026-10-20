@@ -29,6 +29,11 @@ Concrete commands and what to look for. Real-data steps are the owner's to run.
 ## Open questions (optional)
 Add design questions to the DESIGN open questions ledger, not only here.
 
+## Standard feedback (optional; the standard pulls it with `make feedback`)
+- Helped: rule <n>, <one line: what it caught or saved>.
+- Hurt: rule <n>, <one line: what it cost or blocked>.
+- Never applied: rule <n>, <why it did not come up here>.
+
 ## Review fold-in (only for external-review entries)
 Source: <who / which tool>, <date>. Transcript deleted after this entry.
 - **Taken:** <point>. Reason. D-nnn added or superseded / task id.

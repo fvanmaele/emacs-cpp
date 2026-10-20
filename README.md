@@ -306,7 +306,7 @@ history and caches.
 |---|---|
 | `Makefile`, `standard.mk` | `make packages`, `test`, `check`; bare `make` prints help |
 | `scripts/build-packages.el` | builds `lib/` from the `.gitmodules` entries |
-| `scripts/check-standard.sh` | docs consistency (`make check`) |
+| `scripts/check-standard.sh` | docs consistency (`make docs-check`) |
 | `scripts/measure-startup.sh` | startup time measurement (DESIGN 11) |
 | `test/*-test.el` | ERT tests, one file per module |
 | `packaging/clangd-index-nav/` | patched clangd: patches, PKGBUILD, `build-macos.sh` |
