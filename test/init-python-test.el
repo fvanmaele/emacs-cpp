@@ -51,28 +51,31 @@ run BODY, then shut down eglot servers and kill the buffers it visited."
   (init-test--load)
   (require 'eglot)
   (init-python-test--with-dir init-python-test--files t
-    (let ((use (init-python-test--visit (expand-file-name "b.py" root)))
-          (eglot-confirm-server-edits nil))
-      (with-current-buffer use
-        (should (eq major-mode 'python-ts-mode))
-        (should (init-test--wait-managed))
-        (should (equal (car (process-command (jsonrpc--process (eglot-current-server))))
-                       "pyright-langserver"))
-        ;; M-. on the use reaches the definition in a.py.
-        (goto-char (point-min))
-        (search-forward "print(area")
-        (backward-char 2)
-        (let ((items (xref-backend-definitions
-                      'eglot (xref-backend-identifier-at-point 'eglot))))
-          (should items)
-          (should (equal (file-name-nondirectory
-                          (xref-location-group (xref-item-location (car items))))
-                         "a.py")))
-        ;; C-c l r: rename in both files.
-        (eglot-rename "surface")
-        (should (string-match-p "surface(2, 3)" (buffer-string)))
-        (with-current-buffer (find-file-noselect (expand-file-name "a.py" root))
-          (should (string-match-p "def surface" (buffer-string))))))))
+    (init-test--recording-diagnostics
+      (let ((use (init-python-test--visit (expand-file-name "b.py" root)))
+            (eglot-confirm-server-edits nil))
+        (with-current-buffer use
+          (should (eq major-mode 'python-ts-mode))
+          (should (init-test--wait-managed))
+          (should (equal (car (process-command (jsonrpc--process (eglot-current-server))))
+                         "pyright-langserver"))
+          ;; pyright answers a rename with null until its first analysis is done.
+          (should (init-test--wait-diagnostics))
+          ;; M-. on the use reaches the definition in a.py.
+          (goto-char (point-min))
+          (search-forward "print(area")
+          (backward-char 2)
+          (let ((items (xref-backend-definitions
+                        'eglot (xref-backend-identifier-at-point 'eglot))))
+            (should items)
+            (should (equal (file-name-nondirectory
+                            (xref-location-group (xref-item-location (car items))))
+                           "a.py")))
+          ;; C-c l r: rename in both files.
+          (eglot-rename "surface")
+          (should (string-match-p "surface(2, 3)" (buffer-string)))
+          (with-current-buffer (find-file-noselect (expand-file-name "a.py" root))
+            (should (string-match-p "def surface" (buffer-string)))))))))
 
 (ert-deftest init-python-eglot-only-in-projects ()
   (init-test--load)

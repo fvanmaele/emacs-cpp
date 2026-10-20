@@ -23,7 +23,9 @@ HOME_CHECK = --eval "(when (file-equal-p \"~\" (concat \"~\" (user-login-name)))
 	(error \"make test: HOME is the real home, %s; it should be a temporary directory (D-104)\" \
 	(expand-file-name \"~\")))"
 endif
+# A missing grammar fails its tests instead of asking to install it on stdin.
 ERT = $(EMACS) -Q --batch $(HOME_CHECK) -L scripts -L lisp -L test \
+	--eval "(setq treesit-auto-install-grammar 'never)" \
 	$(foreach f,$(sort $(wildcard test/*-test.el)),\
 		--eval "(require '$(basename $(notdir $(f))))") \
 	-f ert-run-tests-batch-and-exit
