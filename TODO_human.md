@@ -31,6 +31,16 @@ service's plan) is not an item.
      spikes/s18-fswatch-backend/run.sh 20000 </dev/null`
   4. On the Mac: `rm -rf /tmp/s18-tree`
   Report back: paste `spikes/s18-fswatch-backend/s18.log`.
+- **H-14** (2026-10-21, unblocks T-118) Hand check: deal.II's own sources from RMO.
+  The index is built (`indexes/dealii.dex`, deal.II 9.8.0).
+  1. In Emacs on Arch, open `~/source/repos/RMO-gross-pitaevskii/.dir-locals.el` and
+     add the line `(emacs-cpp-project-libraries . (dealii))` after
+     `(c-ts-indent-offset . 4)`; save.
+  2. In Emacs: `M-x eglot-shutdown-all RET`, then `C-x C-f
+     ~/source/repos/RMO-gross-pitaevskii/src/main.cc RET`.
+  3. After a few seconds: `C-c l s n_active_cells RET`.
+  Report back: the file it lands in (expected
+  `.../emacs-cpp/indexes/dealii-9.8.0/source/grid/tria.cc`) and any `*Warnings*`.
 
 ## Parked
 - **H-8** (2026-10-20, 0084 review:B-3 to review:B-5, deferred; T-114) The upstream

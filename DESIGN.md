@@ -746,6 +746,19 @@ Known defects: none yet (nothing built).
   declaration while the index loads (S10 criterion 1); a clangd patch that waits for
   it is researched (T-117). Built with the index's build step (offline, about 2.5 min,
   10 GB peak; DESIGN 7, O-9); tier and done when proposed with T-117's result.
+- DECIDED D-133 (owner 2026-10-21, T-118: "Patched package"): library indexes are
+  written by the `clangd-indexer` of the patched clangd's own tree, so their format is
+  the one the clangd reading them expects: packaging/clangd-index-nav pkgrel 10
+  installs it as /opt/clangd-index-nav/bin/clangd-indexer, build-macos.sh as
+  ~/opt/clangd-index-nav/bin/clangd-indexer. `make library-index LIBRARY=dealii`
+  (`scripts/build-library-index.sh`) reads the library's version from its installed
+  `deal.II/base/config.h`, archives that tag of the git checkout at
+  ~/source/repos/dealii (an input outside the repository, read only; `DEALII_SOURCES`
+  names another), configures and indexes it into indexes/ of this repository
+  (ignored by git): the sources and build directory are kept, since the index points
+  into them, with `dealii.dex` and `dealii.stamp`. Rejected: the indexer of an
+  llvm-clangd build outside the repository (nothing keeps it at the patched clangd's
+  version); deferring the build step.
 - DECIDED D-131 (owner 2026-10-21, O-73 (a): "O-73 (a), with proper user
   diagnostics"): no clangd patch for the first request; the config sends one
   `workspace/symbol` when clangd connects with an `--index-file`, which starts the
@@ -2987,6 +3000,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-130 | 2026-10-21 | library index through clangd's `--index-file` (O-12 (b)) | 7 | O-12 |
 | D-131 | 2026-10-21 | index load started by a request at connect; failures told (O-73 (a)) | 7 | O-73 |
 | D-132 | 2026-10-21 | pyright stays; ty when it checks unannotated code (O-72) | 5 | O-72 |
+| D-133 | 2026-10-21 | library indexes by the patched package's clangd-indexer, into indexes/ | 7 | T-118 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |

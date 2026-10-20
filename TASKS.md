@@ -286,7 +286,8 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
 - T-118 (opened 2026-10-21, D-130, D-131): a project's library index reaches clangd.
-  Tier: 2. PROPOSED done when (owner to agree):
+  Tier: 2. Done when (agreed by the owner 2026-10-21: "Agree T-118"; item 4's indexer
+  by D-133):
   1. A project naming `dealii` in `.dir-locals.el` (`emacs-cpp-project-libraries`,
      NEW) gets `--index-file=<path>` in `emacs-cpp-presets--clangd-command`
      (`lisp/emacs-cpp-presets.el`), the path from `emacs-cpp-library-indexes` (NEW, an
@@ -312,6 +313,9 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
      symbol); `make help` lists it.
   5. `make test` passes on Arch; on RMO with the shipped config, `M-.` on a deal.II
      call in a source opened 2 s earlier lands in deal.II's `.cc` (owner's hand check).
+  Built 2026-10-21 (0092): items 1 - 4 met, `make test` 141 of 141 on Arch; the
+  end-to-end check on the S10 copy of RMO passes with the system and the patched
+  clangd. Left: the owner's hand check on RMO (H-14).
 - T-117 (opened 2026-10-21, D-130, owner: "research patch clangd for waiting for
   library index, and possible downsides"): research a clangd patch so that the first
   `M-.` after an open waits for a static index still loading (S10 run 2, criterion
