@@ -76,7 +76,8 @@ at the pin (T-105, 0078).
   when` agreed first, then code + journal entry; tier 3 risky = PASS spike first. LLM
   proposes the tier, owner rules, commit body names it.
 - No tier 2 code without a DESIGN section; no tier 3 code without a PASS spike. Reason:
-  <the dead direction or shipped bug that taught this>.
+  the ccls hybrid (D-023, D-024) passed its spike in one session and aborted in one run
+  in five once built; spike and branch kept it out of main (POSTMORTEM 2026-10-08).
 - Every decision is a `D-nnn` row in the DESIGN decisions ledger; cite ids, not section
   numbers. A new dependency, network call, credential or file outside the repo needs its
   `D-nnn` before code.
