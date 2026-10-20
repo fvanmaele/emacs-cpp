@@ -43,6 +43,37 @@ under way when the visit returns; the buffer is managed once it ends."
       (accept-process-output nil 0.1))
     (eglot-managed-p)))
 
+(defvar init-test--diagnosed-files nil
+  "Files a server published diagnostics for, inside `init-test--recording-diagnostics'.")
+
+(defun init-test--note-diagnostics (_server method &rest params)
+  "Record the file of a textDocument/publishDiagnostics notification (METHOD, PARAMS)."
+  (when (eq method 'textDocument/publishDiagnostics)
+    (push (eglot-uri-to-path (plist-get params :uri)) init-test--diagnosed-files)))
+
+(defmacro init-test--recording-diagnostics (&rest body)
+  "Run BODY while the files servers publish diagnostics for are recorded.
+Wrap the visit too: a fast server can publish before the visit returns."
+  (declare (indent 0))
+  `(let ((init-test--diagnosed-files nil))
+     (advice-add 'eglot-handle-notification :before #'init-test--note-diagnostics)
+     (unwind-protect (progn ,@body)
+       (advice-remove 'eglot-handle-notification #'init-test--note-diagnostics))))
+
+(defun init-test--wait-diagnostics (&optional seconds)
+  "Wait up to SECONDS (default 30) until a server published diagnostics for this file.
+Return non-nil if it did.  Being managed is not being analysed: pyright answers a
+rename with null until its first analysis of the file is done, which it reports
+with the file's first diagnostics (an empty list for a clean file).  Needs
+`init-test--recording-diagnostics' around the visit."
+  (let ((deadline (+ (float-time) (or seconds 30)))
+        (file buffer-file-name))
+    (cl-flet ((seen () (seq-some (lambda (f) (file-equal-p f file))
+                                 init-test--diagnosed-files)))
+      (while (and (not (seen)) (< (float-time) deadline))
+        (accept-process-output nil 0.1))
+      (seen))))
+
 (defun init-test--stale-elc-files ()
   "Return built package files whose .elc is missing or older than the .el."
   (let (stale)
