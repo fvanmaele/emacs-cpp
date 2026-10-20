@@ -28,6 +28,7 @@
 (require 'project)
 (require 'subr-x)
 (require 'seq)
+(require 'emacs-cpp-library-index)
 
 (defcustom emacs-cpp-presets-state-file
   (expand-file-name "emacs-cpp-presets.eld" user-emacs-directory)
@@ -431,11 +432,15 @@ packaging/clangd-index-nav (D-026)"
        "emacs-cpp: no %s for preset %S; run `cmake --preset %s' in %s, then M-x eglot"
        database name name root))
     (emacs-cpp-presets-check-database database)
-    (let ((command (emacs-cpp-presets--clangd-program)))
+    (let ((command (emacs-cpp-presets--clangd-program))
+          ;; The project's library index (D-130), checked before clangd starts (D-131);
+          ;; its probe runs when clangd connects.
+          (library (emacs-cpp-library-index-check emacs-cpp-project-libraries)))
+      (emacs-cpp-library-index-expect root library)
       ;; Rename across the whole project: clangd's default stops at 50 files
       ;; ("The number of affected files exceeds the max limit 50") (D-092).
       `(,(car command) ,(concat "--compile-commands-dir=" dir) "--rename-file-limit=0"
-        ,@(cdr command)))))
+        ,@(cdr command) ,@(emacs-cpp-library-index-flags library)))))
 
 (defun emacs-cpp-presets-clangd-contact (_interactive project)
   "Return the clangd command for PROJECT, for `eglot-server-programs'.

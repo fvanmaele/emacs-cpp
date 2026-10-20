@@ -141,8 +141,8 @@ cmake -S "$tree/llvm" -B "$build" -G Ninja \
     -DCLANGD_ENABLE_REMOTE=OFF \
     -DLLVM_APPEND_VC_REV=OFF  # else the version names the enclosing git repository
 
-step "Build clangd and its builtin headers"
-cmake --build "$build" --target clangd clang-resource-headers
+step "Build clangd, clangd-indexer (D-133) and the builtin headers"
+cmake --build "$build" --target clangd clangd-indexer clang-resource-headers
 
 step "Check the patched flags"
 for flag in --navigation-from-index --header-flags-from-index; do
@@ -155,6 +155,7 @@ echo "both flags present"
 step "Install to $prefix"
 mkdir -p "$prefix/bin" "$prefix/lib"
 install -m 755 "$build/bin/clangd" "$prefix/bin/clangd"
+install -m 755 "$build/bin/clangd-indexer" "$prefix/bin/clangd-indexer"
 rm -rf "$prefix/lib/clang"
 cp -R "$build/lib/clang" "$prefix/lib/clang"
 "$prefix/bin/clangd" --version | head -1

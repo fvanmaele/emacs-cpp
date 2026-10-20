@@ -33,5 +33,9 @@ with `zathura-pdf-mupdf' or `zathura-pdf-poppler').")
   "The program textual searches run, `C-c p ?' among them (D-081, D-055).
 GNU grep: Arch has no ripgrep (DESIGN 3).")
 
+(defconst emacs-cpp-default-library-include-dir "/usr/include"
+  "Where installed libraries' headers lie, for the version a library index is
+checked against (D-131): pacman installs deal.II's under /usr/include.")
+
 (provide 'defaults-gnu-linux)
 ;;; defaults-gnu-linux.el ends here

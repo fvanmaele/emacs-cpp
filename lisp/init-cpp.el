@@ -170,6 +170,8 @@ Mode hooks run before a visited file's local variables are read."
 (emacs-cpp-lsp-server 'c++-ts-mode #'emacs-cpp-presets-clangd-contact)
 ;; A source missing from the preset's database gets a warning, not silence (D-068).
 (add-hook 'eglot-managed-mode-hook #'emacs-cpp-presets-warn-if-not-in-database)
+;; A library index: probe it and watch clangd's stderr once clangd is up (D-131).
+(add-hook 'eglot-connect-hook #'emacs-cpp-library-index-on-connect)
 
 ;; Header line: project-relative path, then the class and function at point (D-043).
 (use-package breadcrumb

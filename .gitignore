@@ -13,3 +13,5 @@
 /packaging/fswatch-no-loss/*.tar.gz
 /packaging/fswatch-no-loss/*.tar.gz.part
 /packaging/fswatch-no-loss/*.pkg.tar.zst
+# Library indexes built by `make library-index` (D-133): index, stamp, sources.
+/indexes/

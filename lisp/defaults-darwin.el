@@ -40,5 +40,10 @@ MacPorts: `-r' reloads the PDF, `-g' leaves Emacs in front.")
 ripgrep (MacPorts): opening a file costs about 14 ms here, so BSD grep, one file
 at a time, took 130 - 156 s over deal.II and ripgrep, in parallel, 10 s.")
 
+(defconst emacs-cpp-default-library-include-dir nil
+  "Where installed libraries' headers lie, for the version a library index is
+checked against (D-131); nil: not known on the Mac yet (deal.II comes from
+deal.II.app, path UNVERIFIED), so the check warns that it cannot read it.")
+
 (provide 'defaults-darwin)
 ;;; defaults-darwin.el ends here

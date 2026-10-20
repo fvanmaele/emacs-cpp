@@ -11,7 +11,7 @@ help: ## list targets (default; builds nothing)
 
 EMACS ?= emacs
 
-.PHONY: packages test clangd
+.PHONY: packages test clangd library-index
 packages: ## byte-compile lib/ submodules; write lib/load-path.el, lib/autoloads.el
 	$(EMACS) -Q --batch -l scripts/build-packages.el -f build-packages-batch
 
@@ -47,3 +47,9 @@ endif
 MAKEPKG_FLAGS ?=
 clangd: ## build packaging/clangd-index-nav against the installed LLVM; MAKEPKG_FLAGS=-si installs
 	sh scripts/build-clangd.sh $(MAKEPKG_FLAGS)
+
+# A library's offline index for clangd into indexes/ (D-130, D-133): `make
+# library-index LIBRARY=dealii`; needs clangd-indexer of the patched clangd.
+LIBRARY ?=
+library-index: ## build LIBRARY's (dealii) offline index for clangd into indexes/
+	sh scripts/build-library-index.sh $(LIBRARY)
