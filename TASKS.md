@@ -285,6 +285,26 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-119 (opened 2026-10-21, D-127, S18 PASS): the fswatch backend in the config.
+  Tier: 2 (the spike passed). PROPOSED done when (owner to agree):
+  1. DESIGN 7.1 rewritten for the built-in eglot, in the shape of S18's `dedup` mode;
+     contradicted text of 7.1 / 7.2 marked superseded.
+  2. `lisp/emacs-cpp-eglot-fswatch.el` (NEW), written fresh (spike code not
+     promoted): `eglot--watch-globs` overridden by one patched fswatch per
+     registration and root; URIs from the root's URI and the relative path; a filter
+     call's records merged per path; globs matched by one regexp each; the processes
+     end with their registration and with the server.
+  3. The fswatch program per platform in the defaults files (D-055); a missing or
+     unpatched one refuses at startup with the command that installs it (D-127).
+  4. `lisp/emacs-cpp-eglot-watch.el`'s kqueue advice (D-121) removed with its tests,
+     since `file-notify` no longer carries eglot's watches; its other duties checked
+     and kept or moved.
+  5. ERT tests with the real fswatch on a temporary tree: created, changed and deleted
+     files reported with the right types; a registration's end and the server's
+     shutdown leave no process; the refusal names the fix.
+  6. Startup within 10 ms of today (`scripts/measure-startup.sh 10`); on Arch S18's
+     runner against the shipped backend (a new mode) passes its five criteria; the
+     Mac run is the owner's.
 - T-118 (opened 2026-10-21, D-130, D-131): a project's library index reaches clangd.
   Tier: 2. Done when (agreed by the owner 2026-10-21: "Agree T-118"; item 4's indexer
   by D-133):
@@ -315,8 +335,9 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
      call in a source opened 2 s earlier lands in deal.II's `.cc` (owner's hand check).
   Built 2026-10-21 (0092): items 1 - 4 met, `make test` 141 of 141 on Arch; the
   end-to-end check on the S10 copy of RMO passes with the system and the patched
-  clangd. Optional throughout (owner 2026-10-21): test `emacs-cpp-library-index-optional`.
-  Left: the owner's hand check on RMO (H-14).
+  clangd. Optional throughout (owner 2026-10-21): test
+  `emacs-cpp-library-index-optional`. pkgrel 10 installed (owner, 2026-10-21); the
+  index rebuilt with it. Left: the owner's hand check on RMO (H-14).
 - T-117 (opened 2026-10-21, D-130, owner: "research patch clangd for waiting for
   library index, and possible downsides"): research a clangd patch so that the first
   `M-.` after an open waits for a static index still loading (S10 run 2, criterion
@@ -332,7 +353,8 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
   own run was on the Mac too (run 3, 5 of 5). Owner's Arch run 2026-10-20 (0089):
   FAIL on cost only (194 ms per 1000 records, at most 50). Session's run 2 on Arch
   2026-10-21 (0090): PASS in mode `dedup` (URIs from the root's, records merged per
-  path; 37 - 39 ms); left: the Mac rerun of `dedup` (H-13).
+  path; 37 - 39 ms). Owner's Mac run 4 2026-10-21 (0093): PASS, 2 ms. Done; the
+  build is T-119.
 - T-115 (opened 2026-10-20, review 0084 fold-in): `lib/load-path.el` still named the
   removed `lib/eglot` after D-121 until `make packages` ran again, and the session
   loaded the old eglot (1.24); `init-packages-are-built-and-fresh` does not see a load

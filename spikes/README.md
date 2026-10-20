@@ -100,4 +100,4 @@ Status words: `not started`, `ready` (RUN.md written, the owner runs it; no RESU
 | S12 | FAIL (runs 1, 2); owner rules O-43 (b) | s12-change-signature/RESULTS.md |
 | S16 | PASS compiled, FAIL interpreted; not built (D-134) | s16-match-function/RESULTS.md |
 | S17 | PASS run 3; run 4: little gain, `lisp/` stays interpreted (D-134) | s17-compiled-lisp/RESULTS.md |
-| S18 | PASS on Arch (run 2, `dedup`); Mac rerun of `dedup` left (H-13) | s18-fswatch-backend/RESULTS.md |
+| S18 | PASS on Arch and the Mac (`dedup`); next T-119 | s18-fswatch-backend/RESULTS.md |

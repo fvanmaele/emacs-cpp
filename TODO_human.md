@@ -23,14 +23,6 @@ service's plan) is not an item.
      file's title as the subject, its text as the body, the `.el` reproduction it names
      attached; send.
   Report back: the four bug numbers.
-- **H-13** (2026-10-21, unblocks S18, T-116, D-127) Spike S18 on the Mac in the new
-  `dedup` mode (run 2's; Arch passes, 37 - 39 ms per 1000 records).
-  1. On Arch: `cd ~/source/repos/emacs-cpp && git push` (the session does not push).
-  2. On the Mac: `cd ~/source/repos/emacs-cpp && git pull --ff-only`
-  3. On the Mac, idle machine: `S18_RUNS=dedup:fake,dedup:pyright sh
-     spikes/s18-fswatch-backend/run.sh 20000 </dev/null`
-  4. On the Mac: `rm -rf /tmp/s18-tree`
-  Report back: paste `spikes/s18-fswatch-backend/s18.log`.
 - **H-14** (2026-10-21, unblocks T-118) Hand check: deal.II's own sources from RMO.
   The index is built (`indexes/dealii.dex`, deal.II 9.8.0).
   1. In Emacs on Arch, open `~/source/repos/RMO-gross-pitaevskii/.dir-locals.el` and
