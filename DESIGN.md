@@ -405,7 +405,7 @@ Known defects: none yet (nothing built).
   system's LLVM, so the two releases can differ. Amends D-052. Patches 0001 - 0009
   apply to 23.1.3 without fuzz; clangd's sources differ from 23.1.1 only in
   `CodeComplete.cpp` and its test. Built (T-073, 0067).
-- DECIDED D-123 (owner 2026-10-20, review 0084 B-1: "Tier 2 under own D-nnn
+- DECIDED D-123 (owner 2026-10-20, 0084 review:B-1: "Tier 2 under own D-nnn
   llvm-unpin.patch"; amends D-027): on Arch the PKGBUILD's `pkgver` follows the
   installed LLVM. `make clangd` runs `scripts/build-clangd.sh`, which reads
   `llvm-config --version`, refuses anything but three numbers and an `llvm-libs` of
@@ -2032,7 +2032,7 @@ presets, GoogleTest runner.
   Combined: (c), and where (c) fails the compiler's message stops startup as (a)
   would. Recommended: the combined (c), checked in S17 run 2 (a stale module
   recompiled at startup: time, features loaded). Owner rules.
-- O-70 (RESOLVED 2026-10-20 with D-127: (b); owner: "O-70 (b) agree"; review 0084 B-2,
+- O-70 (RESOLVED 2026-10-20 with D-127: (b); owner: "O-70 (b) agree"; 0084 review:B-2,
   2026-10-20; revisited the same day, owner: "on both Mac
   and Arch, watches should work on very large projects, which was the initial point of
   fswatch"): the goal is a project tree of LLVM's size (about 17000 directories,
@@ -2062,7 +2062,7 @@ presets, GoogleTest runner.
   `eglot--watch-globs` per server and project root, as `emacs-cpp-eglot-watch.el`
   does today), the patched fswatch of `packaging/fswatch-no-loss` on both (the Arch
   PKGBUILD and `build-macos.sh` exist). Against: one more eglot internal under the
-  version pin, re-read at every Emacs release (B-6's cost grows); a patched C++
+  version pin, re-read at every Emacs release (review:B-6's cost grows); a patched C++
   program built and kept on two platforms (D-109's cost stays); Emacs's share was 3.7 -
   4.1 s of CPU per 20000 records with the prototype (3.12) until glob matching is one
   regexp per pattern; real paths mapped back (O-50); on Arch fswatch still takes one
@@ -2816,6 +2816,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-126 | 2026-10-20 | DESIGN 1 rows DECIDED with their decisions, gaps kept | 1 | owner |
 | D-127 | 2026-10-20 | fswatch backend for eglot on both machines, spike S18 | 7 | O-70 |
 | D-128 | 2026-10-20 | stale `lisp/` modules recompiled at startup, with D-125 | 11 | O-71 |
+| D-129 | 2026-10-20 | standard 2.15.1 `B-n` ids not adopted; `review:` prefix kept | Conventions | owner |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |
@@ -2831,3 +2832,9 @@ static analysis against CLion's data flow, the debugger's memory view.
 ASCII; no invented abbreviations; commits with Reasoning and tier; journal with code;
 tests with logic; docs-sync same commit and `docs-check` before a docs commit; decisions
 cite D-nnn; Makefile/justfile default target = help.
+
+- DECIDED D-129 (owner 2026-10-20, standard 2.15.1: "Ignore B- standard"): the
+  standard's `B-n` benchmark ids (its rule 16, upgrade step 8) are not adopted; past
+  timed runs keep their spike names (`S11 run 4`), no "Benchmarks by id" table. Another
+  document's look-alike ids carry its prefix (`review:B-6`) only so `docs-check`'s
+  check 5b, which ships with the tooling, passes.

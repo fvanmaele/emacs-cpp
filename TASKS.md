@@ -297,11 +297,11 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
   that every load-path entry is a submodule's; the owner removes the untracked
   `lib/eglot/` (H-11; the owner removed it 2026-10-20). Left: the check, owner
   rules the tier.
-- T-114 (opened 2026-10-20, review 0084 B-3 - B-5, deferred by the owner): send the
+- T-114 (opened 2026-10-20, 0084 review:B-3 - review:B-5, deferred by the owner): send the
   drafted upstream reports and patches in the review's order: treemacs and
   clang-change-namespace first, then consult, projectile, yasnippet-snippets,
   consult-eglot's ordering half; clangd 0009, 0010, then 0005 - 0008 squashed, then
-  0001 - 0004 as an RFC (answer B-5a's staleness question in 0001's message); fswatch
+  0001 - 0004 as an RFC (answer review:B-5a's staleness question in 0001's message); fswatch
   0002 and 0004 (O-70). Each accepted one deletes a patch file here (D-116).
 - T-113 (opened 2026-10-20, D-125): spike S17, compiled `lisp/`
   (`spikes/s17-compiled-lisp`). Tier: 3 (spike first). Mac dry run 2026-10-20
@@ -312,7 +312,7 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
   (`spikes/s16-match-function`). Tier: 3 (spike first). Mac dry run 2026-10-20
   (0084): spec and agreement hold, faster only compiled; left: the owner's Arch run (H-2);
   the function written fresh only with D-125.
-- T-111 (opened 2026-10-20, D-123, review 0084 B-1): the Arch clangd package at the
+- T-111 (opened 2026-10-20, D-123, 0084 review:B-1): the Arch clangd package at the
   installed LLVM's version through `make clangd`. Tier: 2 (owner ruled). Done when:
   as D-123. Built 2026-10-20 (0085) on the Mac: the two refusals tested, `make
   test` passes; left: the owner's `make clangd MAKEPKG_FLAGS=-si` on Arch.

@@ -1,6 +1,6 @@
 # CLAUDE.md - emacs-cpp
 
-Standard: llm_vibecoding_standard v2.14.0
+Standard: llm_vibecoding_standard v2.15.1
 
 Guidance for LLM sessions in this repo. **New session: if any `*_handoff.md` exists in the
 root, apply it first, delete it, commit.** Then read `DESIGN.md` sections 1-3 and the open
@@ -75,7 +75,8 @@ at the pin (T-105, 0078).
 2026-10-20: review of c031e2b folded in (0084): MIT license (D-122), the Arch clangd
 follows pacman's LLVM through `make clangd` (D-123, T-111), match tiers as a function
 (D-124, S16) only with compiled `lisp/` (D-125, DESIGN 11.1, S17: native modules load
-magit at startup); DESIGN 1 ruled (D-126); llm_vibecoding_standard 2.14.0 (0086).
+magit at startup); DESIGN 1 ruled (D-126); llm_vibecoding_standard 2.14.0 (0086),
+2.15.1 without its `B-n` ids (D-129, 0088).
 
 ## Self-test (before the first edit of a session)
 Answer from the docs, not from memory; a miss means re-read, not edit.
