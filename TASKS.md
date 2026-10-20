@@ -289,7 +289,8 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
   `M-.` after an open waits for a static index still loading (S10 run 2, criterion
   1). Tier: research (findings in a RESEARCH doc, verdict to the owner). Done when:
   the loading path read in clangd's source, the patch's shape and its downsides
-  written with evidence or marked UNVERIFIED, the ruling asked as an O-n.
+  written with evidence or marked UNVERIFIED, the ruling asked as an O-n. Done
+  2026-10-21: RESEARCH_library_sources_index 7, O-73.
 - T-116 (opened 2026-10-20, D-127): spike S18, an fswatch backend over the built-in
   eglot on both machines (`spikes/s18-fswatch-backend`, NEW). Tier: 3 (spike first).
   Built 2026-10-20 (0087): RUN.md, pass criteria proposed; Mac dry run 5 of 5
