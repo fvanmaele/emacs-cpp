@@ -42,7 +42,37 @@ Forms as in run 1 (native with the JIT on, bytecode off). With the prelude, the 
 after the warm-up has 220 features, magit not loaded; 3 files are queued at exit (which
 ones not recorded, UNVERIFIED).
 
-## Run 1 (owner, Arch, 2026-10-20)
+## Run 4 (session, Arch, 2026-10-21): is compiling lisp/ worth it? (O-74)
+Owner: "do more thorough benchmarks to rule if O-74 (a) is worthwhile". `bench.sh`,
+`bench.el` (NEW): one copy of init.el, lib/ and lisp/; each state in a fresh batch
+Emacs (interpreted; bytecode from compile.el; native from `native-compile` with the
+same settings, form checked: native); median of 7 after a warm-up, GC included; load
+0.76. Log: `arch-run4-bench.log`. The paths are lisp/'s code that runs many times per
+action:
+
+| path | interp | byte | native |
+|---|---|---|---|
+| B1 tier sort, deal.II files `tria` (12344 of 34704) | 148.8 ms | 137.8 ms | 133.6 ms |
+| B1 tier sort, deal.II files `dofh` (5968) | 70.7 ms | 64.9 ms | 64.0 ms |
+| B1 tier sort, deal.II files `vec` (4034) | 26.8 ms | 23.5 ms | 22.4 ms |
+| B1 orderless's own filter, `tria` (for scale) | 91.5 ms | 92.3 ms | 91.0 ms |
+| B1 M-x (4224 commands), RMO files (437): every input | 0.2 - 2.0 ms | 0.1 - 1.6 ms | 0.1 - 1.5 ms |
+| B2 `emacs-cpp-go--under-root-p`, 10000 symbol replies | 10.6 ms | 4.4 ms | 3.0 ms |
+| B3 `indent-region`, tria.cc (18694 lines) | 2465 ms | 2516 ms | 2491 ms |
+| B4 startup (run 3) | 0.199 s | | 0.194 s |
+
+Reading:
+- Today's code gains little from compiling: the tier sort is three regexps per name,
+  run by Emacs's C regexp engine, so 10 % at most (149 -> 134 ms); B2 saves 7 ms per
+  `M-o` symbol reply; indentation's time is in treesit, Emacs's own (already native)
+  code, so nothing; startup 5 ms.
+- The gain is D-124's function, which only pays compiled (S16, same corpus, same
+  machine): the `tria` sort 41.0 ms native against today's 148.8 ms interpreted, so
+  a keystroke in a deal.II-sized file prompt goes from about 240 ms (filter 91 + sort
+  149) to about 132 ms. Interpreted, D-124 is slower than today (308.6 ms, S16).
+- Small prompts (M-x, a project the size of RMO) are under 2 ms in every state.
+
+
 Verdict then: FAIL, criterion 2 (+222 ms).
 
 ### Environment
