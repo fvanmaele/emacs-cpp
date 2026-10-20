@@ -1,10 +1,20 @@
 # S18 results
 
-Verdict: PASS on Arch in mode `dedup` (run 2, the session's, 2026-10-21): criteria 1 - 5
-hold, 37 - 39 ms per 1000 records in three runs (limit 50). Run 1 (owner, 2026-10-20)
-failed criterion 3 in the modes then built (194 ms). The Mac passed in run 3 with the
-run-1 backend; `dedup` is new, so the Mac reruns it (H-13) before D-127 is gated
-through.
+Verdict: PASS on both machines in mode `dedup` (2026-10-21): criteria 1 - 5 hold on
+Arch (run 2, the session's: 37 - 39 ms per 1000 records in three runs, limit 50) and
+on the Mac (run 4, the owner's: 2 ms). Run 1 (owner, Arch, 2026-10-20) failed
+criterion 3 in the modes then built (194 ms). D-127 is gated through (T-119).
+
+## Run 4 (owner, Mac, 2026-10-21)
+`S18_RUNS=dedup:fake,dedup:pyright`, Darwin arm64, load 3.83 - 4.29 (the Mac is not
+idle, as in runs 1 - 3); the tree reused from run 3 and grown by its bursts (247398
+files). Log: `owner-mac-run4-dedup.log` (its curly quotes made ASCII).
+- Registration ok, no warning; pyright alive after 30 s, 4 fswatch processes.
+- 20000 of 20000 created files at the server, overflow 0 (20003 records, one per
+  file: FSEvents, so merging per path changes little, 20002 after it).
+- Emacs's CPU after the block 0.04 s: 2 ms per 1000 records; 45 filter calls.
+- Probe change reported 0.06 s after the registration; no fswatch process after
+  shutdown.
 
 ## Run 2 (session, Arch, 2026-10-21)
 Backend changes (`s18-backend.el`, `s18-run.el`): counters for filter calls and

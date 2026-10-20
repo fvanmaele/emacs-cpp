@@ -763,7 +763,11 @@ Known defects: none yet (nothing built).
   (ignored by git): the sources and build directory are kept, since the index points
   into them, with `dealii.dex` and `dealii.stamp`. Rejected: the indexer of an
   llvm-clangd build outside the repository (nothing keeps it at the patched clangd's
-  version); deferring the build step.
+  version); deferring the build step. Kept in the package after T-118 made the
+  feature optional (owner 2026-10-21: "(a) Keep it in the package"): one compile and
+  one link per package build; the index format is stock LLVM's (no patch touches
+  `index/Serialization`), so the system clangd reads it too. pkgrel 10 installed on
+  Arch 2026-10-21 (owner); `make library-index` with it: 38 MB, `RIFF`.
 - DECIDED D-131 (owner 2026-10-21, O-73 (a): "O-73 (a), with proper user
   diagnostics"): no clangd patch for the first request; the config sends one
   `workspace/symbol` when clangd connects with an `--index-file`, which starts the
@@ -806,6 +810,11 @@ Known defects: none yet (nothing built).
   proposed criteria; 20000 of 20000 changes with Emacs blocked 5 s, 7 - 9 ms of
   Emacs's CPU per 1000 records, eglot's own glob predicates fast enough; Emacs's own
   watches fail at kqueue's 975. Arch run: H-12.
+  S18 PASS on both machines in mode `dedup` (2026-10-21; `RESULTS.md`): Arch run 2
+  37 - 39 ms per 1000 records (run 1's 194 ms came from `eglot-path-to-uri`'s
+  `file-truename` and inotify's three records per file); the owner's Mac run 4
+  2 ms. Next: T-119, this section rewritten and the backend written fresh in
+  `lisp/` (done when proposed there).
 Owner request 2026-10-15: "Design fswatch backend for eglot". A patch on the
 vendored eglot (D-108, T-090), reading the patched fswatch (D-109). (Since D-121
 there is no vendored eglot: the backend would be Lisp in the config on top of the
@@ -1804,7 +1813,7 @@ presets, GoogleTest runner.
 | Mid-word ranking changes good fuzzy matches or slows clangd | S15 (PASS) | owner | O-67 |
 | match function ranks unlike the regexps or is slower | S16 | owner | D-124 |
 | compiled `lisp/` slows startup or stays bytecode | S17 | owner | D-125 |
-| fswatch backend loses changes or costs Emacs too much | S18 | LLM / owner | D-127 |
+| fswatch backend loses changes or costs Emacs too much | S18 (PASS 2026-10-21) | LLM / owner | D-127 |
 | own package build glue mis-orders compilation | none (tests) | - | v0.1 |
 | config fails on macOS (paths, tools, tests) | none (`make test`) | owner | D-050 |
 | clangd too slow / too large on deal.II scale | S1 numbers | owner | v0.1 |

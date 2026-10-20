@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0093 | 2026-10-21 | S18 PASS on the Mac (`dedup`); D-127 gated through | S18 | D-127 |
 | 0092 | 2026-10-21 | T-118: a project's library index reaches clangd | T-118 | D-130, D-131, D-133 |
 | 0091 | 2026-10-21 | T-027 on Arch; S17: use-package in the JIT's Emacs | T-027, S17 | D-131 |
 | 0090 | 2026-10-21 | S10, S18 run 2; ty's diagnostics explained | S10, S18 | D-130 |

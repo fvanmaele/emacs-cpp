@@ -1,0 +1,32 @@
+S18 run 2026-10-20T23:24:44Z, Darwin arm64, GNU Emacs 31.1
+tree: 15625 directories, 247398 files
+load:  3.83 4.29 4.11
+
+S18 run: mode dedup, server fake, burst 20000, darwin, GNU Emacs 31.1 (build 2, aarch64-apple-darwin27.0.0, NS appkit-2775.10 Version 27.0 (Build 26A428))
+connect + registration: 0.22 s (registration in Emacs: 0.01 s)
+registration answer: registered ok
+ready (a probe change reported): 0.06 s
+burst: 20000 of 20000 created files reached the server (20000 reports, repeats included), 7.0 s after the start
+records read 20003, sent 20002, skipped 0, overflow 0
+records after merging per path: 20002
+filter calls 45 (1.37 s inside, sends excluded), notifications 45 (0.06 s sending)
+Emacs CPU after the block: 0.04 s (log polling 0.00 s taken out), 2 ms per 1000 records
+after shutdown: fswatch processes alive: 0
+messages (last 12 lines):
+For information about GNU Emacs and the GNU system, type C-h C-a.
+Wrote /var/folders/97/_w6hwfk17v7dlzb35nklbm9h0000gn/T/s18-tree/s18-open.txt
+[eglot] Connected! Server 'EGLOT (s18-tree/(text-mode))' now managing '(text-mode)' buffers in project 's18-tree'.
+[eglot] Asking EGLOT (s18-tree/(text-mode)) politely to terminate
+[jsonrpc] Server exited with status 0
+
+S18 run: mode dedup, server pyright, burst 20000, darwin, GNU Emacs 31.1 (build 2, aarch64-apple-darwin27.0.0, NS appkit-2775.10 Version 27.0 (Build 26A428))
+connect + registration: 0.36 s (registration in Emacs: 0.00 s)
+pyright after 30 s: running; fswatch processes: 4
+after shutdown: fswatch processes alive: 0
+messages (last 12 lines):
+For information about GNU Emacs and the GNU system, type C-h C-a.
+Wrote /var/folders/97/_w6hwfk17v7dlzb35nklbm9h0000gn/T/s18-tree/s18-open.py
+Can't guess python-indent-offset, using defaults: 4 [2 times]
+[eglot] Connected! Server 'EGLOT (s18-tree/(python-mode))' now managing '(python-mode)' buffers in project 's18-tree'.
+[eglot] Asking EGLOT (s18-tree/(python-mode)) politely to terminate
+[jsonrpc] Server exited with status 0
