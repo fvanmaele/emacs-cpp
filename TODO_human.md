@@ -48,6 +48,16 @@ cannot read itself.
      attached; send.
   Report back: the four bug numbers.
 
+- **H-12** (2026-10-20, unblocks S18, T-116, D-127) Spike S18 on Arch: the fswatch
+  backend on an LLVM-sized tree, against Emacs's own watches. Needs fswatch-no-loss
+  pkgrel 2 in `/opt/fswatch-no-loss` (installed 2026-10-19) and about 2 GB under /tmp.
+  1. On Arch (after H-1's `git pull`), idle machine: `cd ~/source/repos/emacs-cpp && sh
+     spikes/s18-fswatch-backend/run.sh 20000 </dev/null` (generates the tree first, a
+     few minutes; then four runs of about a minute each).
+  2. On Arch: `rm -rf /tmp/s18-tree`
+  Report back: paste `spikes/s18-fswatch-backend/s18.log`; and confirm or change the
+  five pass criteria in `spikes/s18-fswatch-backend/RUN.md`.
+
 ## Parked
 - **H-8** (2026-10-20, owner deferred B-3 to B-5 of review 0084; T-114) The upstream
   reports and patches in the review's order: treemacs and clang-change-namespace first,
@@ -56,7 +66,3 @@ cannot read itself.
   Steps written when the owner moves this item back.
 
 ## Decide
-- **H-11** (2026-10-20, unblocks T-115) The untracked `lib/eglot/` (the vendored eglot
-  D-121 removed) put the old eglot on the load path until `make packages` ran. Delete it?
-  The session would run `rm -rf ~/source/repos/emacs-cpp/lib/eglot` on the Mac; on Arch
-  the same if it exists there.

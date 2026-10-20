@@ -100,4 +100,4 @@ Status words: `not started`, `ready` (RUN.md written, the owner runs it; no RESU
 | S12 | FAIL (runs 1, 2); owner rules O-43 (b) | s12-change-signature/RESULTS.md |
 | S16 | ready (Mac dry run recorded; owner's Arch run) | s16-match-function/DRY-RUN.md |
 | S17 | ready (Mac dry run recorded; run 2 with D-128's check, then owner's Arch run) | s17-compiled-lisp/DRY-RUN.md |
-| S18 | not started (RUN.md next session) | |
+| S18 | ready (Mac dry run: 5 of 5 criteria; owner's Arch run) | s18-fswatch-backend/DRY-RUN.md |

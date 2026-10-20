@@ -743,6 +743,10 @@ Known defects: none yet (nothing built).
   eglot (its text below still assumes the vendored eglot of D-108). Supersedes the
   review's "park fswatch" (0084, O-70) and D-110's switch defaulting to nil: the
   program is set per platform (D-055), a missing one refused at startup (principle 1).
+  Mac dry run 2026-10-20 (`spikes/s18-fswatch-backend/DRY-RUN.md`, 0087): 5 of 5
+  proposed criteria; 20000 of 20000 changes with Emacs blocked 5 s, 7 - 9 ms of
+  Emacs's CPU per 1000 records, eglot's own glob predicates fast enough; Emacs's own
+  watches fail at kqueue's 975. Arch run: H-12.
 Owner request 2026-10-15: "Design fswatch backend for eglot". A patch on the
 vendored eglot (D-108, T-090), reading the patched fswatch (D-109). (Since D-121
 there is no vendored eglot: the backend would be Lisp in the config on top of the

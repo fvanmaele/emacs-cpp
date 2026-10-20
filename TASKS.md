@@ -286,14 +286,17 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
 - T-116 (opened 2026-10-20, D-127): spike S18, an fswatch backend over the built-in
   eglot on both machines (`spikes/s18-fswatch-backend`, NEW). Tier: 3 (spike first).
-  Next: RUN.md with pass criteria for the owner to confirm; the Mac run here, the
-  Arch run the owner's.
+  Built 2026-10-20 (0087): RUN.md, pass criteria proposed; Mac dry run 5 of 5
+  (20000 of 20000 changes with Emacs blocked, 7 - 9 ms per 1000 records; Emacs's own
+  watches: 0, kqueue refuses at 975). Left: the owner confirms the criteria and runs
+  Arch (H-12).
 - T-115 (opened 2026-10-20, review 0084 fold-in): `lib/load-path.el` still named the
   removed `lib/eglot` after D-121 until `make packages` ran again, and the session
   loaded the old eglot (1.24); `init-packages-are-built-and-fresh` does not see a load
   path naming a directory that is no submodule. Proposed tier 1: the test checks
   that every load-path entry is a submodule's; the owner removes the untracked
-  `lib/eglot/` (H-11). Owner rules.
+  `lib/eglot/` (H-11; the owner removed it 2026-10-20). Left: the check, owner
+  rules the tier.
 - T-114 (opened 2026-10-20, review 0084 B-3 - B-5, deferred by the owner): send the
   drafted upstream reports and patches in the review's order: treemacs and
   clang-change-namespace first, then consult, projectile, yasnippet-snippets,
