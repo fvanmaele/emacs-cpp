@@ -1362,6 +1362,19 @@ Budgets, measured on the owner machine (T-008 measures, numbers land here):
   first `M-.` waits 8.5 - 9.4 s as with the stock clangd. Projects under the home
   directory are not affected. `M-?` reference counts differed between runs (14, 15, 24 for
   the same name); not compared.
+- Arch (T-027, 0091, 2026-10-21; the owner's workstation, 16 cores; load 0.96 - 1.23).
+  Startup (`scripts/measure-startup.sh 10`, portable-bench, commit a35b8cd): median
+  0.182 s, min 0.180, max 0.198, 1 garbage collection each. First `M-.` on `std::visit`
+  in RMO's `main.cc` (S8's protocol, `results-run3-arch-2026-10-21.log`):
+
+  | clangd | session 1 (empty index) | session 2 (index on disk) |
+  |---|---|---|
+  | system 23.1.3 | 8.4 s | 6.9 s |
+  | patched 23.1.3 (pkgrel 9, both flags) | 8.8 s | 0.96 s |
+
+  RSS on RMO (S10 run 2, a probe source, 2026-10-21): patched 990 MB, with the deal.II
+  index 1208 MB; the system clangd 6994 MB (8053 MB in S10 run 1), not explained
+  (UNVERIFIED cause).
 - DECIDED D-057 (owner 2026-10-09, O-24 b): the budgets of this section and the
   reference project (D-009) are measured on Arch only. Mac numbers are recorded (above)
   but not judged against the budgets.
@@ -2038,6 +2051,29 @@ presets, GoogleTest runner.
   a loose qualifier (`geom::vec`); `count() const` first in both, re-sorted away
   here; no typo seen. Search Everywhere's files: case ignored, humps, space in
   order.
+- O-74 (OPEN, 2026-10-21, S17 run 2 / 3, T-113; D-125): how `lisp/`'s modules get
+  init.el's use-package settings when they are compiled. Emacs's JIT compiles each
+  `.eln` in its own Emacs, which never runs init.el, so `use-package-always-defer` is
+  nil there and every deferred package loads at start (+222 ms on Arch, magit and about
+  100 features; `spikes/s17-compiled-lisp/RESULTS.md`). With the two settings set at
+  compile time in each module the start is 5 ms faster than interpreted. Options, each
+  with its case against:
+  (a) one file `lisp/emacs-cpp-use-package.el` (NEW) sets both settings inside
+  `eval-and-compile`; init.el requires it in place of its `setq` (init.el:32-33), and
+  each module starts with `(eval-when-compile (require 'emacs-cpp-use-package))`, with
+  a test that every module has the line. Against: one line in 19 modules; a new module
+  without it compiles wrong without a word, which only the test catches.
+  (b) `native-comp-async-env-modifier-form` in early-init.el sets the two settings in
+  every JIT worker. Against: it applies to every file the JIT compiles, the vendored
+  packages too (any that uses use-package then expands differently, UNVERIFIED how
+  many); the settings then live in three places (init.el, the build's prelude, the
+  worker form).
+  (c) native-compile `lisp/` ahead of time in `make packages` with the build's
+  prelude, and keep the JIT off for `lisp/` (`native-comp-jit-compilation-deny-list`).
+  Against: the largest build change; a module edited after `make packages` has a
+  stale `.eln`, which D-128's recompile (bytecode) does not cover.
+  Combined: (a) with the build's prelude reduced to the same `require`, so the settings
+  exist once. Recommended: the combined (a). Owner rules.
 - O-73 (RESOLVED 2026-10-21 with D-131: (a); owner: "O-73 (a), with proper user
   diagnostics"; was OPEN, owner 2026-10-21: "research patch clangd for waiting for library
   index, and possible downsides"; D-130, T-117): the first `M-.` after opening gives the

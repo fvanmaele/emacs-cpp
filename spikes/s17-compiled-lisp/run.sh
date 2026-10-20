@@ -25,6 +25,15 @@ for t in interp byte; do
     cp -R "$repo/init.el" "$repo/early-init.el" "$repo/lib" "$repo/lisp" "$work/$t/"
     cp "$repo/scripts/measure-startup.sh" "$work/$t/scripts/"
     rm -f "$work/$t"/lisp/*.elc
+    # Run 3 (S17_PRELUDE=1): each module of the copy gets init.el's use-package
+    # settings at compile time, so that the JIT's own Emacs (which never runs init.el)
+    # expands `use-package' as init.el does (run 2: it demanded magit).
+    if [ "${S17_PRELUDE:-}" = 1 ]; then
+        for f in "$work/$t"/lisp/*.el; do
+            awk 'done != 1 && /^;;; Code:/ { print; print "(eval-when-compile (setq use-package-always-defer t use-package-expand-minimally t))"; done = 1; next } { print }' \
+                "$f" > "$f.new" && mv "$f.new" "$f"
+        done
+    fi
 done
 mkdir "$work/home"
 HOME=$work/home "$EMACS" -Q --batch -l "$here/compile.el" "$work/byte" \

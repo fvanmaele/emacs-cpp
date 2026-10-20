@@ -1,0 +1,11 @@
+s17-compile: 19 files, 0 failed, 19 .elc written
+== byte jit on
+-- start (the first is the warm-up)
+features 220, magit not loaded, comp queue 0
+-- start (the first is the warm-up)
+features 220, magit not loaded, comp queue 3
+== byte jit off
+-- start (the first is the warm-up)
+features 220, magit not loaded, comp queue 0
+-- start (the first is the warm-up)
+features 220, magit not loaded, comp queue 0

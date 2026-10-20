@@ -1,0 +1,33 @@
+s17-compile: 19 files, 0 failed, 19 .elc written
+== byte jit on
+-- start (the first is the warm-up)
+features 220, magit not loaded, comp queue 0
+-- start (the first is the warm-up)
+magit loaded from /tmp/s17.O57HUW/byte/lib/magit/lisp/magit.elc
+  backtrace()
+  (let ((standard-output standard-output)) (backtrace))
+  (progn (let ((standard-output standard-output)) (backtrace)) (save-current-buffer (set-buffer standard-output) (buffer-string)))
+  (unwind-protect (progn (let ((standard-output standard-output)) (backtrace)) (save-current-buffer (set-buffer standard-output) (buffer-string))) (kill-buffer standard-output))
+  (let ((standard-output (generate-new-buffer " *string-output*" t))) (unwind-protect (progn (let ((standard-output standard-output)) (backtrace)) (save-current-buffer (set-buffer standard-output) (buffer-string))) (kill-buffer standard-output)))
+  (concat "magit loaded from " file "\n" (let ((standard-output (generate-new-buffer " *string-output*" t))) (unwind-protect (progn (let ((standard-output standard-output)) (backtrace)) (save-current-buffer (set-buffer standard-output) (buffer-string))) (kill-buffer standard-output))) "\n")
+  (write-region (concat "magit loaded from " file "\n" (let ((standard-output (generate-new-buffer " *string-output*" t))) (unwind-protect (progn (let ((standard-output standard-output)) (backtrace)) (save-current-buffer (set-buffer standard-output) (buffer-string))) (kill-buffer standard-output))) "\n") nil "/tmp/s17.O57HUW/out.byte jit on" t)
+  (progn (write-region (concat "magit loaded from " file "\n" (let ((standard-output (generate-new-buffer " *string-output*" t))) (unwind-protect (progn (let (...) (backtrace)) (save-current-buffer (set-buffer standard-output) (buffer-string))) (kill-buffer standard-output))) "\n") nil "/tmp/s17.O57HUW/out.byte jit on" t))
+  (if (string-match-p "/magit\\.el" file) (progn (write-region (concat "magit loaded from " file "\n" (let ((standard-output (generate-new-buffer " *string-output*" t))) (unwind-protect (progn (let ... ...) (save-current-buffer ... ...)) (kill-buffer standard-output))) "\n") nil "/tmp/s17.O57HUW/out.byte jit on" t)))
+  #f(lambda (file) :dynbind (if (string-match-p "/magit\\.el" file) (progn (write-region (concat "magit loaded from " file "\n" (let ((standard-output (generate-new-buffer " *string-output*" t))) (unwind-protect (progn (let ((standard-output standard-output)) (backtrace)) (save-current-buffer (set-buffer standard-output) (buffer-string))) (kill-buffer standard-output))) "\n") nil "/tmp/s17.O57HUW/out.byte jit on" t))))("/tmp/s17.O57HUW/byte/lib/magit/lisp/magit.elc")
+  do-after-load-evaluation("/tmp/s17.O57HUW/byte/lib/magit/lisp/magit.elc")
+  require(magit nil t)
+  byte-code("\3011\27\0\302\303\304\305#?\205\25\0\306\307\310\311\303\"\312#0\207\10\313\2\"\207" [use-package--warning0 (debug error) require magit nil t display-warning use-package format "Cannot load %s" :error :catch] 5)
+  require(init-git)
+  load-with-code-conversion("/tmp/tmp.2VvpMuk0Fd/.emacs.d/init.el" "/tmp/tmp.2VvpMuk0Fd/.emacs.d/init.el" t t)
+  load("/tmp/tmp.2VvpMuk0Fd/.emacs.d/init" noerror nomessage)
+  #f(compiled-function () #<bytecode 0xf012facb5578891>)()
+  startup--load-user-init-file(#f(compiled-function () #<bytecode 0x65d6f82629eaeb9>) #f(compiled-function () #<bytecode 0x731968ef8c75f9b>) t)
+  command-line()
+  normal-top-level()
+
+features 318, magit loaded, comp queue 45
+== byte jit off
+-- start (the first is the warm-up)
+features 220, magit not loaded, comp queue 0
+-- start (the first is the warm-up)
+features 220, magit not loaded, comp queue 0

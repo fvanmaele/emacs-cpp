@@ -82,6 +82,9 @@ config turned off the project index), runs 2 the session's; ty researched, O-72.
 2026-10-21 (0090): S18 PASS on Arch (`dedup`, Mac rerun H-13); S10 run 2 FAIL on the
 first `M-.` only; library index by `--index-file` (D-130), a waiting patch researched
 (T-117); S17 FAIL (native modules +222 ms); S16 criteria confirmed.
+Then (0091): O-73 (a) with diagnostics (D-131, T-118 proposed); T-027 done on Arch;
+S17 runs 2, 3: the JIT's own Emacs lacks use-package's settings, PASS with them
+at compile time, shape O-74.
 
 ## Self-test (before the first edit of a session)
 Answer from the docs, not from memory; a miss means re-read, not edit.
