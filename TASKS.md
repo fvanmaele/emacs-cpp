@@ -307,9 +307,9 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
   0002 and 0004 (O-70). Each accepted one deletes a patch file here (D-116).
 - T-113 (opened 2026-10-20, D-125): spike S17, compiled `lisp/`
   (`spikes/s17-compiled-lisp`). Tier: 3 (spike first). Mac dry run 2026-10-20
-  (0084): bytecode free, native modules +510 ms (they load magit); left: run 2 finds
-  the form and checks D-128's recompile at startup, the owner's Arch run, then the
-  build step written fresh.
+  (0084): bytecode free, native modules +510 ms (they load magit). Owner's Arch run
+  2026-10-20: FAIL, native +222 ms, bytecode -9 ms (`RESULTS.md`); left: run 2 finds
+  the form and checks D-128's recompile at startup, then the build step written fresh.
 - T-112 (opened 2026-10-20, D-124): spike S16, the match tiers as a function
   (`spikes/s16-match-function`). Tier: 3 (spike first). Mac dry run 2026-10-20
   (0084): spec and agreement hold, faster only compiled. Owner's Arch run 2026-10-20
