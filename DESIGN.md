@@ -553,21 +553,21 @@ Known defects: none yet (nothing built).
   89 ms for 35000, Arch); `make test` 132. S11 run 6 (owner, RMO, 4286 files):
   opening 88.6 - 101.0 ms, each key's first screen at most 87.8 ms, within 150 / 100
   ms (run 3: 63 - 74 / 29.5 ms on 2673 files).
-- DECIDED D-124 (owner 2026-10-20, review 0084 section 3: "C, spike first"): D-120's
-  tiers become a function, `emacs-cpp-word-start-p` (the word-start rule in one place)
-  and a matcher that finds tier 1 by `string-search` on the lower-case candidate,
-  each hit tested for a word start on the original (its capitals decide), tier 2 by
-  a second search or one pass for initials; the 15 rows and the sort example of
-  `init-completion-match-tiers` stay its specification, `emacs-cpp-match-tier` and
-  `emacs-cpp-match-sort-by-tier` keep their signatures. Rejected: (A) Emacs 31's
-  `flex` cost (review M-5: loses the initials rows and the order within a tier,
-  i.e. D-120); (B) a scoring library (a new dependency, a rule clangd does not
-  share). Spike S16 (`spikes/s16-match-function`, T-112) first. Dry run (Mac,
-  2026-10-20, 33768 deal.II 9.6.2 names, 8 inputs): spec 0 failures, 270144 pairs
-  with the regexps' tier, 0 disagree; sorting a prompt's filtered set takes the
-  function 1.3 - 1.9 times the regexps' time interpreted, a third of it
-  byte-compiled, a quarter native. So the function is adopted only together with
-  compiled `lisp/` (D-125, S17); interpreted, the regexps stay.
+- SUPERSEDED by D-134 (2026-10-21; the function pays only compiled, S16): DECIDED D-124
+  (owner 2026-10-20, review 0084 section 3: "C, spike first"): D-120's tiers become a
+  function, `emacs-cpp-word-start-p` (the word-start rule in one place) and a matcher that
+  finds tier 1 by `string-search` on the lower-case candidate, each hit tested for a word
+  start on the original (its capitals decide), tier 2 by a second search or one pass for
+  initials; the 15 rows and the sort example of `init-completion-match-tiers` stay its
+  specification, `emacs-cpp-match-tier` and `emacs-cpp-match-sort-by-tier` keep their
+  signatures. Rejected: (A) Emacs 31's `flex` cost (review M-5: loses the initials rows
+  and the order within a tier, i.e. D-120); (B) a scoring library (a new dependency, a
+  rule clangd does not share). Spike S16 (`spikes/s16-match-function`, T-112) first. Dry
+  run (Mac, 2026-10-20, 33768 deal.II 9.6.2 names, 8 inputs): spec 0 failures, 270144
+  pairs with the regexps' tier, 0 disagree; sorting a prompt's filtered set takes the
+  function 1.3 - 1.9 times the regexps' time interpreted, a third of it byte-compiled, a
+  quarter native. So the function is adopted only together with compiled `lisp/` (D-125,
+  S17); interpreted, the regexps stay.
 - DECIDED D-119 (owner 2026-10-19, O-67 (a): "O-67 (a) agree"): mid-word matches
   ranked by shape in clangd (rule R4, `RESEARCH_go_to_anything.md` 19) go to spike
   S15 (`spikes/s15-mid-word-rank`, T-107) before any patch; tier 3. A fuzzy match
@@ -746,6 +746,11 @@ Known defects: none yet (nothing built).
   declaration while the index loads (S10 criterion 1); a clangd patch that waits for
   it is researched (T-117). Built with the index's build step (offline, about 2.5 min,
   10 GB peak; DESIGN 7, O-9); tier and done when proposed with T-117's result.
+  Optional (owner 2026-10-21: "ensure this functionality is entirely optional"): a
+  project that names no library gets clangd's command as before, needs no index,
+  stamp, include directory or `clangd-indexer`, and its clangd gets no probe and no
+  stderr watch (test `emacs-cpp-library-index-optional`); only `make library-index`
+  uses `clangd-indexer`.
 - DECIDED D-133 (owner 2026-10-21, T-118: "Patched package"): library indexes are
   written by the `clangd-indexer` of the patched clangd's own tree, so their format is
   the one the clangd reading them expects: packaging/clangd-index-nav pkgrel 10
@@ -1487,7 +1492,17 @@ Mechanisms, each PROPOSED until measured:
 - Not adopted unless a measurement asks for it: `emacs-lsp-booster` (an external binary,
   would need its own D-nnn), gcmh.
 
-### 11.1 Compiling `lisp/` (D-125, 2026-10-20)
+### 11.1 Compiling `lisp/` (D-125, 2026-10-20; SUPERSEDED by D-134, 2026-10-21)
+- DECIDED D-134 (owner 2026-10-21, O-74: "O-74 keep current interp"): `lisp/` keeps
+  loading as source, interpreted; D-125 (this section's shape), D-124 (the match
+  function, slower than today's regexps when interpreted, S16) and D-128 (recompiling
+  stale modules) are not built. Reason: S17 run 4 (`spikes/s17-compiled-lisp/RESULTS.md`):
+  compiling today's code saves 10 % of the tier sort, 7 ms per `M-o` reply and 5 ms of
+  startup; only D-124 with it would roughly halve a keystroke in a deal.II-sized file
+  prompt (240 -> 132 ms). Revisit when a prompt's keystroke is felt slow, with S16's
+  and S17's spike code as the starting point (never promoted).
+
+The text below is the superseded design, kept for that revisit.
 Owner 2026-10-20 (review 0084, C-7, C-10, M-6: "Design for compile-lisp.patch and
 spike"). Today `make packages` byte-compiles `lib/` only; `lisp/` (19 files) loads
 as source, interpreted for the session (Emacs's JIT compiles `.elc`, not `.el`), so
@@ -1515,12 +1530,13 @@ function is slower than the regexps until compiled).
   compile on load (a new mechanism). Recommended (a): the owner edits modules
   daily, but a refusal names its fix and costs one command.
 
-- DECIDED D-128 (owner 2026-10-20, O-71 (c): "O-71 (c) agree"): with D-125, at startup
-  and before the `require`s, init.el byte-compiles each `lisp/` module whose `.elc` is
-  older than its `.el` (warnings as errors, as the build) and then loads it; a module
-  that does not compile stops startup with the compiler's message. Checked in S17 run 2
-  (a stale module recompiled at startup: its time, the features it loads) before code;
-  ships with D-125 or not at all.
+- SUPERSEDED by D-134 (2026-10-21; no compiled `lisp/`, so no stale `.elc`): DECIDED D-128
+  (owner 2026-10-20, O-71 (c): "O-71 (c) agree"): with D-125, at startup and before the
+  `require`s, init.el byte-compiles each `lisp/` module whose `.elc` is older than its
+  `.el` (warnings as errors, as the build) and then loads it; a module that does not
+  compile stops startup with the compiler's message. Checked in S17 run 2 (a stale module
+  recompiled at startup: its time, the features it loads) before code; ships with D-125 or
+  not at all.
 
 **Spike S17** (`spikes/s17-compiled-lisp`, T-113) before any code: startup by
 `scripts/measure-startup.sh` (the budget's own method) in two trees, `lisp/`
@@ -2082,13 +2098,14 @@ presets, GoogleTest runner.
   a loose qualifier (`geom::vec`); `count() const` first in both, re-sorted away
   here; no typo seen. Search Everywhere's files: case ignored, humps, space in
   order.
-- O-74 (OPEN, 2026-10-21, S17 run 2 / 3, T-113; D-125): how `lisp/`'s modules get
-  init.el's use-package settings when they are compiled. Emacs's JIT compiles each
-  `.eln` in its own Emacs, which never runs init.el, so `use-package-always-defer` is
-  nil there and every deferred package loads at start (+222 ms on Arch, magit and about
-  100 features; `spikes/s17-compiled-lisp/RESULTS.md`). With the two settings set at
-  compile time in each module the start is 5 ms faster than interpreted. Options, each
-  with its case against:
+- O-74 (RESOLVED 2026-10-21 with D-134: none of (a) - (c), `lisp/` stays interpreted;
+  owner: "O-74 keep current interp"; was OPEN, 2026-10-21, S17 run 2 / 3, T-113; D-125):
+  how `lisp/`'s modules get init.el's use-package settings when they are compiled. Emacs's
+  JIT compiles each `.eln` in its own Emacs, which never runs init.el, so
+  `use-package-always-defer` is nil there and every deferred package loads at start (+222
+  ms on Arch, magit and about 100 features; `spikes/s17-compiled-lisp/RESULTS.md`). With
+  the two settings set at compile time in each module the start is 5 ms faster than
+  interpreted. Options, each with its case against:
   (a) one file `lisp/emacs-cpp-use-package.el` (NEW) sets both settings inside
   `eval-and-compile`; init.el requires it in place of its `setq` (init.el:32-33), and
   each module starts with `(eval-when-compile (require 'emacs-cpp-use-package))`, with
@@ -2991,16 +3008,17 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-121 | 2026-10-20 | Emacs's own eglot; macOS watch fixes as config Lisp | 7 | O-69 |
 | D-122 | 2026-10-20 | MIT license for own work; patch files keep theirs | 2 | owner |
 | D-123 | 2026-10-20 | Arch clangd `pkgver` from the installed LLVM | 7 | owner |
-| D-124 | 2026-10-20 | match tiers as a function (option C), spike S16 first | 7 | owner |
-| D-125 | 2026-10-20 | compile `lisp/` as DESIGN 11.1, spike S17 first | 11 | owner |
+| D-124 | 2026-10-20 | match tiers as a function (option C), spike S16 first; SUPERSEDED by D-134 | 7 | owner |
+| D-125 | 2026-10-20 | compile `lisp/` as DESIGN 11.1, spike S17 first; SUPERSEDED by D-134 | 11 | owner |
 | D-126 | 2026-10-20 | DESIGN 1 rows DECIDED with their decisions, gaps kept | 1 | owner |
 | D-127 | 2026-10-20 | fswatch backend for eglot on both machines, spike S18 | 7 | O-70 |
-| D-128 | 2026-10-20 | stale `lisp/` modules recompiled at startup, with D-125 | 11 | O-71 |
+| D-128 | 2026-10-20 | stale `lisp/` modules recompiled at startup; SUPERSEDED by D-134 | 11 | O-71 |
 | D-129 | 2026-10-20 | standard 2.15.1 `B-n` ids not adopted; `review:` prefix kept | Conventions | owner |
 | D-130 | 2026-10-21 | library index through clangd's `--index-file` (O-12 (b)) | 7 | O-12 |
 | D-131 | 2026-10-21 | index load started by a request at connect; failures told (O-73 (a)) | 7 | O-73 |
 | D-132 | 2026-10-21 | pyright stays; ty when it checks unannotated code (O-72) | 5 | O-72 |
 | D-133 | 2026-10-21 | library indexes by the patched package's clangd-indexer, into indexes/ | 7 | T-118 |
+| D-134 | 2026-10-21 | `lisp/` stays interpreted; D-124, D-125, D-128 not built (O-74) | 11 | O-74 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |

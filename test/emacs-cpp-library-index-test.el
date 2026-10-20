@@ -169,5 +169,30 @@ one, an error or a timeout warn, saying what `M-.' does meanwhile."
         (should (= 1 (length warnings)))
         (should (string-match-p "probe of the dealii index" (cadr (car warnings))))))))
 
+;; The owner, 2026-10-21: "ensure this functionality is entirely optional".
+(ert-deftest emacs-cpp-library-index-optional ()
+  "With no library named, nothing of T-118 runs: no index, stamp or include
+directory is needed, no flag is added, nothing is warned, and the connect hook
+sends nothing."
+  (let* ((top (file-name-as-directory (make-temp-file "emacs-cpp-library-index" t)))
+         (emacs-cpp-root (expand-file-name "no-repo/" top))
+         (emacs-cpp-default-library-include-dir nil)
+         warnings requests)
+    (unwind-protect
+        (cl-letf (((symbol-function 'display-warning)
+                   (lambda (_type message &optional level _buffer)
+                     (push (list level message) warnings)))
+                  ((symbol-function 'jsonrpc-async-request)
+                   (lambda (&rest args) (push args requests))))
+          (let ((contact (emacs-cpp-library-index-test--contact nil)))
+            (should (equal (nth 2 contact) "--rename-file-limit=0"))
+            (should (= 3 (length contact))))
+          (should-not (file-exists-p (expand-file-name "indexes" emacs-cpp-root)))
+          (cl-letf (((symbol-function 'eglot--project) (lambda (_server) (cons 'transient top))))
+            (emacs-cpp-library-index-on-connect 'server))
+          (should-not requests)
+          (should-not warnings))
+      (delete-directory top t))))
+
 (provide 'emacs-cpp-library-index-test)
 ;;; emacs-cpp-library-index-test.el ends here
