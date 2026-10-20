@@ -70,7 +70,7 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
 | T-022 | done 0035 | M | lldb-preset | D-051, O-22 | Arch session test 3 / 3 |
 | T-023 | open | M | macOS clangd build script | D-052, O-23 | built 0036; owner run left |
 | T-024 | open | M | platform defaults files | D-055 | ruled; code done-when proposed |
-| T-025 | open | M | Python tools on macOS | owner | round 1 in RESEARCH doc |
+| T-025 | open | M | Python tools on macOS | owner | round 1 in RESEARCH doc; ty on Arch: O-72 |
 | T-026 | open | L | setup wizard (doom doctor) | owner | research; proposed |
 | T-027 | open | S | load measurements, macOS | owner, O-24 | Mac measured 0038; Arch left |
 | T-028 | done 0037 | S | review debug and presets code | owner | 5 taken, O-25 to rule |
@@ -289,7 +289,9 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
   Built 2026-10-20 (0087): RUN.md, pass criteria proposed; Mac dry run 5 of 5
   (20000 of 20000 changes with Emacs blocked, 7 - 9 ms per 1000 records; Emacs's own
   watches: 0, kqueue refuses at 975). Criteria confirmed by the owner; the owner's
-  own run was on the Mac too (run 3, 5 of 5). Left: the Arch run (H-12).
+  own run was on the Mac too (run 3, 5 of 5). Owner's Arch run 2026-10-20 (0089):
+  FAIL on cost only (194 ms per 1000 records, at most 50); left: run 2 on Arch by the
+  session (filter calls counted, sends batched by a timer), then the Mac rerun.
 - T-115 (opened 2026-10-20, review 0084 fold-in): `lib/load-path.el` still named the
   removed `lib/eglot` after D-121 until `make packages` ran again, and the session
   loaded the old eglot (1.24); `init-packages-are-built-and-fresh` does not see a load
@@ -310,12 +312,14 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
   build step written fresh.
 - T-112 (opened 2026-10-20, D-124): spike S16, the match tiers as a function
   (`spikes/s16-match-function`). Tier: 3 (spike first). Mac dry run 2026-10-20
-  (0084): spec and agreement hold, faster only compiled; left: the owner's Arch run (H-2);
-  the function written fresh only with D-125.
+  (0084): spec and agreement hold, faster only compiled. Owner's Arch run 2026-10-20
+  (0089): PASS byte and native, FAIL interpreted; left: the owner confirms the
+  criteria; the function written fresh only with D-125.
 - T-111 (opened 2026-10-20, D-123, 0084 review:B-1): the Arch clangd package at the
   installed LLVM's version through `make clangd`. Tier: 2 (owner ruled). Done when:
   as D-123. Built 2026-10-20 (0085) on the Mac: the two refusals tested, `make
-  test` passes; left: the owner's `make clangd MAKEPKG_FLAGS=-si` on Arch.
+  test` passes. On Arch 2026-10-20 (0089): `clangd-index-nav 23.1.3-9` installed
+  (`pacman -Q`, read by the session); left: the owner calls it done.
 - T-110 (opened 2026-10-20, D-121, O-69 (c) + (d)): drop the vendored eglot; the
   macOS watch fixes as config Lisp. Tier: 2. Done when (agreed 2026-10-20, owner
   adding "also remove vendored xref": none exists, 0003 goes with eglot): submodule

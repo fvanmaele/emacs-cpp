@@ -81,7 +81,7 @@ nothing to delete.
   0.485, 1 collection each), against the 0.852 s of 2026-10-09 (DESIGN 11; Mac
   numbers are recorded, not judged, D-057); `make test` 133 tests, 131 passed, 2
   skipped, exit 0, 56.6 s wall. The review's machine: 0.097 s, 20.2 s. Arch's block
-  is the owner's to paste.
+  (2026-10-20): journal 0089.
 - **Reviewed: review:B-2, fswatch.** The review is right: DESIGN 7.1's backend was designed
   on the vendored eglot that D-121 removed, nothing runs fswatch, two builds stay to
   keep. Opened O-70: (a) keep, (b) park on a branch (recommended), (c) own

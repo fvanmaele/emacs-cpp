@@ -93,11 +93,11 @@ Status words: `not started`, `ready` (RUN.md written, the owner runs it; no RESU
 | S5 | FAIL, closed by owner ruling (D-021) | s5-preamble-warmup/RESULTS.md |
 | S6 | PASS | s6-ccls/RESULTS.md |
 | S7 | ready (PKGBUILD built here; owner to build and run) | |
-| S10 | ready (owner's run on Arch, O-12) | |
+| S10 | FAIL run 1 (config turns off the project index); run 2 proposed | s10-library-index/RESULTS.md |
 | S8 | PASS (run 2) | s8-clangd-index-navigation/RESULTS.md |
 | S2 | PASS (run 1) | s2-dape-gdb/RESULTS.md |
 | S11 | runs 2, 3 PASS; run 4 recorded; run 1 FAIL in part | s11-go-to-anything/RESULTS.md |
 | S12 | FAIL (runs 1, 2); owner rules O-43 (b) | s12-change-signature/RESULTS.md |
-| S16 | ready (Mac dry run recorded; owner's Arch run) | s16-match-function/DRY-RUN.md |
+| S16 | PASS compiled, FAIL interpreted (criteria to confirm) | s16-match-function/RESULTS.md |
 | S17 | ready (Mac dry run recorded; run 2 with D-128's check, then owner's Arch run) | s17-compiled-lisp/DRY-RUN.md |
-| S18 | ready (Mac: 3 runs, 5 of 5 each; criteria confirmed; owner's Arch run) | s18-fswatch-backend/DRY-RUN.md |
+| S18 | FAIL on Arch (cost); Mac 5 of 5; run 2 proposed | s18-fswatch-backend/RESULTS.md |

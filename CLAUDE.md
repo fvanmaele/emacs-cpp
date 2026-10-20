@@ -76,7 +76,9 @@ at the pin (T-105, 0078).
 follows pacman's LLVM through `make clangd` (D-123, T-111), match tiers as a function
 (D-124, S16) only with compiled `lisp/` (D-125, DESIGN 11.1, S17: native modules load
 magit at startup); DESIGN 1 ruled (D-126); llm_vibecoding_standard 2.14.0 (0086),
-2.15.1 without its `B-n` ids (D-129, 0088).
+2.15.1 without its `B-n` ids (D-129, 0088). Owner's Arch runs folded in (0089):
+S16 PASS compiled (criteria to confirm), S18 FAIL on cost on Arch, S10 FAIL (its
+config turned off the project index), runs 2 the session's; ty researched, O-72.
 
 ## Self-test (before the first edit of a session)
 Answer from the docs, not from memory; a miss means re-read, not edit.

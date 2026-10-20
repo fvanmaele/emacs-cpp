@@ -511,3 +511,10 @@ D-nnn rows superseded, D-mmm rows added, sections changed.
 ### Lessons
 Short, concrete; include any spike that should have run first, and any rule that should be
 encoded structurally rather than in a comment.
+
+## 2026-10-20 - S10's command named a file RMO had removed (short)
+- What failed: H-6 ran `run.sh` on `src/main_sparsity.cc`; RMO has no such file now.
+- Caught by: the owner, on Arch; the runner refused, the owner chose another file.
+- Cause: the item copied RUN.md's command of 2026-10-08 unchecked against RMO's tree.
+- Fix (commit): this commit; S10 run 2 names a probe file the runner writes itself.
+- Lesson: an `H-n` naming a path in another repository checks that path when written.
