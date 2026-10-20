@@ -68,6 +68,10 @@ code is written for it. Each spike is a self-contained directory with its own bu
 - **S17 compiled lisp/** - does byte-compiling `lisp/` keep startup within 10 ms of
   interpreted, and do the modules then run as native code (D-125)? Gates D-125 and,
   through it, D-124 (T-113).
+- **S18 fswatch backend** - does one patched fswatch per server and root, read by config
+  Lisp over the built-in eglot, deliver every change of a 20000-change burst on an
+  LLVM-sized tree to pyright while Emacs is blocked, on the Mac and on Arch, at an
+  acceptable CPU cost? Gates D-127 (T-116).
 - **S4 cold-header flags** - DROPPED 2026-10-08: replaced by D-028 (patched clangd
   takes an includer from its index; owner ruled tier 2, toy reproduction as evidence).
   Was: which mechanism gives a header opened first (no including
@@ -95,4 +99,5 @@ Status words: `not started`, `ready` (RUN.md written, the owner runs it; no RESU
 | S11 | runs 2, 3 PASS; run 4 recorded; run 1 FAIL in part | s11-go-to-anything/RESULTS.md |
 | S12 | FAIL (runs 1, 2); owner rules O-43 (b) | s12-change-signature/RESULTS.md |
 | S16 | ready (Mac dry run recorded; owner's Arch run) | s16-match-function/DRY-RUN.md |
-| S17 | ready (Mac dry run recorded; run 2, then owner's Arch run) | s17-compiled-lisp/DRY-RUN.md |
+| S17 | ready (Mac dry run recorded; run 2 with D-128's check, then owner's Arch run) | s17-compiled-lisp/DRY-RUN.md |
+| S18 | not started (RUN.md next session) | |
