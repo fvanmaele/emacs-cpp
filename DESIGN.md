@@ -373,7 +373,8 @@ Known defects: none yet (nothing built).
   commits as patches, four since pkgrel 2; standalone build against the system LLVM) to
   `/opt/clangd-index-nav`, depending on `llvm-libs` and `clang` = 23.1.1 exactly, so
   an LLVM upgrade is visible to pacman and needs a rebuild of the package.
-  Arch only; on macOS D-052.
+  Arch only; on macOS D-052. Amended 2026-10-20 by D-123: `pkgver` follows the
+  installed LLVM, written by `make clangd`; the exact `depends` stay.
 - DECIDED D-052 (owner 2026-10-09, O-23): on macOS the patched clangd is built by a
   script in the repository (NEW, T-023) that follows the self-contained build in
   `docs/CHEATSHEET.md` (macOS item 6): the 23.1.1 release tarball, checked against the
@@ -391,10 +392,26 @@ Known defects: none yet (nothing built).
   only): on macOS the patched clangd is built from LLVM 23.1.3, the release of
   MacPorts' `llvm-23`. `build-macos.sh` names the release and its tarball's sha256 (the
   one github.com lists) itself and still takes the patches and their checksums from
-  the PKGBUILD. Arch stays at 23.1.1, pacman's LLVM (D-027): each platform follows its
+  the PKGBUILD. Arch stays at 23.1.1, pacman's LLVM (D-027; since D-123 whatever
+  pacman installs, 23.1.3 on 2026-10-20): each platform follows its
   system's LLVM, so the two releases can differ. Amends D-052. Patches 0001 - 0009
   apply to 23.1.3 without fuzz; clangd's sources differ from 23.1.1 only in
   `CodeComplete.cpp` and its test. Built (T-073, 0067).
+- DECIDED D-123 (owner 2026-10-20, review 0084 B-1: "Tier 2 under own D-nnn
+  llvm-unpin.patch"; amends D-027): on Arch the PKGBUILD's `pkgver` follows the
+  installed LLVM. `make clangd` runs `scripts/build-clangd.sh`, which reads
+  `llvm-config --version`, refuses anything but three numbers and an `llvm-libs` of
+  another release, writes `pkgver` and refreshes the checksums with `updpkgsums`
+  (`pacman-contrib`) when they differ, then runs `makepkg` with `MAKEPKG_FLAGS`
+  (`-si` installs). `depends` stay exact (D-027's reason: the binary links the
+  system `libLLVM` and reads the system clangd's shards). `pkgrel` keeps counting
+  the patch series, not reset per LLVM release. The patch is the review's
+  (`pepopepopepo/emacs-cpp`, `review/llvm-unpin.patch`), with a stricter version
+  check and tests (`test/build-clangd-test.el`). The PKGBUILD is committed at
+  23.1.3; the review built all 13 patches on it, no offset, `check()` passed.
+  Done when: `make clangd MAKEPKG_FLAGS=-si` on the owner's Arch machine builds,
+  passes `check()` and installs `clangd-index-nav` at pacman's LLVM (owner's run);
+  the two refusals are tested. Built (0085).
 - DECIDED D-060 (owner 2026-10-09, O-27 (b)): patch 0009 for the local clangd: at
   startup the background index also re-indexes the sources whose stored shards carry
   `HadErrors` (through each flagged shard's `DependentTU`, as for stale shards), so a
@@ -2632,6 +2649,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-115 | 2026-10-19 | Arch file-watch limits kept as they are | 7 | O-64 |
 | D-121 | 2026-10-20 | Emacs's own eglot; macOS watch fixes as config Lisp | 7 | O-69 |
 | D-122 | 2026-10-20 | MIT license for own work; patch files keep theirs | 2 | owner |
+| D-123 | 2026-10-20 | Arch clangd `pkgver` from the installed LLVM | 7 | owner |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |

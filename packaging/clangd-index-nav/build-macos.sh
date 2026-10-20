@@ -4,7 +4,7 @@
 #   packaging/clangd-index-nav/build-macos.sh [--prefix DIR] [--tarball FILE]
 #                                             [--workdir DIR]
 #
-# The PKGBUILD next to this file is Arch-only (makepkg, pacman's LLVM 23.1.1). This
+# The PKGBUILD next to this file is Arch-only (makepkg, pacman's LLVM, D-123). This
 # script builds the release named below, MacPorts' LLVM 23.1.3 (D-100), with the same
 # patches, read from the PKGBUILD, and self-contained: clang and clang-tools-extra are
 # compiled from the release sources. Tools: cmake and ninja from MacPorts (D-053), the
