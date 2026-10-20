@@ -90,6 +90,27 @@ with the file's first diagnostics (an empty list for a clean file).  Needs
   (should (file-exists-p (expand-file-name "lib/autoloads.el" build-packages-root)))
   (should-not (init-test--stale-elc-files)))
 
+(defun init-test--generated-load-path-dirs ()
+  "Return the directories lib/load-path.el adds, as written there (relative to lib/)."
+  (with-temp-buffer
+    (insert-file-contents (expand-file-name "lib/load-path.el" build-packages-root))
+    (re-search-forward "'(\"")
+    (goto-char (- (point) 2))
+    (read (current-buffer))))
+
+(ert-deftest init-load-path-names-only-submodules ()
+  "T-115: lib/load-path.el adds exactly the current submodules' directories.
+A directory left over from a removed submodule (lib/eglot after D-121) stays on
+`load-path' until `make packages' runs again and shadows the built-in library."
+  (let* ((lib (file-name-as-directory (expand-file-name "lib" build-packages-root)))
+         (expected (cl-loop for spec in (build-packages-read-specs build-packages-root)
+                            append (mapcar (lambda (dir) (file-relative-name dir lib))
+                                           (build-packages-load-path-dirs
+                                            build-packages-root spec))))
+         (written (init-test--generated-load-path-dirs)))
+    (should (equal (cl-set-difference written expected :test #'equal) nil))
+    (should (equal (cl-set-difference expected written :test #'equal) nil))))
+
 ;; init.el's part before the modules, for a module loaded on its own: the root, the
 ;; generated load path and autoloads, use-package's defaults, the platform defaults.
 (defconst init-test--prelude

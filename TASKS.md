@@ -333,8 +333,10 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
   loaded the old eglot (1.24); `init-packages-are-built-and-fresh` does not see a load
   path naming a directory that is no submodule. Proposed tier 1: the test checks
   that every load-path entry is a submodule's; the owner removes the untracked
-  `lib/eglot/` (H-11; the owner removed it 2026-10-20). Left: the check, owner
-  rules the tier.
+  `lib/eglot/` (H-11; the owner removed it 2026-10-20). Owner 2026-10-21: tier 1.
+  Done (tier 1): `init-load-path-names-only-submodules` compares lib/load-path.el's
+  directories with the current submodules' both ways; fails naming a stale entry
+  (checked with an injected `eglot`); `make test` 136 of 136 on Arch.
 - T-114 (opened 2026-10-20, 0084 review:B-3 - review:B-5, deferred by the owner): send the
   drafted upstream reports and patches in the review's order: treemacs and
   clang-change-namespace first, then consult, projectile, yasnippet-snippets,
