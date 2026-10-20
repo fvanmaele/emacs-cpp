@@ -1,9 +1,9 @@
 # S16 results
 
 Verdict: PASS in the byte and native states, FAIL interpreted (owner's run 1,
-2026-10-20), against the criteria of RUN.md, which are still marked proposed: the owner
-confirms them before this verdict stands. D-124 also waits on S17: criterion 3 is
-judged in the state `lisp/` ships in, and only D-125 (S17) makes that compiled.
+2026-10-20), against the criteria of RUN.md (owner: "S16 criteria agreed",
+2026-10-20). Criterion 3 is judged in the state `lisp/` ships in, which only D-125
+(S17) makes compiled; so D-124 is built only with D-125.
 
 ## Environment
 Owner's Arch workstation, GNU Emacs 31.1 (native compilation); deal.II source checkout,

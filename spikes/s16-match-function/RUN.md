@@ -21,7 +21,7 @@ tree, and (3) times the sort, best of 5 after a warm-up, over all names (review
 0084's method) and over the names orderless's letters-in-order filter lets through
 (what a prompt sorts). `run.sh` runs the three states in three processes.
 
-## Pass criteria (proposed 2026-10-20; owner to confirm)
+## Pass criteria (proposed 2026-10-20; confirmed by the owner 2026-10-20)
 On the deal.II tree (a git checkout; about 34000 names), Arch, idle:
 1. Spec: 0 failures, in every state.
 2. Agreement: 0 pairs where the function's tier differs from the regexps', in every

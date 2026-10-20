@@ -313,8 +313,8 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
 - T-112 (opened 2026-10-20, D-124): spike S16, the match tiers as a function
   (`spikes/s16-match-function`). Tier: 3 (spike first). Mac dry run 2026-10-20
   (0084): spec and agreement hold, faster only compiled. Owner's Arch run 2026-10-20
-  (0089): PASS byte and native, FAIL interpreted; left: the owner confirms the
-  criteria; the function written fresh only with D-125.
+  (0089): PASS byte and native, FAIL interpreted; criteria confirmed by the owner;
+  left: the function written fresh only with D-125.
 - T-111 (opened 2026-10-20, D-123, 0084 review:B-1): the Arch clangd package at the
   installed LLVM's version through `make clangd`. Tier: 2 (owner ruled). Done when:
   as D-123. Built 2026-10-20 (0085) on the Mac: the two refusals tested, `make
