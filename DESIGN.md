@@ -2103,6 +2103,14 @@ presets, GoogleTest runner.
   compile-time setting a module comes to depend on. Left against (a): the one line in
   each of 19 modules, and a module the test does not load (none today: it takes every
   `lisp/*.el`).
+  Worth it? (S17 run 4, 2026-10-21, owner: "do more thorough benchmarks"): compiling
+  today's code saves 10 % of the tier sort (149 -> 134 ms on 12344 deal.II names),
+  7 ms per `M-o` symbol reply, 5 ms of startup and nothing in indentation (treesit's
+  own time). It pays through D-124 only: its function sorts the same set in 41 ms
+  native (S16), so a keystroke in a deal.II-sized file prompt drops from about 240 to
+  about 132 ms; interpreted that function is slower than today (309 ms). So (a) is
+  worth its cost only together with D-124; without D-124, leaving `lisp/` interpreted
+  loses little.
 - O-73 (RESOLVED 2026-10-21 with D-131: (a); owner: "O-73 (a), with proper user
   diagnostics"; was OPEN, owner 2026-10-21: "research patch clangd for waiting for library
   index, and possible downsides"; D-130, T-117): the first `M-.` after opening gives the
