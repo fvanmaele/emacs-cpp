@@ -66,7 +66,8 @@ Start Emacs. A missing package, grammar or generated file stops startup with an 
 that names the fix (DESIGN 4).
 
 ### 4. Optional: the patched clangd and clang-change-namespace
-`packaging/clangd-index-nav` builds clangd 23.1.1 with local patches. It answers
+`packaging/clangd-index-nav` builds clangd with local patches, at the version of the
+installed LLVM. It answers
 go-to-definition and find-usages from its index before a file is parsed, and gives a
 header the flags of a source file that includes it (D-026 .. D-028, D-046, D-047). It
 keeps a project's references when the project is reached through a symbolic link (on
@@ -82,10 +83,13 @@ lists `Vector` before `AlignedVectorCopyConstruct` and before Kokkos's
 `M-o` `< l`) lists every symbol, deal.II's and Kokkos's too, clangd's best 100,
 grouped by kind (`RESEARCH_go_to_anything.md` 18, 19). It installs to
 `/opt/clangd-index-nav`, next to the system clangd, and pins `llvm-libs` and `clang`
-to 23.1.1 exactly (D-027).
+to the installed version exactly (D-027): the binary links the system `libLLVM` and reads
+the system clangd's index shards, so every LLVM upgrade means building again. The build
+writes `pkgver` from `llvm-config --version` and refreshes the checksums with
+`updpkgsums` (package `pacman-contrib`) before `makepkg`:
 ```sh
-cd ~/source/repos/emacs-cpp/packaging/clangd-index-nav
-makepkg -si
+cd ~/source/repos/emacs-cpp
+make clangd MAKEPKG_FLAGS=-si     # bare `make clangd` only builds the package
 ```
 Then set `emacs-cpp-clangd-program` to `/opt/clangd-index-nav/bin/clangd` with
 `M-x customize-variable`. Nil, the default, uses the system clangd. A configured
@@ -252,8 +256,8 @@ An Emacs started from the Dock does not read the shell profile; the config puts
   emacs-cpp-debug-lldb-dap-program`, value `/opt/local/bin/lldb-dap-mp-23`, "Save for
   future sessions" (it goes to `custom.el`). Any path or name works, on Arch too.
 - **The patched clangd comes from a script** (D-052), not from the PKGBUILD. It
-  downloads the LLVM 23.1.3 sources (MacPorts' release, D-100; the Arch package stays
-  at 23.1.1), applies the same patches and installs to
+  downloads the LLVM 23.1.3 sources (MacPorts' release, D-100; the Arch package follows
+  pacman's LLVM, D-123), applies the same patches and installs to
   `~/opt/clangd-index-nav` (about 15 minutes). Then set `emacs-cpp-clangd-program`
   to `~/opt/clangd-index-nav/bin/clangd` (expanded path). Nil uses the MacPorts clangd.
   ```sh

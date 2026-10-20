@@ -284,6 +284,10 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-111 (opened 2026-10-20, D-123, review 0084 B-1): the Arch clangd package at the
+  installed LLVM's version through `make clangd`. Tier: 2 (owner ruled). Done when:
+  as D-123. Built 2026-10-20 (0085) on the Mac: the two refusals tested, `make
+  test` passes; left: the owner's `make clangd MAKEPKG_FLAGS=-si` on Arch.
 - T-110 (opened 2026-10-20, D-121, O-69 (c) + (d)): drop the vendored eglot; the
   macOS watch fixes as config Lisp. Tier: 2. Done when (agreed 2026-10-20, owner
   adding "also remove vendored xref": none exists, 0003 goes with eglot): submodule
