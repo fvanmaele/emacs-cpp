@@ -129,3 +129,26 @@ against the patched clangd (pkgrel 9) and the S10 copy of RMO (`/tmp/s10/work`):
 
 Not measured: a request at connect on the Mac; `M-?` (references) on the index path,
 which 0002 polls the same way (UNVERIFIED that it answers early alike).
+
+### 7a. The request at connect: its reply, and failures (2026-10-21)
+Owner: "can workspace/symbol be empty, what are the fallbacks?" Read and measured as
+in 7 (patched clangd pkgrel 9, system clangd 23.1.3, the S10 copy of RMO):
+- clangd has no early return for an empty query (`getWorkspaceSymbols`,
+  `FindSymbols.cpp:283`, straight to `fuzzyFind`; `ClangdLSPServer::onWorkspaceSymbol`
+  passes it through), so `""` reaches `ProjectAwareIndex` and starts the load as any
+  query does. Measured: `""`, `zzqqxxjj`, `x`, `n_active_cells` sent right after
+  `initialize`: each answered with 0 symbols in 1 ms, each started the load, which
+  finished (patched and system clangd alike). The reply comes from the empty
+  placeholder, so it says nothing about the index.
+- A missing index file: `E[...] Can't open <path>: No such file or directory` on
+  stderr (error level, seen without `--log=verbose`), reply still 0 symbols.
+- A file that is not an index (100 random bytes; one line of text): no error at all.
+  `readIndexFile` falls back to YAML when the file does not start with `RIFF`, the
+  YAML reader accepts it, and clangd logs, at verbose level only, `Loaded Dex ... with
+  estimated memory usage 216 bytes`. The real index starts with `RIFF`. A RIFF file of
+  another format version gives `Bad index file` (read in `Serialization.cpp`, not run,
+  UNVERIFIED).
+- So success cannot be read from the reply or from the default log; it can be read by
+  asking for a symbol the index must hold, after the load (about 1.2 s), and seeing a
+  result in the library's sources.
+

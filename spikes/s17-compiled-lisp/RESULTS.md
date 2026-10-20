@@ -3,9 +3,9 @@
 Verdict: PASS (run 3, the session's, Arch, 2026-10-21) with a compile-time prelude in
 each module: criteria 1 - 3 hold in both rounds (`byte` JIT on 0.194 / 0.194 s against
 `interp` JIT on 0.199 / 0.198 s; `emacs-cpp-match-tier` native). Without it, run 1
-(owner) FAILED criterion 2 by 222 ms; run 2 found why. The criteria in RUN.md are still
-marked proposed; the owner confirms them. The prelude is spike code: the fix's shape is
-O-74.
+(owner) FAILED criterion 2 by 222 ms; run 2 found why. The criteria in RUN.md are
+confirmed (owner, 2026-10-21: "S17 criteria confirmed"). The prelude is spike code:
+the fix's shape is O-74.
 
 ## Run 2 (session, Arch, 2026-10-21): what loads magit
 `find-magit.sh` (NEW): the `byte` tree, one start after measure-startup's warm-up, with
