@@ -82,3 +82,14 @@ rule); `make test` unaffected (no code changed).
 - Hurt: the default width moved from 92 to 128 silently for an adopter that relied on the
   old check's 92; `STANDARD_WIDTH` restores it, but nothing in the upgrade said so.
 - Never applied yet: the plan-checklist rule (no plan file this session).
+
+## Addendum, the same day: rulings and Mac rebuilds
+- Owner: "O-70 (b) agree, O-71 (c) agree. Rebuild clangd and fswatch". O-70 resolved
+  as D-127 (fswatch backend on both machines, spike S18 first, T-116); O-71 as D-128
+  (stale modules recompiled at startup, with D-125, checked in S17 run 2).
+- fswatch rebuilt at pkgrel 2 (`packaging/fswatch-no-loss/build-macos.sh`), `check.sh`
+  7 of 7: T-098 done on both machines.
+- clangd rebuilt (`packaging/clangd-index-nav/build-macos.sh`): patches 0001 - 0013 on
+  23.1.3, both hidden flags; `EMACS_CPP_PATCHED_CLANGD=~/opt/clangd-index-nav/bin/clangd
+  make test`: 135 tests, 133 passed, 2 skipped (the gdb tests, no gdb on the Mac).
+  T-108's Mac half done; the Arch install is H-1.

@@ -34,19 +34,6 @@ cannot read itself.
      FETCH_HEAD:review/portable-bench.sh > review/portable-bench.sh`
   2. On Arch, idle machine: `sh review/portable-bench.sh 10 </dev/null; rm -r review`
   Report back: paste the block it prints.
-- **H-4** (2026-10-20, unblocks T-108's Mac half, D-100) The Mac's patched clangd is from
-  2026-10-16, before patch 0013: rebuild it at pkgrel 9.
-  1. On the Mac: `cd ~/source/repos/emacs-cpp && sh
-     packaging/clangd-index-nav/build-macos.sh` (downloads the LLVM 23.1.3 tarball from
-     github.com, about 15 minutes, installs to
-     `~/opt/clangd-index-nav`).
-  Report back: done; the session checks the binary itself.
-- **H-5** (2026-10-20, unblocks T-098) The Mac's fswatch is pkgrel 1 (2026-10-15); pkgrel
-  2 changed patch 0001. Its `check.sh` passed on pkgrel 1 today (7 of 7).
-  1. On the Mac: `cd ~/source/repos/emacs-cpp && sh
-     packaging/fswatch-no-loss/build-macos.sh` (downloads the fswatch 1.22.0 tarball,
-     installs to `~/opt/fswatch-no-loss`).
-  Report back: done; the session runs `check.sh` itself.
 - **H-6** (2026-10-20, unblocks O-12, S10) Spike S10 on Arch, waiting since 2026-10-09.
   1. On Arch: `cd ~/source/repos/emacs-cpp && sh spikes/s10-library-index/run.sh
      ~/source/repos/RMO-gross-pitaevskii src/main_sparsity.cc n_active_cells </dev/null`
@@ -69,13 +56,6 @@ cannot read itself.
   Steps written when the owner moves this item back.
 
 ## Decide
-- **H-9** (2026-10-20, answers O-70) Watches on very large projects, both machines:
-  options (a) - (d) in DESIGN's O-70, each with its case against. The session
-  recommends (b), an fswatch backend on both machines over the built-in eglot, spike S18
-  first.
-- **H-10** (2026-10-20, answers O-71) A stale `lisp/*.elc` after an edit: options (a) -
-  (c) in DESIGN's O-71. The session recommends (c), recompile the stale module at startup,
-  its failure stopping startup as (a) would; checked in S17 run 2.
 - **H-11** (2026-10-20, unblocks T-115) The untracked `lib/eglot/` (the vendored eglot
   D-121 removed) put the old eglot on the load path until `make packages` ran. Delete it?
   The session would run `rm -rf ~/source/repos/emacs-cpp/lib/eglot` on the Mac; on Arch

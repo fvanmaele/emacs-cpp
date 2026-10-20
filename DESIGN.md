@@ -731,6 +731,18 @@ Known defects: none yet (nothing built).
   patch 0010 to hide the action.
 
 ### 7.1 File watches: an fswatch backend for eglot (D-110, 2026-10-15)
+- DECIDED D-127 (owner 2026-10-20, O-70 (b): "O-70 (b) agree"): watches work on very
+  large projects (LLVM's size) on both machines through an fswatch backend over the
+  built-in eglot: config Lisp beside `lisp/emacs-cpp-eglot-watch.el`, one patched
+  fswatch (`packaging/fswatch-no-loss`, D-109) per server and project root, FSEvents on
+  the Mac, inotify on Arch; `file-notify` no longer carries eglot's watches. Tier 3:
+  spike S18 (`spikes/s18-fswatch-backend`, T-116) first, on both machines: a generated
+  LLVM-sized tree, pyright on it, a burst of 20000 changes while Emacs is blocked for
+  5 s, every change reaching `workspace/didChangeWatchedFiles`, Emacs's CPU per 1000
+  records, startup unchanged. After a PASS this section is rewritten for the built-in
+  eglot (its text below still assumes the vendored eglot of D-108). Supersedes the
+  review's "park fswatch" (0084, O-70) and D-110's switch defaulting to nil: the
+  program is set per platform (D-055), a missing one refused at startup (principle 1).
 Owner request 2026-10-15: "Design fswatch backend for eglot". A patch on the
 vendored eglot (D-108, T-090), reading the patched fswatch (D-109). (Since D-121
 there is no vendored eglot: the backend would be Lisp in the config on top of the
@@ -1432,6 +1444,13 @@ function is slower than the regexps until compiled).
   compile on load (a new mechanism). Recommended (a): the owner edits modules
   daily, but a refusal names its fix and costs one command.
 
+- DECIDED D-128 (owner 2026-10-20, O-71 (c): "O-71 (c) agree"): with D-125, at startup
+  and before the `require`s, init.el byte-compiles each `lisp/` module whose `.elc` is
+  older than its `.el` (warnings as errors, as the build) and then loads it; a module
+  that does not compile stops startup with the compiler's message. Checked in S17 run 2
+  (a stale module recompiled at startup: its time, the features it loads) before code;
+  ships with D-125 or not at all.
+
 **Spike S17** (`spikes/s17-compiled-lisp`, T-113) before any code: startup by
 `scripts/measure-startup.sh` (the budget's own method) in two trees, `lisp/`
 interpreted and byte-compiled, each with the JIT native compiler on and off (the
@@ -1698,6 +1717,7 @@ presets, GoogleTest runner.
 | Mid-word ranking changes good fuzzy matches or slows clangd | S15 (PASS) | owner | O-67 |
 | match function ranks unlike the regexps or is slower | S16 | owner | D-124 |
 | compiled `lisp/` slows startup or stays bytecode | S17 | owner | D-125 |
+| fswatch backend loses changes or costs Emacs too much | S18 | LLM / owner | D-127 |
 | own package build glue mis-orders compilation | none (tests) | - | v0.1 |
 | config fails on macOS (paths, tools, tests) | none (`make test`) | owner | D-050 |
 | clangd too slow / too large on deal.II scale | S1 numbers | owner | v0.1 |
@@ -1988,8 +2008,9 @@ presets, GoogleTest runner.
   a loose qualifier (`geom::vec`); `count() const` first in both, re-sorted away
   here; no typo seen. Search Everywhere's files: case ignored, humps, space in
   order.
-- O-71 (OPEN, D-125, 2026-10-20; revisited the same day, owner: "Revisit O-70 and
-  O-71"): a `lisp/*.elc` older than its `.el` after an edit loads without a word
+- O-71 (RESOLVED 2026-10-20 with D-128: (c); owner: "O-71 (c) agree"; D-125,
+  2026-10-20; revisited the same day, owner: "Revisit O-70 and O-71"): a `lisp/*.elc`
+  older than its `.el` after an edit loads without a word
   (`load-prefer-newer` is set nowhere here). It matters only once D-125 compiles
   `lisp/`, which waits on S17 (native modules load magit at startup). Options, each
   with its case against:
@@ -2007,7 +2028,8 @@ presets, GoogleTest runner.
   Combined: (c), and where (c) fails the compiler's message stops startup as (a)
   would. Recommended: the combined (c), checked in S17 run 2 (a stale module
   recompiled at startup: time, features loaded). Owner rules.
-- O-70 (OPEN, review 0084 B-2, 2026-10-20; revisited the same day, owner: "on both Mac
+- O-70 (RESOLVED 2026-10-20 with D-127: (b); owner: "O-70 (b) agree"; review 0084 B-2,
+  2026-10-20; revisited the same day, owner: "on both Mac
   and Arch, watches should work on very large projects, which was the initial point of
   fswatch"): the goal is a project tree of LLVM's size (about 17000 directories,
   187000 files) watched for the servers that ask (pyright, texlab), on both machines.
@@ -2788,6 +2810,8 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-124 | 2026-10-20 | match tiers as a function (option C), spike S16 first | 7 | owner |
 | D-125 | 2026-10-20 | compile `lisp/` as DESIGN 11.1, spike S17 first | 11 | owner |
 | D-126 | 2026-10-20 | DESIGN 1 rows DECIDED with their decisions, gaps kept | 1 | owner |
+| D-127 | 2026-10-20 | fswatch backend for eglot on both machines, spike S18 | 7 | O-70 |
+| D-128 | 2026-10-20 | stale `lisp/` modules recompiled at startup, with D-125 | 11 | O-71 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |

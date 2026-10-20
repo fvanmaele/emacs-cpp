@@ -284,6 +284,10 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-116 (opened 2026-10-20, D-127): spike S18, an fswatch backend over the built-in
+  eglot on both machines (`spikes/s18-fswatch-backend`, NEW). Tier: 3 (spike first).
+  Next: RUN.md with pass criteria for the owner to confirm; the Mac run here, the
+  Arch run the owner's.
 - T-115 (opened 2026-10-20, review 0084 fold-in): `lib/load-path.el` still named the
   removed `lib/eglot` after D-121 until `make packages` ran again, and the session
   loaded the old eglot (1.24); `init-packages-are-built-and-fresh` does not see a load
@@ -299,7 +303,8 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
 - T-113 (opened 2026-10-20, D-125): spike S17, compiled `lisp/`
   (`spikes/s17-compiled-lisp`). Tier: 3 (spike first). Mac dry run 2026-10-20
   (0084): bytecode free, native modules +510 ms (they load magit); left: run 2 finds
-  the form, the owner's Arch run, then O-71 and the build step written fresh.
+  the form and checks D-128's recompile at startup, the owner's Arch run, then the
+  build step written fresh.
 - T-112 (opened 2026-10-20, D-124): spike S16, the match tiers as a function
   (`spikes/s16-match-function`). Tier: 3 (spike first). Mac dry run 2026-10-20
   (0084): spec and agreement hold, faster only compiled; left: the owner's Arch run (H-2);
@@ -355,6 +360,10 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
   ClangdTests 1426 passed (Arch), pkgrel 9 built from the clean tarball; left: the
   owner's install (`pacman -U`), `make test` with it, the RMO check, the Mac build
   and `make test`.
+  Mac 2026-10-20 (owner: "Rebuild clangd and fswatch"; 0086): `build-macos.sh` applied
+  0001 - 0013 to 23.1.3, both hidden flags present, installed to
+  `~/opt/clangd-index-nav`; `make test` with it 135 tests, 133 passed, 2 skipped (gdb).
+  Left: the Arch install (H-1).
 - T-107 (opened 2026-10-19, D-119): spike S15, mid-word matches ranked by shape in
   clangd (`spikes/s15-mid-word-rank/RUN.md`, pass criteria proposed 2026-10-19).
   Done when: RESULTS.md has a verdict on criteria 1 - 7 from the owner's run on
@@ -466,7 +475,8 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
   owner's `makepkg -si` on Arch (its `check()` runs check.sh). Arch 2026-10-19:
   pkgrel 2 (0074's Arch run) passes, installed; left: the Mac re-check of pkgrel 2.
   Mac 2026-10-20 (0086): the installed binary is pkgrel 1 (2026-10-15) and passes
-  pkgrel 2's `check.sh`, 7 of 7; left: the Mac rebuild at pkgrel 2 (H-5).
+  pkgrel 2's `check.sh`, 7 of 7. Rebuilt at pkgrel 2 the same day (owner: "Rebuild
+  clangd and fswatch"): `check.sh` 7 of 7. Done (0086).
 - T-097 (opened 2026-10-15, owner with D-109): check change 2 of the fswatch
   prototype and its memory use. Done when: `RESEARCH_platform_differences.md` 3.13
   with a real drop reported, memory with a reader that never reads, measured.
