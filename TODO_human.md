@@ -55,8 +55,8 @@ cannot read itself.
      spikes/s18-fswatch-backend/run.sh 20000 </dev/null` (generates the tree first, a
      few minutes; then four runs of about a minute each).
   2. On Arch: `rm -rf /tmp/s18-tree`
-  Report back: paste `spikes/s18-fswatch-backend/s18.log`; and confirm or change the
-  five pass criteria in `spikes/s18-fswatch-backend/RUN.md`.
+  Report back: paste `spikes/s18-fswatch-backend/s18.log`; its first line must say
+  `Linux` (the run of 2026-10-20 17:32Z was on the Mac). The criteria are confirmed.
 
 ## Parked
 - **H-8** (2026-10-20, owner deferred B-3 to B-5 of review 0084; T-114) The upstream

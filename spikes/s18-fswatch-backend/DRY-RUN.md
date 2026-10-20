@@ -38,6 +38,15 @@ for the first 5 s: the records waited in fswatch's queue (patch 0001), none lost
   (wrapped), `eglot--project`; the version pin of `lisp/emacs-cpp-eglot-watch.el`
   (D-121) covers them.
 
+## Owner's run, the same day (run 3, Mac)
+The owner ran `run.sh` on the Mac at 17:32Z (`owner-mac-run3.log`; the log says
+`Darwin arm64`, so it is not the Arch run H-12 asks for). Same results: fswatch,
+eglot's matcher 20000 of 20000, 8 ms per 1000 records; regexp 20000 of 20000, 6 ms;
+ready 0.05 - 0.06 s; no overflow, no repeats, nothing left after shutdown; pyright
+alive. The baseline failed at 207 descriptors, not 975: an Emacs started under a
+shell with `ulimit -n 256` (RESEARCH_platform_differences 3.1's 256 row), a ceiling
+the fswatch backend does not depend on. Three Mac runs, 5 of 5 criteria each.
+
 ## Gotchas
 - Batch Emacs delivers no `file-notify` events (neither `accept-process-output` nor
   `sit-for`): Emacs's own watches can only be measured in an interactive Emacs, so the
