@@ -222,6 +222,12 @@ Observed on the owner's Mac, 2026-10-09 (D-050):
   "localhost" (which can resolve to IPv6 ::1 first); startup stops if dape's debugpy
   entries change shape. Remote files (TRAMP) cannot be debugged this way: the adapter
   would listen on the remote loopback (DESIGN 2).
+- DECIDED D-132 (owner 2026-10-21, O-72: "pyright, until ty can check unannotated
+  code"): pyright stays the Python server on both machines (D-045); ty is not adopted.
+  Revisit when ty infers the types of unannotated code, measured as in
+  `RESEARCH_python_ty.md` 4a: `ret()` of `def ret(): return 1` not `Unknown`, and
+  pyright's 8 inference reports on argparse.py found. The watch advice and its pyright
+  tests stay (D-121).
 - DECIDED D-055 (owner 2026-10-09, T-024): defaults that differ by platform live in one
   file per platform (NEW, `lisp/defaults-<platform>.el`), loaded by `init.el` for
   `system-type` before the modules; they hold choices only, e.g. the debugger offered
@@ -752,6 +758,18 @@ Known defects: none yet (nothing built).
   file` (`index/Serialization.cpp:712, 729`, error level, so seen without verbose
   logging), an index built for another library version than the one installed, and
   the request at connect failing. Code: T-118, tier 2, done when proposed there.
+  Amended 2026-10-21 (owner: "can workspace/symbol be empty, what are the
+  fallbacks?"; measured, `RESEARCH_library_sources_index.md` 7a): the request's reply
+  is empty whatever its query (clangd answers it from the index's empty placeholder
+  before the load), so it proves nothing; an empty query starts the load as any other
+  does. The request is therefore a probe: it asks for one symbol the library's index
+  must hold (stored with the index when it is built) and is repeated every 0.5 s until
+  a result lies in the library's sources, at most 10 s; none, a warning. That also
+  catches what clangd lets pass in silence: a file that is not an index (not starting
+  with `RIFF`) loads as an empty YAML index with no error line, so the config checks
+  the four bytes before clangd starts as well. Fallback when the probe fails: clangd
+  still loads the index on the first `M-.` (the declaration first, then the
+  definition), and the warning says so.
 
 ### 7.1 File watches: an fswatch backend for eglot (D-110, 2026-10-15)
 - DECIDED D-127 (owner 2026-10-20, O-70 (b): "O-70 (b) agree"): watches work on very
@@ -2074,6 +2092,17 @@ presets, GoogleTest runner.
   stale `.eln`, which D-128's recompile (bytecode) does not cover.
   Combined: (a) with the build's prelude reduced to the same `require`, so the settings
   exist once. Recommended: the combined (a). Owner rules.
+  (a)'s case against, revisited 2026-10-21 (owner: "can the Against be addressed?"):
+  the silent failure can be made loud by behaviour, not by looking for the line: a
+  test loads each module's source in a fresh `emacs -Q --batch` (the JIT worker's
+  conditions: no init.el, use-package's settings nil) and compares the features it
+  brings with the same load under init.el's settings; a module without the line
+  differs and the test names it and the packages it pulled in. Measured on copies:
+  `init-git.el` without the line 114 features more with magit, with it 4;
+  `init-completion.el` 25 against 22 (UNVERIFIED which 3). This also catches any other
+  compile-time setting a module comes to depend on. Left against (a): the one line in
+  each of 19 modules, and a module the test does not load (none today: it takes every
+  `lisp/*.el`).
 - O-73 (RESOLVED 2026-10-21 with D-131: (a); owner: "O-73 (a), with proper user
   diagnostics"; was OPEN, owner 2026-10-21: "research patch clangd for waiting for library
   index, and possible downsides"; D-130, T-117): the first `M-.` after opening gives the
@@ -2093,13 +2122,14 @@ presets, GoogleTest runner.
   Recommended: (a) with D-130's code, since a person reaches the window only by `M-.`
   within a second of opening the first file; (c) only if the owner's hand check hits
   it. Owner rules.
-- O-72 (OPEN, owner 2026-10-20: "Research migration from pyright to ty, installed as
-  extra/ty on Arch, macos installation unknown/deferred"; D-045, T-025): pyright or
-  ty for Python (`RESEARCH_python_ty.md`). Measured on Arch: ty 0.0.90 answers every
-  request the config uses, about six times faster to the first diagnostics, fills
+- O-72 (RESOLVED 2026-10-21 with D-132: (a); owner: "O-72 pyright, until ty can check
+  unannotated code"; was OPEN, owner 2026-10-20: "Research migration from pyright to ty,
+  installed as extra/ty on Arch, macos installation unknown/deferred"; D-045, T-025):
+  pyright or ty for Python (`RESEARCH_python_ty.md`). Measured on Arch: ty 0.0.90 answers
+  every request the config uses, about six times faster to the first diagnostics, fills
   `workspace/symbol` where pyright returns nothing yet, survives a refused watch
-  registration (pyright stops answering), no MacPorts port found. Options, each with
-  its case against:
+  registration (pyright stops answering), no MacPorts port found. Options, each with its
+  case against:
   (a) keep pyright everywhere. Against: the watch advice and its pyright tests stay
   for a server that exits on a refusal; `M-o` symbols stay empty early in Python
   projects.
@@ -2948,6 +2978,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-129 | 2026-10-20 | standard 2.15.1 `B-n` ids not adopted; `review:` prefix kept | Conventions | owner |
 | D-130 | 2026-10-21 | library index through clangd's `--index-file` (O-12 (b)) | 7 | O-12 |
 | D-131 | 2026-10-21 | index load started by a request at connect; failures told (O-73 (a)) | 7 | O-73 |
+| D-132 | 2026-10-21 | pyright stays; ty when it checks unannotated code (O-72) | 5 | O-72 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |

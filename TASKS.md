@@ -70,7 +70,7 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
 | T-022 | done 0035 | M | lldb-preset | D-051, O-22 | Arch session test 3 / 3 |
 | T-023 | open | M | macOS clangd build script | D-052, O-23 | built 0036; owner run left |
 | T-024 | done 0039 | M | platform defaults files | D-055 | built as T-031 |
-| T-025 | open | M | Python tools on macOS | owner | round 1 in RESEARCH doc; ty on Arch: O-72 |
+| T-025 | open | M | Python tools on macOS | owner | round 1 in RESEARCH doc; ty not adopted (D-132) |
 | T-026 | open | L | setup wizard (doom doctor) | owner | research; proposed |
 | T-027 | done 0091 | S | load measurements, macOS | owner, O-24 | Mac 0038, Arch 0091 |
 | T-028 | done 0037 | S | review debug and presets code | owner | 5 taken, O-25 to rule |
@@ -291,17 +291,25 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
      NEW) gets `--index-file=<path>` in `emacs-cpp-presets--clangd-command`
      (`lisp/emacs-cpp-presets.el`), the path from `emacs-cpp-library-indexes` (NEW, an
      alist set in `lisp/defaults-gnu-linux.el` and `lisp/defaults-darwin.el`, D-055).
-  2. One `workspace/symbol` sent when that clangd connects, only with an index.
+  2. When that clangd connects, a `workspace/symbol` probe for the library's probe
+     symbol (stored with the index, item 4), every 0.5 s until a result lies in the
+     library's sources, at most 10 s (D-131 as amended: the first reply is always
+     empty).
   3. Diagnostics, each with an ERT test: (a) a library unknown to
      `emacs-cpp-library-indexes`: eglot refused, the error names the library and the
      variable; (b) the index file missing or unreadable: refused, the error names the
-     path and the command that builds it; (c) clangd's `Can't open` or `Bad index file`
+     path and the command that builds it; (b2) the file does not start with `RIFF`:
+     refused likewise (clangd would load it as an empty index without a word); (c)
+     clangd's `Can't open` or `Bad index file`
      on its stderr: one `display-warning` per server with clangd's line; (d) the
      index's version stamp (NEW, written next to the index when it is built) differs
      from the installed library's version (pacman / MacPorts): a warning naming both;
-     (e) the request at connect fails or times out: a warning with the error.
+     (e) the probe fails, times out or finds nothing in 10 s: a warning with the
+     error or "no symbol from <library>", saying that `M-.` gives declarations until
+     clangd loads the index on its own.
   4. `make library-index LIBRARY=dealii` (NEW) builds the index offline as S10's runner
-     does (written fresh, not promoted), with its stamp; `make help` lists it.
+     does (written fresh, not promoted), with its stamp (library version, probe
+     symbol); `make help` lists it.
   5. `make test` passes on Arch; on RMO with the shipped config, `M-.` on a deal.II
      call in a source opened 2 s earlier lands in deal.II's `.cc` (owner's hand check).
 - T-117 (opened 2026-10-21, D-130, owner: "research patch clangd for waiting for
@@ -339,8 +347,8 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
   2026-10-20: FAIL, native +222 ms, bytecode -9 ms (`RESULTS.md`). Session's runs 2, 3
   on Arch 2026-10-21 (0091): the JIT's own Emacs lacks init.el's use-package settings
   and loads every deferred package; with them at compile time PASS (0.194 against
-  0.199 s). Left: the owner confirms the criteria and rules O-74; D-128's recompile at
-  startup checked; then the build step written fresh.
+  0.199 s); criteria confirmed by the owner 2026-10-21. Left: the owner rules O-74;
+  D-128's recompile at startup checked; then the build step written fresh.
 - T-112 (opened 2026-10-20, D-124): spike S16, the match tiers as a function
   (`spikes/s16-match-function`). Tier: 3 (spike first). Mac dry run 2026-10-20
   (0084): spec and agreement hold, faster only compiled. Owner's Arch run 2026-10-20
@@ -350,7 +358,7 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
   installed LLVM's version through `make clangd`. Tier: 2 (owner ruled). Done when:
   as D-123. Built 2026-10-20 (0085) on the Mac: the two refusals tested, `make
   test` passes. On Arch 2026-10-20 (0089): `clangd-index-nav 23.1.3-9` installed
-  (`pacman -Q`, read by the session); left: the owner calls it done.
+  (`pacman -Q`, read by the session). Owner 2026-10-21: done.
 - T-110 (opened 2026-10-20, D-121, O-69 (c) + (d)): drop the vendored eglot; the
   macOS watch fixes as config Lisp. Tier: 2. Done when (agreed 2026-10-20, owner
   adding "also remove vendored xref": none exists, 0003 goes with eglot): submodule
@@ -401,7 +409,7 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
   Mac 2026-10-20 (owner: "Rebuild clangd and fswatch"; 0086): `build-macos.sh` applied
   0001 - 0013 to 23.1.3, both hidden flags present, installed to
   `~/opt/clangd-index-nav`; `make test` with it 135 tests, 133 passed, 2 skipped (gdb).
-  Left: the Arch install (H-1).
+  Arch install 2026-10-20 (H-1). Owner 2026-10-21: done.
 - T-107 (opened 2026-10-19, D-119): spike S15, mid-word matches ranked by shape in
   clangd (`spikes/s15-mid-word-rank/RUN.md`, pass criteria proposed 2026-10-19).
   Done when: RESULTS.md has a verdict on criteria 1 - 7 from the owner's run on

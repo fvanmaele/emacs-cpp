@@ -21,7 +21,7 @@ setting records the form of `emacs-cpp-match-tier` (init-completion, loaded at
 startup), `emacs-cpp-presets-resolve` and `consult-buffer`: native, byte,
 interpreted, autoload or unbound.
 
-## Pass criteria (proposed 2026-10-20; owner to confirm)
+## Pass criteria (proposed 2026-10-20; confirmed by the owner 2026-10-21)
 Arch, idle (load below 1), `run.sh 10 2`:
 1. The compile: 0 failures.
 2. Startup: `byte` with the JIT on has a median within 10 ms of `interp` with the JIT
