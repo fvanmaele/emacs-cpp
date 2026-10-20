@@ -2026,6 +2026,24 @@ presets, GoogleTest runner.
   a loose qualifier (`geom::vec`); `count() const` first in both, re-sorted away
   here; no typo seen. Search Everywhere's files: case ignored, humps, space in
   order.
+- O-73 (OPEN, owner 2026-10-21: "research patch clangd for waiting for library index,
+  and possible downsides"; D-130, T-117): the first `M-.` after opening gives the
+  declaration while the library index loads (`RESEARCH_library_sources_index.md` 7).
+  clangd loads an `--index-file` index only on the first query, in 1.1 - 1.3 s; patch
+  0002's shard path answers in 0.95 s, before it. Options, each with its case against:
+  (a) no patch: the config sends one `workspace/symbol` when clangd connects, which
+  starts the load. Against: relies on clangd's lazy load (an implementation detail);
+  the shard path still answers wrong within about 1.2 s of connecting.
+  (b) patch: load the `--index-file` index at clangd's start. Against: the same 1.2 s
+  window as (a), and one patch more to carry across LLVM updates (D-123).
+  (c) patch: 0002's poll waits, up to its 5 s, while an external index is still
+  loading, for an answer with a definition. Against: the most code in the patches
+  rebased most often (0001 - 0004), a loaded-or-failed signal clangd lacks, a worker
+  thread held while waiting.
+  Combined: (a) + (c) closes the window with the wait under 0.3 s in practice.
+  Recommended: (a) with D-130's code, since a person reaches the window only by `M-.`
+  within a second of opening the first file; (c) only if the owner's hand check hits
+  it. Owner rules.
 - O-72 (OPEN, owner 2026-10-20: "Research migration from pyright to ty, installed as
   extra/ty on Arch, macos installation unknown/deferred"; D-045, T-025): pyright or
   ty for Python (`RESEARCH_python_ty.md`). Measured on Arch: ty 0.0.90 answers every
