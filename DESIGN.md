@@ -740,6 +740,18 @@ Known defects: none yet (nothing built).
   declaration while the index loads (S10 criterion 1); a clangd patch that waits for
   it is researched (T-117). Built with the index's build step (offline, about 2.5 min,
   10 GB peak; DESIGN 7, O-9); tier and done when proposed with T-117's result.
+- DECIDED D-131 (owner 2026-10-21, O-73 (a): "O-73 (a), with proper user
+  diagnostics"): no clangd patch for the first request; the config sends one
+  `workspace/symbol` when clangd connects with an `--index-file`, which starts the
+  index's load (clangd loads it on the first query, 1.1 - 1.3 s;
+  `RESEARCH_library_sources_index.md` 7). The window left (patch 0002's shard path
+  answering within about 1.2 s of connecting) is accepted. Every way the library index
+  can fail is told to the person, not swallowed (DESIGN 4): a library named by the
+  project but not known on this machine, a missing or unreadable index file (both
+  before clangd starts, eglot refused as D-018), clangd's own `Can't open` / `Bad index
+  file` (`index/Serialization.cpp:712, 729`, error level, so seen without verbose
+  logging), an index built for another library version than the one installed, and
+  the request at connect failing. Code: T-118, tier 2, done when proposed there.
 
 ### 7.1 File watches: an fswatch backend for eglot (D-110, 2026-10-15)
 - DECIDED D-127 (owner 2026-10-20, O-70 (b): "O-70 (b) agree"): watches work on very
@@ -2026,8 +2038,9 @@ presets, GoogleTest runner.
   a loose qualifier (`geom::vec`); `count() const` first in both, re-sorted away
   here; no typo seen. Search Everywhere's files: case ignored, humps, space in
   order.
-- O-73 (OPEN, owner 2026-10-21: "research patch clangd for waiting for library index,
-  and possible downsides"; D-130, T-117): the first `M-.` after opening gives the
+- O-73 (RESOLVED 2026-10-21 with D-131: (a); owner: "O-73 (a), with proper user
+  diagnostics"; was OPEN, owner 2026-10-21: "research patch clangd for waiting for
+  library index, and possible downsides"; D-130, T-117): the first `M-.` after opening gives the
   declaration while the library index loads (`RESEARCH_library_sources_index.md` 7).
   clangd loads an `--index-file` index only on the first query, in 1.1 - 1.3 s; patch
   0002's shard path answers in 0.95 s, before it. Options, each with its case against:
@@ -2898,6 +2911,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-128 | 2026-10-20 | stale `lisp/` modules recompiled at startup, with D-125 | 11 | O-71 |
 | D-129 | 2026-10-20 | standard 2.15.1 `B-n` ids not adopted; `review:` prefix kept | Conventions | owner |
 | D-130 | 2026-10-21 | library index through clangd's `--index-file` (O-12 (b)) | 7 | O-12 |
+| D-131 | 2026-10-21 | index load started by a request at connect; failures told (O-73 (a)) | 7 | O-73 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |

@@ -69,7 +69,7 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
 | T-021 | done 0034 | M | config starts on macOS | D-050, D-054 | Arch make test 54 / 54 |
 | T-022 | done 0035 | M | lldb-preset | D-051, O-22 | Arch session test 3 / 3 |
 | T-023 | open | M | macOS clangd build script | D-052, O-23 | built 0036; owner run left |
-| T-024 | open | M | platform defaults files | D-055 | ruled; code done-when proposed |
+| T-024 | done 0039 | M | platform defaults files | D-055 | built as T-031 |
 | T-025 | open | M | Python tools on macOS | owner | round 1 in RESEARCH doc; ty on Arch: O-72 |
 | T-026 | open | L | setup wizard (doom doctor) | owner | research; proposed |
 | T-027 | open | S | load measurements, macOS | owner, O-24 | Mac measured 0038; Arch left |
@@ -122,7 +122,7 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
 | T-074 | done 0068 | S | LaTeX: `C-c l f` by latexindent | D-101 | tests, real texlab |
 | T-075 | done | S | research: clangd path filter for symbols | owner | RESEARCH 13; O-52 |
 | T-076 | done | S | research: clangd patch, symlinked paths | owner | RESEARCH 2.8; O-50 |
-| T-077 | open 0069 | M | spike S13: symlinked paths | O-50 (c) | PASS Arch; Mac |
+| T-077 | done 0069 | M | spike S13: symlinked paths | O-50 (c) | PASS Arch and Mac |
 | T-078 | done 0070 | S | latexindent: project settings, indent | D-103 | tests, texlab |
 | T-079 | open | S | send the texlab range formatting report | D-101 | owner sends it |
 | T-080 | done 0071 | S | `make test` in a temporary HOME | D-104 | real home unchanged |
@@ -284,6 +284,25 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-118 (opened 2026-10-21, D-130, D-131): a project's library index reaches clangd.
+  Tier: 2. PROPOSED done when (owner to agree):
+  1. A project naming `dealii` in `.dir-locals.el` (`emacs-cpp-project-libraries`,
+     NEW) gets `--index-file=<path>` in `emacs-cpp-presets--clangd-command`
+     (`lisp/emacs-cpp-presets.el`), the path from `emacs-cpp-library-indexes` (NEW, an
+     alist set in `lisp/defaults-gnu-linux.el` and `lisp/defaults-darwin.el`, D-055).
+  2. One `workspace/symbol` sent when that clangd connects, only with an index.
+  3. Diagnostics, each with an ERT test: (a) a library unknown to
+     `emacs-cpp-library-indexes`: eglot refused, the error names the library and the
+     variable; (b) the index file missing or unreadable: refused, the error names the
+     path and the command that builds it; (c) clangd's `Can't open` or `Bad index file`
+     on its stderr: one `display-warning` per server with clangd's line; (d) the
+     index's version stamp (NEW, written next to the index when it is built) differs
+     from the installed library's version (pacman / MacPorts): a warning naming both;
+     (e) the request at connect fails or times out: a warning with the error.
+  4. `make library-index LIBRARY=dealii` (NEW) builds the index offline as S10's runner
+     does (written fresh, not promoted), with its stamp; `make help` lists it.
+  5. `make test` passes on Arch; on RMO with the shipped config, `M-.` on a deal.II
+     call in a source opened 2 s earlier lands in deal.II's `.cc` (owner's hand check).
 - T-117 (opened 2026-10-21, D-130, owner: "research patch clangd for waiting for
   library index, and possible downsides"): research a clangd patch so that the first
   `M-.` after an open waits for a static index still loading (S10 run 2, criterion
