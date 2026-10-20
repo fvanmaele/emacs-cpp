@@ -84,7 +84,8 @@ first `M-.` only; library index by `--index-file` (D-130), a waiting patch resea
 (T-117); S17 FAIL (native modules +222 ms); S16 criteria confirmed.
 Then (0091): O-73 (a) with diagnostics (D-131, T-118 proposed); T-027 done on Arch;
 S17 runs 2, 3: the JIT's own Emacs lacks use-package's settings, PASS with them
-at compile time, shape O-74.
+at compile time, shape O-74. D-131 amended (probe symbol, RIFF check), pyright
+stays (D-132), S17 criteria confirmed, T-115 test, T-108 / T-111 done.
 
 ## Self-test (before the first edit of a session)
 Answer from the docs, not from memory; a miss means re-read, not edit.
