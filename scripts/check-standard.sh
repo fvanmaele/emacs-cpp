@@ -214,6 +214,30 @@ if [ -f DESIGN.md ]; then
     fi
 else skip "DESIGN.md absent"; fi
 
+# 5b. Every B-n (a benchmark, rule 16) cited in the same files has a `| B-n |` row in a doc
+# with a "Benchmarks by id" heading. `<repo>:B-n` and another document's `<prefix>:B-n`
+# are skipped, and so is a B-n inside a longer id (`PK-B-000`) (2.15.0, from an adopter's
+# request; owner, 2026-10-20).
+bcited=""
+for f in docs/journal/[0-9]*.md POSTMORTEM.md TASKS.md spikes/*/RESULTS.md; do
+    [ -f "$f" ] && bcited="$bcited $f"
+done
+# shellcheck disable=SC2086
+bids=$([ -n "$bcited" ] && grep -ohE '(^|[^[:alnum:]_:-])B-[0-9]+' $bcited | grep -oE 'B-[0-9]+' | sort -u)
+if [ -n "$bids" ]; then
+    bdocs=$(if [ "$in_git" -eq 1 ]; then git ls-files '*.md'; else find . -xdev -name '*.md' ! -path './.git/*' \
+        | sed 's|^\./||'; fi | while IFS= read -r f; do
+            [ -f "$f" ] && grep -qE '^#{1,6} Benchmarks by id' "$f" && printf '%s\n' "$f"; done)
+    if [ -z "$bdocs" ]; then
+        fail "$(echo $bids | tr ' ' ',') cited but no doc has a \"Benchmarks by id\" table (rule 16)"
+    else
+        for id in $bids; do
+            # shellcheck disable=SC2086
+            grep -qE "^\| *$id *\|" $bdocs || fail "$id cited but not in the Benchmarks by id table ($bdocs)"
+        done
+    fi
+fi
+
 # 6. Risk register spikes appear in spikes/README.md; started spikes have RUN.md.
 if [ -f DESIGN.md ] && [ -f spikes/README.md ]; then
     grep -q '^## .*Risk register' DESIGN.md \

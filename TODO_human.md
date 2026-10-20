@@ -10,7 +10,8 @@ an item once it is done. Results go to the journal or DESIGN, never back into th
 Item shape: id `H-n` | date added | what it unblocks (`T-nnn`, `O-n`, `Sn`) | one line of
 what and why | numbered steps, each with its command inline, only what the owner's hands
 must do, literal values only, never a secret | what to report back, only for what the LLM
-cannot read itself.
+cannot read itself. An approval another session asks the owner for itself (a bench
+service's plan) is not an item.
 
 ## Run now
 - **H-1** (2026-10-20, unblocks T-111, T-108) The session's commits reach Arch, then the
@@ -59,7 +60,7 @@ cannot read itself.
   `Linux` (the run of 2026-10-20 17:32Z was on the Mac). The criteria are confirmed.
 
 ## Parked
-- **H-8** (2026-10-20, owner deferred B-3 to B-5 of review 0084; T-114) The upstream
+- **H-8** (2026-10-20, 0084 review:B-3 to review:B-5, deferred; T-114) The upstream
   reports and patches in the review's order: treemacs and clang-change-namespace first,
   then consult, projectile, yasnippet-snippets, consult-eglot's ordering half; clangd 0009,
   0010, then 0005 - 0008 squashed, then 0001 - 0004 as an RFC; fswatch 0002 and 0004.

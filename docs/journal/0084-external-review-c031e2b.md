@@ -2,7 +2,7 @@
 
 - **Date:** 2026-10-20
 - **Commits:** `64ba133` (C-11, C-12), `0cb3fca` (A-1, A-2), `006dd64` (A-5),
-  `4683f20` (B-1, T-111); this entry with D-124, D-125 and spikes S16, S17
+  `4683f20` (review:B-1, T-111); this entry with D-124, D-125 and spikes S16, S17
 - **Tier:** 1 (fixes) / review fold-in; 2 (T-111); 3 (S16, S17: spikes first)
 - **Decisions:** D-122 (license), D-123 (LLVM pin), D-124 (match function), D-125
   (compiled `lisp/`); O-70 (fswatch), O-71 (stale `.elc`) opened
@@ -21,9 +21,11 @@ each one below was checked against this tree at c031e2b before acting. Overall t
 review is careful and mostly right; four points in it are wrong or overstated (below).
 The owner ruled the same day: "A2 - mark as superseded. Revisit A-3 and A-1. Tier 2
 under own D-nnn llvm-unpin.patch. Ruling for the matcher / section 3. Run
-portable-bench.sh on this machine. A-5 license, MIT. Review B-2, defer B-3 to B-5.
+portable-bench.sh on this machine. A-5 license, MIT. Review review:B-2, defer review:B-3 to
+review:B-5.
 Design for compile-lisp.patch and spike."; matcher: "C, spike first"; A-3: "Draft,
-you check"; A-1's reason: "I pick from the record".
+you check"; A-1's reason: "I pick from the record". The review's ids are
+prefixed `review:` in these quotes since standard 2.15.1 (0088), no other word changed.
 
 ## Review fold-in
 Source: `pepopepopepo/emacs-cpp` `audit/main` ed29327, `REVIEW_2026-10-20_c031e2b.md`
@@ -56,7 +58,7 @@ nothing to delete.
   update, from a command (the review's `review/counts.sh`), not by hand.
 - **Taken: A-5, no license.** MIT for the repository's own work, the patch files
   keep their projects' licenses (D-122). `006dd64`.
-- **Taken: B-1, the LLVM pin, tier 2 (D-123, T-111, 0085).** The review's
+- **Taken: review:B-1, the LLVM pin, tier 2 (D-123, T-111, 0085).** The review's
   `review/llvm-unpin.patch` through `git am`, author kept; its version check was a
   glob that let "24.0.0git" through to `sed -i`; fixed and tested here. `4683f20`.
 - **Taken: section 3, the matcher, option C, spike first (D-124, S16, T-112).** Mac
@@ -80,17 +82,18 @@ nothing to delete.
   numbers are recorded, not judged, D-057); `make test` 133 tests, 131 passed, 2
   skipped, exit 0, 56.6 s wall. The review's machine: 0.097 s, 20.2 s. Arch's block
   is the owner's to paste.
-- **Reviewed: B-2, fswatch.** The review is right: DESIGN 7.1's backend was designed
+- **Reviewed: review:B-2, fswatch.** The review is right: DESIGN 7.1's backend was designed
   on the vendored eglot that D-121 removed, nothing runs fswatch, two builds stay to
   keep. Opened O-70: (a) keep, (b) park on a branch (recommended), (c) own
   repository. Owner rules.
-- **Deferred: B-3 - B-5, sending the reports and patches (owner).** Recorded as
-  T-114 in the review's order, with B-5a's staleness question for 0001's message and
+- **Deferred: review:B-3 - review:B-5, sending the reports and patches (owner).**
+  Recorded as
+  T-114 in the review's order, with review:B-5a's staleness question for 0001's message and
   fswatch 0002 / 0004.
 - **Not taken: A-7, "vim or an IDE could do the same".** An answer to the owner's
   question, not a finding: the wait is clangd's, so any editor on stock clangd
   waits the same.
-- **No action: C-1 .. C-6, C-8, C-9, B-6.** Confirmations (internals exist at their
+- **No action: C-1 .. C-6, C-8, C-9, review:B-6.** Confirmations (internals exist at their
   pins, presets resolution follows CMake, D-018 refusals are loud, indentation is
   buffer-local, the eglot advice is version-pinned and loud).
 
@@ -107,7 +110,7 @@ nothing to delete.
   harness 4c withdraws for this configuration. Open; S17 measures it.
 - **The llvm-unpin patch's version check** let "24.0.0git" pass (a glob's `*`).
 - **Line numbers** off by one or two in places (`JOURNAL.md:106`, `init-cmake.el:26`);
-  B-6 "replaces two internals" omits the `:around` on `eglot-unregister-capability`.
+  review:B-6 "replaces two internals" omits the `:around` on `eglot-unregister-capability`.
 
 ## Found while checking
 - **A stale `lib/load-path.el` loads the old vendored eglot.** After D-121 removed the
