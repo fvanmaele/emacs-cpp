@@ -21,31 +21,39 @@ project, treesit, which-key, use-package); the gap is wiring, keybindings and a 
 packages, not new software.
 
 Honest comparison (verdicts live in this file):
-Format: CLion feature -> Emacs component. Gap vs CLion. Status.
+Format: CLion feature -> Emacs component. Gap vs CLion. Status. Every row ruled
+2026-10-20 (D-126, review 0084 A-3): DECIDED with the decisions it shipped under,
+gaps named; "PROPOSED" had stood unchanged since 2026-10-07.
 - Go to definition / declaration -> xref via eglot + clangd (`M-.`,
-  `eglot-find-declaration`). Gap: none. PROPOSED.
-- Find usages -> xref `M-?` (eglot references). Gap: no read/write grouping. PROPOSED.
-- Go to implementation -> `eglot-find-implementation`. Gap: none. PROPOSED.
+  `eglot-find-declaration`). Gap: none. DECIDED D-001, D-026 (from the index), D-004.
+- Find usages -> xref `M-?` (eglot references). Gap: no read/write grouping. DECIDED
+  D-001, D-026.
+- Go to implementation -> `eglot-find-implementation`. Gap: none. DECIDED D-004.
 - Call / type hierarchy -> `eglot-show-call-hierarchy`, `eglot-show-type-hierarchy`.
-  Gap: simpler tree UI. PROPOSED.
-- Rename -> `eglot-rename` (clangd, project-wide). Gap: none. PROPOSED.
+  Gap: simpler tree UI. DECIDED D-004.
+- Rename -> `eglot-rename` (clangd, project-wide). Gap: none. DECIDED D-092.
 - Other refactorings -> `eglot-code-actions` = clangd tweaks (extract variable /
   function, define outline, expand auto, swap if branches, ...). Gap: no change
-  signature, inline, move, pull members up (R). PROPOSED.
+  signature, inline, move, pull members up (R). DECIDED D-094 (clang-tidy fixes,
+  clang-move), D-097 (namespace), D-064; gaps kept: change signature (S12 FAIL,
+  O-43 (b)), inline, pull members up (`RESEARCH_refactoring.md`).
 - Static analysis, quick fixes -> flymake + clangd diagnostics + clang-tidy
   (`--clang-tidy`, project `.clang-tidy`); fixes via `eglot-code-actions`. Gap: no CLion
-  data-flow analysis; clang-tidy `clang-analyzer-*` covers part (R). PROPOSED.
+  data-flow analysis; clang-tidy `clang-analyzer-*` covers part (R). DECIDED D-094;
+  gap kept, no RESEARCH note yet on how much `clang-analyzer-*` covers.
 - Code completion -> corfu + eglot completion-at-point, on request with TAB or `C-M-i`
   (D-020). Gap: none. DECIDED.
-- Inlay / parameter hints -> `eglot-inlay-hints-mode`. Gap: none. PROPOSED.
-- Reformat -> `eglot-format-buffer` (clangd reads `.clang-format`). Gap: none. PROPOSED.
+- Inlay / parameter hints -> `eglot-inlay-hints-mode`. Gap: none. DECIDED D-004.
+- Reformat -> `eglot-format-buffer` (clangd reads `.clang-format`). Gap: none. DECIDED
+  D-004; indentation while typing by Emacs's rules (D-065).
 - Switch header / source -> `projectile-find-other-file`. Gap: name-based, not
-  clangd-based. PROPOSED.
+  clangd-based. DECIDED D-004 (kept name-based).
 - Search everywhere, go to file / symbol / action -> vertico + orderless + marginalia +
   consult: `projectile-find-file`, `consult-buffer`, `consult-eglot-symbols`,
   `consult-imenu`, `consult-ripgrep`, `M-x`; one combined prompt on `M-o` (D-074 ..
   D-078, T-049): buffers, recent files, bookmarks, project files, clangd symbols,
-  commands and projects behind narrow keys. Gap: no settings or git items. PROPOSED.
+  commands and projects behind narrow keys. Gap: no settings or git items. DECIDED
+  D-074 .. D-088, D-120.
 - Project tree -> treemacs + treemacs-projectile (installed). Gap: none. DECIDED
   (existing setup).
 - CMake editing -> `cmake-mode` shipped by the system `cmake` package. Gap: no target
@@ -53,11 +61,11 @@ Format: CLion feature -> Emacs component. Gap vs CLion. Status.
 - CMake profiles / toolchains -> `CMakePresets.json` via projectile
   (`projectile-enable-cmake-presets`). Gap: no target picker UI. DECIDED D-005.
 - Build / run / test -> projectile configure / compile / test / run -> `compile`
-  buffer, `next-error`. Gap: no GoogleTest runner tree. PROPOSED.
+  buffer, `next-error`. Gap: no GoogleTest runner tree. DECIDED D-005, D-035.
 - Debugger, breakpoints -> dape over DAP: `gdb -i dap` (gdb 17) or `lldb-dap`. Gap: no
   memory view parity (R). DECIDED D-002.
 - Git -> magit (installed), diff-hl gutter, magit-blame, smerge for conflicts. Gap: none
-  of note. PROPOSED.
+  of note. DECIDED D-042 (diff-hl), magit as installed (D-006); shipped in v0.4.
 
 SUPERSEDED (2026-10-20, refuted; review 0084, A-2): "CLion parity for the daily loop is
 reachable with built-ins plus about fifteen direct packages and under ~600 lines of own
@@ -2726,6 +2734,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-123 | 2026-10-20 | Arch clangd `pkgver` from the installed LLVM | 7 | owner |
 | D-124 | 2026-10-20 | match tiers as a function (option C), spike S16 first | 7 | owner |
 | D-125 | 2026-10-20 | compile `lisp/` as DESIGN 11.1, spike S17 first | 11 | owner |
+| D-126 | 2026-10-20 | DESIGN 1 rows DECIDED with their decisions, gaps kept | 1 | owner |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |
@@ -2733,7 +2742,9 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-116 | 2026-10-19 | `make packages` resets patched files; pins checked | 12 | owner |
 
 ## Parity verdicts (from RESEARCH_*.md)
-None yet; see section 1 (R) rows.
+Per row in section 1 (D-126). From research: refactorings, `RESEARCH_refactoring.md`
+(change signature, inline, pull members up stay gaps; S12 FAIL). Not researched yet:
+static analysis against CLion's data flow, the debugger's memory view.
 
 ## Conventions
 ASCII; no invented abbreviations; commits with Reasoning and tier; journal with code;
