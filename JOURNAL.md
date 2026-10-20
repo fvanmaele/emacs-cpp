@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0087 | 2026-10-20 | S18 fswatch backend: Mac dry run, 5 of 5 | S18 | D-127 |
 | 0086 | 2026-10-20 | Standard 2.14.0; O-70, O-71 revisited | standard | none |
 | 0085 | 2026-10-20 | T-111: Arch clangd follows the installed LLVM | T-111 | D-123 |
 | 0084 | 2026-10-20 | Review of c031e2b folded in; S16, S17 dry runs | review | D-122..125 |

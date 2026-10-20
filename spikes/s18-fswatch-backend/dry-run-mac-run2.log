@@ -1,0 +1,23 @@
+S18 run 2026-10-20T17:24:54Z, Darwin arm64, GNU Emacs 31.1
+tree: 15625 directories, 247398 files
+load:  3.48 3.16 8.13 
+
+S18 run: mode eglot, server fake, burst 20000, darwin, GNU Emacs 31.1
+connect + registration: 0.09 s (registration in Emacs: 0.01 s)
+registration answer: registered ok
+ready (a probe change reported): 0.06 s
+burst: 20000 of 20000 created files reached the server (20001 reports, repeats included), 13.4 s after the start
+records read 20003, sent 20003, skipped 0, overflow 0
+Emacs CPU after the block: 0.18 s (log polling 0.02 s taken out), 9 ms per 1000 records
+after shutdown: fswatch processes alive: 0
+messages (last 12 lines):
+
+S18 run: mode regexp, server fake, burst 20000, darwin, GNU Emacs 31.1
+connect + registration: 0.10 s (registration in Emacs: 0.01 s)
+registration answer: registered ok
+ready (a probe change reported): 0.05 s
+burst: 20000 of 20000 created files reached the server (20000 reports, repeats included), 12.2 s after the start
+records read 20002, sent 20002, skipped 0, overflow 0
+Emacs CPU after the block: 0.14 s (log polling 0.02 s taken out), 7 ms per 1000 records
+after shutdown: fswatch processes alive: 0
+messages (last 12 lines):
