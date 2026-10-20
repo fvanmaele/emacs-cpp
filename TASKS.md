@@ -284,6 +284,26 @@ with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-115 (opened 2026-10-20, review 0084 fold-in): `lib/load-path.el` still named the
+  removed `lib/eglot` after D-121 until `make packages` ran again, and the session
+  loaded the old eglot (1.24); `init-packages-are-built-and-fresh` does not see a load
+  path naming a directory that is no submodule. Proposed tier 1: the test checks
+  that every load-path entry is a submodule's; the owner removes the untracked
+  `lib/eglot/`. Owner rules.
+- T-114 (opened 2026-10-20, review 0084 B-3 - B-5, deferred by the owner): send the
+  drafted upstream reports and patches in the review's order: treemacs and
+  clang-change-namespace first, then consult, projectile, yasnippet-snippets,
+  consult-eglot's ordering half; clangd 0009, 0010, then 0005 - 0008 squashed, then
+  0001 - 0004 as an RFC (answer B-5a's staleness question in 0001's message); fswatch
+  0002 and 0004 (O-70). Each accepted one deletes a patch file here (D-116).
+- T-113 (opened 2026-10-20, D-125): spike S17, compiled `lisp/`
+  (`spikes/s17-compiled-lisp`). Tier: 3 (spike first). Mac dry run 2026-10-20
+  (0084): bytecode free, native modules +510 ms (they load magit); left: run 2 finds
+  the form, the owner's Arch run, then O-71 and the build step written fresh.
+- T-112 (opened 2026-10-20, D-124): spike S16, the match tiers as a function
+  (`spikes/s16-match-function`). Tier: 3 (spike first). Mac dry run 2026-10-20
+  (0084): spec and agreement hold, faster only compiled; left: the owner's Arch run;
+  the function written fresh only with D-125.
 - T-111 (opened 2026-10-20, D-123, review 0084 B-1): the Arch clangd package at the
   installed LLVM's version through `make clangd`. Tier: 2 (owner ruled). Done when:
   as D-123. Built 2026-10-20 (0085) on the Mac: the two refusals tested, `make

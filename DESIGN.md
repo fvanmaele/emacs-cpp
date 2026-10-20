@@ -539,6 +539,21 @@ Known defects: none yet (nothing built).
   89 ms for 35000, Arch); `make test` 132. S11 run 6 (owner, RMO, 4286 files):
   opening 88.6 - 101.0 ms, each key's first screen at most 87.8 ms, within 150 / 100
   ms (run 3: 63 - 74 / 29.5 ms on 2673 files).
+- DECIDED D-124 (owner 2026-10-20, review 0084 section 3: "C, spike first"): D-120's
+  tiers become a function, `emacs-cpp-word-start-p` (the word-start rule in one place)
+  and a matcher that finds tier 1 by `string-search` on the lower-case candidate,
+  each hit tested for a word start on the original (its capitals decide), tier 2 by
+  a second search or one pass for initials; the 15 rows and the sort example of
+  `init-completion-match-tiers` stay its specification, `emacs-cpp-match-tier` and
+  `emacs-cpp-match-sort-by-tier` keep their signatures. Rejected: (A) Emacs 31's
+  `flex` cost (review M-5: loses the initials rows and the order within a tier,
+  i.e. D-120); (B) a scoring library (a new dependency, a rule clangd does not
+  share). Spike S16 (`spikes/s16-match-function`, T-112) first. Dry run (Mac,
+  2026-10-20, 33768 deal.II 9.6.2 names, 8 inputs): spec 0 failures, 270144 pairs
+  with the regexps' tier, 0 disagree; sorting a prompt's filtered set takes the
+  function 1.3 - 1.9 times the regexps' time interpreted, a third of it
+  byte-compiled, a quarter native. So the function is adopted only together with
+  compiled `lisp/` (D-125, S17); interpreted, the regexps stay.
 - DECIDED D-119 (owner 2026-10-19, O-67 (a): "O-67 (a) agree"): mid-word matches
   ranked by shape in clangd (rule R4, `RESEARCH_go_to_anything.md` 19) go to spike
   S15 (`spikes/s15-mid-word-rank`, T-107) before any patch; tier 3. A fuzzy match
@@ -1381,6 +1396,49 @@ Mechanisms, each PROPOSED until measured:
 - Not adopted unless a measurement asks for it: `emacs-lsp-booster` (an external binary,
   would need its own D-nnn), gcmh.
 
+### 11.1 Compiling `lisp/` (D-125, 2026-10-20)
+Owner 2026-10-20 (review 0084, C-7, C-10, M-6: "Design for compile-lisp.patch and
+spike"). Today `make packages` byte-compiles `lib/` only; `lisp/` (19 files) loads
+as source, interpreted for the session (Emacs's JIT compiles `.elc`, not `.el`), so
+per-candidate loops cost interpreted time (D-120's 0.5 ms per candidate; D-124's
+function is slower than the regexps until compiled).
+
+**Shape** (the review's `review/compile-lisp.patch`, to be written fresh after S17):
+- `scripts/build-packages.el` compiles `lisp/*.el` after `lib/`, with init.el's
+  prelude in force (generated load path and autoloads, use-package's settings, the
+  platform defaults file named by init.el's `emacs-cpp-defaults-feature`, D-055):
+  four modules expand `use-package` forms that read them. A warning is an error.
+  Old `.elc` deleted first; `lisp/*.elc` git-ignored.
+- The warnings settled in the modules, no behaviour change: `declare-function` /
+  `defvar` for packages loaded on demand, docstrings rewrapped, `eval-and-compile`
+  around init-cmake.el's `defconst` read by `:load-path` (review C-10: 44 lines).
+- `make packages` runs in a temporary HOME like `make test` (D-104): compiling a
+  module runs its `require`s, and recentf / savehist wrote into the real
+  `~/.emacs.d` during the review's first build.
+- `init-packages-are-built-and-fresh` covers `lisp/*.elc`.
+- Open (O-71): a `.el` edited after `make packages` leaves an older `.elc` that
+  `require` loads without a word (`load-prefer-newer` is nil, set nowhere here):
+  wrong code silently, against principle 1. (a) startup refuses with "run make
+  packages" when any `lisp/*.elc` is older than its `.el`; (b) `load-prefer-newer`
+  t plus a warning naming the stale modules (the source runs, interpreted); (c)
+  compile on load (a new mechanism). Recommended (a): the owner edits modules
+  daily, but a refusal names its fix and costs one command.
+
+**Spike S17** (`spikes/s17-compiled-lisp`, T-113) before any code: startup by
+`scripts/measure-startup.sh` (the budget's own method) in two trees, `lisp/`
+interpreted and byte-compiled, each with the JIT native compiler on and off (the
+review's open question: its harness saw compiled 108 ms slower, then withdrew the
+harness for this configuration), and a probe of the form the modules' functions
+have after startup. Pass (proposed; owner to confirm): on Arch, idle, 10 runs x 2
+rounds, compiled with JIT on starts within 10 ms of interpreted (median) and its
+functions run native; the compile has 0 failures. A PASS adopts D-125's shape and
+D-124's function; a FAIL keeps `lisp/` interpreted and the regexps.
+Mac dry run (2026-10-20, `spikes/s17-compiled-lisp/DRY-RUN.md`): compile 0 failures;
+startup interpreted 0.40 s, byte-compiled with the JIT off 0.36 - 0.37 s (no cost),
+with the JIT on 0.91 s: native modules load magit at startup (304 features against
+211) and re-queue 45 files for compilation at every start. Criterion 2 fails until
+the form that loads magit is found (S17 run 2, T-113).
+
 ## 12. Packages (D-006, D-007)
 - DECIDED D-006: every non-built-in package is a git submodule under `lib/<repo>/`,
   pinned to an exact commit; upgrading is a commit in this repo, rollback is
@@ -1630,6 +1688,8 @@ presets, GoogleTest runner.
 | go-to-anything prompt slow on RMO / deal.II | S11 (runs 2, 3 PASS) | owner | T-049 |
 | CLion-style symbol matches break or slow clangd | S14 (PASS) | owner | O-57 |
 | Mid-word ranking changes good fuzzy matches or slows clangd | S15 (PASS) | owner | O-67 |
+| match function ranks unlike the regexps or is slower | S16 | owner | D-124 |
+| compiled `lisp/` slows startup or stays bytecode | S17 | owner | D-125 |
 | own package build glue mis-orders compilation | none (tests) | - | v0.1 |
 | config fails on macOS (paths, tools, tests) | none (`make test`) | owner | D-050 |
 | clangd too slow / too large on deal.II scale | S1 numbers | owner | v0.1 |
@@ -1920,6 +1980,20 @@ presets, GoogleTest runner.
   a loose qualifier (`geom::vec`); `count() const` first in both, re-sorted away
   here; no typo seen. Search Everywhere's files: case ignored, humps, space in
   order.
+- O-71 (OPEN, D-125, 2026-10-20): a stale `lisp/*.elc` after an edit; options in
+  DESIGN 11.1: (a) startup refuses (recommended), (b) `load-prefer-newer` plus a
+  warning, (c) compile on load. Owner rules with S17.
+- O-70 (OPEN, review 0084 B-2, 2026-10-20): `packaging/fswatch-no-loss/` (4 patches,
+  336 lines, a PKGBUILD, `build-macos.sh`, `check.sh`) serves DESIGN 7.1's backend,
+  designed on the vendored eglot that D-121 removed and not redesigned; the config
+  runs no fswatch (README: "not used by the config yet"), while D-121's advice gives
+  project-only watches on macOS. Options: (a) keep it in main as PROTOTYPE (two
+  builds and pkgrel checks to keep, T-098's Mac re-check open); (b) park it on a
+  branch from a tag with DESIGN 7.1, main keeps a pointer, back when O-61's large
+  trees show a need on macOS with the built-in eglot (recommended: nothing uses it,
+  the branch keeps every line); (c) its own repository. Either way 0002 (drops
+  reported as an overflow) and 0004 (numbers in the C locale) are upstream bug
+  fixes, sent with B-3 when the owner sends reports (deferred, T-114).
 - O-69 (RESOLVED 2026-10-20 with D-121: (c) + (d); owner 2026-10-20: "how the fork
   on eglot may be dropped"): the vendored eglot
   (D-108) carries patches 0001 / 0002 for file watches, needed on macOS for pyright
@@ -2650,6 +2724,8 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-121 | 2026-10-20 | Emacs's own eglot; macOS watch fixes as config Lisp | 7 | O-69 |
 | D-122 | 2026-10-20 | MIT license for own work; patch files keep theirs | 2 | owner |
 | D-123 | 2026-10-20 | Arch clangd `pkgver` from the installed LLVM | 7 | owner |
+| D-124 | 2026-10-20 | match tiers as a function (option C), spike S16 first | 7 | owner |
+| D-125 | 2026-10-20 | compile `lisp/` as DESIGN 11.1, spike S17 first | 11 | owner |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |

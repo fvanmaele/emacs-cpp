@@ -60,6 +60,13 @@ code is written for it. Each spike is a self-contained directory with its own bu
 - **S11 go to anything** - are project files, filtering and clangd's
   `workspace/symbol` fast enough on RMO and the deal.II tree for one combined prompt
   (D-074)? Gates T-049.
+- **S16 match function** - does D-120's tier rule written as a function
+  (`string-search` plus a word-start predicate, D-124) give the regexps' tier for
+  every name of a large tree, keep the spec rows, and sort a prompt's candidates
+  faster than the regexps, in which compilation state? Gates D-124 (T-112).
+- **S17 compiled lisp/** - does byte-compiling `lisp/` keep startup within 10 ms of
+  interpreted, and do the modules then run as native code (D-125)? Gates D-125 and,
+  through it, D-124 (T-113).
 - **S4 cold-header flags** - DROPPED 2026-10-08: replaced by D-028 (patched clangd
   takes an includer from its index; owner ruled tier 2, toy reproduction as evidence).
   Was: which mechanism gives a header opened first (no including
@@ -83,3 +90,5 @@ code is written for it. Each spike is a self-contained directory with its own bu
 | S2 | PASS (run 1) | s2-dape-gdb/RESULTS.md |
 | S11 | runs 2, 3 PASS; run 4 recorded; run 1 FAIL in part | s11-go-to-anything/RESULTS.md |
 | S12 | FAIL (runs 1, 2); owner rules O-43 (b) | s12-change-signature/RESULTS.md |
+| S16 | dry run (Mac) recorded; Arch run by the owner | s16-match-function/DRY-RUN.md |
+| S17 | dry run (Mac) recorded; Arch run by the owner | s17-compiled-lisp/DRY-RUN.md |

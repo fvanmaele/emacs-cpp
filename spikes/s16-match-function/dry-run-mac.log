@@ -1,0 +1,45 @@
+S16 run 2026-10-20T12:51:00Z; load: 4,60 5,12 4,99
+S16 (interp): GNU Emacs 31.1 (aarch64-apple-darwin); darwin; baseline: 6 forms from lisp/init-completion.el
+corpus: dealii, 33768 names
+1. spec: 15 rows and the sort example, 0 failures
+2. agreement: 270144 pairs (8 inputs x 33768 names), 0 disagree; regexp tiers 1/2/3: 4332/2708/263104
+3. sort time, best of 5, ms: regexps / function on all names, then on the filtered
+   state     input           rx-all   fn-all  rx-filt  fn-filt
+   interp    vec              244.4    420.3     20.1     33.5  (3881 filtered)
+   interp    tria             301.8    505.4    110.3    204.2  (11950 filtered)
+   interp    fe               251.2    426.5     62.3    105.0  (8789 filtered)
+   interp    vt               252.1    446.3     42.8     77.3  (5489 filtered)
+   interp    dofh             276.6    506.9     55.6    105.9  (5911 filtered)
+   interp    fe q             466.5    466.3      5.8      7.7  (633 filtered)
+   interp    grid in          356.2    456.1     27.0     37.3  (2837 filtered)
+   interp    sparsematrix     275.0    527.0      3.5      6.3  (472 filtered)
+spikes/s16-match-function/s16.el: Warning: docstring wider than 80 characters
+S16 (byte): GNU Emacs 31.1 (aarch64-apple-darwin); darwin; baseline: 6 forms from lisp/init-completion.el
+corpus: dealii, 33768 names
+1. spec: 15 rows and the sort example, 0 failures
+2. agreement: 270144 pairs (8 inputs x 33768 names), 0 disagree; regexp tiers 1/2/3: 4332/2708/263104
+3. sort time, best of 5, ms: regexps / function on all names, then on the filtered
+   state     input           rx-all   fn-all  rx-filt  fn-filt
+   byte      vec              197.7     60.5     17.1      6.0  (3881 filtered)
+   byte      tria             246.6     76.3    104.5     32.9  (11950 filtered)
+   byte      fe               208.8     63.5     52.7     17.3  (8789 filtered)
+   byte      vt               203.1     62.2     37.1     12.3  (5489 filtered)
+   byte      dofh             223.4     73.6     48.2     16.6  (5911 filtered)
+   byte      fe q             394.3     66.2      5.2      1.3  (633 filtered)
+   byte      grid in          286.2     65.9     25.0      6.7  (2837 filtered)
+   byte      sparsematrix     236.2     83.8      3.1      1.1  (472 filtered)
+spikes/s16-match-function/s16.el: Warning: docstring wider than 80 characters
+S16 (native): GNU Emacs 31.1 (aarch64-apple-darwin); darwin; baseline: 6 forms from lisp/init-completion.el
+corpus: dealii, 33768 names
+1. spec: 15 rows and the sort example, 0 failures
+2. agreement: 270144 pairs (8 inputs x 33768 names), 0 disagree; regexp tiers 1/2/3: 4332/2708/263104
+3. sort time, best of 5, ms: regexps / function on all names, then on the filtered
+   state     input           rx-all   fn-all  rx-filt  fn-filt
+   native    vec              189.0     45.0     16.5      5.0  (3881 filtered)
+   native    tria             243.5     62.1    102.1     25.4  (11950 filtered)
+   native    fe               200.1     50.5     51.5     14.1  (8789 filtered)
+   native    vt               198.3     47.9     36.7      9.4  (5489 filtered)
+   native    dofh             214.3     61.1     47.8     14.5  (5911 filtered)
+   native    fe q             388.5     51.4      4.9      1.1  (633 filtered)
+   native    grid in          277.8     50.9     22.6      5.2  (2837 filtered)
+   native    sparsematrix     218.7     64.4      3.0      0.9  (472 filtered)
