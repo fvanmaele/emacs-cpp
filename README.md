@@ -105,13 +105,14 @@ EMACS_CPP_PATCHED_CLANGD=/opt/clangd-index-nav/bin/clangd make test          # A
 EMACS_CPP_PATCHED_CLANGD=$HOME/opt/clangd-index-nav/bin/clangd make test     # macOS
 ```
 
-To let `M-.` and `M-?` reach into deal.II's own sources (not only its installed
-headers), build its offline index once per deal.II version, then name it in the
-project (D-130, D-133). The build needs the patched package (pkgrel 10 or later, which
-also installs `clangd-indexer`), a git checkout of deal.II with its release tags in
-`~/source/repos/dealii` (`DEALII_SOURCES` names another), about 3 minutes and 10 GB of
-memory; it writes into `indexes/` here (about 300 MB, ignored by git). On macOS set
-`DEALII_INCLUDE` to the directory holding `deal.II/base/config.h`:
+Optional: to let `M-.` and `M-?` reach into deal.II's own sources (not only its
+installed headers), build its offline index once per deal.II version, then name it in
+the project (D-130, D-133). A project that names no library is not affected. The build
+needs the patched package (pkgrel 10 or later, which also installs `clangd-indexer`), a
+git checkout of deal.II with its release tags in `~/source/repos/dealii`
+(`DEALII_SOURCES` names another), about 3 minutes and 10 GB of memory; it writes into
+`indexes/` here (about 300 MB, ignored by git). On macOS set `DEALII_INCLUDE` to the
+directory holding `deal.II/base/config.h`:
 ```sh
 make library-index LIBRARY=dealii
 ```

@@ -315,7 +315,8 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
      call in a source opened 2 s earlier lands in deal.II's `.cc` (owner's hand check).
   Built 2026-10-21 (0092): items 1 - 4 met, `make test` 141 of 141 on Arch; the
   end-to-end check on the S10 copy of RMO passes with the system and the patched
-  clangd. Left: the owner's hand check on RMO (H-14).
+  clangd. Optional throughout (owner 2026-10-21): test `emacs-cpp-library-index-optional`.
+  Left: the owner's hand check on RMO (H-14).
 - T-117 (opened 2026-10-21, D-130, owner: "research patch clangd for waiting for
   library index, and possible downsides"): research a clangd patch so that the first
   `M-.` after an open waits for a static index still loading (S10 run 2, criterion
@@ -353,13 +354,15 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
   2026-10-20: FAIL, native +222 ms, bytecode -9 ms (`RESULTS.md`). Session's runs 2, 3
   on Arch 2026-10-21 (0091): the JIT's own Emacs lacks init.el's use-package settings
   and loads every deferred package; with them at compile time PASS (0.194 against
-  0.199 s); criteria confirmed by the owner 2026-10-21. Left: the owner rules O-74;
-  D-128's recompile at startup checked; then the build step written fresh.
+  0.199 s); criteria confirmed by the owner 2026-10-21. Run 4 (benchmarks): little
+  gain without D-124. Closed 2026-10-21 by D-134 (owner: "O-74 keep current interp"):
+  no build step; the spike stays as the starting point of a revisit.
 - T-112 (opened 2026-10-20, D-124): spike S16, the match tiers as a function
   (`spikes/s16-match-function`). Tier: 3 (spike first). Mac dry run 2026-10-20
   (0084): spec and agreement hold, faster only compiled. Owner's Arch run 2026-10-20
-  (0089): PASS byte and native, FAIL interpreted; criteria confirmed by the owner;
-  left: the function written fresh only with D-125.
+  (0089): PASS byte and native, FAIL interpreted; criteria confirmed by the owner.
+  Closed 2026-10-21 by D-134: with `lisp/` interpreted the function is slower than
+  today's regexps, so it is not built.
 - T-111 (opened 2026-10-20, D-123, 0084 review:B-1): the Arch clangd package at the
   installed LLVM's version through `make clangd`. Tier: 2 (owner ruled). Done when:
   as D-123. Built 2026-10-20 (0085) on the Mac: the two refusals tested, `make
