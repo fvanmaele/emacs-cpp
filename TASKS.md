@@ -288,8 +288,8 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
   eglot on both machines (`spikes/s18-fswatch-backend`, NEW). Tier: 3 (spike first).
   Built 2026-10-20 (0087): RUN.md, pass criteria proposed; Mac dry run 5 of 5
   (20000 of 20000 changes with Emacs blocked, 7 - 9 ms per 1000 records; Emacs's own
-  watches: 0, kqueue refuses at 975). Left: the owner confirms the criteria and runs
-  Arch (H-12).
+  watches: 0, kqueue refuses at 975). Criteria confirmed by the owner; the owner's
+  own run was on the Mac too (run 3, 5 of 5). Left: the Arch run (H-12).
 - T-115 (opened 2026-10-20, review 0084 fold-in): `lib/load-path.el` still named the
   removed `lib/eglot` after D-121 until `make packages` ran again, and the session
   loaded the old eglot (1.24); `init-packages-are-built-and-fresh` does not see a load

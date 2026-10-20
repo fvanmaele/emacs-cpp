@@ -34,7 +34,8 @@ eglot and the backend written fresh in `lisp/`.
   tmux server with a throwaway HOME: `baseline` (Emacs's own watches), `eglot`, `regexp`
   against the fake server, `regexp` against pyright.
 
-## Pass criteria (proposed 2026-10-20; owner to confirm)
+## Pass criteria (confirmed 2026-10-20)
+Proposed and confirmed the same day (owner: "s18 pass criteria confirmed").
 On the generated tree, idle machine, each of the Mac and Arch:
 1. Registration: the fswatch modes answer it with success and no warning; pyright is
    alive 30 s after its registrations.
