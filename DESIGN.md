@@ -59,8 +59,11 @@ Format: CLion feature -> Emacs component. Gap vs CLion. Status.
 - Git -> magit (installed), diff-hl gutter, magit-blame, smerge for conflicts. Gap: none
   of note. PROPOSED.
 
-Claim to confirm: "CLion parity for the daily loop is reachable with built-ins plus about
-fifteen direct packages and under ~600 lines of own Lisp." Refuted if v0.3 needs more.
+SUPERSEDED (2026-10-20, refuted; review 0084, A-2): "CLion parity for the daily loop is
+reachable with built-ins plus about fifteen direct packages and under ~600 lines of own
+Lisp. Refuted if v0.3 needs more." v0.4.1 (2026-10-08) needed more; at c031e2b the tree
+pins 33 submodules and holds 3111 lines of own Lisp (19 files). No size budget replaces
+it: features are judged by their D-nnn, the packages by D-006.
 Rows marked (R) need a short RESEARCH note before a verdict is claimed in README.
 
 ## 2. Place in the ecosystem, non-goals
