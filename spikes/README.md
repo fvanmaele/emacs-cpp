@@ -98,6 +98,6 @@ Status words: `not started`, `ready` (RUN.md written, the owner runs it; no RESU
 | S2 | PASS (run 1) | s2-dape-gdb/RESULTS.md |
 | S11 | runs 2, 3 PASS; run 4 recorded; run 1 FAIL in part | s11-go-to-anything/RESULTS.md |
 | S12 | FAIL (runs 1, 2); owner rules O-43 (b) | s12-change-signature/RESULTS.md |
-| S16 | PASS compiled, FAIL interpreted (criteria to confirm) | s16-match-function/RESULTS.md |
+| S16 | PASS compiled, FAIL interpreted (D-124 with D-125) | s16-match-function/RESULTS.md |
 | S17 | ready (Mac dry run recorded; run 2 with D-128's check, then owner's Arch run) | s17-compiled-lisp/DRY-RUN.md |
 | S18 | FAIL on Arch (cost); Mac 5 of 5; run 2 proposed | s18-fswatch-backend/RESULTS.md |
