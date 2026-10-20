@@ -5,7 +5,10 @@
 ;; are read by a process filter, matched against the registration's globs and sent in
 ;; one `workspace/didChangeWatchedFiles' per filter call.  `s18-matcher': `eglot'
 ;; uses eglot's compiled glob predicates, `regexp' one regexp per glob (from the glob
-;; text, kept by advice on `eglot--glob-compile').
+;; text, kept by advice on `eglot--glob-compile').  With `s18-batch' (run 2) the filter
+;; only collects, one change per URI (the last type wins), and a timer sends what has
+;; collected every `s18-batch-delay' seconds in one notification.  Run 2 also counts
+;; filter calls and notifications and times the filter and the sends apart.
 
 (require 'cl-lib)
 (require 'eglot)
@@ -19,7 +22,21 @@
 
 (defvar s18-matcher 'regexp "Glob matching: `eglot' or `regexp'.")
 
-(defvar s18-stats nil "Plist: :records :sent :overflow :skipped.")
+(defvar s18-stats nil
+  "Plist: :records :sent :overflow :skipped :calls :notifies :filter-s :notify-s.")
+
+(defvar s18-batch nil "Non-nil: collect changes, send them from a timer (run 2).")
+
+(defvar s18-dedup nil
+  "Non-nil: the records of one filter call are merged per path first (run 2).
+inotify gives three records for a written file (Created, Updated, CloseWrite).")
+
+(defvar s18-prefix-uri nil
+  "Non-nil: a change's URI is the root's URI plus the hexified relative path (run 2).
+Nil: `eglot-path-to-uri', which calls `file-truename' on every path (77 of its 95 us
+per path on Arch, run 2), though fswatch reports true names already.")
+
+(defvar s18-batch-delay 0.1 "Seconds between batched sends, fswatch's own latency.")
 
 (defvar s18--processes (make-hash-table :test #'eq)
   "Server -> alist (ID . PROCESSES).")
@@ -29,6 +46,23 @@
 
 (defun s18--stat (key &optional n)
   (setq s18-stats (plist-put s18-stats key (+ (or (plist-get s18-stats key) 0) (or n 1)))))
+
+(defun s18--notify (server changes)
+  "Send CHANGES, a list, in one notification; count and time it."
+  (let ((t0 (float-time)))
+    (s18--stat :sent (length changes))
+    (s18--stat :notifies)
+    (jsonrpc-notify server :workspace/didChangeWatchedFiles
+                    `(:changes ,(vconcat changes)))
+    (s18--stat :notify-s (- (float-time) t0))))
+
+(defun s18--flush (server pending)
+  "Send PENDING's changes (URI -> type) and empty it."
+  (when (> (hash-table-count pending) 0)
+    (let (changes)
+      (maphash (lambda (uri type) (push `(:uri ,uri :type ,type) changes)) pending)
+      (clrhash pending)
+      (s18--notify server (nreverse changes)))))
 
 (defun s18--remember-glob (fn glob &rest args)
   "Around `eglot--glob-compile': remember GLOB for the predicate FN returns."
@@ -75,12 +109,20 @@
                   (cdr g)))
           globs))
 
+(defvar s18--root-uris (make-hash-table :test #'equal) "Root -> its URI.")
+
+(defun s18--root-uri (root)
+  "ROOT's URI, a true name already, computed once."
+  (or (gethash root s18--root-uris)
+      (puthash root (eglot-path-to-uri (directory-file-name root) :truenamep t)
+               s18--root-uris)))
+
 (defun s18--handle (server root real-root matchers record changes)
   "Push RECORD's change onto CHANGES if it matches; return CHANGES."
   (let* ((space (or (cl-position ?\s record :from-end t) (error "s18: record %S" record)))
          (path (substring record 0 space))
          (flags (substring record (1+ space))))
-    (s18--stat :records)
+    (s18--stat (if s18-dedup :handled :records))
     (cond
      ((string-search "Overflow" flags)
       (s18--stat :overflow)
@@ -92,6 +134,10 @@
       (if (not (string-prefix-p root path))
           (progn (s18--stat :skipped) changes)
         (let* ((rel (substring path (length root)))
+               (uri (if s18-prefix-uri
+                        (concat (s18--root-uri (or real-root root))
+                                "/" (url-hexify-string rel eglot--uri-path-allowed-chars))
+                      (eglot-path-to-uri path)))
                (exists (file-exists-p path))
                (type (cond ((not exists) 3)
                            ((string-search "Created" flags) 1)
@@ -104,25 +150,56 @@
                                              (string-match-p match rel)
                                            (funcall match rel))))
                    (not (and buffer (with-current-buffer buffer (eglot-managed-p)))))
-              (cons `(:uri ,(eglot-path-to-uri path) :type ,type) changes)
+              (cons `(:uri ,uri :type ,type) changes)
             (s18--stat :skipped)
             changes)))))))
 
+(defun s18--merge (records)
+  "RECORDS (\"PATH FLAGS\") merged per path, first-seen order, flags joined."
+  (let ((flags (make-hash-table :test #'equal)) order)
+    (dolist (r records)
+      (unless (string-empty-p r)
+        (let* ((space (or (cl-position ?\s r :from-end t) (error "s18: record %S" r)))
+               (path (substring r 0 space))
+               (old (gethash path flags)))
+          (s18--stat :records)
+          (unless old (push path order))
+          (puthash path (if old (concat old "," (substring r (1+ space)))
+                          (substring r (1+ space)))
+                   flags))))
+    (mapcar (lambda (path) (concat path " " (gethash path flags))) (nreverse order))))
+
 (defun s18--filter (server root real-root matchers)
   "A process filter splitting fswatch's NUL-separated records."
-  (let ((pending ""))
+  (let ((pending "")
+        (batch (and s18-batch (make-hash-table :test #'equal)))
+        (timer nil))
     (lambda (_proc string)
-      (let* ((text (concat pending string))
+      (let* ((t0 (float-time))
+             (text (concat pending string))
              (records (split-string text "\0"))
              changes)
+        (s18--stat :calls)
         (setq pending (car (last records)))
-        (dolist (r (butlast records))
+        (setq records (butlast records))
+        (when s18-dedup
+          (setq records (s18--merge records)))
+        (dolist (r records)
           (unless (string-empty-p r)
             (setq changes (s18--handle server root real-root matchers r changes))))
+        (s18--stat :filter-s (- (float-time) t0))
         (when changes
-          (s18--stat :sent (length changes))
-          (jsonrpc-notify server :workspace/didChangeWatchedFiles
-                          `(:changes ,(vconcat (nreverse changes)))))))))
+          (if (not batch)
+              (s18--notify server (nreverse changes))
+            ;; Created then changed is still created; anything else, the last wins.
+            (dolist (c (nreverse changes))
+              (let ((old (gethash (plist-get c :uri) batch))
+                    (new (plist-get c :type)))
+                (puthash (plist-get c :uri) (if (and (eql old 1) (eql new 2)) 1 new)
+                         batch)))
+            (unless (and timer (memq timer timer-list))
+              (setq timer (run-at-time s18-batch-delay nil
+                                       #'s18--flush server batch)))))))))
 
 (defun s18--watch-globs (server id globs dir _in-root)
   "Override of `eglot--watch-globs': one fswatch for DIR (or the project root)."

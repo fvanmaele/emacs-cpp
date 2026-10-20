@@ -4,7 +4,8 @@
 ;; S10_OUT (log), S10_CLANGD (program; "clangd" = the system one), S10_XDG (directory
 ;; with clangd/config.yaml naming the deal.II index, or empty for none), S10_MODE
 ;; (index | measure), S10_LABEL (variant name for the log), S10_NAMES (names to jump
-;; from, separated by spaces), S10_INDEX_MAX (seconds, index mode).
+;; from, separated by spaces), S10_INDEX_MAX (seconds, index mode), S10_FLAGS (more
+;; clangd flags, run 2: `--index-file=').
 (require 'init-test)
 (init-test--load)
 (require 'eglot)
@@ -14,7 +15,7 @@
 (let ((clangd (getenv "S10_CLANGD")))
   (setq emacs-cpp-clangd-program (unless (equal clangd "clangd") clangd)))
 (setq emacs-cpp-presets-state-file (expand-file-name "s10-state.eld" (file-name-directory out)))
-(setenv "CLANGD_FLAGS" "--log=verbose")
+(setenv "CLANGD_FLAGS" (string-trim (concat "--log=verbose " (or (getenv "S10_FLAGS") ""))))
 (let ((xdg (getenv "S10_XDG")))
   (when (and xdg (not (string-empty-p xdg)))
     (setenv "XDG_CONFIG_HOME" xdg)))
