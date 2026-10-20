@@ -1752,6 +1752,9 @@ presets, GoogleTest runner.
 - `RESEARCH_python_macos.md` (owner request 2026-10-09, T-025): pyright and five
   alternatives through eglot, debugpy's start against dape's wait. First round in;
   no ruling asked yet.
+- `RESEARCH_python_ty.md` (owner request 2026-10-20, T-025 round 2): pyright against
+  ty 0.0.90 on Arch: requests, watches, speed, what a migration touches. Findings in;
+  O-72 open.
 - `RESEARCH_platform_differences.md` (owner request 2026-10-14, O-50): symlinked
   paths (`/tmp` on macOS) and clangd's index, who spells which path (CMake 3.31 /
   4, Emacs, eglot), measured with stock and patched clangd; file watches (kqueue,
@@ -2012,6 +2015,25 @@ presets, GoogleTest runner.
   a loose qualifier (`geom::vec`); `count() const` first in both, re-sorted away
   here; no typo seen. Search Everywhere's files: case ignored, humps, space in
   order.
+- O-72 (OPEN, owner 2026-10-20: "Research migration from pyright to ty, installed as
+  extra/ty on Arch, macos installation unknown/deferred"; D-045, T-025): pyright or
+  ty for Python (`RESEARCH_python_ty.md`). Measured on Arch: ty 0.0.90 answers every
+  request the config uses, about six times faster to the first diagnostics, fills
+  `workspace/symbol` where pyright returns nothing yet, survives a refused watch
+  registration (pyright stops answering), no MacPorts port found. Options, each with
+  its case against:
+  (a) keep pyright everywhere. Against: the watch advice and its pyright tests stay
+  for a server that exits on a refusal; `M-o` symbols stay empty early in Python
+  projects.
+  (b) ty on Arch, pyright on the Mac (per platform, D-055's defaults files). Against:
+  two servers to keep working, the Python tests run a different server per machine;
+  ty is a 0.0.x beta, its rules change between releases and its reports differ from
+  pyright's (15 against 48 on the same file, not checked for truth).
+  (c) ty everywhere, installed on the Mac outside MacPorts. Against: needs a ruling
+  against D-053 (MacPorts only), the owner deferred the Mac.
+  Combined: (b) now, with (c) or (a) on the Mac once a port exists or the owner rules
+  the Mac. Recommended: (b), after a hand check on one real Python project of the
+  owner's (RESEARCH_python_ty 6). Owner rules.
 - O-71 (RESOLVED 2026-10-20 with D-128: (c); owner: "O-71 (c) agree"; D-125,
   2026-10-20; revisited the same day, owner: "Revisit O-70 and O-71"): a `lisp/*.elc`
   older than its `.el` after an edit loads without a word
@@ -2611,7 +2633,11 @@ presets, GoogleTest runner.
   Proposed: `gud-key-prefix` on a free key (`C-x M-a`, `C-x M-d` or `C-x C-y`).
 - O-12 (OPEN, owner 2026-10-09: run S10 on Arch, `spikes/s10-library-index/RUN.md`;
   owner 2026-10-08: adopt, spike S10 first; T-020 folded into the same
-  clangd rebuild): S10 dry run (synthetic project): the patched clangd with the deal.II
+  clangd rebuild): S10 run 1 (owner, Arch, 2026-10-20): FAIL, its name was
+  RMO's own; it found that the external index's `MountPoint: /` switches off the
+  project's background index (`M-?` 7 -> 2), so run 2 adds a later config fragment
+  and a deal.II name (`spikes/s10-library-index/RESULTS.md`). S10 dry run (synthetic
+  project): the patched clangd with the deal.II
   index answers the first `M-.` with the definition (`vector.templates.h:477`,
   `tria.cc:15874`), `M-?` 2 -> 8 and 2 -> 18, +30 MB; no clangd patch needed (the
   research's miss was a config without `MountPoint`). Was DEFERRED, revisit after v0.4:
