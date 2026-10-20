@@ -87,6 +87,12 @@ Windows / macOS".
   MacPorts paths (`/opt/local`).
 Complexity budget principle: prefer a built-in over a package, a package over own Lisp,
 and own Lisp only for glue the owner touches daily.
+- DECIDED D-122 (owner 2026-10-20, review 0084 A-5: "A-5 license, MIT"): the
+  repository's own work (init files, `lisp/`, `test/`, `scripts/`, the docs, the
+  PKGBUILDs and build scripts) is under the MIT license, `LICENSE` at the root. The
+  patch files (`*.patch`) change GPL-3.0-or-later Emacs packages and fswatch, and
+  Apache-2.0-with-LLVM-exception clangd; they keep those projects' licenses, and the
+  submodules in `lib/` keep their own; `LICENSE` says so.
 
 ## 3. Owner constraints (filled 2026-10-07)
 Observed on the owner machine, 2026-10-07:
@@ -2625,6 +2631,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-114 | 2026-10-15 | clangd patch 0010, real paths, built with T-104 | 7 | O-50 |
 | D-115 | 2026-10-19 | Arch file-watch limits kept as they are | 7 | O-64 |
 | D-121 | 2026-10-20 | Emacs's own eglot; macOS watch fixes as config Lisp | 7 | O-69 |
+| D-122 | 2026-10-20 | MIT license for own work; patch files keep theirs | 2 | owner |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |
