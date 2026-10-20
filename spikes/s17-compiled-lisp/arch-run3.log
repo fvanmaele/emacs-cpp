@@ -1,0 +1,22 @@
+s17: compiler warnings: 37
+s17-compile: 19 files, 0 failed, 19 .elc written
+S17 run 2026-10-20T22:30:27Z, Linux x86_64, GNU Emacs 31.1
+round 1  interp jit on   median 0.199 s, min 0.195, max 0.238  (load: 1.45 1.51 1.29)
+round 1  interp jit off  median 0.201 s, min 0.198, max 0.228  (load: 1.42 1.50 1.29)
+round 1  byte   jit on   median 0.194 s, min 0.190, max 0.211  (load: 1.72 1.58 1.32)
+round 1  byte   jit off  median 0.193 s, min 0.189, max 0.195  (load: 1.66 1.57 1.32)
+probe  interp jit on   emacs-cpp-match-tier=interpreted emacs-cpp-presets-resolve=interpreted consult-buffer=autoload
+probe  interp jit off  emacs-cpp-match-tier=interpreted emacs-cpp-presets-resolve=interpreted consult-buffer=autoload
+probe  byte   jit on   emacs-cpp-match-tier=native emacs-cpp-presets-resolve=native consult-buffer=autoload
+probe  byte   jit off  emacs-cpp-match-tier=byte emacs-cpp-presets-resolve=byte consult-buffer=autoload
+s17: compiler warnings: 37
+s17-compile: 19 files, 0 failed, 19 .elc written
+S17 run 2026-10-20T22:32:35Z, Linux x86_64, GNU Emacs 31.1
+round 1  interp jit on   median 0.198 s, min 0.196, max 0.218  (load: 1.46 1.55 1.34)
+round 1  interp jit off  median 0.201 s, min 0.199, max 0.205  (load: 1.43 1.54 1.33)
+round 1  byte   jit on   median 0.194 s, min 0.190, max 0.208  (load: 1.44 1.54 1.34)
+round 1  byte   jit off  median 0.193 s, min 0.190, max 0.214  (load: 1.33 1.51 1.33)
+probe  interp jit on   emacs-cpp-match-tier=interpreted emacs-cpp-presets-resolve=interpreted consult-buffer=autoload
+probe  interp jit off  emacs-cpp-match-tier=interpreted emacs-cpp-presets-resolve=interpreted consult-buffer=autoload
+probe  byte   jit on   emacs-cpp-match-tier=native emacs-cpp-presets-resolve=native consult-buffer=autoload
+probe  byte   jit off  emacs-cpp-match-tier=byte emacs-cpp-presets-resolve=byte consult-buffer=autoload

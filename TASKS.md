@@ -72,7 +72,7 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
 | T-024 | done 0039 | M | platform defaults files | D-055 | built as T-031 |
 | T-025 | open | M | Python tools on macOS | owner | round 1 in RESEARCH doc; ty on Arch: O-72 |
 | T-026 | open | L | setup wizard (doom doctor) | owner | research; proposed |
-| T-027 | open | S | load measurements, macOS | owner, O-24 | Mac measured 0038; Arch left |
+| T-027 | done 0091 | S | load measurements, macOS | owner, O-24 | Mac 0038, Arch 0091 |
 | T-028 | done 0037 | S | review debug and presets code | owner | 5 taken, O-25 to rule |
 | T-029 | done | M | file watches on macOS | owner, D-054 | RESEARCH doc; O-26 ruled |
 | T-030 | done 0040 | M | targets via CMake file API | D-056, O-25 | Arch make test ok |
@@ -247,7 +247,8 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
   on both machines idle (10 runs each) plus the first `M-.` and memory on RMO, the
   numbers in DESIGN 11 per platform, and O-24 (b) put to the owner with them. Mac
   part measured 2026-10-09 (0038): startup, first `M-.` stock / patched, memory, in DESIGN
-  11; O-24 (b) has the numbers. Left: the Arch runs (owner, commands in 0038).
+  11; O-24 (b) has the numbers. Arch 2026-10-21 (0091), run by the session: in DESIGN
+  11; O-24 (b) was ruled already (D-057). Done.
 - T-028 (opened 2026-10-09, owner): code review of `lisp/init-debug.el` and
   `lisp/emacs-cpp-presets.el` for simplicity and against hardcoded or brittle parsing
   (the build.ninja regular expressions, which already broke on CMake 3.31 in 0034;
@@ -335,8 +336,11 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
 - T-113 (opened 2026-10-20, D-125): spike S17, compiled `lisp/`
   (`spikes/s17-compiled-lisp`). Tier: 3 (spike first). Mac dry run 2026-10-20
   (0084): bytecode free, native modules +510 ms (they load magit). Owner's Arch run
-  2026-10-20: FAIL, native +222 ms, bytecode -9 ms (`RESULTS.md`); left: run 2 finds
-  the form and checks D-128's recompile at startup, then the build step written fresh.
+  2026-10-20: FAIL, native +222 ms, bytecode -9 ms (`RESULTS.md`). Session's runs 2, 3
+  on Arch 2026-10-21 (0091): the JIT's own Emacs lacks init.el's use-package settings
+  and loads every deferred package; with them at compile time PASS (0.194 against
+  0.199 s). Left: the owner confirms the criteria and rules O-74; D-128's recompile at
+  startup checked; then the build step written fresh.
 - T-112 (opened 2026-10-20, D-124): spike S16, the match tiers as a function
   (`spikes/s16-match-function`). Tier: 3 (spike first). Mac dry run 2026-10-20
   (0084): spec and agreement hold, faster only compiled. Owner's Arch run 2026-10-20
