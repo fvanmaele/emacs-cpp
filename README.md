@@ -323,3 +323,4 @@ history and caches.
 | `POSTMORTEM.md` | lessons from the git history |
 | `RESEARCH_*.md` | findings behind a decision; verdicts live in DESIGN |
 | `CLAUDE.md` | working rules for LLM sessions in this repository |
+| `LICENSE` | MIT for own work; patch files keep their licenses (D-122) |
