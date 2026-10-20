@@ -1,5 +1,7 @@
 # Written by `make adopt` of llm_vibecoding_standard. Bare `make` prints help.
 .DEFAULT_GOAL := help
+# Prose width: this repository keeps 92 columns (standard default 128).
+STANDARD_WIDTH = 92
 include standard.mk
 
 .PHONY: help
@@ -9,7 +11,7 @@ help: ## list targets (default; builds nothing)
 
 EMACS ?= emacs
 
-.PHONY: packages test
+.PHONY: packages test clangd
 packages: ## byte-compile lib/ submodules; write lib/load-path.el, lib/autoloads.el
 	$(EMACS) -Q --batch -l scripts/build-packages.el -f build-packages-batch
 
@@ -39,3 +41,9 @@ ifeq ($(REAL_HOME),)
 else
 	$(ERT)
 endif
+
+# The patched clangd at the installed LLVM's version (D-027): pkgver from llvm-config,
+# checksums refreshed, then makepkg with MAKEPKG_FLAGS (-si installs).
+MAKEPKG_FLAGS ?=
+clangd: ## build packaging/clangd-index-nav against the installed LLVM; MAKEPKG_FLAGS=-si installs
+	sh scripts/build-clangd.sh $(MAKEPKG_FLAGS)
