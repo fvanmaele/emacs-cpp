@@ -90,5 +90,23 @@ off (D-072).
 
 ## 6. Not checked
 - Arity, Air and Ark run by hand (each a download outside MacPorts / pacman).
-- Arch: the AUR packages built or used.
+- Arch: the AUR packages built or used (2026-10-21: counted, not built; section 7).
 - languageserver on a large R package (indexing time, memory).
+
+## 7. Arch, 2026-10-21 (owner: "verify aur r-languageserver")
+- The AUR page itself answers bots with a check page (Anubis); the AUR's JSON
+  interface (`/rpc/v5/info`) answered. `r-languageserver` 0.3.20-1, the CRAN
+  release of 2026-09-24, maintainer BioArchLinuxBot, last changed 2026-09-24, not
+  flagged, 3 votes, popularity 0, MIT.
+- Its dependencies, followed through the AUR to the end: 48 AUR packages in all
+  (itself included); from pacman's repositories only `r`, cmake, git, icu, libuv,
+  libxml2, zlib and a few libraries. Of the 48, two are orphaned (`r-remotes`,
+  `r-withr`) and two flagged out of date (`r-rex` since 2026-05-02, `r-withr` since
+  2026-07-18). So the AUR route is 48 builds, each updated by hand with the AUR.
+- Meanwhile the owner installed languageserver 0.3.20 with `install.packages` into
+  R's user library (`~/R/x86_64-pc-linux-gnu-library/4.6`, built 2026-10-21 03:13
+  UTC, 118 packages there): it loads, and `R --slave -e languageserver::run()`
+  answers `initialize` in 1.08 s with definition, references, rename, workspace
+  symbols, hover, completion, formatting, call and type hierarchy among its
+  capabilities (a stdio check from Python; not yet through eglot).
+

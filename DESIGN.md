@@ -2718,6 +2718,12 @@ presets, GoogleTest runner.
   platforms behaving differently until Arch has it. Against (b): a binary from
   outside both package managers, pre-1.0. Against (c): formatting only. Against
   (d): no navigation beyond ESS's running session.
+  Verified 2026-10-21 (owner: "verify aur r-languageserver",
+  RESEARCH_r_language_servers 7): the AUR route is 48 AUR packages, two orphaned and
+  two flagged out of date; the owner has since installed languageserver 0.3.20 from
+  CRAN into R's user library on Arch, and it answers `initialize` in 1.08 s. So (a)
+  can start on both machines from `install.packages` (Arch premise above
+  superseded); a file outside the repository, so (a) needs its D-nnn. Owner rules.
 - O-38 (RESOLVED 2026-10-21 with D-135: (e); was OPEN, owner 2026-10-13: "vendor
   rg.el / ag.el if no downsides"): `C-c p s a`
   (projectile-ag) and `C-c p s r` (projectile-ripgrep) stop with "not available":
