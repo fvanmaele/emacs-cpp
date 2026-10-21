@@ -46,7 +46,8 @@ clang-tidy fixes, clang-move (D-094); snippets: yasnippet, its collection on `C-
 (D-097); no LyX keys (D-102). No module switch, modules load alone (D-098); `M-o` its
 own module (D-099).
 S12 change signature: FAIL, calls in templates (0066), O-43 (b) to the owner.
-Open: O-12; O-38 rg.el / ag.el; O-39 R server; O-47 hover;
+Open: O-39 R server (AUR verified, CRAN install on Arch); O-68 (researched, S19
+proposed); O-38, O-43, O-44, O-47, O-56 ruled 2026-10-21 (D-135 .. D-139);
 O-50 resolved: patch 0010 with T-104 (D-114);
 O-64 resolved: limits kept (D-115); O-65 resolved: eglot patch 0003 (D-117, T-106,
 0079); O-66 resolved: "Project Symbol" heading (D-118); O-67 resolved: mid-word
@@ -55,7 +56,7 @@ matches ranked by shape: S15 PASS (D-119, T-107, 0080), patch 0013 built (T-108,
 tiers in every prompt: done (T-109, 0082; S11 run 6 PASS on RMO); O-68 clangd
 pre-filter, later; O-69 resolved: Emacs's own eglot, macOS watch advice (removed by T-119),
 project-only watches (D-121, T-110, 0083);
-O-57 CLion's extra symbol matches; O-56 theme following macOS appearance;
+O-57 CLion's extra symbol matches;
 D-105 symbols in clangd's order, `M-o` ignores case: built (T-084, 0072);
 D-106 `M-o` symbol sources per server (T-087, 0073); D-107 `build*/` in
 step-1's `.gitignore` (owner); D-108 eglot vendored with a
