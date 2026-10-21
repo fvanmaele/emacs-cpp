@@ -286,7 +286,8 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
 - T-119 (opened 2026-10-21, D-127, S18 PASS): the fswatch backend in the config.
-  Tier: 2 (the spike passed). PROPOSED done when (owner to agree):
+  Tier: 2 (the spike passed). Done when (agreed by the owner 2026-10-21: "Agree
+  T-119"):
   1. DESIGN 7.1 rewritten for the built-in eglot, in the shape of S18's `dedup` mode;
      contradicted text of 7.1 / 7.2 marked superseded.
   2. `lisp/emacs-cpp-eglot-fswatch.el` (NEW), written fresh (spike code not
@@ -305,6 +306,10 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
   6. Startup within 10 ms of today (`scripts/measure-startup.sh 10`); on Arch S18's
      runner against the shipped backend (a new mode) passes its five criteria; the
      Mac run is the owner's.
+  Built 2026-10-21 (0094): items 1 - 6 met on Arch; 144 tests; startup 0.182 -
+  0.184 s against 0.182 - 0.183 s; S18 run 5 `shipped` 48 - 49 ms per 1000 records
+  (limit 50, thin margin). Item 2 hooks the registration methods, not
+  `eglot--watch-globs` (DESIGN 7.1 as built). Waits on the owner's Mac run (H-15).
 - T-118 (opened 2026-10-21, D-130, D-131): a project's library index reaches clangd.
   Tier: 2. Done when (agreed by the owner 2026-10-21: "Agree T-118"; item 4's indexer
   by D-133):

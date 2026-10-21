@@ -26,11 +26,33 @@ can still set its own."
                   (plist-put (copy-sequence (default-value 'eglot-workspace-configuration))
                              section settings))))
 
+(defun emacs-cpp-fswatch-program-check (program)
+  "Return PROGRAM when it is the patched fswatch (D-109); signal otherwise (D-127).
+The patched build has `--queue-limit' (fswatch patch 0001); it is read from the
+binary, 0.1 ms, not from `--help', which would start a process at every startup.
+The error names the command that installs it."
+  (unless (and program (file-executable-p program))
+    (error "emacs-cpp: no fswatch at %s; build packaging/fswatch-no-loss (Arch: cd \
+packaging/fswatch-no-loss && makepkg -si; macOS: sh \
+packaging/fswatch-no-loss/build-macos.sh), D-127"
+           program))
+  (unless (with-temp-buffer
+            (set-buffer-multibyte nil)
+            (insert-file-contents-literally program)
+            (search-forward "queue-limit" nil t))
+    (error "emacs-cpp: %s is not the patched fswatch (no --queue-limit); build \
+packaging/fswatch-no-loss (Arch: cd packaging/fswatch-no-loss && \
+makepkg -si; macOS: sh packaging/fswatch-no-loss/build-macos.sh), D-109, D-127" program))
+  program)
+
 (use-package eglot
   ;; Not autoloaded by eglot; `C-c l' (below) can come before eglot has loaded.
   :commands (eglot-rename eglot-code-actions eglot-format eglot-format-buffer
              eglot-find-implementation eglot-find-typeDefinition eglot-find-declaration
              eglot-show-call-hierarchy eglot-show-type-hierarchy eglot-inlay-hints-mode)
+  :init
+  ;; At startup, not when the first server starts (principle 1).
+  (emacs-cpp-fswatch-program-check emacs-cpp-default-fswatch-program)
   :config
   ;; RET indents by Emacs's rules (electric indentation, D-062's rules), not by the
   ;; server: on each newline eglot would ask it to format, and clangd then also
@@ -44,21 +66,14 @@ can still set its own."
         ;; Library headers reached with M-. (deal.II, Boost) join the project's
         ;; clangd, so M-. keeps working inside them (D-019).
         eglot-extend-to-xref t)
-  ;; pyright asks to watch Python's library and site-packages too: about 2000
-  ;; directories on the Mac, 6358 on Arch, three registrations each.  Past
-  ;; `eglot-max-file-watches' (or a refused watch) the built-in eglot fails the
-  ;; registration and pyright exits (RESEARCH_platform_differences 3.14).  So eglot
-  ;; watches only the project, on both platforms (D-121); changes to installed
-  ;; packages reach pyright when it restarts.  macOS also watches with kqueue, one
-  ;; descriptor per directory, refused beyond 975: the cap is 500 there (D-054),
-  ;; and emacs-cpp-eglot-watch keeps the watches made up to it, answers success
-  ;; and shares one watch per directory among the registrations (D-121).  On Arch
-  ;; eglot's default cap of 10000 stays, under the kernel's inotify limit (D-115).
-  (setq eglot-watch-files-outside-project-root nil)
-  (when (eq system-type 'darwin)
-    (setq eglot-max-file-watches 500)
-    (require 'emacs-cpp-eglot-watch)
-    (emacs-cpp-eglot-watch-enable)))
+  ;; Servers' file watches go to one patched fswatch per registration, watching
+  ;; the project root whatever its size, on both platforms (D-127, DESIGN 7.1):
+  ;; `file-notify' took one kqueue descriptor per directory on the Mac (refused
+  ;; beyond 975) and eglot failed a registration past `eglot-max-file-watches',
+  ;; which made pyright exit (RESEARCH_platform_differences 3.14).  Watches outside
+  ;; the project (pyright's site-packages) are still skipped (D-121); changes to
+  ;; installed packages reach pyright when it restarts.
+  (require 'emacs-cpp-eglot-fswatch))
 
 (use-package flymake
   :commands flymake-show-project-diagnostics)

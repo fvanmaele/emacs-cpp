@@ -4,6 +4,21 @@ Verdict: PASS on both machines in mode `dedup` (2026-10-21): criteria 1 - 5 hold
 Arch (run 2, the session's: 37 - 39 ms per 1000 records in three runs, limit 50) and
 on the Mac (run 4, the owner's: 2 ms). Run 1 (owner, Arch, 2026-10-20) failed
 criterion 3 in the modes then built (194 ms). D-127 is gated through (T-119).
+The shipped backend (run 5, mode `shipped`) passes on Arch at 48 - 49 ms, a thin
+margin; its Mac run is the owner's (H-15).
+
+## Run 5 (session, Arch, 2026-10-21): the shipped backend (T-119)
+Mode `shipped` loads `lisp/emacs-cpp-eglot-fswatch.el` itself, counted by advice in
+`s18-run.el` (records at the merge, changes at the send). A fresh tree, load 1.63 then
+0.70. Logs: `arch-run5a.log` (`shipped:fake,dedup:fake,shipped:pyright`),
+`arch-run5b.log` (`shipped:fake,dedup:fake,shipped:fake`).
+- Criteria 1 - 5 hold in all three `shipped` runs: registration ok, pyright alive
+  after 30 s with 1 fswatch; 20000 of 20000, no overflow; **48, 49, 48 ms** per 1000
+  records (limit 50); ready after 0.34 - 0.36 s; no process after shutdown.
+- `dedup` in the same runs: 50 and 52 ms (run 2: 37 - 39 ms). Today's machine costs
+  about a third more than run 2's for the same code, cause UNVERIFIED; the shipped
+  backend costs a little less than `dedup` under the same conditions. The margin to
+  the limit is 1 - 2 ms, so a slower day can fail criterion 3 on Arch.
 
 ## Run 4 (owner, Mac, 2026-10-21)
 `S18_RUNS=dedup:fake,dedup:pyright`, Darwin arm64, load 3.83 - 4.29 (the Mac is not

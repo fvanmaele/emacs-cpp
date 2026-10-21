@@ -9,7 +9,8 @@
 ;; MODE: baseline (Emacs's own `file-notify' watches), eglot or regexp (s18-backend.el
 ;; with that matcher), fast (regexp, URIs from the root's; run 2), batch (fast, sends
 ;; batched by a timer; run 2), dedup (fast, a filter call's records merged per path;
-;; run 2).  SERVER: fake (fake_server.py, counts every change) or pyright
+;; run 2), shipped (the config's lisp/emacs-cpp-eglot-fswatch.el, T-119; counted by
+;; advice).  SERVER: fake (fake_server.py, counts every change) or pyright
 ;; (registration and survival only).  N: files in the burst.
 
 (require 'cl-lib)
@@ -57,6 +58,47 @@
 (defun s18-run--emit (fmt &rest args)
   (write-region (concat (apply #'format fmt args) "\n") nil (s18-run--env "S18_OUT") t 'silent))
 
+(defun s18-run--load-shipped ()
+  "Load the config's backend (T-119), its program S18_FSWATCH, and count for it.
+Records are counted where a filter call's records enter the merge, changes where
+they are sent; the backend itself carries no counters."
+  (defvar emacs-cpp-default-fswatch-program)
+  (setq emacs-cpp-default-fswatch-program (s18-run--env "S18_FSWATCH"))
+  (load (expand-file-name "../../lisp/emacs-cpp-eglot-fswatch.el" s18-here) nil t)
+  (defalias 's18-live-processes #'emacs-cpp-eglot-fswatch-processes)
+  (advice-add 'emacs-cpp-eglot-fswatch-merge :around
+              (lambda (fn records)
+                (let ((t0 (float-time))
+                      (merged (funcall fn records)))
+                  (setq s18-stats
+                        (plist-put s18-stats :records
+                                   (+ (or (plist-get s18-stats :records) 0)
+                                      (cl-count-if-not #'string-empty-p records))))
+                  (setq s18-stats (plist-put s18-stats :calls
+                                             (1+ (or (plist-get s18-stats :calls) 0))))
+                  (setq s18-stats (plist-put s18-stats :handled
+                                             (+ (or (plist-get s18-stats :handled) 0)
+                                                (length merged))))
+                  (setq s18-stats (plist-put s18-stats :filter-s
+                                             (+ (or (plist-get s18-stats :filter-s) 0)
+                                                (- (float-time) t0))))
+                  merged)))
+  (advice-add 'jsonrpc-notify :around
+              (lambda (fn server method params)
+                (if (not (eq method :workspace/didChangeWatchedFiles))
+                    (funcall fn server method params)
+                  (let ((t0 (float-time)))
+                    (prog1 (funcall fn server method params)
+                      (setq s18-stats
+                            (plist-put s18-stats :sent
+                                       (+ (or (plist-get s18-stats :sent) 0)
+                                          (length (plist-get params :changes)))))
+                      (setq s18-stats (plist-put s18-stats :notifies
+                                                 (1+ (or (plist-get s18-stats :notifies) 0))))
+                      (setq s18-stats (plist-put s18-stats :notify-s
+                                                 (+ (or (plist-get s18-stats :notify-s) 0)
+                                                    (- (float-time) t0))))))))))
+
 (defun s18-run--main ()
 (let* ((root (file-name-as-directory (expand-file-name (s18-run--env "S18_ROOT"))))
        (mode (intern (s18-run--env "S18_MODE")))
@@ -69,8 +111,11 @@
        (eglot-autoreconnect nil)
        (eglot-events-buffer-config '(:size 0 :format full))
        reg-start reg-time server buffer)
-  (unless (memq mode '(baseline eglot regexp fast batch dedup)) (error "s18: MODE %s" mode))
-  (unless (eq mode 'baseline)
+  (unless (memq mode '(baseline eglot regexp fast batch dedup shipped))
+    (error "s18: MODE %s" mode))
+  (when (eq mode 'shipped)
+    (s18-run--load-shipped))
+  (unless (memq mode '(baseline shipped))
     (load (expand-file-name "s18-backend.el" s18-here) nil t)
     (setq s18-matcher (if (memq mode '(fast batch dedup)) 'regexp mode)
           s18-prefix-uri (memq mode '(fast batch dedup))

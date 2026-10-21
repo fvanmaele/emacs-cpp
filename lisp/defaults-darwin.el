@@ -45,5 +45,11 @@ at a time, took 130 - 156 s over deal.II and ripgrep, in parallel, 10 s.")
 checked against (D-131); nil: not known on the Mac yet (deal.II comes from
 deal.II.app, path UNVERIFIED), so the check warns that it cannot read it.")
 
+(defconst emacs-cpp-default-fswatch-program
+  (expand-file-name "opt/fswatch-no-loss/bin/fswatch" (concat "~" (user-login-name)))
+  "The patched fswatch that watches files for language servers (D-109, D-127).
+packaging/fswatch-no-loss/build-macos.sh installs it under ~/opt; the home is
+found through the user database, so a test run's temporary HOME finds it too.")
+
 (provide 'defaults-darwin)
 ;;; defaults-darwin.el ends here

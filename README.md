@@ -45,6 +45,11 @@ cd ~/source/repos/emacs-cpp
 make packages    # byte-compile lib/, write lib/load-path.el, lib/autoloads.el, lib/info/
 make test        # optional: the ERT suite, in a temporary HOME (REAL_HOME=1: yours)
 ```
+Language servers' file watches go through a patched fswatch (D-109, D-127), which
+startup requires; it installs to `/opt/fswatch-no-loss`, next to any stock fswatch:
+```sh
+(cd packaging/fswatch-no-loss && makepkg -si)
+```
 AUCTeX comes from GNU ELPA's repository, which holds every ELPA package (D-090):
 `--recurse-submodules` fetches about 217 MB for it. To fetch only its branch
 (17 MB), clone without `--recurse-submodules`, then in the clone:
@@ -261,12 +266,14 @@ An Emacs started from the Dock does not read the shell profile; the config puts
 `/opt/local/bin`, `/opt/local/sbin` and `/usr/local/bin` on its `PATH` (D-089).
 
 ### Differences from Arch
-- **eglot's file watches are capped at 500** (D-054). macOS needs one file
-  descriptor per watched directory. `lisp/emacs-cpp-eglot-watch.el` (macOS only)
-  keeps the watches it could set up when the cap is reached and shares one watch per
-  directory, so pyright stays up in large trees (D-121). On both platforms eglot
-  watches only project files; changes to installed Python packages reach pyright
-  when it restarts.
+- **The patched fswatch comes from a script** (D-109), not from the PKGBUILD; it
+  installs to `~/opt/fswatch-no-loss`, where the config looks for it (D-127):
+  ```sh
+  sh packaging/fswatch-no-loss/build-macos.sh
+  ```
+  On both platforms eglot's watches cover only project files, through fswatch
+  whatever the tree's size; changes to installed Python packages reach pyright when
+  it restarts (D-121).
 - **lldb instead of gdb.** Apple silicon has no gdb; debug with `C-x C-a d lldb-preset
   RET` (D-051). It starts `lldb-dap` from the PATH, which the lldb-23 port provides
   once selected; no codesigning was needed on the owner's Mac.
@@ -331,7 +338,7 @@ history and caches.
 | `scripts/measure-startup.sh` | startup time measurement (DESIGN 11) |
 | `test/*-test.el` | ERT tests, one file per module |
 | `packaging/clangd-index-nav/` | patched clangd: patches, PKGBUILD, `build-macos.sh` |
-| `packaging/fswatch-no-loss/` | patched fswatch (D-109), not used by the config yet |
+| `packaging/fswatch-no-loss/` | patched fswatch (D-109): PKGBUILD, `build-macos.sh` |
 | `packaging/clang-change-namespace/` | its crash fix and `build.sh`, for `C-c l N` |
 | `spikes/` | throwaway prototypes with PASS / FAIL verdicts, listed in their README |
 
