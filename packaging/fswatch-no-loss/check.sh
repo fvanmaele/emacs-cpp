@@ -170,8 +170,11 @@ try:
     proc = start(root)
     time.sleep(1)
     def last_flags(path):
+        # The flags of all of the path's records in this read, as the config's
+        # backend joins them (D-127): inotify writes one record per event (Created,
+        # Updated, CloseWrite), FSEvents one record with them all.
         records = [r for r in read_all(proc) if r.startswith(path + ' ')]
-        return records[-1].split(' ', 1)[1].split(',') if records else []
+        return sorted({f for r in records for f in r.split(' ', 1)[1].split(',')})
     with open(old, 'a') as f:
         f.write('y')
     flags = last_flags(old)

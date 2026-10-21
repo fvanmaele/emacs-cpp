@@ -7,6 +7,20 @@ criterion 3 in the modes then built (194 ms). D-127 is gated through (T-119).
 The shipped backend (mode `shipped`) passes on Arch (run 5) at 48 - 49 ms, a thin
 margin, and on the Mac (run 6) at 2 ms.
 
+## Run 7 (session, Arch, 2026-10-21): pkgrel 3 (patch 0005, D-144)
+Owner: "verify if fswatch macos patch (0005) causes issues on Arch". 0005 changes
+only `fsevents_monitor.cpp`, which configure builds only with macOS's CoreServices
+(`USE_FSEVENTS`), so Arch's binary has no 0005 code. pkgrel 3 built with makepkg
+into the session's scratch directory (not installed); `S18_FSWATCH` pointed at it.
+Log: `arch-run7-pkgrel3.log` (`shipped:fake` twice, `shipped:pyright`), load 0.32.
+- Criteria 1 - 5 hold: 20000 of 20000, no overflow; **48 and 47 ms** per 1000
+  records (run 5 with pkgrel 2: 48 - 49); ready 0.36 s; pyright alive with 1 fswatch;
+  no process after shutdown.
+- On the way: `check.sh`'s check 5 (new with 0005) failed on Arch, 2 of 4, and with
+  it `makepkg`'s check(): it read a path's last record only, `CloseWrite` on inotify,
+  which writes one record per event; fixed to join the path's records, as the
+  backend does (D-127); 11 of 11 then.
+
 ## Run 6 (session, Mac, 2026-10-21): the shipped backend (T-119, H-15 step 4)
 `S18_RUNS=shipped:fake,shipped:pyright`, Darwin arm64, load 2.09 - 2.27; the tree
 reused, 15625 directories, 267398 files. Log: `mac-run6-shipped.log` (its curly

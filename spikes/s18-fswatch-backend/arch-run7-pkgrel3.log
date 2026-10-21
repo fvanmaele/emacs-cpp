@@ -1,0 +1,49 @@
+S18 run 2026-10-21T12:41:58Z, Linux x86_64, GNU Emacs 31.1
+tree: 15625 directories, 187395 files
+load: 0.32 0.09 0.02
+
+S18 run: mode shipped, server fake, burst 20000, gnu/linux, GNU Emacs 31.1 (build 2, x86_64-pc-linux-gnu, GTK+ Version 3.24.52, cairo version 1.18.4)
+connect + registration: 0.10 s (registration in Emacs: 0.00 s)
+registration answer: registered ok
+ready (a probe change reported): 0.36 s
+burst: 20000 of 20000 created files reached the server (20000 reports, repeats included), 8.8 s after the start
+records read 60004, sent 20097, skipped 0, overflow 0
+records after merging per path: 20097
+filter calls 147 (0.41 s inside, sends excluded), notifications 147 (0.16 s sending)
+Emacs CPU after the block: 2.89 s (log polling 0.56 s taken out), 48 ms per 1000 records
+after shutdown: fswatch processes alive: 0
+messages (last 12 lines):
+For information about GNU Emacs and the GNU system, type C-h C-a.
+Wrote /tmp/claude-1000/-home-alad-source-repos-emacs-cpp/7fe90f55-1c8d-42ab-b137-5faa6dc0af5e/scratchpad/s18-tree/s18-open.txt
+[eglot] Connected! Server 'EGLOT (s18-tree/(text-mode))' now managing '(text-mode)' buffers in project 's18-tree'.
+[eglot] Asking EGLOT (s18-tree/(text-mode)) politely to terminate
+[jsonrpc] Server exited with status 0
+
+S18 run: mode shipped, server fake, burst 20000, gnu/linux, GNU Emacs 31.1 (build 2, x86_64-pc-linux-gnu, GTK+ Version 3.24.52, cairo version 1.18.4)
+connect + registration: 0.09 s (registration in Emacs: 0.00 s)
+registration answer: registered ok
+ready (a probe change reported): 0.36 s
+burst: 20000 of 20000 created files reached the server (20000 reports, repeats included), 8.7 s after the start
+records read 60004, sent 20095, skipped 0, overflow 0
+records after merging per path: 20095
+filter calls 146 (0.41 s inside, sends excluded), notifications 146 (0.11 s sending)
+Emacs CPU after the block: 2.80 s (log polling 0.57 s taken out), 47 ms per 1000 records
+after shutdown: fswatch processes alive: 0
+messages (last 12 lines):
+For information about GNU Emacs and the GNU system, type C-h C-a.
+Wrote /tmp/claude-1000/-home-alad-source-repos-emacs-cpp/7fe90f55-1c8d-42ab-b137-5faa6dc0af5e/scratchpad/s18-tree/s18-open.txt
+[eglot] Connected! Server 'EGLOT (s18-tree/(text-mode))' now managing '(text-mode)' buffers in project 's18-tree'.
+[eglot] Asking EGLOT (s18-tree/(text-mode)) politely to terminate
+[jsonrpc] Server exited with status 0
+
+S18 run: mode shipped, server pyright, burst 20000, gnu/linux, GNU Emacs 31.1 (build 2, x86_64-pc-linux-gnu, GTK+ Version 3.24.52, cairo version 1.18.4)
+connect + registration: 0.25 s (registration in Emacs: 0.00 s)
+pyright after 30 s: running; fswatch processes: 1
+after shutdown: fswatch processes alive: 0
+messages (last 12 lines):
+For information about GNU Emacs and the GNU system, type C-h C-a.
+Wrote /tmp/claude-1000/-home-alad-source-repos-emacs-cpp/7fe90f55-1c8d-42ab-b137-5faa6dc0af5e/scratchpad/s18-tree/s18-open.py
+Can't guess python-indent-offset, using defaults: 4 [2 times]
+[eglot] Connected! Server 'EGLOT (s18-tree/(python-mode))' now managing '(python-mode)' buffers in project 's18-tree'.
+[eglot] Asking EGLOT (s18-tree/(python-mode)) politely to terminate
+[jsonrpc] Server exited with status 0
