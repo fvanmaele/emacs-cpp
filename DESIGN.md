@@ -1954,6 +1954,34 @@ presets, GoogleTest runner.
   measured across 63 files. Findings in; O-43.
 
 ## Open questions ledger (LIVING)
+- O-75 (OPEN, owner request 2026-10-21: "Research vendoring ty and patches such that
+  type information can be inferred reliably, even without type annotations"; "also do
+  a detailed comparison with ruff server"): findings in RESEARCH_python_ty 8, 9. ty
+  0.0.89 added return type inference, off by default
+  (`analysis.return-type-inference = "always"`, which the config can send as ty's
+  `configuration` setting; checked over LSP). On: `ret()` `Literal[1]`, `opt(False)
+  .upper()` reported as pyright does; SymPy's first `M-?` 1.79 -> 22.3 s and the
+  server 1.15 -> 8.3 GB, `ty check` 2.5 -> 9.2 s with errors 13076 -> 27653;
+  theme_setter unchanged. Still pyright's alone: parameter types from defaults (ty's
+  rule, specified in its tests), call-site return types, pseudo-generic classes (ty
+  issue 833). Vendoring: 7 min 14 s build, 1.2 GB, patches in ty's inference core,
+  weekly releases. ruff's server lints, formats and fixes but answers no navigation;
+  with ty in one buffer through rass (Emacs 31's eglot lists it first; AUR, pip).
+  Options, each with its case against:
+  (a) return type inference on for every Python project (one `emacs-cpp-lsp-settings`
+  call). Against: large unannotated trees pay (SymPy 12 times the first `M-?`, 7
+  times the memory) and get twice the reports, many unchecked.
+  (b) (a) with a per-project switch to turn it off (`.dir-locals.el`). Against: one
+  more option to know; the owner's large trees need it set.
+  (c) vendor ty with patches for the three missing kinds. Against: each is a new
+  feature in ty's inference core, the parameter one against ty's specified rule, a
+  rebase per weekly release, 7 min and 1.2 GB per build.
+  (d) none, as today. Against: unannotated returns stay `Unknown`.
+  For ruff: (r1) rass with ty and ruff on Arch; (r2) `ruff check` as a flymake
+  backend and `ruff format` on `C-c l f`; (r3) none (cases against in RESEARCH 9).
+  Combined: (b) and (r2). Recommended: (b), and (r2), since ruff is in pacman and
+  MacPorts. Against the combination: two Python mechanisms to keep, and the flymake
+  backend is config code. Owner rules.
 - O-5 (RESOLVED 2026-10-08 with D-028 for headers the index knows): cold-header flags
   (DESIGN 7) -> S4, and S6 (ccls) round 3. Owner 2026-10-08: also after `M-.` into a
   project header no open source includes ("rmo/lac.h not found"), not only for headers
