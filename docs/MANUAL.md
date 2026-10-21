@@ -75,7 +75,8 @@ name (type part of it; the list narrows as you type).
   changes.
 - **The minibuffer is the one picker.** Files, buffers, symbols, commands, search
   results: all appear as a list there. Type words in any order to narrow it (`ite gpe`
-  finds `include/rmo/gpe/iteration.h`), the arrows move, a preview shows the selected
+  finds `include/rmo/gpe/iteration.h` in `C-c p f`; in `M-o` words match the file
+  name, so there type `gpe/ite`), the arrows move, a preview shows the selected
   item, notes on the right describe it, and `C-.` offers other actions on it. Lists put
   what you chose recently first.
 - **Prefix keys are grouped.** `C-x ...` is Emacs itself; `C-c` + a letter is this

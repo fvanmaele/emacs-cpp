@@ -93,7 +93,9 @@ A clangd completion of a function brings its parameters as fields; `TAB` moves o
 | `M-y` | choose from the kill ring (paste history) |
 
 In any list: words separated by space match in any order (`vec tria` finds
-`tria_vector.h`). `M-r` in the minibuffer: history. `PgDn` / `PgUp` (or `C-v` /
+`tria_vector.h`); a word's letters may skip only inside a word (`eto` finds
+`Vector`). In `M-o` a word matches the file name, as in CLion; `gpe/ite` also
+searches the directories (`include/rmo/gpe/iteration.h`). `M-r` in the minibuffer: history. `PgDn` / `PgUp` (or `C-v` /
 `M-v`): next / previous page of the list (D-084); `M-n` / `M-p`: earlier inputs.
 
 ## Act on things (embark)
