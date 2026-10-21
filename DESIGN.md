@@ -109,8 +109,9 @@ Observed on the owner machine, 2026-10-07:
   design must not depend on one clangd version), clang-tidy, clang-format, gcc, clang,
   gdb 17.2, lldb-dap, cmake 4.4.3 (ships `/usr/share/emacs/site-lisp/cmake-mode.el`),
   ninja, fd, valgrind, rsync, python3. Not installed: ripgrep (corrected 2026-10-07:
-  the survey's `which rg` found a shell function, not a binary), bear, cppcheck, GNU
-  time.
+  the survey's `which rg` found a shell function, not a binary; superseded 2026-10-21:
+  pacman's ripgrep 15.2.0 installed 2026-10-07 23:42, and the_silver_searcher), bear,
+  cppcheck, GNU time.
 - Tree-sitter: `tree-sitter-cpp` 0.23.4 built and installed by the owner as a pacman
   package; `c++-ts-mode` parses with it (ABI 15, checked 2026-10-07). No C or CMake
   grammar installed.
@@ -1780,8 +1781,9 @@ the form that loads magit is found (S17 run 2, T-113).
   `xref-matches-in-directory` (find, then grep one file at a time, whatever
   `xref-search-program` says). `xref-search-program` comes from the platform's
   defaults file (D-055): `ripgrep` on macOS, `grep` on Arch (no ripgrep there,
-  DESIGN 3); a missing executable stops startup. git-ignored files (build
-  directories) are no longer searched, as in `C-c p f`. Measured on the Mac, deal.II
+  DESIGN 3; wrong since 2026-10-07, found 2026-10-21, O-38); a missing executable
+  stops startup. git-ignored files (build directories) are no longer searched, as
+  in `C-c p f`. Measured on the Mac, deal.II
   (33768 files): 130 - 156 s before, 10.6 - 11.3 s after, the same 607 / 9429
   matches; `rg` alone in the tree 5.5 - 6 s, the floor there, set by about 14 ms per
   file opened (O-24). Arch not measured (owner). After the owner's GDATA exceptions
@@ -2325,6 +2327,8 @@ presets, GoogleTest runner.
   start, so letters in order with a gap inside a word (`eto` -> `Vector`) never reach
   the ranking. Later stage: a clangd change past the pre-filter (a third tier, tier
   3, a spike on RMO first: scan time, reply sizes). Not scheduled.
+  Reviewed 2026-10-21 (owner request): still later, not scheduled. Against waiting:
+  gapped in-word queries (`eto`) keep finding nothing.
 - O-67 (RESOLVED 2026-10-19 with D-119: (a); owner 2026-10-19: "Research preferring
   mid-word matches"): clangd ranks a
   mid-word match after every fuzzy one (patch 0012), and mid-word matches tie
@@ -2518,6 +2522,12 @@ presets, GoogleTest runner.
   `toolkit-theme-set-functions` works only in a PGTK build; for the GTK / X11 build
   the freedesktop portal's `color-scheme` setting over D-Bus would be the source;
   which build the owner runs there decides, not researched.
+  Reviewed 2026-10-21 (owner request): recommendation unchanged, (a) + (b) + (c) on
+  macOS. Against it: a `defaults` process every 10 s for the session (6.4 ms,
+  asynchronous) and up to 10 s late. Stage 2 premise checked: the Arch Emacs is the
+  GTK3 / X11 build (`emacs` 31.1-2, no PGTK), so `toolkit-theme-set-functions` does
+  not apply; the portal's `color-scheme` over D-Bus (DBUS built in) would be the
+  source, not researched.
 - O-49 (RESOLVED 2026-10-14 with D-099: (a); found 2026-10-14 checking order
   dependencies, D-098): `M-o`
   (`emacs-cpp-go-to-anything`, init-completion) calls projectile
@@ -2556,6 +2566,11 @@ presets, GoogleTest runner.
   font-lock's 3 - 8.5 ms; query compilation 10 ms once per session; 56 bytes per
   tagged identifier, shown parts only (0.7 MB for all of deal.II's largest header);
   mouse movement itself not measured (needs a graphical session). Owner rules.
+  Reviewed 2026-10-21 (owner request): nothing new. Recommendation: (c), close as
+  it is. Against (c): no sign that a symbol is clickable. Against (a): highlight on
+  every identifier under the mouse, always, where CLion shows it only with the
+  modifier held, which Emacs cannot see; mouse-movement cost not measured.
+  Against (b): (a) plus a tooltip the owner closed with D-096.
 - O-46 (RESOLVED 2026-10-14 with D-102: (c), none; owner request 2026-10-14:
   "keybindings/shortcuts similar to LyX"):
   findings in `RESEARCH_latex.md` 8 (LyX's bind files: Ctrl+M math, Ctrl+Shift+M display
@@ -2584,6 +2599,8 @@ presets, GoogleTest runner.
   Cmd+Shift+Click type (Ctrl on Arch); (b) `context-menu-mode`; (c) back / forward on
   the mouse's side buttons, after checking their events; (d) none. Owner 2026-10-13:
   (a) and (b2) built as D-093; (c) waits for the owner's `C-h k` on a side button.
+  Reviewed 2026-10-21 (owner request): (c) waits on the owner's `C-h k` (T-067),
+  which had no `TODO_human.md` item; H-16 added. Nothing else open here.
 - O-43 (OPEN, owner request 2026-10-13: "research further C++ refactorings from
   CLion, e.g. signature change, refactor in project files"): findings in
   `RESEARCH_refactoring.md`. clangd renames across files from its index but refuses
@@ -2607,6 +2624,14 @@ presets, GoogleTest runner.
   (c) built as D-094 without clang-change-namespace, which came with D-097
   (patched); (d) done 2026-10-14: MANUAL 8, "Changing a function's signature by
   hand", after running the route on 63 files.
+  Reviewed 2026-10-21 (owner request), (b) still waits: recommendation (b3), stop;
+  MANUAL 8 stays. Against (b3): no change signature, CLion's most used refactoring
+  after rename. Against (b1): 5 of 9 spike operations broke the build or the output,
+  and a 14th clangd patch to carry. Against (b2): a dependent call's target is
+  unknowable until instantiation, a large spike with no bound. Combining option
+  (b4): (b1) refusing loudly whenever any call is reported, so it edits only what it
+  settles; against: on deal.II code most functions may have dependent calls
+  (share UNVERIFIED, RMO not measured).
 - O-42 (RESOLVED 2026-10-13 with D-090: (b), build on a key; owner request
   2026-10-13: "research latex (LSP) support, in particular
   texlab"): findings in `RESEARCH_latex.md`. texlab is packaged on both machines
@@ -2668,6 +2693,15 @@ presets, GoogleTest runner.
   (D-072). `M-o` needs nothing more for (a) or (b) since D-085.
   Also found: the Mac's R is CRAN's R.framework, not the MacPorts port D-072 names.
   Owner rules.
+  Reviewed 2026-10-21 (owner request): Arch has R 4.6.1 (pacman `r`), without the
+  languageserver package (`requireNamespace` FALSE) and no pacman package for it;
+  the Mac's install not rechecked since 2026-10-13 (UNVERIFIED). Recommendation:
+  (a) per platform (D-055): on the Mac now, on Arch once `install.packages` is
+  agreed (a download outside both package managers, its own D-nnn). Against (a):
+  cross-file features only inside an R package with `DESCRIPTION`, and two
+  platforms behaving differently until Arch has it. Against (b): a binary from
+  outside both package managers, pre-1.0. Against (c): formatting only. Against
+  (d): no navigation beyond ESS's running session.
 - O-38 (OPEN, owner 2026-10-13: "vendor rg.el / ag.el if no downsides"): `C-c p s a`
   (projectile-ag) and `C-c p s r` (projectile-ripgrep) stop with "not available":
   they need the Emacs packages ag.el / rg.el, not vendored. Downsides found: rg.el
@@ -2678,6 +2712,14 @@ presets, GoogleTest runner.
   program (on the Mac in MacPorts, on Arch not surveyed). Each is a new dependency
   (needs its D-nnn) and a network clone. `M-s r` (consult-ripgrep) and `M-s G`
   (consult-git-grep) already search. Owner rules.
+  Reviewed 2026-10-21 (owner request): premise corrected: Arch has `rg` (pacman
+  ripgrep 15.2.0, installed explicitly 2026-10-07 23:42, after DESIGN 3's survey) and
+  `ag` (the_silver_searcher 2.2.0). The `auto` backend would then work on Arch too.
+  New option (e): no new package, `C-c p s r` bound to `consult-ripgrep` in the
+  project, `C-c p s a` unbound. Recommendation: (e). Against (e): a minibuffer list,
+  not projectile's grep buffer, so no wgrep editing of the results. Against (a):
+  rg.el plus wgrep, two submodules, a D-nnn and a network clone for what `M-s r`
+  does. Against (b): ag.el for a slower ag. Against (d): two keys keep failing.
 - O-36 (RESOLVED 2026-10-13 with D-081: patch projectile, GNU grep on Arch; owner
   report 2026-10-13): `C-c p ?` ("Find references to:") very slow. Cause: projectile
   3.4.0 searches with find and grep, one file at a time, ignoring
