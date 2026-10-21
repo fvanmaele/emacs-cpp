@@ -96,6 +96,44 @@ run BODY, then shut down eglot servers and kill the buffers it visited."
           (with-current-buffer (find-file-noselect (expand-file-name "a.py" root))
             (should (string-match-p "def surface" (buffer-string)))))))))
 
+(defun init-python-test--revealed (seconds)
+  "Wait up to SECONDS for the revealed type flymake shows in this buffer; return it."
+  ;; In batch no idle timer starts flymake; eglot then pulls ty's diagnostics.
+  (flymake-start)
+  (let ((deadline (+ (float-time) seconds)) found)
+    (while (and (not found) (< (float-time) deadline))
+      (accept-process-output nil 0.2)
+      (setq found (seq-some (lambda (diagnostic)
+                              (let ((text (flymake-diagnostic-text diagnostic)))
+                                (and (string-match "Revealed type: `\\([^`]*\\)`" text)
+                                     (match-string 1 text))))
+                            (flymake-diagnostics))))
+    found))
+
+(ert-deftest init-python-ty-return-type-inference ()
+  "D-142: ty infers unannotated return types only in a project whose .dir-locals.el
+sets `emacs-cpp-ty-return-type-inference'; the setting reaches ty as its inline
+configuration.  ty runs on Arch only (D-140)."
+  (init-test--load)
+  (skip-unless (equal (car emacs-cpp-default-python-server) "ty"))
+  (require 'eglot)
+  (let ((source "from typing import reveal_type\n\n\ndef ret():\n    return 1\n\n\nreveal_type(ret())\n"))
+    (pcase-dolist (`(,locals ,section ,revealed)
+                   `((nil nil "Unknown")
+                     ("((nil . ((emacs-cpp-ty-return-type-inference . t))))\n"
+                      (:configuration (:analysis (:return-type-inference "always")))
+                      "Literal[1]")))
+      (init-python-test--with-dir (append `(("main.py" . ,source))
+                                          (and locals `((".dir-locals.el" . ,locals))))
+          t
+        (with-current-buffer (init-python-test--visit (expand-file-name "main.py" root))
+          (should (init-test--wait-managed 20))
+          (should (equal (plist-get (eglot--workspace-configuration-plist
+                                     (eglot-current-server))
+                                    :ty)
+                         section))
+          (should (equal (init-python-test--revealed 20) revealed)))))))
+
 (ert-deftest init-python-eglot-only-in-projects ()
   (init-test--load)
   (require 'eglot)

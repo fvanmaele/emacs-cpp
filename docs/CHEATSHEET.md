@@ -168,9 +168,12 @@ The line the program stopped at is highlighted. Options: `emacs-cpp-debug-lazy-s
 
 ## Python (rides along, D-045)
 `.py` files open in `python-ts-mode`; in a project (git, `pyproject.toml` or
-`setup.py`) its language server starts (ty on Arch, pyright on the Mac), and `M-.`, `M-?`, `C-c l r` and the other `C-c l` keys work
-as for C++. `C-x C-a d debugpy RET` debugs the current file (`debugpy-module`: the
-current directory as a module).
+`setup.py`) its language server starts (ty on Arch, pyright on the Mac), and `M-.`,
+`M-?`, `C-c l r` and the other `C-c l` keys work as for C++. `C-x C-a d debugpy RET`
+debugs the current file (`debugpy-module`: the current directory as a module).
+ty infers the return types of unannotated functions only in a project whose
+`.dir-locals.el` holds `((nil . ((emacs-cpp-ty-return-type-inference . t))))`, then
+`M-x eglot-reconnect` (D-142; it slows large unannotated projects down).
 
 ## Cells: Python and R (D-072)
 A line `# %%` (optionally with a title) starts a cell, as in jupytext, VS Code and

@@ -129,8 +129,8 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
 | T-120 | done 0095 | S | Python server per platform: ty on Arch | D-140 | 146 tests |
 | T-121 | deferred | S | ty on the Mac: install and test | D-140 (c) | owner's call |
 | T-122 | done 0096 | S | gaps inside a word; `M-o` matches file names | D-141 | 149 tests |
-| T-123 | proposed | S | ty return type inference per project | D-142 | done when to agree |
-| T-124 | proposed | S | ruff: flymake backend, `C-c l f` | D-143 | done when to agree |
+| T-123 | done 0097 | S | ty return type inference per project | D-142 | 150 tests |
+| T-124 | deferred | S | ruff: flymake backend, `C-c l f` | D-143 | until ty alone is too slow |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -313,7 +313,7 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
   Built 2026-10-21 (0095): items 1 - 4 met on Arch; 146 tests; startup 0.182 s
   against 0.183 s. Done.
 - T-123 (opened 2026-10-21, D-142): ty's return type inference, opt-in per project.
-  Tier: 2. PROPOSED done when (owner to agree):
+  Tier: 2. Done when (agreed by the owner 2026-10-21: "Agree T-123"):
   1. `emacs-cpp-ty-return-type-inference` (NEW defcustom, `lisp/init-python.el`,
      default nil, safe as a directory variable when a boolean; `ty` in its name since
      pyright, on the Mac, ignores it, owner 2026-10-21): non-nil makes the config
@@ -329,8 +329,11 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
      `Unknown`; the section is empty for a project that does not set it.
   4. MANUAL and CHEATSHEET name the switch and that it applies after `M-x
      eglot-reconnect`; `make test` on Arch; startup within 10 ms of today.
+  Built 2026-10-21 (0097): items 1 - 4 met on Arch; 150 tests; startup 0.183 s. Done.
 - T-124 (opened 2026-10-21, D-143): ruff for Python without its server. Tier: 2.
-  PROPOSED done when (owner to agree):
+  DEFERRED by the owner 2026-10-21: "Defer T-124 until performance with ty alone
+  becomes an actual problem, due to additional maintenance overhead from ignore
+  lists". Proposed done when, kept for then:
   1. `emacs-cpp-python-ruff-flymake` (NEW, `lisp/init-python.el`): a flymake backend
      that runs `ruff check --output-format json --stdin-filename FILE -` on the
      buffer's text (asynchronous, a running check replaced by the next), each finding
