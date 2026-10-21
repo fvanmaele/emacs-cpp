@@ -245,6 +245,9 @@ Observed on the owner's Mac, 2026-10-09 (D-050):
   `after-init-hook` only when no theme was saved. Cause found: loading it before
   `custom.el` enabled the saved theme left no theme's faces in effect (white
   background in a graphical frame, `custom-enabled-themes` naming the saved one).
+- DECIDED D-139 (owner 2026-10-21, O-56: "O-59 close", confirmed the same day as
+  meaning O-56): no theme follows macOS's dark / light setting; the theme is the one
+  chosen or saved with Customize (D-040). RESEARCH_dark_theme stays as findings.
 - DECIDED D-041 (owner 2026-10-08): built-in `recentf-mode` is on, 200 files, Emacs's
   state files under `~/.emacs.d/.cache/` left out. `C-x b` (consult) lists recent
   files below the buffers, `C-x C-r` is `consult-recent-file` (instead of
@@ -2533,12 +2536,12 @@ presets, GoogleTest runner.
   qualified queries against today), built with O-50's 0010; (d) dropped (trigrams
   refuse it before the matcher; a full scan or far larger index); (a) only if no
   clangd change is wanted.
-- O-56 (OPEN, owner request 2026-10-15, T-082): a theme following macOS's dark / light
-  setting (`RESEARCH_dark_theme.md`). Found: the NS build of Emacs 31.1 sets no
-  `toolkit-theme` and runs no hook on a change; `defaults read -g
-  AppleInterfaceStyle` reads it in 6.4 ms. Options: (a) once at startup, (b) and
-  polling, (c) and a command, (d) auto-dark package, (e) another Emacs build. Owner
-  rules; Arch is stage 2.
+- O-56 (CLOSED 2026-10-21 with D-139: none; owner "O-59 close", meaning O-56 (asked the
+  same day); was OPEN, owner request 2026-10-15, T-082): a theme following macOS's dark /
+  light setting (`RESEARCH_dark_theme.md`). Found: the NS build of Emacs 31.1 sets no
+  `toolkit-theme` and runs no hook on a change; `defaults read -g AppleInterfaceStyle`
+  reads it in 6.4 ms. Options: (a) once at startup, (b) and polling, (c) and a command,
+  (d) auto-dark package, (e) another Emacs build. Owner rules; Arch is stage 2.
   Reviewed 2026-10-15 (owner request): nothing changed; Emacs 31.1's NS build still
   has no appearance hook. Recommendation: (a) + (b) + (c): the pair
   `modus-operandi-tritanopia` / `modus-vivendi-tritanopia` chosen at startup, a
@@ -3156,6 +3159,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-136 | 2026-10-21 | no change-signature tweak; MANUAL 8 by hand (S12 FAIL) | 7 | O-43 |
 | D-137 | 2026-10-21 | no hover highlight or pointer change | 10 | O-47 |
 | D-138 | 2026-10-21 | mouse buttons 8 / 9: xref back / forward | 10 | O-44 |
+| D-139 | 2026-10-21 | no theme following macOS appearance (O-56 closed) | 5 | O-56 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |
