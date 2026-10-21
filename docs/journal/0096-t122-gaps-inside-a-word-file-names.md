@@ -68,6 +68,9 @@ All under S11's 100 ms for a key's first screen. `make test` 149 of 149; startup
   across `/` inside its own pattern.
 - One-letter inputs cost more (1.2 -> 16.4 ms): the end anchor is tried after every
   hit of the letter. Under the budget; symbols start at the third letter anyway.
+  CORRECTED 2026-10-21 (RESEARCH_go_to_anything 21): that bench filtered all 4402
+  paths twice and timed the filter alone; with 200 recent files a one-letter key went
+  from about 23 to 25 ms, most of it the tier sort, as before.
 
 ## How to verify
 - `make test </dev/null` - 149 tests on Arch.

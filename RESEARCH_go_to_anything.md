@@ -1161,6 +1161,35 @@ how CLion orders such matches (section 16: not found); whether the third tier
 crowds `M-o`'s 10000 with weak matches for short queries (gap matches of `eto`: 2311,
 of `get`: 6025, in deal.II alone).
 
+## 21. One-letter inputs in `M-o` after D-141 (owner 2026-10-21)
+Owner: "Investigate performance of single-letter inputs". Batch on Arch, the shipped
+profile, RMO's projectile list (4402 files) plus 200 of them as abbreviated absolute
+paths (a full recent-file list), 20 runs per measurement; scripts in the session's
+scratch directory, not kept.
+- **Correction to journal 0096's "1.2 -> 16.4 ms"**: that bench filtered all 4402
+  files twice (once as absolute paths) and timed the filter alone. With 200 recent
+  files the filter for `e` takes 6.5 ms (before D-141: 0.6 ms).
+- **The tier sort dominates, and did before D-141**: `e` 18.3 ms over its 3580 matches
+  (before: 22.5 ms over 4497); `s` 8.0 ms (before 8.8). A one-letter key was about 23
+  ms before D-141 and is about 25 ms now, plus highlighting (1.7 ms for 100 matches).
+- **Where the sort spends it**: tier 1's regexp, 14.4 ms of `e`'s 18.3. Its alternative
+  for a capital after a small letter (`[[:lower:][:digit:]]E`) can start at every
+  small letter, so the engine tries nearly every position of each path; `s` is
+  cheaper (4.6 ms) because `s` starts a word early in most paths (`src/`) and the
+  search stops there.
+- **Remedies measured** (same answers checked on all 4602 strings and six edge cases:
+  HTTPServer, ATVfoo, VectorTools.cc, max_n, getVec, eVEC):
+  | Remedy | `e` | `s` | `m` | `ser` | Behaviour |
+  |---|---|---|---|---|---|
+  | tier 1 split: a word start after a separator first, the capital forms only when the candidate holds that capital (`string-search`) | 17.9 -> 6.2 ms | 5.5 -> 3.6 | 12.3 -> 4.8 | 25.3 -> 7.8 | same |
+  | `M-o` filter with initials and in-word only (in-word covers the literal; a plain word is no regexp) | 8.0 -> 4.9 ms | 8.2 -> 6.2 | 3.5 -> 2.9 | - | same matches |
+  | `M-o` ranks files by the file name, not the whole path | 18.2 -> 16.4 ms | 7.7 -> 16.8 | 3.8 -> 5.5 | - | changes `e`'s top 10 |
+- The last row is no speed-up (a substring per candidate), but the whole-path sort
+  lifts files whose directory has a word starting with `e`: the noise D-141 took out
+  of matching, still in ranking.
+- The tier-1 split speeds every prompt's sort (`emacs-cpp-completion-sort`), not only
+  `M-o`, for inputs of any length.
+
 ## Sources
 - JetBrains, CLion help "Search everywhere":
   https://www.jetbrains.com/help/clion/searching-everywhere.html
