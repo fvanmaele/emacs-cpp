@@ -37,5 +37,10 @@ GNU grep: Arch has no ripgrep (DESIGN 3).")
   "Where installed libraries' headers lie, for the version a library index is
 checked against (D-131): pacman installs deal.II's under /usr/include.")
 
+(defconst emacs-cpp-default-fswatch-program "/opt/fswatch-no-loss/bin/fswatch"
+  "The patched fswatch that watches files for language servers (D-109, D-127).
+pacman's package from packaging/fswatch-no-loss installs it under /opt, apart
+from any stock fswatch.")
+
 (provide 'defaults-gnu-linux)
 ;;; defaults-gnu-linux.el ends here
