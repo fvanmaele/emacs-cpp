@@ -164,7 +164,7 @@ project's out.  Symbols keep the order each server sent them in (D-105)."
         (funcall sink action)))))
 
 (defun emacs-cpp-go--server-name (server)
-  "Return the file name of SERVER's program: clangd, pyright-langserver, texlab."
+  "Return the file name of SERVER's program: clangd, ty, pyright-langserver, texlab."
   (file-name-nondirectory (car (process-command (jsonrpc--process server)))))
 
 (defun emacs-cpp-go--servers ()

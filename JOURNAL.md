@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0095 | 2026-10-21 | T-120: the Python server per platform, ty on Arch | T-120 | D-140 |
 | 0094 | 2026-10-21 | T-119: eglot's file watches through the patched fswatch | T-119 | D-127, D-121 |
 | 0093 | 2026-10-21 | S18 PASS on the Mac (`dedup`); D-127 gated through | S18 | D-127 |
 | 0092 | 2026-10-21 | T-118: a project's library index reaches clangd | T-118 | D-130, D-131, D-133 |

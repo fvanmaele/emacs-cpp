@@ -42,5 +42,13 @@ checked against (D-131): pacman installs deal.II's under /usr/include.")
 pacman's package from packaging/fswatch-no-loss installs it under /opt, apart
 from any stock fswatch.")
 
+(defconst emacs-cpp-default-python-server '("ty" "server")
+  "The Python language server eglot starts (D-140): Astral's ty, pacman `extra/ty'.
+Its first `M-.' and a large `M-?' answer several times sooner than pyright's
+\(RESEARCH_python_ty 4b).")
+
+(defconst emacs-cpp-default-python-server-install "sudo pacman -S ty"
+  "The command that installs `emacs-cpp-default-python-server' (D-140).")
+
 (provide 'defaults-gnu-linux)
 ;;; defaults-gnu-linux.el ends here

@@ -6,8 +6,8 @@
 ;; server, and the code commands on `C-c l' (D-004, T-007), which which-key lists
 ;; after a pause.  Each language module names its own server and settings through
 ;; `emacs-cpp-lsp-server' and `emacs-cpp-lsp-settings' and adds its own keys to
-;; `emacs-cpp-code-map' (D-091): clangd in lisp/init-cpp.el, pyright in
-;; lisp/init-python.el, texlab in lisp/init-latex.el.
+;; `emacs-cpp-code-map' (D-091): clangd in lisp/init-cpp.el, ty or pyright in
+;; lisp/init-python.el (D-140), texlab in lisp/init-latex.el.
 
 ;;; Code:
 
@@ -72,7 +72,7 @@ makepkg -si; macOS: sh packaging/fswatch-no-loss/build-macos.sh), D-109, D-127" 
   ;; beyond 975) and eglot failed a registration past `eglot-max-file-watches',
   ;; which made pyright exit (RESEARCH_platform_differences 3.14).  Watches outside
   ;; the project (pyright's site-packages) are still skipped (D-121); changes to
-  ;; installed packages reach pyright when it restarts.
+  ;; installed packages reach the Python server when it restarts.
   (require 'emacs-cpp-eglot-fswatch))
 
 (use-package flymake

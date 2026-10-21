@@ -17,7 +17,7 @@ key is in `docs/CHEATSHEET.md`.
 ```sh
 sudo pacman -S --needed emacs git make texinfo \
     cmake ninja gcc clang gdb lldb \
-    tree-sitter-python pyright python-debugpy r \
+    tree-sitter-python ty python-debugpy r \
     fd ripgrep \
     texlab texlive-basic texlive-latex texlive-latexrecommended texlive-latexextra \
     texlive-binextra perl-yaml-tiny perl-file-homedir zathura zathura-pdf-mupdf
@@ -272,8 +272,10 @@ An Emacs started from the Dock does not read the shell profile; the config puts
   sh packaging/fswatch-no-loss/build-macos.sh
   ```
   On both platforms eglot's watches cover only project files, through fswatch
-  whatever the tree's size; changes to installed Python packages reach pyright when
-  it restarts (D-121).
+  whatever the tree's size; changes to installed Python packages reach the Python
+  server when it restarts (D-121).
+- **pyright instead of ty** for Python (D-140): ty has no MacPorts port and waits
+  until it is tested on the Mac (T-121).
 - **lldb instead of gdb.** Apple silicon has no gdb; debug with `C-x C-a d lldb-preset
   RET` (D-051). It starts `lldb-dap` from the PATH, which the lldb-23 port provides
   once selected; no codesigning was needed on the owner's Mac.
@@ -314,7 +316,7 @@ Load order is the contract: a module may only use modules loaded before it (DESI
 | `lisp/emacs-cpp-presets.el` | presets: active preset, clangd command, build commands |
 | `lisp/init-cmake.el` | `cmake-mode` from the system cmake package |
 | `lisp/init-debug.el` | dape, `gdb-preset`, `lldb-preset`, breakpoints in the fringe |
-| `lisp/init-python.el` | `python-ts-mode`, pyright, debugpy |
+| `lisp/init-python.el` | `python-ts-mode`, ty (Arch) / pyright (Mac), debugpy |
 | `lisp/init-r.el` | R with ESS (`ess-r-mode`, the R process) |
 | `lisp/init-latex.el` | LaTeX with AUCTeX and texlab, `C-c l b` builds |
 | `lisp/init-cells.el` | `# %%` cells in Python and R scripts (code-cells) |

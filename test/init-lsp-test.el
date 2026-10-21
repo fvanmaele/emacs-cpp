@@ -9,7 +9,8 @@
 ;; no server is needed; the clicks in a graphical frame are a hand check.
 ;;
 ;; eglot is Emacs 31's own (D-121), its file watches carried by the patched fswatch
-;; (D-127); the pyright test needs pyright, git and that fswatch.  The backend's own
+;; (D-127); the server test needs the platform's Python server (D-140), git and
+;; that fswatch.  The backend's own
 ;; tests are in emacs-cpp-eglot-fswatch-test.el.
 
 ;;; Code:
@@ -94,8 +95,8 @@ taken over by the fswatch backend."
   (should (equal (emacs-cpp-fswatch-program-check emacs-cpp-default-fswatch-program)
                  emacs-cpp-default-fswatch-program)))
 
-(defmacro init-lsp-test--with-pyright (dirs &rest body)
-  "Run BODY with `server', pyright managing main.py of a git project of DIRS
+(defmacro init-lsp-test--with-python-server (dirs &rest body)
+  "Run BODY with `server', the platform's Python server managing main.py of a git project of DIRS
 package directories bound to `root'; shut it down and clean up afterwards."
   (declare (indent 1))
   `(let* ((root (file-name-as-directory
@@ -123,21 +124,21 @@ package directories bound to `root'; shut it down and clean up afterwards."
              (kill-buffer buffer))))
        (delete-directory root t))))
 
-(ert-deftest init-lsp-eglot-fswatch-pyright ()
-  "D-127: pyright's watch registrations get fswatch processes and pyright stays
-up with 400 directories (with `file-notify' past the cap it exited); its
-shutdown leaves no fswatch running."
+(ert-deftest init-lsp-eglot-fswatch-python-server ()
+  "D-127, D-140: the Python server's watch registrations get fswatch processes and
+the server stays up with 400 directories (pyright, with `file-notify' past the cap,
+exited); its shutdown leaves no fswatch running."
   (init-test--load)
   (require 'eglot)
   (let (watching)
-    (init-lsp-test--with-pyright 400
+    (init-lsp-test--with-python-server 400
       (let ((deadline (+ (float-time) 30)))
         (while (and (not (emacs-cpp-eglot-fswatch-processes server))
                     (< (float-time) deadline))
           (accept-process-output nil 0.2)))
       (setq watching (emacs-cpp-eglot-fswatch-processes server))
       (should watching)
-      ;; pyright exits about 80 ms after a failed registration.
+      ;; pyright exited about 80 ms after a failed registration.
       (let ((settle (+ (float-time) 3)))
         (while (< (float-time) settle)
           (accept-process-output nil 0.2)))

@@ -3,7 +3,7 @@
 ;;; Commentary:
 
 ;; Language servers ask the client to watch files (`workspace/didChangeWatchedFiles':
-;; pyright, texlab, clangd).  Emacs's own watches take one kqueue descriptor per
+;; ty, pyright, texlab, clangd).  Emacs's own watches take one kqueue descriptor per
 ;; directory on the Mac (refused beyond 975) and one inotify watch per directory on
 ;; Arch, where eglot stops at `eglot-max-file-watches' and then fails the whole
 ;; registration, which makes pyright exit (RESEARCH_platform_differences 3.1, 3.3,

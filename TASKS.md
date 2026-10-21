@@ -126,7 +126,7 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
 | T-078 | done 0070 | S | latexindent: project settings, indent | D-103 | tests, texlab |
 | T-079 | open | S | send the texlab range formatting report | D-101 | owner sends it |
 | T-080 | done 0071 | S | `make test` in a temporary HOME | D-104 | real home unchanged |
-| T-120 | proposed | S | Python server per platform: ty on Arch | D-140 | done when to agree |
+| T-120 | done 0095 | S | Python server per platform: ty on Arch | D-140 | 146 tests |
 | T-121 | deferred | S | ty on the Mac: install and test | D-140 (c) | owner's call |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
@@ -288,7 +288,7 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
 - T-120 (opened 2026-10-21, D-140): the Python server per platform, ty on Arch.
-  Tier: 2. PROPOSED done when (owner to agree):
+  Tier: 2. Done when (agreed by the owner 2026-10-21: "Agree"):
   1. `emacs-cpp-default-python-server` (NEW) in `lisp/defaults-gnu-linux.el`
      (`("ty" "server")`) and `lisp/defaults-darwin.el` (`("pyright-langserver"
      "--stdio")`); `lisp/init-python.el` hands it to `emacs-cpp-lsp-server`; a
@@ -307,6 +307,8 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
   4. `make test` passes on Arch; startup within 10 ms of today
      (`scripts/measure-startup.sh 10`); the Mac's run is the owner's (pyright there,
      nothing changes but the defaults line).
+  Built 2026-10-21 (0095): items 1 - 4 met on Arch; 146 tests; startup 0.182 s
+  against 0.183 s. Done.
 - T-121 (opened 2026-10-21, D-140 (c), deferred by the owner): ty on the Mac. Install
   (a local port, RESEARCH_python_ty 7, or Astral's binary), then the measurements of
   RESEARCH_python_ty 4b there and round 1's user site-packages case. Steps written

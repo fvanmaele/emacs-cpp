@@ -5,7 +5,7 @@
 ;; The fswatch backend (D-127, DESIGN 7.1): globs as regexps, a filter call's records
 ;; merged per path, and the real patched fswatch on a temporary tree, its changes
 ;; caught at `jsonrpc-notify' for a stand-in server, so no language server runs.
-;; The pyright test in init-lsp-test.el covers a real server.
+;; The Python server test in init-lsp-test.el covers a real server.
 
 ;;; Code:
 

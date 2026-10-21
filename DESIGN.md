@@ -210,7 +210,8 @@ Observed on the owner's Mac, 2026-10-09 (D-050):
 - Packages: section 12 (D-006). `package.el` is not used at startup.
 - DECIDED D-045 (owner 2026-10-08, O-19): Python rides along with mode, language server
   and debugger (T-018): `python-ts-mode` (system grammar `tree-sitter-python`), pyright
-  through eglot in project files, debugpy through dape's own config; all from the Arch
+  through eglot in project files (SUPERSEDED in part 2026-10-21 by D-140: ty on Arch,
+  pyright on the Mac), debugpy through dape's own config; all from the Arch
   repositories (on macOS the ports of section 3, D-050), no submodule. R and Perl: not
   configured (built-in modes only, as before). Built in T-018: pyright is named in
   `eglot-server-programs` (eglot would otherwise take pylsp or basedpyright first if

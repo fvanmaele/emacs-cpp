@@ -3,11 +3,12 @@
 ;;; Commentary:
 
 ;; Python is not what this configuration is for (DESIGN 2) but rides along (D-045):
-;; `python-ts-mode' on the system grammar, pyright through eglot in project files,
-;; and dape's own `debugpy' configuration (`C-x C-a d debugpy RET' debugs the current
-;; file).  All three come from the Arch packages tree-sitter-python, pyright and
-;; python-debugpy.  The C++ setup is not touched; the debugger's entry is in dape's
-;; form (lisp/init-debug.el).
+;; `python-ts-mode' on the system grammar, the platform's language server through
+;; eglot in project files (D-140: ty on Arch, pyright on the Mac), and dape's own
+;; `debugpy' configuration (`C-x C-a d debugpy RET' debugs the current file).  On
+;; Arch all three come from the packages tree-sitter-python, ty and python-debugpy.
+;; The C++ setup is not touched; the debugger's entry is in dape's form
+;; (lisp/init-debug.el).
 
 ;;; Code:
 
@@ -18,12 +19,17 @@
   (error "emacs-cpp: tree-sitter Python grammar missing; install tree-sitter-python \
 \(D-045)"))
 
-;; pyright (D-045), named so that another server eglot knows (pylsp, basedpyright)
-;; does not take over when installed later (D-091).
-(emacs-cpp-lsp-server '(python-ts-mode python-mode) '("pyright-langserver" "--stdio"))
+;; The platform's server (D-140), named so that another server eglot knows (pylsp,
+;; basedpyright) does not take over when installed later (D-091); a missing one
+;; stops startup, as the search program does (D-081).
+(unless (executable-find (car emacs-cpp-default-python-server))
+  (error "emacs-cpp: the Python language server %s is not on exec-path; install it \
+with `%s' (D-140)"
+         (car emacs-cpp-default-python-server) emacs-cpp-default-python-server-install))
+(emacs-cpp-lsp-server '(python-ts-mode python-mode) emacs-cpp-default-python-server)
 
 (defun emacs-cpp-python-eglot-ensure ()
-  "Start eglot (pyright) for a Python file of a project; not for a loose file.
+  "Start eglot for a Python file of a project; not for a loose file.
 A project is what projectile finds: a git repository, else a directory with
 pyproject.toml, setup.py or another of its markers."
   (when (project-current)
