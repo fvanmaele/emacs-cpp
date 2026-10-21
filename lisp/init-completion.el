@@ -33,10 +33,13 @@
 ;; character that is no letter or digit, a capital after a small letter or digit,
 ;; and the last of several capitals before a small letter (S in HTTPServer).
 
-;; Each word of the input becomes three regexps, built once per input: tier 1, a
+;; Each word of the input becomes four regexps, built once per input: tier 1, a
 ;; word start then the rest; tier 2, the word anywhere, or its letters each at a
-;; word start.  Matching then runs in C; a loop over characters in Lisp took 0.5 ms
-;; per candidate.
+;; word start; tier 3, its letters in order with gaps only over letters and digits,
+;; so never across a separator (D-141; the prompts' filter is the same rule,
+;; `emacs-cpp-orderless-in-word').  A candidate only a typed regexp matches is tier
+;; 4.  Matching then runs in C; a loop over characters in Lisp took 0.5 ms per
+;; candidate.
 
 (defun emacs-cpp--match-class (char &optional lower-only)
   "Return a case-sensitive regexp for CHAR in either case, or LOWER-ONLY."
@@ -59,8 +62,8 @@ small letter or digit; as a capital ending a run of capitals before a small lett
               "\\|[[:upper:]]" upper (or next "[[:lower:]]") "\\)"))))
 
 (defun emacs-cpp--match-compile (component)
-  "Return COMPONENT's tier-1, unbroken and initials regexps (case-sensitive,
-case-insensitive, case-sensitive)."
+  "Return COMPONENT's tier-1, unbroken, initials and in-word regexps
+\(case-sensitive, case-insensitive, case-sensitive, case-insensitive)."
   (let* ((chars (string-to-list component))
          (first (car chars))
          (letter (/= (downcase first) (upcase first)))
@@ -79,13 +82,15 @@ case-insensitive, case-sensitive)."
                "")
              "\\)")
      (regexp-quote component)
-     (mapconcat #'emacs-cpp--match-word-start chars ".*"))))
+     (mapconcat #'emacs-cpp--match-word-start chars ".*")
+     (mapconcat (lambda (char) (regexp-quote (char-to-string char))) chars
+                "[[:alnum:]]*"))))
 
 (defvar emacs-cpp--match-cache nil
   "The last input and its compiled words, as (INPUT . REGEXPS).")
 
 (defun emacs-cpp-match-tier (input candidate)
-  "Return the tier, 1 - 3, of CANDIDATE for INPUT (D-120); 1 for an empty INPUT.
+  "Return the tier, 1 - 4, of CANDIDATE for INPUT (D-120, D-141); 1 for no INPUT.
 INPUT's words, separated by spaces, each match somewhere; the worst decides."
   (unless (equal (car emacs-cpp--match-cache) input)
     (setq emacs-cpp--match-cache
@@ -99,7 +104,10 @@ INPUT's words, separated by spaces, each match somewhere; the worst decides."
                                 (let ((case-fold-search nil))
                                   (string-match-p (nth 2 regexps) candidate)))
                             2
-                          3)))))))
+                          (if (let ((case-fold-search t))
+                                (string-match-p (nth 3 regexps) candidate))
+                              3
+                            4))))))))
 
 (defun emacs-cpp-match-sort-by-tier (input candidates &optional key)
   "Return CANDIDATES sorted by tier for INPUT, in their order within a tier.
@@ -174,18 +182,26 @@ the prompt's order."
           recentf-exclude (list #'emacs-cpp-recentf-state-file-p))
   (recentf-mode))
 
+(defun emacs-cpp-orderless-in-word (component)
+  "Match COMPONENT's characters in order, with gaps only over letters and digits.
+D-120's tier 3, as an orderless matching style in place of `orderless-flex', whose
+gaps crossed words and `/' (`ect' matched ~/sourc_e_/.../in_c_lude/.../me_t_ric.h,
+D-141).  Groups mark the characters, for highlighting."
+  `(seq ,@(cdr (cl-loop for char across component
+                        append `((zero-or-more alnum) (group ,char))))))
+
 (use-package orderless
   :demand t
   :config
-  ;; LSP 3.18's match (D-120): letters in order (flex) besides literal, regexp and
-  ;; initials, case always ignored.  Paths typed in `C-x C-f' keep
-  ;; partial-completion (`/u/s/e'), the one exception.
+  ;; LSP 3.18's match (D-120): letters in order, gaps inside a word (D-141), besides
+  ;; literal, regexp and initials, case always ignored.  Paths typed in `C-x C-f'
+  ;; keep partial-completion (`/u/s/e'), the one exception.
   (setopt completion-styles '(orderless basic)
           completion-category-defaults nil
           completion-category-overrides '((file (styles partial-completion)))
           completion-pcm-leading-wildcard t
           orderless-matching-styles '(orderless-literal orderless-regexp
-                                      orderless-initialism orderless-flex)
+                                      orderless-initialism emacs-cpp-orderless-in-word)
           orderless-smart-case nil
           completion-ignore-case t
           read-buffer-completion-ignore-case t))
