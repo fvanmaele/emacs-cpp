@@ -34,19 +34,13 @@ service's plan) is not an item.
   Report back: the file it lands in (expected
   `.../emacs-cpp/indexes/dealii-9.8.0/source/grid/tria.cc`) and any `*Warnings*`.
 
-- **H-15** (2026-10-21, unblocks T-119, D-127) The shipped fswatch backend on the Mac:
-  tests, startup and S18's `shipped` mode (Arch passes).
-  1. On Arch: `cd ~/source/repos/emacs-cpp && git push` (the session does not push).
-  2. On the Mac: `cd ~/source/repos/emacs-cpp && git pull --ff-only`
-  3. On the Mac: `make test </dev/null`
-  4. On the Mac, idle machine: `S18_RUNS=shipped:fake,shipped:pyright sh
-     spikes/s18-fswatch-backend/run.sh 20000 </dev/null`
-  5. On the Mac: `rm -rf /tmp/s18-tree`
-  6. On the Mac, in Emacs (graphical): in a C++ file `M-.` on a name, then the
-     mouse's back button, then its forward button (D-138).
-  Report back: the last line of `make test`, paste
-  `spikes/s18-fswatch-backend/s18.log`, and whether step 6 went back and forward
-  (if not, `C-h k` and the button: the event name shown).
+- **H-15** (2026-10-21, unblocks T-067, D-138) The mouse's side buttons on the Mac
+  (`make test` and S18 there were run by the session, 0098).
+  1. On the Mac: quit Emacs and start it again (graphical), so it loads this commit.
+  2. In Emacs: open a C++ file, `M-.` on a name, then press the mouse's back button,
+     then its forward button.
+  Report back: whether step 2 went back and forward (if not, `C-h k` and the button:
+  the event name shown).
 
 - **H-16** (2026-10-21, O-75, D-142) Post the return type inference feedback to ty
   (outward, so yours); the draft is `docs/upstream/ty-return-type-inference-feedback.md`.

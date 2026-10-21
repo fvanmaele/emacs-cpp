@@ -13,7 +13,10 @@
 #      the waiting records and memory stays bounded; without --allow-overflow
 #      fswatch stops with "Event queue overflow." (0001);
 #   4. -l 0.1 is accepted under a locale with a decimal comma (0004), when such a
-#      locale is installed (else said and skipped).
+#      locale is installed (else said and skipped);
+#   5. a change of an existing file is not reported Created, whether the file was
+#      created before fswatch started or reported Created since; a file created
+#      again after its removal is (0005 on macOS; inotify reports what happened).
 # Patch 0002 (FSEvents drops as overflow) needs a drop, which 0001 prevents; it
 # was checked by hand (RESEARCH_platform_differences.md 3.13).
 # Needs python3. Exit status 0 when every check passes; each failure is printed.
@@ -158,6 +161,37 @@ try:
               '-l 0.1 under %s: exit status %s, stderr %r' % (comma_locale, status, err.strip()))
     else:
         print('SKIP -l 0.1 under a decimal-comma locale: de_DE.UTF-8 is not installed')
+
+    # 5. Created only when the file was: FSEvents keeps it on a recent file.
+    old = os.path.join(root, 'd1', 'old.py')
+    new = os.path.join(root, 'd1', 'new.py')
+    with open(old, 'w') as f:
+        f.write('x')
+    proc = start(root)
+    time.sleep(1)
+    def last_flags(path):
+        records = [r for r in read_all(proc) if r.startswith(path + ' ')]
+        return records[-1].split(' ', 1)[1].split(',') if records else []
+    with open(old, 'a') as f:
+        f.write('y')
+    flags = last_flags(old)
+    check(flags and 'Created' not in flags,
+          'created before the start, changed: flags %r' % flags)
+    with open(new, 'w') as f:
+        f.write('x')
+    flags = last_flags(new)
+    check('Created' in flags, 'created: flags %r' % flags)
+    with open(new, 'a') as f:
+        f.write('y')
+    flags = last_flags(new)
+    check(flags and 'Created' not in flags, 'created, then changed: flags %r' % flags)
+    os.remove(new)
+    last_flags(new)
+    with open(new, 'w') as f:
+        f.write('x')
+    flags = last_flags(new)
+    check('Created' in flags, 'removed, created again: flags %r' % flags)
+    proc.kill()
 finally:
     shutil.rmtree(root, ignore_errors=True)
 

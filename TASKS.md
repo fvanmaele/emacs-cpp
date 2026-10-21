@@ -68,7 +68,7 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
 | T-020 | done 0041 | S | patch 0008 (review 0031) | D-059 | S9 run 4 unchanged |
 | T-021 | done 0034 | M | config starts on macOS | D-050, D-054 | Arch make test 54 / 54 |
 | T-022 | done 0035 | M | lldb-preset | D-051, O-22 | Arch session test 3 / 3 |
-| T-023 | open | M | macOS clangd build script | D-052, O-23 | built 0036; owner run left |
+| T-023 | done 0086 | M | macOS clangd build script | D-052, O-23 | run to `~/opt` 0086, again 0098 |
 | T-024 | done 0039 | M | platform defaults files | D-055 | built as T-031 |
 | T-025 | open | M | Python tools on macOS | owner | round 1 in RESEARCH doc; ty not adopted (D-132) |
 | T-026 | open | L | setup wizard (doom doctor) | owner | research; proposed |
@@ -131,6 +131,7 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
 | T-122 | done 0096 | S | gaps inside a word; `M-o` matches file names | D-141 | 149 tests |
 | T-123 | done 0097 | S | ty return type inference per project | D-142 | 150 tests |
 | T-124 | deferred | S | ruff: flymake backend, `C-c l f` | D-143 | until ty alone is too slow |
+| T-125 | done 0098 | S | fswatch 0005: `Created` once per file (Mac) | D-144 | 150 tests on the Mac |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -213,6 +214,8 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
   2026-10-09 (0036): a test run into scratch directories (owner's tarball, no
   download) installed a clangd with both flags, and the test passes with it; the
   failure paths stop with the reason; left: the owner's run to `~/opt`.
+  Run to `~/opt` on the Mac at the owner's request (0086: "Rebuild clangd"), again for
+  `clangd-indexer` (0098). Done.
 - T-024 (opened 2026-10-09, owner): consider separate initialization files per
   platform, with different defaults (Linux: gdb, macOS: lldb). Today the platform
   differences are `system-type` branches inside the modules: cmake-mode's directory
@@ -358,6 +361,18 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
      Speed on SymPy's `solvers.py` (3674 lines): diagnostics within 100 ms. `make
      test` on Arch; startup within 10 ms of today. Not covered: ruff's fixes as code
      actions (`C-c l a` stays the server's).
+- T-125 (opened 2026-10-21, D-144): `make test` on the Mac (H-15 step 3) failed
+  `emacs-cpp-eglot-fswatch-real`: a change of a file created moments before came as
+  created (1), not changed (2); FSEvents keeps `Created` on recent files. Tier: 2.
+  Done when (the owner's ruling 2026-10-21 named the fix and the check: "fswatch patch
+  0005, verify per-path time map memory usage on larger projects"): patch 0005 in
+  `packaging/fswatch-no-loss` (pkgrel 3); `check.sh` checks a change of a file created
+  before the start and after a report, and a file created again; its memory measured
+  on S18's tree; installed on the Mac; `make test` passes there. Built 2026-10-21
+  (0098): the per-path map cost about 250 bytes per changed path and broke
+  `check.sh`'s memory bound, so it holds inodes of files created since the start only
+  (48 bytes each, old files nothing); 11 of 11 checks; 150 tests, 147 passed, 3
+  skipped (gdb, ty). Done.
 - T-122 (opened 2026-10-21, D-141): a match's gaps stay inside a word; `M-o`'s words
   match the file name. Tier: 2. Done when (agreed by the owner 2026-10-21:
   "Agree"); built 2026-10-21 (0096), items 1 - 4 met on Arch:
@@ -405,6 +420,9 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
   0.184 s against 0.182 - 0.183 s; S18 run 5 `shipped` 48 - 49 ms per 1000 records
   (limit 50, thin margin). Item 2 hooks the registration methods, not
   `eglot--watch-globs` (DESIGN 7.1 as built). Waits on the owner's Mac run (H-15).
+  Mac 2026-10-21 (0098, the session): S18 run 6 `shipped` PASS (2 ms per 1000
+  records, ready 0.07 s); `make test` failed once on `Created` (T-125, D-144), passes
+  with fswatch pkgrel 3. Left: H-15's mouse buttons (T-067), not T-119's.
 - T-118 (opened 2026-10-21, D-130, D-131): a project's library index reaches clangd.
   Tier: 2. Done when (agreed by the owner 2026-10-21: "Agree T-118"; item 4's indexer
   by D-133):
