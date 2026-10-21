@@ -20,6 +20,13 @@
   (should (eq (emacs-cpp-search-program-check 'grep) 'grep))
   (should-error (emacs-cpp-search-program-check 'emacs-cpp-no-such-program)))
 
+(ert-deftest init-project-search-keys ()
+  "D-135: `C-c p s r' is consult's ripgrep; `C-c p s a' (ag.el, not vendored) is
+unbound."
+  (init-test--load)
+  (should (eq (keymap-lookup projectile-command-map "s r") #'consult-ripgrep))
+  (should-not (keymap-lookup projectile-command-map "s a")))
+
 (ert-deftest init-project-find-references-searches-project-files ()
   "patches/projectile/0001: `C-c p ?' finds SYMBOL in the files projectile lists."
   (init-test--load)
