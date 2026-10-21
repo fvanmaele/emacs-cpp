@@ -239,6 +239,21 @@ Observed on the owner's Mac, 2026-10-09 (D-050):
   (pyright 370 errors, ty 298, both mostly `gi.repository` without stubs). Accepted:
   ty's weaker inference of unannotated code (4a). (c), ty on the Mac too, waits until
   ty is tested there (T-121; a local port, RESEARCH_python_ty 7). Built by T-120.
+- DECIDED D-142 (owner 2026-10-21, O-75: "make return-type inference opt-in with a
+  per-project .dir-locals.el switch"): ty's `analysis.return-type-inference` stays
+  off; a project turns it on with `emacs-cpp-python-return-type-inference` (NEW,
+  default nil) in its `.dir-locals.el`. The config sends it as ty's inline
+  `configuration`, computed per project: eglot reads `eglot-workspace-configuration`
+  in a temporary buffer with the project's directory variables applied
+  (`eglot--workspace-configuration-plist`). Grounds: RESEARCH_python_ty 8 (on SymPy
+  the first `M-?` 12 times as long, 7 times the memory). pyright (the Mac, D-140)
+  always infers return types; the switch does nothing there. Build: T-123.
+- DECIDED D-143 (owner 2026-10-21, O-75 (r2): "Draft the flymake backend + ruff
+  format changes"): ruff without its language server: a flymake backend running
+  `ruff check --output-format json --stdin-filename FILE -` beside eglot's, and
+  `C-c l f` formatting by `ruff format --stdin-filename FILE [--range ...] -`, as
+  latexindent does for LaTeX (D-101). ruff from pacman (`extra/ruff`) and MacPorts
+  (`ruff`), no new package source. Build: T-124 (done when to agree).
 - DECIDED D-055 (owner 2026-10-09, T-024): defaults that differ by platform live in one
   file per platform (NEW, `lisp/defaults-<platform>.el`), loaded by `init.el` for
   `system-type` before the modules; they hold choices only, e.g. the debugger offered
@@ -1954,7 +1969,10 @@ presets, GoogleTest runner.
   measured across 63 files. Findings in; O-43.
 
 ## Open questions ledger (LIVING)
-- O-75 (OPEN, owner request 2026-10-21: "Research vendoring ty and patches such that
+- O-75 (RESOLVED 2026-10-21 with D-142 and D-143: (b) opt-in, (r2); owner: "O-75 make
+  return-type inference opt-in with a per-project .dir-locals.el switch. Draft the
+  flymake backend + ruff format changes"; was OPEN, owner request 2026-10-21:
+  "Research vendoring ty and patches such that
   type information can be inferred reliably, even without type annotations"; "also do
   a detailed comparison with ruff server"): findings in RESEARCH_python_ty 8, 9. ty
   0.0.89 added return type inference, off by default
@@ -3218,6 +3236,8 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-139 | 2026-10-21 | no theme following macOS appearance (O-56 closed) | 5 | O-56 |
 | D-140 | 2026-10-21 | Python server per platform: ty on Arch, pyright on the Mac | 5 | D-132 |
 | D-141 | 2026-10-21 | gaps only inside a word; `M-o` words match the file name (CLion) | 12 | D-120 |
+| D-142 | 2026-10-21 | ty return type inference opt-in per project (`.dir-locals.el`) | 5 | O-75 |
+| D-143 | 2026-10-21 | ruff as flymake backend and `C-c l f` formatter, no ruff server | 5 | O-75 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |
