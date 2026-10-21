@@ -172,6 +172,40 @@ SLEPc's), which the config would inherit from Emacs's environment.
   defaults files).
 - DESIGN D-045 and README name pyright.
 
+## 7. A local MacPorts port for ty (owner question 2026-10-21)
+Owner: "How involved is it to write a local port file for ty for use with macos?"
+Read 2026-10-21: MacPorts' API (`ports.macports.org/api/v1`), MacPorts' `devel/ruff`
+Portfile (master), ty's 0.0.90 release on GitHub. Nothing written or built on the Mac.
+- **No port today**: `ports/ty/` answers "No Port matches the given query". MacPorts has
+  `ruff` 0.17.1 (`devel/ruff`, PortGroups `cargo 1.0` and `github 1.0`, 570 lines, of
+  which 498 are its `cargo.crates` list), `rust` 1.99.1 and `cargo2port` 0.3.1. ty and
+  ruff share one Rust workspace (`ruff/crates/ty*`), both with `rust-version = "1.97"`.
+- **ty's sources**: the release asset `source.tar.gz` (17.6 MB, with a `.sha256`)
+  carries the ruff submodule (`ruff/`, 2720 entries under `ruff/crates/ty*`), unlike
+  GitHub's own archive of the tag. `ruff/Cargo.lock` lists 553 crates, none from git,
+  so `cargo2port` can write the `cargo.crates` list.
+- **(p1) A source port**, ruff's Portfile as the model: `github.setup astral-sh ty
+  0.0.90`, the sources from the release asset (`github.tarball_from releases`,
+  `distname source`), the cargo build run in `ruff/` for the `ty` package only
+  (`build.args -p ty`), ruff's `reinplace` for jemalloc's build script, `destroot`
+  installing `target/[cargo.rust_platform]/release/ty`; the crate list generated with
+  `cargo2port ruff/Cargo.lock`. About 40 hand-written lines plus about 550 generated.
+  Each ty release (0.0.85 to 0.0.90 in about a month): new version and checksums,
+  the crate list regenerated. Build time on the Mac not known (a ruff-sized Rust
+  build; UNVERIFIED).
+- **(p2) A binary port**: the prebuilt `ty-aarch64-apple-darwin.tar.gz` (12.8 MB, with
+  its `.sha256`), extracted and installed to `${prefix}/bin`: about 25 lines, no crate
+  list, no build; a version bump is two checksums. MacPorts' own ports build from
+  source; for a local port that is a convention, not a check.
+- **Local ports, how**: a directory tree (`<category>/ty/Portfile`), `portindex` run in
+  it, a `file:///...` line ahead of the `rsync` one in
+  `/opt/local/etc/macports/sources.conf` (a system file: the owner's), then `sudo port
+  install ty`; `port upgrade outdated` then sees it. The tree could live in this
+  repository (as `packaging/` does for clangd and fswatch, D-052, D-109).
+- **Case against either**: a port the owner keeps current by hand, against D-053's
+  MacPorts-maintained tools; the Mac's ty install still unchecked (round 1: user
+  site-packages missed).
+
 ## 6. Open
 - Configuration surface: ty asks for the `ty` section (`workspace/configuration`);
   which settings the config would send (`environment.python` for the Mac's user
