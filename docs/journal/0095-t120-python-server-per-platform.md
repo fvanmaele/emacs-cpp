@@ -44,12 +44,21 @@ debugger and the search program do (D-055).
   D-140.
 - **Assumed:** ty's weaker inference of unannotated code is acceptable (RESEARCH_python_ty
   4a). **Would break if:** the owner misses pyright's reports on unannotated code.
-- **Seen:** in `init-python-eglot-only-in-projects` ty connects and is shut down within
-  3 s, and eglot's own autoreconnect timer (set at connect, 3 s) then fires on the
-  finished process: "Error running timer: ... not running: finished". eglot's
-  behaviour, not the config's; with pyright the test ran the same way without it
-  (UNVERIFIED why). In use it shows only when a server is shut down within 3 s of
-  connecting.
+- **Seen, then explained (owner: "Investigate the new error line"):** in
+  `init-python-eglot-only-in-projects` "Error running timer: (error \"Process EGLOT
+  ... not running: finished\")". First guessed as eglot's autoreconnect timer: wrong,
+  that timer only sets a slot. A backtrace (an advice on `process-send-string`)
+  showed it: ty sends `client/registerCapability` for its file watches right after
+  connecting; jsonrpc runs incoming requests from a timer; the test shuts the server
+  down at once, and while `jsonrpc-shutdown` waits for the exit that timer runs, the
+  fswatch backend starts a watcher, and jsonrpc's reply to the exited process
+  signals. pyright registers later, after its first analysis, so the test ended
+  before. In use: only when a server is shut down within a moment of connecting.
+- **Fixed on the way:** the late registration started an fswatch for a dead server;
+  here `eglot--on-shutdown` ran after it and stopped it, but in the other order the
+  fswatch would have run for the rest of the session. The backend now starts none
+  when `jsonrpc-running-p` is nil (test `emacs-cpp-eglot-fswatch-dead-server`). The
+  error line itself is jsonrpc's (it replies on a finished connection) and stays.
 
 ## How to verify
 - `make test </dev/null` - 146 tests pass on Arch.
