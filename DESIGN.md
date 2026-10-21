@@ -2342,6 +2342,21 @@ presets, GoogleTest runner.
   3, a spike on RMO first: scan time, reply sizes). Not scheduled.
   Reviewed 2026-10-21 (owner request): still later, not scheduled. Against waiting:
   gapped in-word queries (`eto`) keep finding nothing.
+  Researched 2026-10-21 (owner: "research patches for O-68 and possible performance
+  implications", RESEARCH_go_to_anything 20): every way needs a third tier in
+  `tieredMatch` and a request field only `workspace/symbol` sets. Options: (a) full
+  scan, 15 - 26 ms per key per index of deal.II's size (128391 symbols) on Arch,
+  against today's 0.02 - 1.8 ms; (b) a letter mask per symbol, 0.3 - 17 ms, 1 MB
+  per index; (c) gap trigrams, a second trigram kind: posting entries x 4.0 (2.53 ->
+  10.17 million), about 8 - 12 MB more per index and four times the trigram work in
+  `Dex::build` (UNVERIFIED, not built), queries at today's cost (UNVERIFIED); (d)
+  none. Recommendation: (c), behind spike S19 (tier 3): Dex memory, build time and
+  query times with gap trigrams on RMO's and deal.II's indexes, and `M-o`'s replies.
+  Against (c): the largest patch (a 14th clangd patch), memory and build time on
+  every index, completion's untouched only through the field. Against (a): up to
+  52 ms per key with two indexes, past S11's 2 - 30 ms. Against (b): 17 ms for
+  common letters, a table kept beside each index. Against (d): the misses stay.
+  Owner rules.
 - O-67 (RESOLVED 2026-10-19 with D-119: (a); owner 2026-10-19: "Research preferring
   mid-word matches"): clangd ranks a
   mid-word match after every fuzzy one (patch 0012), and mid-word matches tie
