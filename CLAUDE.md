@@ -94,6 +94,9 @@ required at startup (D-127); S18 run 5 `shipped` PASS on Arch, Mac run H-15.
 Python: ty on Arch, pyright on the Mac (D-140, T-120, 0095); ty on the Mac deferred
 (T-121). Matches: gaps inside a word, `M-o` words match file names (D-141, 0096).
 ty's return type inference per project (D-142, 0097); ruff deferred (D-143, T-124).
+Mac run of H-15 by the session (0098): S18 run 6 `shipped` PASS; FSEvents kept
+`Created` on recent files, fswatch patch 0005 (pkgrel 3, D-144, T-125); Mac clangd
+rebuilt with `clangd-indexer`. H-15 left: the mouse's side buttons.
 
 ## Self-test (before the first edit of a session)
 Answer from the docs, not from memory; a miss means re-read, not edit.

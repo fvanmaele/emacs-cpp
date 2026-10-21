@@ -4,8 +4,18 @@ Verdict: PASS on both machines in mode `dedup` (2026-10-21): criteria 1 - 5 hold
 Arch (run 2, the session's: 37 - 39 ms per 1000 records in three runs, limit 50) and
 on the Mac (run 4, the owner's: 2 ms). Run 1 (owner, Arch, 2026-10-20) failed
 criterion 3 in the modes then built (194 ms). D-127 is gated through (T-119).
-The shipped backend (run 5, mode `shipped`) passes on Arch at 48 - 49 ms, a thin
-margin; its Mac run is the owner's (H-15).
+The shipped backend (mode `shipped`) passes on Arch (run 5) at 48 - 49 ms, a thin
+margin, and on the Mac (run 6) at 2 ms.
+
+## Run 6 (session, Mac, 2026-10-21): the shipped backend (T-119, H-15 step 4)
+`S18_RUNS=shipped:fake,shipped:pyright`, Darwin arm64, load 2.09 - 2.27; the tree
+reused, 15625 directories, 267398 files. Log: `mac-run6-shipped.log` (its curly
+quotes made ASCII).
+- Criteria 1 - 5 hold: registration ok, pyright alive after 30 s with 1 fswatch;
+  20000 of 20000, overflow 0 (20002 records); **2 ms** per 1000 records (0.03 s
+  after the block, 46 filter calls); ready after 0.07 s; no process after shutdown.
+- The fake server counts created files only, so it did not see what `make test` did
+  the same day: a change of a recent file reported as created (D-144, fswatch 0005).
 
 ## Run 5 (session, Arch, 2026-10-21): the shipped backend (T-119)
 Mode `shipped` loads `lisp/emacs-cpp-eglot-fswatch.el` itself, counted by advice in

@@ -130,5 +130,5 @@ install -m 755 "$binary" "$prefix/bin/fswatch"
 
 cat <<EOF
 
-Done: $prefix/bin/fswatch. Nothing in the Emacs configuration uses it yet (D-109).
+Done: $prefix/bin/fswatch, the config's emacs-cpp-default-fswatch-program (D-127).
 EOF

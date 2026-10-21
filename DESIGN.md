@@ -682,7 +682,7 @@ Known defects: none yet (nothing built).
   0: no limit). On the Mac all seven checks pass and it is installed to
   `~/opt/fswatch-no-loss`. Arch 2026-10-19: two fixes (pkgrel 2: exit under glibc,
   the cap with inotify's batches; 0074), all seven checks pass, installed; the Mac
-  re-check of pkgrel 2 is left.
+  re-check of pkgrel 2 is left. pkgrel 3 adds patch 0005 (D-144, 0098).
 - DECIDED D-108 (SUPERSEDED 2026-10-20 by D-121: Emacs's own eglot, no submodule;
   owner 2026-10-15, O-60 (b): "Vendor eglot"; tier and done when to agree): eglot
   comes from a submodule, `lib/eglot` from
@@ -886,6 +886,24 @@ mode measured (37 - 39 ms of Emacs's CPU per 1000 records on Arch, 2 ms on the M
   each glob, relative to the root (a watcher's base inside the root becomes a
   prefix), as one anchored regexp; the `kind` bits honoured; a file a managed buffer
   visits skipped, as eglot does; one notification per filter call.
+- DECIDED D-144 (owner 2026-10-21, T-125: "fswatch patch 0005, verify per-path time
+  map memory usage on larger projects"): FSEvents keeps `Created` on a recently
+  created file, so every later change of it, also of a file created before fswatch
+  started, came as `Created,...,Updated` and was sent as created (1), not changed (2)
+  (seen by `emacs-cpp-eglot-fswatch-real` on the Mac; a file born hours earlier
+  reports `IsFile,Updated` only). fswatch patch 0005 (`packaging/fswatch-no-loss`
+  pkgrel 3, `fsevents_monitor.cpp`, FSEvents only) keeps `Created` only for a file
+  born after the stream's start whose inode was not reported `Created` yet; the
+  inode is forgotten when the path is reported removed. The ruling's per-path time
+  map was measured first: about 250 bytes per path changed (25000 paths: +6.2 MB,
+  over `check.sh`'s 3 MB bound), so it is keyed by inode and holds only files created
+  while fswatch runs: on S18's tree 287398 old files changed cost nothing over
+  pkgrel 2, 100000 created files +4.8 MB (about 48 bytes each). An atomic save
+  (a new file renamed over the old) is reported created only when its temporary
+  file was not reported yet (inotify's report of it: UNVERIFIED). Rejected: a table
+  in Emacs (the first change of a file created before the start stays wrong),
+  accepting the label.
+  `check.sh` check 5. Arch needs no rebuild (inotify, unchanged code).
 - **Loudly.** The program per platform (`emacs-cpp-default-fswatch-program`, D-055);
   at startup a missing one, or one whose binary lacks `--queue-limit` (the patched
   build's option, read from the file, 0.1 ms; `--help` would cost a process start,
@@ -3240,6 +3258,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-141 | 2026-10-21 | gaps only inside a word; `M-o` words match the file name (CLion) | 12 | D-120 |
 | D-142 | 2026-10-21 | ty return type inference opt-in per project (`.dir-locals.el`) | 5 | O-75 |
 | D-143 | 2026-10-21 | ruff as flymake backend and `C-c l f` formatter, no ruff server | 5 | O-75 |
+| D-144 | 2026-10-21 | fswatch patch 0005: `Created` once per file on the Mac | 7 | T-125 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |
