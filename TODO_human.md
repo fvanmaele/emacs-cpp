@@ -45,6 +45,14 @@ service's plan) is not an item.
   Report back: the last line of `make test`, and paste
   `spikes/s18-fswatch-backend/s18.log`.
 
+- **H-16** (2026-10-21, unblocks T-067, O-44 (c)) The mouse's side buttons: which
+  events reach Emacs, so back / forward can be bound.
+  1. In Emacs on the Mac (graphical): `C-h k`, then press the mouse's back button.
+  2. Same, `C-h k`, then the forward button.
+  3. In Emacs on Arch (graphical): steps 1 and 2 again.
+  Report back: the event name each press shows (such as `<mouse-8>`), or that
+  nothing arrived, per machine.
+
 ## Parked
 - **H-8** (2026-10-20, 0084 review:B-3 to review:B-5, deferred; T-114) The upstream
   reports and patches in the review's order: treemacs and clang-change-namespace first,
