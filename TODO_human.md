@@ -34,6 +34,17 @@ service's plan) is not an item.
   Report back: the file it lands in (expected
   `.../emacs-cpp/indexes/dealii-9.8.0/source/grid/tria.cc`) and any `*Warnings*`.
 
+- **H-15** (2026-10-21, unblocks T-119, D-127) The shipped fswatch backend on the Mac:
+  tests, startup and S18's `shipped` mode (Arch passes).
+  1. On Arch: `cd ~/source/repos/emacs-cpp && git push` (the session does not push).
+  2. On the Mac: `cd ~/source/repos/emacs-cpp && git pull --ff-only`
+  3. On the Mac: `make test </dev/null`
+  4. On the Mac, idle machine: `S18_RUNS=shipped:fake,shipped:pyright sh
+     spikes/s18-fswatch-backend/run.sh 20000 </dev/null`
+  5. On the Mac: `rm -rf /tmp/s18-tree`
+  Report back: the last line of `make test`, and paste
+  `spikes/s18-fswatch-backend/s18.log`.
+
 ## Parked
 - **H-8** (2026-10-20, 0084 review:B-3 to review:B-5, deferred; T-114) The upstream
   reports and patches in the review's order: treemacs and clang-change-namespace first,

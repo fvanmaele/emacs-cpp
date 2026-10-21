@@ -533,7 +533,9 @@ Known defects: none yet (nothing built).
   watch of Python's library (6358 directories, three registrations) passed eglot's
   10000 and pyright exited, so `eglot-watch-files-outside-project-root` is nil on
   both platforms (RESEARCH_eglot_fork 7 corrects its Arch estimate). Built (T-110,
-  0083).
+  0083). SUPERSEDED in part (2026-10-21, T-119, D-127): `lisp/emacs-cpp-eglot-watch.el`
+  removed, the fswatch backend (DESIGN 7.1) carries eglot's watches on both
+  machines; watches outside the project root stay skipped, by the backend itself.
 - DECIDED D-120 (owner 2026-10-20: "Go with LSP 3.18 as far as possible--in particular
   the consistent config--but leave changing the three-letter pre-filter for a later
   stage"; answers the same day: ignore case, tiers everywhere, paths keep
@@ -815,6 +817,44 @@ Known defects: none yet (nothing built).
   `file-truename` and inotify's three records per file); the owner's Mac run 4
   2 ms. Next: T-119, this section rewritten and the backend written fresh in
   `lisp/` (done when proposed there).
+**The backend as built (T-119, 2026-10-21; supersedes the design below for the built-in
+eglot).** `lisp/emacs-cpp-eglot-fswatch.el`, written fresh in the shape S18's `dedup`
+mode measured (37 - 39 ms of Emacs's CPU per 1000 records on Arch, 2 ms on the Mac):
+- **Where it hooks.** An `:around` method on `eglot-register-capability` and on
+  `eglot-unregister-capability` for `workspace/didChangeWatchedFiles` takes the
+  registration over (eglot's own method is not called, so `file-notify` holds no
+  watch for it, and `eglot-max-file-watches` no longer applies); advice before
+  `eglot--on-shutdown` ends the server's processes. Watchers based outside the
+  project root are skipped, as D-121's `eglot-watch-files-outside-project-root` nil
+  did (eglot's own method, which read it, no longer runs for watches). The eglot
+  internals it uses (`eglot--on-shutdown`, `eglot--project`,
+  `eglot--uri-path-allowed-chars`) are checked when it loads.
+- **Process.** One patched fswatch per registration and root:
+  `fswatch -0 -r -x --event-flag-separator=, -l 0.1 --allow-overflow -e /\.git/
+  ROOT`, ROOT the root's true name (fswatch reports true names); `:noquery`, pipe,
+  its stderr in a hidden buffer. It ends with its registration and its server.
+- **Records to changes.** NUL-separated `PATH FLAGS`; the records of one filter call
+  merged per path, flags joined (inotify writes three per written file); the type
+  from the flags and the path's present state (`file-exists-p`: gone -> 3, `Created`
+  -> 1, else 2); the URI as the root's URI plus the hexified relative path (not
+  `eglot-path-to-uri`, whose `file-truename` was 77 of its 95 us per path, S18);
+  each glob, relative to the root (a watcher's base inside the root becomes a
+  prefix), as one anchored regexp; the `kind` bits honoured; a file a managed buffer
+  visits skipped, as eglot does; one notification per filter call.
+- **Loudly.** The program per platform (`emacs-cpp-default-fswatch-program`, D-055);
+  at startup a missing one, or one whose binary lacks `--queue-limit` (the patched
+  build's option, read from the file, 0.1 ms; `--help` would cost a process start,
+  3.9 ms), stops startup with the command that installs it (principle 1, D-127). At
+  run time: an `Overflow` record is one warning per server per minute naming `M-x
+  eglot-reconnect`, nothing sent (LSP has no "rescan"); the process exiting while
+  its registration lives is a warning with its status and stderr, no restart behind
+  the user's back.
+- **Not covered:** remote projects (TRAMP); build directories inside the root are
+  watched too (their records cost the filter, matched by the globs, mostly sent to
+  nobody; measured in S18 only for created files).
+
+SUPERSEDED (2026-10-21, by the backend as built above; the design for the vendored
+eglot of D-108, kept for its reasoning):
 Owner request 2026-10-15: "Design fswatch backend for eglot". A patch on the
 vendored eglot (D-108, T-090), reading the patched fswatch (D-109). (Since D-121
 there is no vendored eglot: the backend would be Lisp in the config on top of the
@@ -911,6 +951,10 @@ terminal check with pyright and the patched fswatch on an LLVM-sized tree (resea
 3.12's tree).
 
 ### 7.2 File watches: open questions revisited (2026-10-15, D-111)
+SUPERSEDED in part (2026-10-21, T-119): the items for the `file-notify` path (0001
+partial watches, O-61 (e) shared watches, the kqueue cap) no longer apply to eglot's
+watches, which the fswatch backend of 7.1 carries on both machines; they stand as
+history.
 Owner request 2026-10-15: "revisit open questions regarding file watches". State of
 each, with a recommendation; the owner agreed to all of them (D-111):
 - T-090, vendor eglot (D-108): done when amended, not agreed. Agree: every eglot
