@@ -1073,6 +1073,94 @@ clangd's ranking without the name match, so other name scores can be tried):
   parameter function can send one) and the same re-sort inside consult-eglot.
 - Options as O-67.
 
+## 20. Past the trigram pre-filter: patches and their cost (owner 2026-10-21, O-68)
+Owner: "research patches for O-68 and possible performance implications". The
+question: what a clangd patch would take so letters in order with a gap inside a word
+(`eto` -> `Vector`, `cml` -> `class_multilevel_experiment`) reach the ranking, as a
+third tier after fuzzy (tier 1) and mid-word (tier 2, patches 0012 / 0013), and what
+each way costs. Read in clangd 23.1.3 as the patched package builds it (patches 0001 -
+0013 applied): `index/dex/Trigram.cpp`, `index/dex/Dex.cpp`, `index/Index.h`,
+`FuzzyMatch.h`. Measured 2026-10-21 on Arch (Xeon W-2145, 16 threads, idle) over
+deal.II 9.8's library index (`indexes/dealii.dex`, 128391 symbols, mean name 13.1
+characters): a benchmark linked against the package's own clangd libraries
+(`Dex::build`, `Dex::fuzzyFind`, `FuzzyMatcher`, `calculateRoles`), medians of 21
+runs, and the index exported through `dexp` and counted in Python. Scripts in the
+session's scratch directory, not kept.
+
+**Where the gap is refused, twice:**
+- Trigrams. A symbol's trigrams follow only "next letter of this segment" and "first
+  letter of the next segment" (`identifierTrigrams`); the query's are its letters three
+  in a row (`generateQueryTrigrams`). `eto` is not among `Vector`'s (`vec`, `ect`,
+  `cto`, `tor`), so Dex never offers it.
+- `FuzzyMatcher`: after a skipped character the next match must start a segment. And
+  `tieredMatch` (patch 0012) accepts only a contiguous substring. So a patch needs a
+  third tier in `tieredMatch` as well: the first letter at a segment start, the rest
+  in order with any gaps, scored below every tier-2 match (as `secondTierScore` does
+  for tier 2).
+- Dex caps candidates at `Limit * 100` by quality before matching (10000 for 100);
+  a broad gapped query (`eto` would have 16940 candidates under (c)) loses its
+  low-quality ones there, as broad queries do today.
+
+**Measured, per query, over 128391 symbols:**
+| Query | today (Dex, limit 100) | (a) full scan | (b) letter mask | (b) pass the mask | (c) candidates | matches with gaps |
+|---|---|---|---|---|---|---|
+| `eto` | 0.78 ms | 25.7 ms | 16.5 ms | 41164 | 16940 | 2311 |
+| `ptr` | 0.49 ms | 21.6 ms | 10.7 ms | 30219 | 12066 | 4865 |
+| `get` | 1.84 ms | 18.9 ms | 6.2 ms | 15792 | 6838 | 6025 |
+| `tria` | 0.31 ms | 18.8 ms | 7.8 ms | 21297 | 1474 | 1262 |
+| `nac` | 0.35 ms | 18.3 ms | 6.6 ms | 17997 | 1939 | 963 |
+| `rnm` | 0.03 ms | 17.4 ms | 4.9 ms | 12747 | 1643 | 976 |
+| `cml` | 0.02 ms | 17.2 ms | 3.6 ms | 8294 | 917 | 1683 |
+| `vec` | 1.26 ms | 17.1 ms | 3.8 ms | 8924 | 2488 | 2529 |
+| `vector` | 1.40 ms | 16.2 ms | 2.6 ms | 4918 | 1466 | 1566 |
+| `dfh` | 0.03 ms | 15.8 ms | 0.9 ms | 2158 | 205 | 321 |
+| `fev` | 0.14 ms | 15.7 ms | 1.5 ms | 3482 | 443 | 828 |
+| `qgau` | 0.03 ms | 14.8 ms | 0.3 ms | 554 | 51 | 52 |
+"Matches with gaps": `FuzzyMatcher` or the gap rule (first letter at a segment start,
+the rest in order, gaps anywhere, segments skipped too). (c)'s candidates allow gaps
+inside a word but jump only to the next segment, as today's trigrams do, so for `cml`
+they are fewer than the matches. (c)'s query time was not measured (no such Dex built);
+today's path costs about 0.2 us per candidate (`get`: 1.84 ms for the 10000 the cap
+lets through), so (c) should stay at today's 0.1 - 2 ms (UNVERIFIED).
+
+**The options, each under a request field only `workspace/symbol` sets (as
+`MiddleMatch`), so code completion, the include fixer and xrefs keep today's index
+path:**
+- (a) Full scan: with the field, skip the trigram step and match every symbol (as
+  `MemIndex` does). Code: `Dex.cpp`, `MemIndex.cpp`, `FuzzyMatch.cpp` (tier 3),
+  `Index.h` / `Index.cpp` (field), `FindSymbols.cpp`, `Protocol.*`. Cost: 15 - 26 ms
+  per key per index of deal.II's size on this machine, in proportion to the number of
+  symbols; a session asks the project's background index and the library index
+  (D-130) on each key, so about twice that; S11's keys measured 2 - 30 ms in all.
+  No memory, no build cost.
+- (b) A letter mask per symbol (`uint64_t`, a - z and 0 - 9; 1 MB per 128391
+  symbols), built with the Dex; with the field, scan the masks and match only the
+  symbols holding every query letter. Cost: 0.3 - 17 ms per key per index; common
+  letters (`e`, `t`, `o`) pass a third of the symbols. Code as (a) plus the table in
+  `Dex::build` / `MemIndex`.
+- (c) Gap trigrams: a second trigram kind holding every jump inside a word (and to
+  the next segment's first letter), intersected instead of the ordinary trigrams when
+  the field is set. Posting entries for deal.II grow from 2.53 million to 10.17
+  million (x 4.0; distinct trigrams 20883 -> 25105; the longest name 338 -> 1180
+  trigrams). Memory: the Dex for this index estimates 146 MB today; the extra posting
+  lists, at about 1 - 1.5 bytes per entry, would add about 8 - 12 MB per index of this
+  size (UNVERIFIED, not built), and `Dex::build` (1.08 s today) does about four times
+  the trigram work, on every background-index rebuild too. Query: as today
+  (UNVERIFIED). Code: `Trigram.cpp` (a second generator), `Token.h` (a kind),
+  `Dex.cpp`, `FuzzyMatch.cpp` (tier 3), the field as in (a); no index file format
+  change (Dex builds its lists in memory from the symbols).
+- (d) None: gapped in-word queries keep finding nothing.
+- Combining (a) and (c): no; (c) answers what (a) does at today's query cost.
+  Combining (b) as a fallback only when tiers 1 - 2 fill fewer than `Limit`: `M-o`
+  asks for up to 10000 symbols (D-083), which tiers 1 - 2 rarely fill, so the scan
+  would run on nearly every key anyway.
+
+**Not checked:** the project's own background index for RMO (its symbol count, so the
+real per-key sum); the Mac (FSEvents aside, its CPU is faster per core, UNVERIFIED);
+how CLion orders such matches (section 16: not found); whether the third tier
+crowds `M-o`'s 10000 with weak matches for short queries (gap matches of `eto`: 2311,
+of `get`: 6025, in deal.II alone).
+
 ## Sources
 - JetBrains, CLion help "Search everywhere":
   https://www.jetbrains.com/help/clion/searching-everywhere.html
@@ -1086,6 +1174,8 @@ clangd's ranking without the name match, so other name scores can be tried):
   `index/MemIndex.cpp`, `index/FileIndex.cpp`, `index/BackgroundRebuild.cpp`,
   `index/Background.cpp`, `index/dex/Dex.cpp`, `index/dex/Trigram.cpp`, `FuzzyMatch.cpp`,
   `FuzzyMatch.h`.
+- clangd, LLVM 23.1.3 as patched (pkgrel 10): `index/dex/Trigram.cpp`, `index/dex/Dex.cpp`,
+  `index/dex/dexp/Dexp.cpp`, `index/Index.h`, `FuzzyMatch.h` (section 20).
 - orderless 1.8: `lib/orderless/orderless.el`.
 - IntelliJ platform, intellij-community master (2026-10-15):
   https://github.com/JetBrains/intellij-community, `platform/util/text-matching/src/
