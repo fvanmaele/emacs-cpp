@@ -429,7 +429,8 @@ arguments: `gdb-preset :args ["--levels" "5"]` at the `C-x C-a d` prompt; the pr
 starts with your last input. `lldb-preset` does the same with lldb: on macOS, where
 there is no gdb, use it in place of `gdb-preset`.
 
-Python files work the same way with pyright (navigation, rename, `C-c l` keys);
+Python files work the same way with ty on Arch and pyright on the Mac (navigation,
+rename, `C-c l` keys);
 `C-x C-a d debugpy RET` debugs the current file.
 
 ## 11. Git

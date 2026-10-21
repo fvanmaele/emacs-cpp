@@ -1,12 +1,13 @@
-;;; init-python-test.el --- Python rides along: mode, pyright, debugpy  -*- lexical-binding: t; -*-
+;;; init-python-test.el --- Python rides along: mode, language server, debugpy  -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 
 ;; Integration tests in the shipped profile (T-018, D-045): `.py' files open in
-;; `python-ts-mode'; eglot starts pyright in a project (git, or pyproject.toml), not
-;; for a loose file; `M-.' crosses files and rename changes both; dape's `debugpy'
-;; stops at a breakpoint and listens on localhost only.  Needs tree-sitter-python,
-;; pyright, python-debugpy and git.
+;; `python-ts-mode'; eglot starts the platform's server (D-140: ty on Arch, pyright
+;; on the Mac) in a project (git, or pyproject.toml), not for a loose file; `M-.'
+;; crosses files and rename changes both; dape's `debugpy' stops at a breakpoint and
+;; listens on localhost only.  Needs tree-sitter-python, that server, python-debugpy
+;; and git.
 
 ;;; Code:
 
@@ -47,7 +48,22 @@ run BODY, then shut down eglot servers and kill the buffers it visited."
     ("b.py" . "from a import area\n\nprint(area(2, 3))\n"))
   "Two modules: a definition and a use in another file.")
 
-(ert-deftest init-python-pyright-navigates-and-renames ()
+(ert-deftest init-python-server-per-platform ()
+  "D-140: ty on Arch, pyright on the Mac, each with the command that installs it."
+  (init-test--load)
+  (pcase-exhaustive system-type
+    ('gnu/linux
+     (should (equal emacs-cpp-default-python-server '("ty" "server")))
+     (should (equal emacs-cpp-default-python-server-install "sudo pacman -S ty")))
+    ('darwin
+     (should (equal emacs-cpp-default-python-server '("pyright-langserver" "--stdio")))
+     (should (equal emacs-cpp-default-python-server-install "sudo port install pyright"))))
+  (require 'eglot)
+  (should (equal (cdr (assoc '(python-ts-mode python-mode) eglot-server-programs))
+                 emacs-cpp-default-python-server)))
+
+(ert-deftest init-python-server-navigates-and-renames ()
+  "D-045, D-140: the platform's server crosses files with `M-.' and renames in both."
   (init-test--load)
   (require 'eglot)
   (init-python-test--with-dir init-python-test--files t
@@ -58,9 +74,12 @@ run BODY, then shut down eglot servers and kill the buffers it visited."
           (should (eq major-mode 'python-ts-mode))
           (should (init-test--wait-managed))
           (should (equal (car (process-command (jsonrpc--process (eglot-current-server))))
-                         "pyright-langserver"))
-          ;; pyright answers a rename with null until its first analysis is done.
-          (should (init-test--wait-diagnostics))
+                         (car emacs-cpp-default-python-server)))
+          ;; pyright answers a rename with null until its first analysis is done,
+          ;; which it reports with the file's first diagnostics; ty pulls its
+          ;; diagnostics and has analysed the file when it answers.
+          (when (equal (car emacs-cpp-default-python-server) "pyright-langserver")
+            (should (init-test--wait-diagnostics)))
           ;; M-. on the use reaches the definition in a.py.
           (goto-char (point-min))
           (search-forward "print(area")

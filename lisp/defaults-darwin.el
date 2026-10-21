@@ -51,5 +51,12 @@ deal.II.app, path UNVERIFIED), so the check warns that it cannot read it.")
 packaging/fswatch-no-loss/build-macos.sh installs it under ~/opt; the home is
 found through the user database, so a test run's temporary HOME finds it too.")
 
+(defconst emacs-cpp-default-python-server '("pyright-langserver" "--stdio")
+  "The Python language server eglot starts (D-140): pyright, from MacPorts.
+ty has no port; it waits until it is tested on the Mac (T-121).")
+
+(defconst emacs-cpp-default-python-server-install "sudo port install pyright"
+  "The command that installs `emacs-cpp-default-python-server' (D-140).")
+
 (provide 'defaults-darwin)
 ;;; defaults-darwin.el ends here
