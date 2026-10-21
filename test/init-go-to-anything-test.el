@@ -475,7 +475,7 @@ owner's report: `ect' matched ~/sourc_e_/repos/.../in_c_lude/rmo/gpe/me_t_ric.h.
                  (lambda (&rest _)
                    (setq inside (mapcar (lambda (input) (cons input (funcall filter input)))
                                         '("ect" "metric" "met" "gpe" "gpe/met" "rmo/gpe/"
-                                          "include/" "vec" "scr")))
+                                          "include/" "vec" "scr" "m.tric")))
                    nil)))
         (emacs-cpp-go-to-anything)))
     ;; vector.cc has `ect' unbroken; the paths have it only spread over words.
@@ -484,6 +484,9 @@ owner's report: `ect' matched ~/sourc_e_/repos/.../in_c_lude/rmo/gpe/me_t_ric.h.
     (dolist (input '("metric" "met" "gpe/met" "rmo/gpe/" "include/"))
       (should (equal (list input (alist-get input inside nil nil #'equal))
                      (list input (list path "include/rmo/gpe/metric.h")))))
+    ;; A word holding a regexp character is still read as a regexp.
+    (should (equal (alist-get "m.tric" inside nil nil #'equal)
+                   (list path "include/rmo/gpe/metric.h")))
     (should (equal (alist-get "vec" inside nil nil #'equal) '("src/vector.cc")))
     (should (equal (alist-get "scr" inside nil nil #'equal) '("*scratch*")))
     ;; The name's letters are highlighted, not the directories'.

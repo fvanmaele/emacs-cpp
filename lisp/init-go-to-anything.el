@@ -32,9 +32,18 @@
   "The orderless styles of a part of an `M-o' word: the prompts' (D-120, D-141),
 the initials kept in one path component.")
 
+(defconst emacs-cpp-go--plain-styles
+  '(emacs-cpp-go--initialism emacs-cpp-orderless-in-word)
+  "The styles of a plain part, one with none of `$*+.?[\\^' (what `regexp-quote'
+escapes, so every regexp construct): read as a regexp or literally it matches
+what the in-word style matches, so only initials and in-word are tried, the same
+matches in less time (`e': 8.0 -> 4.9 ms on RMO, RESEARCH_go_to_anything 21).")
+
 (defun emacs-cpp-go--part-regexp (part)
   "Return the regexp of PART, a piece of an `M-o' word between slashes."
-  (cadr (orderless-compile part emacs-cpp-go--styles)))
+  (cadr (orderless-compile part (if (equal (regexp-quote part) part)
+                                    emacs-cpp-go--plain-styles
+                                  emacs-cpp-go--styles))))
 
 (defun emacs-cpp-go--word-regexp (word)
   "Return the regexp an `M-o' candidate must match for WORD (D-141).

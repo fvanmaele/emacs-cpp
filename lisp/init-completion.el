@@ -33,8 +33,11 @@
 ;; character that is no letter or digit, a capital after a small letter or digit,
 ;; and the last of several capitals before a small letter (S in HTTPServer).
 
-;; Each word of the input becomes four regexps, built once per input: tier 1, a
-;; word start then the rest; tier 2, the word anywhere, or its letters each at a
+;; Each word of the input becomes its regexps, built once per input: tier 1, a
+;; word start then the rest (in two parts: after a separator, else a capital's word
+;; start, tried only when the candidate holds that capital; one regexp took 2 - 3
+;; times as long, its capital form starting at every small letter,
+;; RESEARCH_go_to_anything 21); tier 2, the word anywhere, or its letters each at a
 ;; word start; tier 3, its letters in order with gaps only over letters and digits,
 ;; so never across a separator (D-141; the prompts' filter is the same rule,
 ;; `emacs-cpp-orderless-in-word').  A candidate only a typed regexp matches is tier
@@ -62,25 +65,29 @@ small letter or digit; as a capital ending a run of capitals before a small lett
               "\\|[[:upper:]]" upper (or next "[[:lower:]]") "\\)"))))
 
 (defun emacs-cpp--match-compile (component)
-  "Return COMPONENT's tier-1, unbroken, initials and in-word regexps
-\(case-sensitive, case-insensitive, case-sensitive, case-insensitive)."
+  "Return COMPONENT's regexps: (START CAPITAL HUMPS UNBROKEN INITIALS IN-WORD).
+Tier 1 is START (case-sensitive: the word at the start or after a separator), or
+HUMPS (case-sensitive: CAPITAL, a string, starting a word inside one), tried
+only when the candidate contains CAPITAL; both nil unless the first character is
+a letter.  Then UNBROKEN (case-insensitive), INITIALS (case-sensitive) and
+IN-WORD (case-insensitive)."
   (let* ((chars (string-to-list component))
          (first (car chars))
          (letter (/= (downcase first) (upcase first)))
          (upper (char-to-string (upcase first)))
          (rest (mapconcat #'emacs-cpp--match-class (cdr chars) "")))
     (list
-     (concat "\\(?:\\(?:\\`\\|[^[:alnum:]]\\)" (emacs-cpp--match-class first) rest
-             (if letter
-                 (concat "\\|[[:lower:][:digit:]]" upper rest
-                         ;; Ending a run of capitals: the next character is small.
-                         "\\|[[:upper:]]" upper
-                         (if (cdr chars)
-                             (concat (emacs-cpp--match-class (cadr chars) t)
-                                     (mapconcat #'emacs-cpp--match-class (cddr chars) ""))
-                           "[[:lower:]]"))
-               "")
-             "\\)")
+     (concat "\\(?:\\`\\|[^[:alnum:]]\\)" (emacs-cpp--match-class first) rest)
+     (and letter upper)
+     (and letter
+          (concat "\\(?:[[:lower:][:digit:]]" upper rest
+                  ;; Ending a run of capitals: the next character is small.
+                  "\\|[[:upper:]]" upper
+                  (if (cdr chars)
+                      (concat (emacs-cpp--match-class (cadr chars) t)
+                              (mapconcat #'emacs-cpp--match-class (cddr chars) ""))
+                    "[[:lower:]]")
+                  "\\)"))
      (regexp-quote component)
      (mapconcat #'emacs-cpp--match-word-start chars ".*")
      (mapconcat (lambda (char) (regexp-quote (char-to-string char))) chars
@@ -95,19 +102,22 @@ INPUT's words, separated by spaces, each match somewhere; the worst decides."
   (unless (equal (car emacs-cpp--match-cache) input)
     (setq emacs-cpp--match-cache
           (cons input (mapcar #'emacs-cpp--match-compile (split-string input " " t)))))
-  (let ((tier 1))
+  ;; `nth', not `pcase-dolist': this file runs interpreted (D-134), where the
+  ;; destructuring cost more than the split regexps saved.
+  (let ((tier 1) (case-fold-search nil))
     (dolist (regexps (cdr emacs-cpp--match-cache) tier)
-      (unless (let ((case-fold-search nil)) (string-match-p (nth 0 regexps) candidate))
+      (unless (or (string-match-p (car regexps) candidate)
+                  (and (nth 1 regexps) (string-search (nth 1 regexps) candidate)
+                       (string-match-p (nth 2 regexps) candidate)))
         (setq tier (max tier
-                        (if (or (let ((case-fold-search t))
-                                  (string-match-p (nth 1 regexps) candidate))
-                                (let ((case-fold-search nil))
-                                  (string-match-p (nth 2 regexps) candidate)))
-                            2
-                          (if (let ((case-fold-search t))
-                                (string-match-p (nth 3 regexps) candidate))
-                              3
-                            4))))))))
+                        (cond ((or (let ((case-fold-search t))
+                                     (string-match-p (nth 3 regexps) candidate))
+                                   (string-match-p (nth 4 regexps) candidate))
+                               2)
+                              ((let ((case-fold-search t))
+                                 (string-match-p (nth 5 regexps) candidate))
+                               3)
+                              (t 4))))))))
 
 (defun emacs-cpp-match-sort-by-tier (input candidates &optional key)
   "Return CANDIDATES sorted by tier for INPUT, in their order within a tier.

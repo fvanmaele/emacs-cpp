@@ -1189,6 +1189,13 @@ scratch directory, not kept.
   of matching, still in ranking.
 - The tier-1 split speeds every prompt's sort (`emacs-cpp-completion-sort`), not only
   `M-o`, for inputs of any length.
+- **Built 2026-10-21** (owner: the split and the lean filter, not the ranking by file
+  name): the tier sort `e` 18.3 -> 7.9 ms, `s` 8.0 -> 5.0, `m` 3.9 -> 2.0; the
+  filter `e` 8.0 -> 5.0 ms. A one-letter key, filter, sort and highlight, about 15 ms
+  where it was about 25. First built with `pcase-dolist` destructuring each word's
+  regexps: `s` then sorted in 14.7 ms, slower than before; `lisp/` runs interpreted
+  (D-134), where the destructuring cost more than the regexps saved. With `nth`, as
+  the code had it, the numbers above.
 
 ## Sources
 - JetBrains, CLion help "Search everywhere":
