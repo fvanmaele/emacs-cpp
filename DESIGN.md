@@ -2252,6 +2252,12 @@ presets, GoogleTest runner.
   Combined: (b) now, with (c) or (a) on the Mac once a port exists or the owner rules
   the Mac. Recommended: (b), after a hand check on one real Python project of the
   owner's (RESEARCH_python_ty 6). Owner rules.
+  Measured 2026-10-21 (owner: "Verify performance of M-. and M-? with pyright vs.
+  ty", RESEARCH_python_ty 4b): ty's first `M-.` 20 - 72 ms against pyright's 300 -
+  617 ms; on SymPy (5600 references) ty's `M-?` 1.7 - 1.9 s cold and 82 ms warm in the
+  server against 9 s and 1.09 s, half the memory; through eglot about 2.9 s of a warm
+  `M-?` there is eglot's own; pyright's first `M-?` through eglot was incomplete (358
+  of 5631) in all three runs, cause UNVERIFIED. D-132 stands until the owner rules.
 - O-71 (RESOLVED 2026-10-20 with D-128: (c); owner: "O-71 (c) agree"; D-125,
   2026-10-20; revisited the same day, owner: "Revisit O-70 and O-71"): a `lisp/*.elc`
   older than its `.el` after an edit loads without a word

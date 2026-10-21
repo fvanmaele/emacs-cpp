@@ -68,6 +68,50 @@ two runs each:
   returns nothing this early. Not measured later in a pyright session.
 - Diagnostics: section 4a.
 
+## 4b. `M-.` and `M-?` on real trees (owner request 2026-10-21)
+Owner: "Verify performance of M-. and M-? with pyright vs. ty". Arch, idle, pyright
+1.1.412, ty 0.0.90. Two trees copied into the session's scratch directory, each a git
+repository: the owner's `linux_theme_setter` (tracked files: 102 `.py`, 20158 lines) and
+SymPy 1.14 from pacman's site-packages (1532 `.py`, 753362 lines). `M-.` from a use in
+another file to the class (`Extension` in `ui/window.py`; `Symbol` in
+`solvers/solvers.py`); `M-?` on the class's definition, `includeDeclaration` true as
+eglot sends it. Two ways, two runs each, the servers alternating:
+- **Server alone:** a small LSP client (as in section 4), so only the server's time
+  counts. Cold is the first request after `didOpen`; warm the median of 5 (`M-.`) or 3
+  (`M-?`) repeats.
+- **Through eglot:** the shipped profile (`init.el` in a temporary HOME, as `make
+  test`; the fswatch backend carries the watches), Emacs 31.1's eglot, timing
+  `xref-backend-definitions` / `xref-backend-references` and, last, the `*xref*`
+  buffer. With `emacs -Q` instead, pyright died at its first request: plain eglot lets
+  it watch libraries outside the project (section 3, D-121).
+
+| Tree, server | `M-.` cold / warm | `M-?` cold / warm, server alone | `M-?` through eglot, cold / warm / buffer | results | RSS |
+|---|---|---|---|---|---|
+| theme, pyright | 301 - 310 / 0.5 ms | 127 - 129 / 11 - 12 ms | 101 - 115 / 31 - 32 / 37 - 40 ms | 11 in 6 files | 177 - 178 MB |
+| theme, ty | 20 - 21 / 0.4 - 0.6 ms | 105 - 126 / 3.1 - 3.2 ms | 124 - 125 / 11 - 14 / 27 - 29 ms | 11 in 6 files | 211 - 215 MB |
+| SymPy, pyright | 468 - 490 / 0.3 ms | 8.9 - 9.0 s / 1087 - 1089 ms | 7.4 - 7.5 s / 7.9 - 8.0 s / 4.1 - 4.4 s | 5631 in 408 files | 2067 - 2079 MB |
+| SymPy, ty | 65 - 72 / 0.4 ms | 1.67 - 1.87 s / 82 ms | 4.6 - 4.8 s / 3.0 s / 3.0 s | 5628 in 408 files | 1148 - 1160 MB |
+
+`M-.` through eglot: pyright 611 - 617 ms cold on theme, 354 - 372 ms on SymPy; ty 25 -
+30 and 67 - 72 ms; warm 2 - 4 ms for both.
+
+- **`M-.`:** ty answers the first jump 5 - 15 times sooner (20 - 72 ms against 300 -
+  617 ms); after that both are instant.
+- **`M-?`, small project:** both about 0.1 s cold; warm, ty about 3 ms, pyright about
+  12 ms; through eglot under 40 ms either way.
+- **`M-?`, 5600 references:** the server alone, ty is 5 times faster cold (1.7 - 1.9 s
+  against 9 s) and 13 times warm (82 ms against 1.09 s), at about half the memory
+  (1.15 against 2.07 GB). Through eglot about 2.9 s of every warm call is Emacs's own:
+  eglot reads the 408 files to make each reference's summary line (ty: 3.0 s with
+  82 ms in the server). So warm `M-?` there is 3.0 s with ty, 4.1 - 8.0 s with pyright.
+- **pyright's first `M-?` was incomplete through eglot:** in each of the three eglot
+  runs on SymPy its first reply held 358 references in 81 files, sent before it logged
+  "Found 1532 source files"; the next replies held all 5631. The client alone got all
+  5631 in both runs. Why the order differs (eglot's `didOpen` of the second file, the
+  watch registrations, timing) was not found: UNVERIFIED. ty's first reply was complete
+  each time.
+- The three references only pyright lists (5631 against 5628) were not looked at.
+
 ## 4a. Why the diagnostics differ on the same file
 The first count (pyright 15, ty 48, 2026-10-20) came from this research's client, which
 did not announce `tagSupport`; pyright then leaves out its "unnecessary" hints, ty
