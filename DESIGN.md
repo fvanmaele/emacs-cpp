@@ -351,6 +351,8 @@ Known defects: none yet (nothing built).
   Run here on a generated project (namespace `geom`, two classes): tidy replaced
   both `0`s with `nullptr`; move created `geom/square.h` / `square.cc`, the project
   built and ran once `square.cc` was in CMakeLists.txt. Built (T-068, 0063).
+- DECIDED D-136 (owner 2026-10-21, O-43 (b3): "O-43 (b3)"): no change-signature
+  tweak for clangd; S12's FAIL stands and MANUAL 8's by-hand route is the way.
 - DECIDED D-097 (owner 2026-10-14, "package + `C-c l N`"; done when agreed):
   `packaging/clang-change-namespace/` holds D-094's fix as a patch file (0001,
   `git format-patch` form) and `build.sh`, one script for both machines: the tool's
@@ -1143,11 +1145,19 @@ each, with a recommendation; the owner agreed to all of them (D-111):
   Implementation (each at the click) and Format Buffer. Shift+click extends the
   selection (Emacs's `mouse-save-then-kill`, as right click did; a quick second
   Shift+click on the same spot cuts). Built (T-066, 0062).
+- DECIDED D-138 (owner 2026-10-21, O-44 (c): "mouse-back -> button-8,
+  mouse-forward -> button-9"): the mouse's back button, Emacs's `<mouse-8>`, runs
+  `xref-go-back`, the forward button, `<mouse-9>`, `xref-go-forward`, on both
+  machines (T-067). The Mac's events are the X11 numbering as the owner gave it;
+  whether the NS build reports the same numbers is UNVERIFIED (hand check, H-15).
 - DECIDED D-096 (owner 2026-10-14, O-47 (c2) asked, then "leave as-is, close"): a
   plain click on a symbol gets no tooltip or child frame; as before, eglot's hover
   for the symbol at point reaches the echo area through eldoc 0.5 s after the click
   (`RESEARCH_mouse.md` 6). Options c1 - c4 closed. O-47 (a), the hover highlight,
   stays open for further research on its performance.
+- DECIDED D-137 (owner 2026-10-21, O-47 (c): "O-47 (c)"): no hover highlight or
+  pointer change; the clicks (D-093) and eldoc's echo-area hover (D-096) stay as
+  they are.
 - DECIDED D-034 (owner 2026-10-08, O-16): built-in `which-key-mode` is on: after any
   prefix (`C-c p`, `C-x C-a`, `C-c l`) its keys appear once you pause 1 s
   (`which-key-idle-delay` default; 3 s since D-071); `C-h` after a prefix still
@@ -1793,6 +1803,9 @@ the form that loads magit is found (S17 run 2, T-113).
   (a different file set at the edges: rg's own ignore rules, hidden files). Not
   changed; a next step if the 5 s matter. Upstream report drafted
   (`docs/upstream/projectile-find-references-file-list.md`), the owner sends it.
+- DECIDED D-135 (owner 2026-10-21, O-38 (e): "O-38 (e)"): no rg.el / ag.el.
+  `C-c p s r` runs `consult-ripgrep` over the project (results in the minibuffer,
+  no wgrep); `C-c p s a` is unbound. No new package.
 - REJECTED: borg (the tool this layout imitates). It assumes the package repository is
   the Emacs directory itself, which contradicts D-003; reconsider if own glue grows past
   about 100 lines. Measured after T-002: `scripts/build-packages.el` has 183 lines of
@@ -2551,8 +2564,9 @@ presets, GoogleTest runner.
   missing prerequisites; (c) (b) plus `make packages` leaving the packages of
   modules that are off out of the load path and autoloads; (d) Doom's flags; (e)
   none. Owner rules.
-- O-47 (OPEN, owner request 2026-10-14: "visual indicator when hovering over a
-  symbol, and/or mouse pointer that changes when pressing a modifier"): findings in
+- O-47 (RESOLVED 2026-10-21 with D-137: (c); was OPEN, owner request 2026-10-14:
+  "visual indicator when hovering over a symbol, and/or mouse pointer that changes
+  when pressing a modifier"): findings in
   `RESEARCH_mouse.md` 5. A modifier alone gives Emacs no event, so no pointer
   change while it is held. Options: (a) hand pointer and highlight on symbols
   under the mouse in eglot buffers, always; (b) (a) plus the server's hover text as
@@ -2590,7 +2604,8 @@ presets, GoogleTest runner.
   yasnippet); collections: yasnippet-snippets on NonGNU ELPA, tempel-collection
   MELPA only. Keys (`RESEARCH_snippets.md` 7): (k1) TAB expands, (k2) a key of its
   own, (k3) from the completion popup, (k4) no TAB at all.
-- O-44 (OPEN, owner request 2026-10-13: "research additional mouse bindings, e.g.
+- O-44 (RESOLVED 2026-10-21 with D-138: (c), buttons 8 / 9; was OPEN, owner request
+  2026-10-13: "research additional mouse bindings, e.g.
   Command+M1 for going to symbol (M-.), compare to Clion key+mouse bindings"):
   findings in `RESEARCH_mouse.md`. Cmd+Click (`s-<mouse-1>`) is unbound; Emacs has
   `xref-find-definitions-at-mouse` / `xref-find-references-at-mouse`, and
@@ -2601,8 +2616,9 @@ presets, GoogleTest runner.
   (a) and (b2) built as D-093; (c) waits for the owner's `C-h k` on a side button.
   Reviewed 2026-10-21 (owner request): (c) waits on the owner's `C-h k` (T-067),
   which had no `TODO_human.md` item; H-16 added. Nothing else open here.
-- O-43 (OPEN, owner request 2026-10-13: "research further C++ refactorings from
-  CLion, e.g. signature change, refactor in project files"): findings in
+- O-43 (RESOLVED 2026-10-21 with D-136: (b3); was OPEN, owner request 2026-10-13:
+  "research further C++ refactorings from CLion, e.g. signature change, refactor in
+  project files"): findings in
   `RESEARCH_refactoring.md`. clangd renames across files from its index but refuses
   beyond 50 files by default (`--rename-file-limit`; measured: 63 files refused,
   with 0 renamed in 224 ms); no change signature, inline, safe delete, pull up / push
@@ -2702,7 +2718,8 @@ presets, GoogleTest runner.
   platforms behaving differently until Arch has it. Against (b): a binary from
   outside both package managers, pre-1.0. Against (c): formatting only. Against
   (d): no navigation beyond ESS's running session.
-- O-38 (OPEN, owner 2026-10-13: "vendor rg.el / ag.el if no downsides"): `C-c p s a`
+- O-38 (RESOLVED 2026-10-21 with D-135: (e); was OPEN, owner 2026-10-13: "vendor
+  rg.el / ag.el if no downsides"): `C-c p s a`
   (projectile-ag) and `C-c p s r` (projectile-ripgrep) stop with "not available":
   they need the Emacs packages ag.el / rg.el, not vendored. Downsides found: rg.el
   2.5.0 also needs wgrep (a third new submodule; transient is built in); Arch has
@@ -3114,6 +3131,10 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-132 | 2026-10-21 | pyright stays; ty when it checks unannotated code (O-72) | 5 | O-72 |
 | D-133 | 2026-10-21 | library indexes by the patched package's clangd-indexer, into indexes/ | 7 | T-118 |
 | D-134 | 2026-10-21 | `lisp/` stays interpreted; D-124, D-125, D-128 not built (O-74) | 11 | O-74 |
+| D-135 | 2026-10-21 | `C-c p s r` is consult-ripgrep; no rg.el / ag.el | 12 | O-38 |
+| D-136 | 2026-10-21 | no change-signature tweak; MANUAL 8 by hand (S12 FAIL) | 7 | O-43 |
+| D-137 | 2026-10-21 | no hover highlight or pointer change | 10 | O-47 |
+| D-138 | 2026-10-21 | mouse buttons 8 / 9: xref back / forward | 10 | O-44 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |

@@ -112,7 +112,7 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
 | T-064 | done 0060 | S | `M-o` previews after a pause | D-088 | terminal check |
 | T-065 | done 0061 | M | LaTeX: AUCTeX, texlab, `C-c l b` | D-090, D-091 | Mac hand-on |
 | T-066 | done 0062 | S | navigation clicks, right-click menu | D-093 | tests, clangd |
-| T-067 | open | S | side buttons: back / forward | O-44 (c) | owner's `C-h k` |
+| T-067 | open | S | side buttons: back / forward | O-44 (c) | D-138 |
 | T-068 | done 0063 | S | clang-tidy fixes, clang-move | D-094 | generated project |
 | T-069 | done 0066 | L | spike S12: change signature | O-43 (b) | FAIL; to owner |
 | T-070 | open | S | send the clang-change-namespace report | D-094 | owner sends it |
@@ -767,6 +767,7 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
   (`xref-go-back` / `xref-go-forward`). Owner first: in the Mac's Emacs, `C-h k` then
   the back button, and the forward button; report the event names (or that nothing
   arrives). Done when: bound to the events reported, test.
+  Owner 2026-10-21: "mouse-back -> button-8, mouse-forward -> button-9" (D-138).
 - T-066 (opened 2026-10-13, D-093, O-44 (a), (b2)): navigation clicks and the
   right-click menu. Done when: Cmd+Click (Mac) / Ctrl+Click (Arch) definition, or
   references on the definition; Opt / Alt implementations; Shift type; right click
