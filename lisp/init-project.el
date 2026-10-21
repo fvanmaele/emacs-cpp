@@ -31,6 +31,10 @@ Signal an error naming the executable otherwise (D-081)."
   :hook (after-init . projectile-mode)
   :config
   (keymap-set projectile-mode-map "C-c p" #'projectile-command-map)
+  ;; `C-c p s r' and `C-c p s a' want rg.el / ag.el, which are not vendored (D-135):
+  ;; ripgrep over the project through consult instead (as `M-s r'), ag not at all.
+  (keymap-set projectile-command-map "s r" #'consult-ripgrep)
+  (keymap-unset projectile-command-map "s a" t)
   ;; C-c p c o / c c / c t configure, build and test the active CMake preset from any
   ;; buffer of the project (D-035); projectile asks again on every run, so a preset
   ;; switch (C-c l P) takes effect at once.
