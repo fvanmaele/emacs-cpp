@@ -11,8 +11,8 @@ tasks step by step: `docs/MANUAL.md`.
 |---|---|
 | `M-.` | go to definition (on a name or an `#include` line) |
 | `M-?` | find usages (references) |
-| `M-,` | go back to where you were before `M-.` / `M-?` |
-| `C-M-,` | go forward again |
+| `M-,` | go back to where you were before `M-.` / `M-?`; also the mouse's back button |
+| `C-M-,` | go forward again; also the mouse's forward button |
 | Cmd+click (Mac) / Super+click (Arch) | definition of the symbol clicked; on its definition: its usages |
 | Cmd+Opt+click / Super+Alt+click | implementations of the symbol clicked |
 | Cmd+Shift+click / Super+Shift+click | the type of the symbol clicked |
@@ -85,7 +85,7 @@ A clangd completion of a function brings its parameters as fields; `TAB` moves o
 | `C-x p b` | buffers of this project |
 | `C-c p f` | find a file in the project |
 | `C-c p d` | find a directory in the project; `C-c p e`: recent project files |
-| `M-s r` | ripgrep the project (live results) |
+| `M-s r` | ripgrep the project (live results); also `C-c p s r` |
 | `M-s G` | git grep; `M-s g`: grep |
 | `M-s d` | find files by name (fd) |
 | `M-s l` | lines of this buffer; `M-s L`: of all buffers |

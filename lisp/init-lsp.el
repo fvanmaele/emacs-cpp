@@ -182,6 +182,11 @@ click is on its definition, as CLion's Cmd+Click (D-093)."
   (keymap-global-unset (emacs-cpp-lsp--mouse-key modifiers 'down-mouse-1) t)
   (keymap-global-set (emacs-cpp-lsp--mouse-key modifiers 'mouse-1) command))
 
+;; The mouse's back and forward buttons go back and forward along M-. 's jumps, as in
+;; CLion (D-138); a mode binding them itself (Info, help) keeps its own.
+(keymap-global-set "<mouse-8>" #'xref-go-back)
+(keymap-global-set "<mouse-9>" #'xref-go-forward)
+
 (defun emacs-cpp-lsp-context-menu (menu click)
   "Add the language server's commands for the spot CLICKed to MENU (D-093).
 Only in a buffer eglot manages; each entry first moves point to the click."
