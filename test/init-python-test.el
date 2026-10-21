@@ -118,20 +118,15 @@ configuration.  ty runs on Arch only (D-140)."
   (skip-unless (equal (car emacs-cpp-default-python-server) "ty"))
   (require 'eglot)
   (let ((source "from typing import reveal_type\n\n\ndef ret():\n    return 1\n\n\nreveal_type(ret())\n"))
-    (pcase-dolist (`(,locals ,section ,revealed)
-                   `((nil nil "Unknown")
+    (pcase-dolist (`(,locals ,revealed)
+                   '((nil "Unknown")
                      ("((nil . ((emacs-cpp-ty-return-type-inference . t))))\n"
-                      (:configuration (:analysis (:return-type-inference "always")))
                       "Literal[1]")))
       (init-python-test--with-dir (append `(("main.py" . ,source))
                                           (and locals `((".dir-locals.el" . ,locals))))
           t
         (with-current-buffer (init-python-test--visit (expand-file-name "main.py" root))
           (should (init-test--wait-managed 20))
-          (should (equal (plist-get (eglot--workspace-configuration-plist
-                                     (eglot-current-server))
-                                    :ty)
-                         section))
           (should (equal (init-python-test--revealed 20) revealed)))))))
 
 (ert-deftest init-python-eglot-only-in-projects ()

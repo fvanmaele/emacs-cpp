@@ -25,7 +25,7 @@ MODES and CONTACT as in `eglot-server-programs'; the latest call wins for a mode
 eglot calls it in a buffer with the project's directory variables applied, so a
 section given as a function sees them (D-142); a function returning nil leaves
 its section out."
-  (cl-loop for (section . settings) in (reverse emacs-cpp-lsp--settings)
+  (cl-loop for (section . settings) in emacs-cpp-lsp--settings
            for value = (if (functionp settings) (funcall settings) settings)
            when value append (list section value)))
 
@@ -36,10 +36,7 @@ none), called each time a server asks, with the project's directory variables
 in effect (D-142).  Through the default `eglot-workspace-configuration',
 `emacs-cpp-lsp-workspace-configuration'; a project's .dir-locals.el can still
 set its own."
-  (setf (alist-get section emacs-cpp-lsp--settings) settings)
-  (with-eval-after-load 'eglot
-    (setq-default eglot-workspace-configuration
-                  #'emacs-cpp-lsp-workspace-configuration)))
+  (setf (alist-get section emacs-cpp-lsp--settings) settings))
 
 (defun emacs-cpp-fswatch-program-check (program)
   "Return PROGRAM when it is the patched fswatch (D-109); signal otherwise (D-127).
@@ -69,6 +66,9 @@ makepkg -si; macOS: sh packaging/fswatch-no-loss/build-macos.sh), D-109, D-127" 
   ;; At startup, not when the first server starts (principle 1).
   (emacs-cpp-fswatch-program-check emacs-cpp-default-fswatch-program)
   :config
+  ;; The sections of `emacs-cpp-lsp-settings', computed where eglot applies the
+  ;; project's directory variables (D-142).
+  (setq-default eglot-workspace-configuration #'emacs-cpp-lsp-workspace-configuration)
   ;; RET indents by Emacs's rules (electric indentation, D-062's rules), not by the
   ;; server: on each newline eglot would ask it to format, and clangd then also
   ;; rewrites the line just ended (hand alignment collapsed, `{' moved to its own
