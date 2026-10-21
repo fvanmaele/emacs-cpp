@@ -20,7 +20,8 @@
 
 (ert-deftest init-lsp-mouse-bindings ()
   "D-093: Cmd (Mac) / Super (Arch) clicks; with Opt / Alt implementations, with
-Shift the type.  Ctrl's clicks stay Emacs's (buffer menu, rectangle drag)."
+Shift the type.  Ctrl's clicks stay Emacs's (buffer menu, rectangle drag).
+D-138: buttons 8 / 9 back and forward."
   (init-test--load)
   (should (eq emacs-cpp-default-mouse-modifier 'super))
   (pcase-dolist (`(,keys . ,command)
@@ -30,6 +31,9 @@ Shift the type.  Ctrl's clicks stay Emacs's (buffer menu, rectangle drag)."
     (should (eq (keymap-lookup global-map keys) command))
     (should-not (keymap-lookup global-map
                                (replace-regexp-in-string "<mouse-1>" "<down-mouse-1>" keys))))
+  ;; D-138: the side buttons go back and forward.
+  (should (eq (keymap-lookup global-map "<mouse-8>") #'xref-go-back))
+  (should (eq (keymap-lookup global-map "<mouse-9>") #'xref-go-forward))
   (should (eq (keymap-lookup global-map "C-<down-mouse-1>") #'mouse-buffer-menu))
   (should (eq (keymap-lookup global-map "C-M-<down-mouse-1>") #'mouse-drag-region-rectangle)))
 

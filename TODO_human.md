@@ -42,8 +42,11 @@ service's plan) is not an item.
   4. On the Mac, idle machine: `S18_RUNS=shipped:fake,shipped:pyright sh
      spikes/s18-fswatch-backend/run.sh 20000 </dev/null`
   5. On the Mac: `rm -rf /tmp/s18-tree`
-  Report back: the last line of `make test`, and paste
-  `spikes/s18-fswatch-backend/s18.log`.
+  6. On the Mac, in Emacs (graphical): in a C++ file `M-.` on a name, then the
+     mouse's back button, then its forward button (D-138).
+  Report back: the last line of `make test`, paste
+  `spikes/s18-fswatch-backend/s18.log`, and whether step 6 went back and forward
+  (if not, `C-h k` and the button: the event name shown).
 
 ## Parked
 - **H-8** (2026-10-20, 0084 review:B-3 to review:B-5, deferred; T-114) The upstream
