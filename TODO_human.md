@@ -39,8 +39,17 @@ service's plan) is not an item.
   1. On the Mac: quit Emacs and start it again (graphical), so it loads this commit.
   2. In Emacs: open a C++ file, `M-.` on a name, then press the mouse's back button,
      then its forward button.
+  3. On Arch: `cd ~/source/repos/emacs-cpp && git push` (the session does not push).
+  4. On the Mac: `cd ~/source/repos/emacs-cpp && git pull --ff-only && sh
+     packaging/fswatch-no-loss/check.sh ~/opt/fswatch-no-loss/bin/fswatch </dev/null`
+     (its check 5 changed on Arch, 2026-10-21; the binary stays as built).
   Report back: whether step 2 went back and forward (if not, `C-h k` and the button:
-  the event name shown).
+  the event name shown); the last line of step 4.
+- **H-17** (2026-10-21, D-144, T-125) Install fswatch pkgrel 3 on Arch (a system
+  action). 0005 adds no code on Linux, so nothing changes in use; this keeps the
+  installed package at the repository's pkgrel. The session built and checked it.
+  1. `cd ~/source/repos/emacs-cpp/packaging/fswatch-no-loss && makepkg -si`
+  Report back: the last line of `makepkg`'s check ("check: all passed").
 
 - **H-16** (2026-10-21, O-75, D-142) Post the return type inference feedback to ty
   (outward, so yours); the draft is `docs/upstream/ty-return-type-inference-feedback.md`.
