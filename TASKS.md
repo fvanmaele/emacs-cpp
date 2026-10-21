@@ -128,6 +128,7 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
 | T-080 | done 0071 | S | `make test` in a temporary HOME | D-104 | real home unchanged |
 | T-120 | done 0095 | S | Python server per platform: ty on Arch | D-140 | 146 tests |
 | T-121 | deferred | S | ty on the Mac: install and test | D-140 (c) | owner's call |
+| T-122 | proposed | S | gaps inside a word; `M-o` matches file names | D-141 | done when to agree |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -309,6 +310,23 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
      nothing changes but the defaults line).
   Built 2026-10-21 (0095): items 1 - 4 met on Arch; 146 tests; startup 0.182 s
   against 0.183 s. Done.
+- T-122 (opened 2026-10-21, D-141): a match's gaps stay inside a word; `M-o`'s words
+  match the file name. Tier: 2. PROPOSED done when (owner to agree):
+  1. `lisp/init-completion.el`: `orderless-flex` replaced in
+     `orderless-matching-styles` by `emacs-cpp-orderless-in-word` (NEW): the letters
+     in order, a gap only over letters and digits (never a separator); tier 3 of
+     `emacs-cpp-match-tier` is that match, no longer "anything else".
+  2. `lisp/init-go-to-anything.el`: `emacs-cpp-go--highlight-first` compiles each
+     word so it matches within the last path component (`/` never crossed); a word
+     with `/` matches the part after its last `/` in the file name and the parts
+     before in the directories, in order. Symbols are untouched (clangd matches them).
+  3. Tests (ERT): `ect` misses
+     `~/source/repos/RMO-gross-pitaevskii/include/rmo/gpe/metric.h` in `M-o` and in
+     `C-x b`-style prompts, `metric` and `gpe/met` find it, `gpe` alone does not;
+     D-120's 15 tier rows still hold; `C-x C-f` keeps partial-completion.
+  4. Speed: a key's filtering of RMO's file list (projectile's, all files) timed in
+     batch before and after, within S11's 100 ms for a key's first screen; `make
+     test` passes on Arch; startup within 10 ms of today.
 - T-121 (opened 2026-10-21, D-140 (c), deferred by the owner): ty on the Mac. Install
   (a local port, RESEARCH_python_ty 7, or Astral's binary), then the measurements of
   RESEARCH_python_ty 4b there and round 1's user site-packages case. Steps written
