@@ -92,7 +92,7 @@ T-118 built (0092): `--index-file` from `.dir-locals.el`, `make library-index`
 T-119 built (0094): eglot's watches through the patched fswatch on both machines,
 required at startup (D-127); S18 run 5 `shipped` PASS on Arch, Mac run H-15.
 Python: ty on Arch, pyright on the Mac (D-140, T-120, 0095); ty on the Mac deferred
-(T-121).
+(T-121). Matches: gaps inside a word, `M-o` words match file names (D-141, 0096).
 
 ## Self-test (before the first edit of a session)
 Answer from the docs, not from memory; a miss means re-read, not edit.

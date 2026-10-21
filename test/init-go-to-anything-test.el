@@ -453,6 +453,57 @@ filter of the static sources; outside it too, since D-120 ignores case everywher
     (should (member "Vector.cc" (nth 0 inside)))
     (should (member "VectorTools.cc" (nth 1 inside)))))
 
+(ert-deftest init-go-to-anything-file-names ()
+  "D-141: inside `M-o' a word matches the file name, as CLion's Go to File, and
+gaps stay inside a word; a word with `/' searches the directories too.  The
+owner's report: `ect' matched ~/sourc_e_/repos/.../in_c_lude/rmo/gpe/me_t_ric.h."
+  (init-test--load)
+  (require 'consult)
+  (let* ((path "~/source/repos/RMO-gross-pitaevskii/include/rmo/gpe/metric.h")
+         (candidates (list path "include/rmo/gpe/metric.h" "src/vector.cc" "*scratch*"))
+         (filter (lambda (input)
+                   (let (shown)
+                     (funcall (funcall (consult--async-static candidates)
+                                       (lambda (action)
+                                         (when (consp action) (setq shown action))
+                                         nil))
+                              input)
+                     (mapcar #'substring-no-properties shown))))
+         inside)
+    (init-go-to-anything-test--with-project
+      (cl-letf (((symbol-function 'consult--multi)
+                 (lambda (&rest _)
+                   (setq inside (mapcar (lambda (input) (cons input (funcall filter input)))
+                                        '("ect" "metric" "met" "gpe" "gpe/met" "rmo/gpe/"
+                                          "include/" "vec" "scr")))
+                   nil)))
+        (emacs-cpp-go-to-anything)))
+    ;; vector.cc has `ect' unbroken; the paths have it only spread over words.
+    (should (equal (alist-get "ect" inside nil nil #'equal) '("src/vector.cc")))
+    (should-not (alist-get "gpe" inside nil nil #'equal))
+    (dolist (input '("metric" "met" "gpe/met" "rmo/gpe/" "include/"))
+      (should (equal (list input (alist-get input inside nil nil #'equal))
+                     (list input (list path "include/rmo/gpe/metric.h")))))
+    (should (equal (alist-get "vec" inside nil nil #'equal) '("src/vector.cc")))
+    (should (equal (alist-get "scr" inside nil nil #'equal) '("*scratch*")))
+    ;; The name's letters are highlighted, not the directories'.
+    (pcase-let ((`(,_ . ,highlight) (funcall (emacs-cpp-go--highlight-first 10) "met" 'emacs t)))
+      (let ((shown (funcall highlight (copy-sequence path))))
+        (should-not (text-property-not-all 0 (string-search "metric" shown) 'face nil shown))
+        (should (get-text-property (string-search "metric" shown) 'face shown))))))
+
+(ert-deftest init-go-to-anything-gaps-inside-a-word ()
+  "D-141: every orderless prompt (`C-x b', `M-x', `C-c p f') keeps a match's gaps
+inside a word: `ect' no longer spans the path's words, `eto' still finds Vector.cc."
+  (init-test--load)
+  (let ((files '("~/source/repos/RMO-gross-pitaevskii/include/rmo/gpe/metric.h"
+                 "Vector.cc" "selector.h")))
+    (let ((found (completion-all-completions "ect" files nil 3)))
+      (setcdr (last found) nil)          ; drop the base size ending the list
+      (should (equal (sort (mapcar #'substring-no-properties found) #'string<)
+                     '("Vector.cc" "selector.h"))))
+    (should (member "Vector.cc" (completion-all-completions "eto" files nil 3)))))
+
 (ert-deftest init-go-to-anything-sort-by-source-and-tier ()
   "D-120: `M-o' sorts by tier within each source, the sources in their order;
 symbols keep their server's order."

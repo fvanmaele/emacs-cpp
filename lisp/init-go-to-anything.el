@@ -20,22 +20,82 @@
 (require 'init-project)
 (require 'init-lsp)
 
+(defun emacs-cpp-go--initialism (component)
+  "Match COMPONENT's characters at word starts, in order, never across `/'.
+`orderless-initialism' with its gaps kept in one path component (D-141)."
+  (orderless--separated-by '(zero-or-more (not (any "/")))
+    (cl-loop for char across component collect `(seq word-start ,char))))
+
+(defconst emacs-cpp-go--styles
+  '(orderless-literal orderless-regexp emacs-cpp-go--initialism
+    emacs-cpp-orderless-in-word)
+  "The orderless styles of a part of an `M-o' word: the prompts' (D-120, D-141),
+the initials kept in one path component.")
+
+(defun emacs-cpp-go--part-regexp (part)
+  "Return the regexp of PART, a piece of an `M-o' word between slashes."
+  (cadr (orderless-compile part emacs-cpp-go--styles)))
+
+(defun emacs-cpp-go--word-regexp (word)
+  "Return the regexp an `M-o' candidate must match for WORD (D-141).
+As CLion's Go to File: a word without `/' matches within the last path
+component, the file name; with `/', the part after the last `/' matches in the
+file name and the parts before in the directories, in order.  Buffers,
+bookmarks and commands have no `/', so the whole name is the last component.
+The match of the word itself is group 99, for highlighting."
+  (if (not (string-search "/" word))
+      (concat "\\(?99:" (emacs-cpp-go--part-regexp word) "\\)[^/]*\\'")
+    (let* ((parts (split-string word "/"))
+           (name (car (last parts)))
+           (directories (delete "" (butlast parts))))
+      ;; Each directory part, then the rest of its component; `.*/' between them
+      ;; and before the name (nested `\(?:[^/]*/\)*' backtracked: 103 ms a key).
+      (concat (mapconcat (lambda (directory)
+                           (concat "\\(?:" (emacs-cpp-go--part-regexp directory)
+                                   "\\)[^/]*/"))
+                         directories "\\(?:.*/\\)?")
+              "\\(?:.*/\\)?[^/]*"
+              (if (string-empty-p name)
+                  ""
+                (concat "\\(?99:" (emacs-cpp-go--part-regexp name) "\\)[^/]*"))
+              "\\'"))))
+
+(defun emacs-cpp-go--highlight (regexps string)
+  "Highlight in STRING each of REGEXPS' match: its letters, else group 99.
+Case is ignored, as `M-o' ignores it (D-105)."
+  (let ((case-fold-search t)
+        (faces (length orderless-match-faces)))
+    (cl-loop for regexp in regexps and i from 0
+             when (string-match regexp string) do
+             (let ((face (aref orderless-match-faces (mod i faces)))
+                   (letters (cl-loop for group from 1 below 99
+                                     when (match-beginning group)
+                                     collect (cons (match-beginning group)
+                                                   (match-end group)))))
+               (if letters
+                   (pcase-dolist (`(,start . ,end) letters)
+                     (add-face-text-property start end face nil string))
+                 (when (match-beginning 99)
+                   (add-face-text-property (match-beginning 99) (match-end 99) face
+                                           nil string)))))
+    string))
+
 (defun emacs-cpp-go--highlight-first (limit)
   "Return a consult regexp compiler that highlights only LIMIT strings per input.
-The input is compiled as orderless compiles it, so buffers, files and bookmarks
-match as every other prompt does (D-120: letters in order, initials, literal,
-regexp); consult's own compiler took each word as a regexp.  Highlighting every
-hit of a one-letter input is most of the filter's time (S11); the first hits are
-the ones on screen."
-  (lambda (input type ignore-case)
-    (let ((regexps (cdr (orderless-compile input)))
+Each word of the input is compiled by `emacs-cpp-go--word-regexp', so buffers,
+files and bookmarks match as every other prompt does (D-120: letters in order,
+initials, literal, regexp), files by their name (D-141); consult's own compiler
+took each word as a regexp.  Highlighting every hit of a one-letter input is most
+of the filter's time (S11); the first hits are the ones on screen."
+  (lambda (input type _ignore-case)
+    (let ((regexps (mapcar #'emacs-cpp-go--word-regexp (split-string input " " t)))
           (count 0))
       (cons (mapcar (lambda (regexp) (consult--convert-regexp regexp type)) regexps)
             (and regexps
                  (lambda (string)
                    (setq count (1+ count))
                    (when (<= count limit)
-                     (orderless--highlight regexps ignore-case string))))))))
+                     (emacs-cpp-go--highlight regexps string))))))))
 
 (defun emacs-cpp-go--sort (candidates)
   "Sort `M-o''s CANDIDATES by source, then by tier (D-120), stably.

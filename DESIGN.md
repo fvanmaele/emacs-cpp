@@ -581,7 +581,8 @@ Known defects: none yet (nothing built).
   name; a word with `/` matches its part after the last `/` in the file name and
   its part before in the directories. Measured on RMO's 437 tracked files (Python
   stand-in for the rules): `met` 420 recent files today, 9 then; `gpe` 437 and 167
-  today, 1 by name (`gpe/` for the directory). Build: T-122.
+  today, 1 by name (`gpe/` for the directory). Built (T-122, 0096): every input
+  under 23 ms a key on RMO's 4402 files; `make test` 149.
 - SUPERSEDED by D-134 (2026-10-21; the function pays only compiled, S16): DECIDED D-124
   (owner 2026-10-20, review 0084 section 3: "C, spike first"): D-120's tiers become a
   function, `emacs-cpp-word-start-p` (the word-start rule in one place) and a matcher that
