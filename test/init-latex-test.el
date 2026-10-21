@@ -43,7 +43,8 @@
   "D-090: texlab shows the line in the platform's viewer after a build."
   (init-test--load)
   (require 'eglot)
-  (let ((texlab (plist-get (default-value 'eglot-workspace-configuration) :texlab)))
+  (let ((texlab (plist-get (funcall (default-value 'eglot-workspace-configuration) nil)
+                           :texlab)))
     (should (eq (plist-get (plist-get texlab :build) :forwardSearchAfter) t))
     (should (equal (plist-get (plist-get texlab :forwardSearch) :executable)
                    (car emacs-cpp-default-pdf-viewer)))

@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0097 | 2026-10-21 | T-123: ty's return type inference, opt-in per project | T-123 | D-142 |
 | 0096 | 2026-10-21 | T-122: gaps inside a word; `M-o` matches file names | T-122 | D-141 |
 | 0095 | 2026-10-21 | T-120: the Python server per platform, ty on Arch | T-120 | D-140 |
 | 0094 | 2026-10-21 | T-119: eglot's file watches through the patched fswatch | T-119 | D-127, D-121 |

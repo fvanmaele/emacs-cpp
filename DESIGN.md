@@ -247,13 +247,15 @@ Observed on the owner's Mac, 2026-10-09 (D-050):
   in a temporary buffer with the project's directory variables applied
   (`eglot--workspace-configuration-plist`). Grounds: RESEARCH_python_ty 8 (on SymPy
   the first `M-?` 12 times as long, 7 times the memory). pyright (the Mac, D-140)
-  always infers return types; the switch does nothing there. Build: T-123.
+  always infers return types; the switch does nothing there. Built (T-123, 0097).
 - DECIDED D-143 (owner 2026-10-21, O-75 (r2): "Draft the flymake backend + ruff
   format changes"): ruff without its language server: a flymake backend running
   `ruff check --output-format json --stdin-filename FILE -` beside eglot's, and
   `C-c l f` formatting by `ruff format --stdin-filename FILE [--range ...] -`, as
   latexindent does for LaTeX (D-101). ruff from pacman (`extra/ruff`) and MacPorts
-  (`ruff`), no new package source. Build: T-124 (done when to agree).
+  (`ruff`), no new package source. Build: T-124. DEFERRED 2026-10-21 (owner: "until
+  performance with ty alone becomes an actual problem, due to additional maintenance
+  overhead from ignore lists").
 - DECIDED D-055 (owner 2026-10-09, T-024): defaults that differ by platform live in one
   file per platform (NEW, `lisp/defaults-<platform>.el`), loaded by `init.el` for
   `system-type` before the modules; they hold choices only, e.g. the debugger offered

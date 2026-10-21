@@ -17,14 +17,29 @@ MODES and CONTACT as in `eglot-server-programs'; the latest call wins for a mode
   (with-eval-after-load 'eglot
     (add-to-list 'eglot-server-programs (cons modes contact))))
 
+(defvar emacs-cpp-lsp--settings nil
+  "The sections `emacs-cpp-lsp-settings' was given, as (SECTION . SETTINGS).")
+
+(defun emacs-cpp-lsp-workspace-configuration (_server)
+  "Return the settings of every section, a plist, for `eglot-workspace-configuration'.
+eglot calls it in a buffer with the project's directory variables applied, so a
+section given as a function sees them (D-142); a function returning nil leaves
+its section out."
+  (cl-loop for (section . settings) in (reverse emacs-cpp-lsp--settings)
+           for value = (if (functionp settings) (funcall settings) settings)
+           when value append (list section value)))
+
 (defun emacs-cpp-lsp-settings (section settings)
-  "Answer the servers that ask for SECTION with the plist SETTINGS (D-091).
-Through the default `eglot-workspace-configuration'; a project's .dir-locals.el
-can still set its own."
+  "Answer the servers that ask for SECTION with SETTINGS (D-091).
+SETTINGS is a plist, or a function of no arguments returning one (or nil for
+none), called each time a server asks, with the project's directory variables
+in effect (D-142).  Through the default `eglot-workspace-configuration',
+`emacs-cpp-lsp-workspace-configuration'; a project's .dir-locals.el can still
+set its own."
+  (setf (alist-get section emacs-cpp-lsp--settings) settings)
   (with-eval-after-load 'eglot
     (setq-default eglot-workspace-configuration
-                  (plist-put (copy-sequence (default-value 'eglot-workspace-configuration))
-                             section settings))))
+                  #'emacs-cpp-lsp-workspace-configuration)))
 
 (defun emacs-cpp-fswatch-program-check (program)
   "Return PROGRAM when it is the patched fswatch (D-109); signal otherwise (D-127).

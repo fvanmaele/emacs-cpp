@@ -28,6 +28,24 @@ with `%s' (D-140)"
          (car emacs-cpp-default-python-server) emacs-cpp-default-python-server-install))
 (emacs-cpp-lsp-server '(python-ts-mode python-mode) emacs-cpp-default-python-server)
 
+(defcustom emacs-cpp-ty-return-type-inference nil
+  "Non-nil: ty infers the return types of functions without annotations (D-142).
+ty's `analysis.return-type-inference' \"always\", off by ty's default and here:
+on a large unannotated project the first `M-?' took 12 times as long and the
+server 7 times the memory (SymPy, RESEARCH_python_ty 8).  Meant for a project's
+.dir-locals.el, ((nil . ((emacs-cpp-ty-return-type-inference . t)))); it
+applies when ty starts, or after `M-x eglot-reconnect'.  pyright (the Mac,
+D-140) infers return types anyway and does not read it."
+  :type 'boolean
+  :safe #'booleanp
+  :group 'tools)
+
+;; Sent as ty's inline configuration, which overrides its configuration files.
+(emacs-cpp-lsp-settings
+ :ty (lambda ()
+       (and emacs-cpp-ty-return-type-inference
+            '(:configuration (:analysis (:return-type-inference "always"))))))
+
 (defun emacs-cpp-python-eglot-ensure ()
   "Start eglot for a Python file of a project; not for a loose file.
 A project is what projectile finds: a git repository, else a directory with
