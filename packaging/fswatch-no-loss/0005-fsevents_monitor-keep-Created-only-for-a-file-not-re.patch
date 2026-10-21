@@ -1,0 +1,82 @@
+From fb9f8494d610e2100bb6e0c5f4d7a7ee5cc2b8f5 Mon Sep 17 00:00:00 2001
+From: Ferdinand Vanmaele <ferdinand-joseph.vanmaele@uni-a.de>
+Date: Wed, 21 Oct 2026 13:00:27 +0200
+Subject: [PATCH] fsevents_monitor: keep Created only for a file not reported
+ Created yet
+
+FSEvents keeps Created on a recently created file: every later change of
+it was reported Created,...,Updated, also for a file created before the
+stream started.  Created is now kept only for a file born after the
+stream's start whose inode was not reported Created yet; the inodes are
+kept from then until the file is reported removed, so a file created
+again in its place, a new inode, is reported Created.  Files born before
+the start take no memory.
+---
+ .../src/libfswatch/c++/fsevents_monitor.cpp   | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
+
+diff --git a/libfswatch/src/libfswatch/c++/fsevents_monitor.cpp b/libfswatch/src/libfswatch/c++/fsevents_monitor.cpp
+index 546cf87..5afb10b 100644
+--- a/libfswatch/src/libfswatch/c++/fsevents_monitor.cpp
++++ b/libfswatch/src/libfswatch/c++/fsevents_monitor.cpp
+@@ -25,6 +25,8 @@
+ #include <mutex>
+ #include <algorithm>
+ #include <sys/stat.h>
++#include <ctime>
++#include <unordered_set>
+ 
+ namespace fsw
+ {
+@@ -49,6 +51,9 @@ namespace fsw
+ 
+     FSEventStreamRef stream = nullptr;
+     CFArrayRef paths_to_watch = nullptr;
++    // When the stream started; the inodes of files reported Created since.
++    struct timespec started = {};
++    std::unordered_set<unsigned long> created_reported;
+ #ifdef HAVE_MACOS_GE_10_6
+     dispatch_queue_t fsevents_queue = nullptr;
+ #else
+@@ -148,6 +153,7 @@ namespace fsw
+ #endif
+ 
+     FSW_ELOG(_("Starting event stream...\n"));
++    clock_gettime(CLOCK_REALTIME, &pImpl->started);
+     FSEventStreamStart(pImpl->stream);
+ 
+     run_loop_lock.unlock();
+@@ -234,6 +240,7 @@ namespace fsw
+ 
+     time_t curr_time;
+     time(&curr_time);
++    auto &created_reported = fse_monitor->pImpl->created_reported;
+ 
+     for (size_t i = 0; i < numEvents; ++i)
+     {
+@@ -302,10 +309,22 @@ namespace fsw
+         drop(fsw_event_flag::Created);
+         drop(fsw_event_flag::Updated);
+         if (!has(fsw_event_flag::Removed)) flags.push_back(fsw_event_flag::Removed);
++        created_reported.erase(inode);
+       }
+       else
+       {
+         drop(fsw_event_flag::Removed);
++        // Created stays on a recent file's later events too: keep it only for
++        // a file born after the stream's start and not reported Created yet.
++        if (has(fsw_event_flag::Created) && inode != 0)
++        {
++          const struct timespec &birth = st.st_birthtimespec;
++          const struct timespec &started = fse_monitor->pImpl->started;
++          bool born_before = birth.tv_sec < started.tv_sec
++            || (birth.tv_sec == started.tv_sec && birth.tv_nsec <= started.tv_nsec);
++          if (born_before || !created_reported.insert(inode).second)
++            drop(fsw_event_flag::Created);
++        }
+       }
+ 
+       events.emplace_back(std::string(path_buffer.data()),
+-- 
+2.56.0
+

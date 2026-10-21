@@ -431,8 +431,20 @@ starts with your last input. `lldb-preset` does the same with lldb: on macOS, wh
 there is no gdb, use it in place of `gdb-preset`.
 
 Python files work the same way with ty on Arch and pyright on the Mac (navigation,
-rename, `C-c l` keys);
-`C-x C-a d debugpy RET` debugs the current file.
+rename, `C-c l` keys); `C-x C-a d debugpy RET` debugs the current file.
+
+ty leaves the return type of a function without an annotation unknown, so `M-.` and
+the diagnostics know less about what it returns than pyright does. A project can turn
+ty's return type inference on in its `.dir-locals.el`:
+
+```elisp
+((nil . ((emacs-cpp-ty-return-type-inference . t))))
+```
+
+Then `M-x eglot-reconnect` (or open the project anew). It is off by default because
+on a large project without annotations it slows ty down a lot (SymPy: the first
+`M-?` 22 s instead of 2 s, 8 GB of memory instead of 1). pyright on the Mac infers
+return types anyway and ignores the setting.
 
 ## 11. Git
 | Key | Does |
