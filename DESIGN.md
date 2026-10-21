@@ -571,6 +571,17 @@ Known defects: none yet (nothing built).
   89 ms for 35000, Arch); `make test` 132. S11 run 6 (owner, RMO, 4286 files):
   opening 88.6 - 101.0 ms, each key's first screen at most 87.8 ms, within 150 / 100
   ms (run 3: 63 - 74 / 29.5 ms on 2673 files).
+- DECIDED D-141 (owner 2026-10-21, after "\"ect\" matches ~/sourc\"e\"/repos/
+  RMO-gross-pitaevskii/in\"c\"lude/rmo/gpe/me\"t\"ric.h": option (c)): (a) the filter
+  matches D-120's definition: orderless's `orderless-flex` (gaps anywhere, across
+  words and `/`) gives way to letters in order with gaps only inside one word, in
+  every orderless prompt; (b) in `M-o`, as CLion's Go to File
+  (`GotoFileItemProvider.processItemsForPattern`: the input split at its last `/`),
+  a word without `/` must match within a candidate's last path component, the file
+  name; a word with `/` matches its part after the last `/` in the file name and
+  its part before in the directories. Measured on RMO's 437 tracked files (Python
+  stand-in for the rules): `met` 420 recent files today, 9 then; `gpe` 437 and 167
+  today, 1 by name (`gpe/` for the directory). Build: T-122.
 - SUPERSEDED by D-134 (2026-10-21; the function pays only compiled, S16): DECIDED D-124
   (owner 2026-10-20, review 0084 section 3: "C, spike first"): D-120's tiers become a
   function, `emacs-cpp-word-start-p` (the word-start rule in one place) and a matcher that
@@ -3177,6 +3188,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-138 | 2026-10-21 | mouse buttons 8 / 9: xref back / forward | 10 | O-44 |
 | D-139 | 2026-10-21 | no theme following macOS appearance (O-56 closed) | 5 | O-56 |
 | D-140 | 2026-10-21 | Python server per platform: ty on Arch, pyright on the Mac | 5 | D-132 |
+| D-141 | 2026-10-21 | gaps only inside a word; `M-o` words match the file name (CLion) | 12 | D-120 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |
