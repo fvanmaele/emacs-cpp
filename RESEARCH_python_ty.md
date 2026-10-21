@@ -138,7 +138,8 @@ The errors, line by line:
   `None` to complain about. pyright infers from the call: on a test file
   (`reveal_type`, 2026-10-21) `C(None).parent` is `None` for pyright, `Unknown` for
   ty; an unannotated `def ret(): return 1` gives `ret()` as `Literal[1]` for pyright,
-  `Unknown` for ty (ty 0.0.90 infers no return type of an unannotated function); a
+  `Unknown` for ty (ty 0.0.90 infers no return type of an unannotated function;
+  SUPERSEDED 2026-10-21: by default only, section 8); a
   parameter `r=3` is `int` for pyright, `Unknown | Literal[3]` for ty. Both take an
   attribute's type from every assignment in the class (`self.n`: `None | int`) and
   both then report `c.n.bit_length()`. No ty rule reports a missing annotation
@@ -205,6 +206,136 @@ Portfile (master), ty's 0.0.90 release on GitHub. Nothing written or built on th
 - **Case against either**: a port the owner keeps current by hand, against D-053's
   MacPorts-maintained tools; the Mac's ty install still unchecked (round 1: user
   site-packages missed).
+
+## 8. Type inference without annotations: options, ty source read (owner 2026-10-21)
+Owner: "Research vendoring ty and patches such that type information can be inferred
+reliably, even without type annotations". Read in ty 0.0.90's release source
+(`source.tar.gz`, sha256 7f66b14d... as published), `ruff/crates/ty_python_semantic`,
+`ty_project`, `ty_server`, its docs and mdtests; ty's issue tracker; measured on Arch
+with pacman's ty 0.0.90 and pyright 1.1.412. Scripts in the session's scratch
+directory, not kept.
+
+**Correction to 4a:** "ty 0.0.90 infers no return type of an unannotated function" is
+its default, not its ability. ty 0.0.89 added return type inference, off by default:
+`analysis.return-type-inference = "always"` (`ty_project/src/metadata/options.rs`;
+`ReturnTypeInference::Never` is the default, `lib.rs`); Astral asks for feedback in
+ty issue 4739 (open since 2026-10-16). With it on, on a test file:
+
+| expression | ty default | ty `"always"` | pyright |
+|---|---|---|---|
+| `ret()` of `def ret(): return 1` | `Unknown` | `Literal[1]` | `Literal[1]` |
+| `opt(True)`, returns `None` or `"x"` | `Unknown` | `None \| Literal["x"]` | `Literal['x'] \| None` |
+| `opt(False).upper()` | no report | reported | reported |
+| `C().name()`, a method of a non-final class | `Unknown` | `Literal["c"] \| Unknown` | `Literal['c']` |
+| `default()` of `def default(r=3): return r` | `Unknown` | `Unknown \| Literal[3]` | `int` |
+| `scale(3).upper()`, `def scale(x, factor=2): return x * factor` | no report | no report | reported (`Literal[6]`) |
+
+- Not inferred, by ty's code (`FunctionType::inferred_return_type`): async functions,
+  generators ("plan to change this soon"), abstract and protocol methods, stubs, `if
+  TYPE_CHECKING` blocks. A non-final method of a non-final class gets `| Unknown`, so
+  subclasses may widen it (issue 4739 asks users about that choice).
+- **The editor gets it through settings**: ty asks for the `ty` section
+  (`workspace/configuration`); its `configuration` key is inline configuration that
+  overrides the project's files (`ty_server/src/session/options.rs`,
+  `WorkspaceOptions`). Checked over LSP: `{"configuration": {"analysis":
+  {"return-type-inference": "always"}}}` turns the revealed types above on. In the
+  config that is one `emacs-cpp-lsp-settings` call; a project can set it in its
+  `pyproject.toml` (`[tool.ty.analysis]`) instead.
+- **argparse.py (4a) with it on**: pyright's report at 2360 now found, 259 / 272 /
+  1543 / 1547 still not; six new reports pyright does not make: 475 twice (indexing
+  a `""` that `_format_args` can return: plausible) and `str.join` at 2010, 2345,
+  2573 (the same shape as 2360, which pyright reports, at three places pyright does
+  not; not traced).
+- **Cost, SymPy (1532 files, unannotated)**: `ty check` 2.5 -> 9.2 s, 1.12 -> 1.43
+  GB, errors 13076 -> 27653 (unresolved-attribute 4816 -> 10099, unsupported-operator
+  848 -> 5948, not-subscriptable and not-iterable new in the top six). Through the
+  LSP, the first `M-?` on `Symbol` 1.79 s -> 22.3 s and the server 1.15 -> 8.3 GB (two
+  runs each); `M-.` and warm `M-?` unchanged. theme_setter (102 files): no
+  measurable change (first `M-?` 114 ms, 209 MB).
+
+**What remains pyright's, and why ty does not do it:**
+- *Parameter types from defaults*: ty gives `r=3` the type `Unknown | Literal[3]`,
+  specified in its tests (`mdtest/function/parameters.md`, "Unannotated parameters
+  with defaults"); pyright `int`. ty's docs: it "infers types where it can and uses
+  `Unknown` when it cannot" (`typing-faq.md`), gradual typing.
+- *Call-site return type inference*: pyright infers an unannotated function's
+  return again with each call's argument types (`scale(3)` -> `Literal[6]`); ty has
+  none, no issue found asking for it (searched 2026-10-21).
+- *Pseudo-generic classes*: pyright treats a class with an unannotated `__init__` as
+  generic over its parameters, so `_Section(self, None).parent` is `None` (argparse
+  259, 272); ty issue 833 (open since 2025-07, filed by pyright's author, "likely a
+  low priority at this time").
+- *Override parameters from the base method*: ty issue 4424 (open since 2026-08).
+
+**Vendoring ty with patches** (as `packaging/` does for clangd and fswatch, D-026,
+D-109): the source is one Rust workspace, `ruff/` (ty and ruff together), 553 crates
+in `Cargo.lock`, none from git, `rust-toolchain.toml` at 1.99.0 (pacman's rust
+1.99.1 builds it). Trial build 2026-10-21 on Arch (`cargo build --release --locked
+-p ty`, 16 threads): 7 min 14 s (1149 s of CPU, about 2.8 cores busy), 277 crates
+compiled, 183 MB of crates downloaded, 1.2 GB `target/`; the binary 39.5 MB (pacman's
+31.7 MB) reports `ty 0.0.90` and the same revealed types. Each of the three
+features above lives in `ty_python_semantic`'s inference (`types/infer/builder.rs`,
+`types/function.rs`, `types/signatures.rs`); ty released 0.0.85 to 0.0.90 in about a
+month, so a patch series would be rebased each week or the vendored ty
+falls behind. The parameter rule is also a deliberate choice with its own tests, so a
+patch changes ty's semantics, not a bug.
+
+## 9. ty and ruff's server compared (owner 2026-10-21)
+Owner: "detailed comparison with ruff server (installed)". pacman's ruff 0.17.1, ty
+0.0.90, pyright 1.1.412; the trees of 4b; a small LSP client (as in 4b), two runs each
+unless said.
+
+**What each answers** (`initialize` capabilities):
+| | ruff server | ty | pyright |
+|---|---|---|---|
+| definition, references, rename, completion, hover on code | no | yes | yes |
+| types, type errors | no | yes | yes |
+| lint diagnostics (style, bugs by pattern) | yes, pulled | no | no |
+| formatting (whole file, range) | yes | no | no |
+| code actions | fixes (`quickfix`), `source.fixAll.ruff`, `source.organizeImports.ruff` | `quickfix` | yes |
+| hover | only on a `# noqa:` code: the rule's text (`F401` -> "unused-import ...") | types, docs | types, docs |
+| workspace symbols, call / type hierarchy, inlay hints, semantic tokens | no | yes | partly |
+
+So ruff's server does not replace ty or pyright: it adds linting, formatting and
+fixes, and answers nothing the navigation keys ask.
+
+**Its rules:** ruff 0.17.1 enables 407 of its 971 rules by default (`--show-settings`
+with `--isolated`; the old default was E4, E7, E9 and F only). SymPy: 9930 findings in
+107 rules (`UP031` printf formatting 2547, `I001` unsorted imports 1956, `RUF059`
+1459); theme_setter, with its own `pyproject.toml` settings: `RUF100` unused noqa 150,
+`UP035` 31, `I001` 20.
+
+**Speed** (Arch):
+| | ruff | ty |
+|---|---|---|
+| whole tree, CLI: SymPy (1532 files) | `ruff check` 0.26 - 0.27 s, 209 - 216 MB; `ruff format --check` 2.9 s | `ty check` 2.5 - 2.6 s, 1.1 GB |
+| whole tree, CLI: theme_setter (102 files) | 0.03 s, 88 MB | - |
+| SymPy `solvers.py` (3674 lines) over LSP: diagnostics cold / warm | 16 - 31 / 25 ms, 34 items | 587 - 589 / 1 - 2 ms, 46 items |
+| same: formatting | 20 - 22 ms | none |
+| same: code actions over the file | 54 - 55 ms | 2 - 3 ms |
+| server RSS after that file | 69 MB | 290 MB |
+| theme_setter `ui/window.py` (84 lines): diagnostics cold | 9.6 ms, 7 items | 70 ms, 2 items |
+
+**Both in one buffer:** eglot runs one server per buffer. Emacs 31.1's eglot lists
+`("rass" "python")` first among its Python servers (`eglot-server-programs`):
+rassumfrassum, an LSP multiplexer by eglot's author, pure Python with no
+dependencies, whose `python` preset is `rass -- ty server -- ruff server`. PyPI 0.3.5;
+AUR `rassumfrassum` 0.3.5; not in pacman's repositories, no MacPorts port. Tried from a
+scratch venv: one server named `ty+ruff`, capabilities the union of both; on
+`solvers.py` 80 diagnostics (ty's 46 and ruff's 34), formatting by ruff (32 ms), both
+servers' code actions; `M-.` 23 / 82 ms cold on theme_setter / SymPy (direct 20 / 66),
+`M-?` on SymPy's `Symbol` 1.89 s cold and 161 ms warm (direct 1.79 s and 82 ms: the
+relay costs about 80 ms for 5628 references); rass itself 29 - 41 MB.
+
+**Ways to add ruff to the config** (not ruled):
+- (r1) rass with ty and ruff as the Arch Python server (D-140's line). Against: a new
+  dependency from the AUR (Mac: pip, outside MacPorts, D-053), a 0.3.x multiplexer in
+  every Python request, about 80 ms more on large reference lists.
+- (r2) ruff without its server: a flymake backend running `ruff check
+  --output-format json` on save, `ruff format` on `C-c l f`, as `latexindent` is
+  (D-101); ruff is in pacman and MacPorts. Against: config code to write and keep,
+  no fix code actions from `C-c l a`.
+- (r3) none: ty's diagnostics only.
 
 ## 6. Open
 - Configuration surface: ty asks for the `ty` section (`workspace/configuration`);
