@@ -5,7 +5,7 @@
 ;; The fswatch backend (D-127, DESIGN 7.1): globs as regexps, a filter call's records
 ;; merged per path, and the real patched fswatch on a temporary tree, its changes
 ;; caught at `jsonrpc-notify' for a stand-in server, so no language server runs.
-;; The pyright test in init-lsp-test.el covers a real server.
+;; The Python server test in init-lsp-test.el covers a real server.
 
 ;;; Code:
 
@@ -75,6 +75,7 @@ registration's end and the server's shutdown leave no process."
          (create-lockfiles nil)
          sent)
     (cl-letf (((symbol-function 'eglot--project) (lambda (_) (cons 'transient root)))
+              ((symbol-function 'jsonrpc-running-p) (lambda (_) t))
               ((symbol-function 'jsonrpc-notify)
                (lambda (to method params)
                  (should (eq to server))
@@ -122,6 +123,24 @@ registration's end and the server's shutdown leave no process."
               (emacs-cpp-eglot-fswatch--on-shutdown server)
               (should-not (emacs-cpp-eglot-fswatch-processes server))
               (should-not (seq-some #'process-live-p processes))))
+        (emacs-cpp-eglot-fswatch--stop server)
+        (delete-directory root t)))))
+
+(ert-deftest emacs-cpp-eglot-fswatch-dead-server ()
+  "A registration handled after its server exited starts no fswatch: jsonrpc runs
+requests from a timer, so one can arrive after `eglot--on-shutdown' (ty registers
+right after connecting; seen in init-python-eglot-only-in-projects)."
+  (init-test--load)
+  (require 'emacs-cpp-eglot-fswatch)
+  (let ((root (file-name-as-directory (file-truename (make-temp-file "emacs-cpp-fswatch" t))))
+        (server (make-symbol "server")))
+    (cl-letf (((symbol-function 'eglot--project) (lambda (_) (cons 'transient root)))
+              ((symbol-function 'jsonrpc-running-p) (lambda (_) nil)))
+      (unwind-protect
+          (progn
+            (eglot-register-capability server 'workspace/didChangeWatchedFiles "w1"
+                                       :watchers [(:globPattern "**")])
+            (should-not (emacs-cpp-eglot-fswatch-processes server)))
         (emacs-cpp-eglot-fswatch--stop server)
         (delete-directory root t)))))
 

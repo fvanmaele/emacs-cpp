@@ -3,7 +3,7 @@
 ;;; Commentary:
 
 ;; Language servers ask the client to watch files (`workspace/didChangeWatchedFiles':
-;; pyright, texlab, clangd).  Emacs's own watches take one kqueue descriptor per
+;; ty, pyright, texlab, clangd).  Emacs's own watches take one kqueue descriptor per
 ;; directory on the Mac (refused beyond 975) and one inotify watch per directory on
 ;; Arch, where eglot stops at `eglot-max-file-watches' and then fails the whole
 ;; registration, which makes pyright exit (RESEARCH_platform_differences 3.1, 3.3,
@@ -266,7 +266,12 @@ reported; `M-x eglot-reconnect' starts it again"
   (emacs-cpp-eglot-fswatch--stop server id)
   (let* ((root (expand-file-name (project-root (eglot--project server))))
          (matchers (emacs-cpp-eglot-fswatch--matchers watchers root)))
-    (when matchers
+    ;; A registration can be handled after the server exited: jsonrpc runs a
+    ;; request from a timer, and a server shut down right after it connected
+    ;; (ty registers at once) has its request run while `jsonrpc-shutdown' waits,
+    ;; possibly after `eglot--on-shutdown', which would then leave this fswatch
+    ;; running for the session.
+    (when (and matchers (jsonrpc-running-p server))
       (push (cons id (emacs-cpp-eglot-fswatch--start server id matchers))
             (gethash server emacs-cpp-eglot-fswatch--processes))))
   (list t "OK"))
