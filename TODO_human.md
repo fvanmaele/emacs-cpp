@@ -48,6 +48,14 @@ service's plan) is not an item.
   `spikes/s18-fswatch-backend/s18.log`, and whether step 6 went back and forward
   (if not, `C-h k` and the button: the event name shown).
 
+- **H-16** (2026-10-21, O-75, D-142) Post the return type inference feedback to ty
+  (outward, so yours); the draft is `docs/upstream/ty-return-type-inference-feedback.md`.
+  1. In a browser, open https://github.com/astral-sh/ty/issues/4739 and add a comment
+     with the text below the `---` line of that file.
+  2. Attach `docs/upstream/ty_return_type_inference_repro.py` (or paste it in a
+     collapsed block).
+  Report back: the comment's link.
+
 ## Parked
 - **H-8** (2026-10-20, 0084 review:B-3 to review:B-5, deferred; T-114) The upstream
   reports and patches in the review's order: treemacs and clang-change-namespace first,

@@ -129,6 +129,8 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
 | T-120 | done 0095 | S | Python server per platform: ty on Arch | D-140 | 146 tests |
 | T-121 | deferred | S | ty on the Mac: install and test | D-140 (c) | owner's call |
 | T-122 | done 0096 | S | gaps inside a word; `M-o` matches file names | D-141 | 149 tests |
+| T-123 | proposed | S | ty return type inference per project | D-142 | done when to agree |
+| T-124 | proposed | S | ruff: flymake backend, `C-c l f` | D-143 | done when to agree |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -310,6 +312,42 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
      nothing changes but the defaults line).
   Built 2026-10-21 (0095): items 1 - 4 met on Arch; 146 tests; startup 0.182 s
   against 0.183 s. Done.
+- T-123 (opened 2026-10-21, D-142): ty's return type inference, opt-in per project.
+  Tier: 2. PROPOSED done when (owner to agree):
+  1. `emacs-cpp-python-return-type-inference` (NEW defcustom, `lisp/init-python.el`,
+     default nil, safe as a directory variable when a boolean): non-nil makes the
+     config answer ty's `ty` section with `(:configuration (:analysis
+     (:return-type-inference "always")))`.
+  2. `emacs-cpp-lsp-settings` (`lisp/init-lsp.el`) also takes a function for
+     SETTINGS, called where eglot asks, so a project's `.dir-locals.el` decides
+     (`((nil . ((emacs-cpp-python-return-type-inference . t))))`);
+     `eglot-workspace-configuration`'s default becomes a function joining the
+     sections; texlab's settings (`lisp/init-latex.el`) unchanged.
+  3. Tests (ERT, the real ty): in a temporary project with that `.dir-locals.el`,
+     `reveal_type(ret())` shows `Literal[1]` in flymake's diagnostics, without it
+     `Unknown`; the section is empty for a project that does not set it.
+  4. MANUAL and CHEATSHEET name the switch and that it applies after `M-x
+     eglot-reconnect`; `make test` on Arch; startup within 10 ms of today.
+- T-124 (opened 2026-10-21, D-143): ruff for Python without its server. Tier: 2.
+  PROPOSED done when (owner to agree):
+  1. `emacs-cpp-python-ruff-flymake` (NEW, `lisp/init-python.el`): a flymake backend
+     that runs `ruff check --output-format json --stdin-filename FILE -` on the
+     buffer's text (asynchronous, a running check replaced by the next), each finding
+     a flymake diagnostic (warning, with ruff's code, `F401: ...`), added beside
+     eglot's backend in Python buffers (after `eglot-managed-mode-hook`, since eglot
+     sets `flymake-diagnostic-functions` to its own, eglot.el:2450).
+  2. `emacs-cpp-python-format` (NEW): `C-c l f` and Format Buffer in Python buffers
+     run `ruff format --stdin-filename FILE -`, with a region `--range START-END`;
+     only what differs is replaced, in one undo step (as `emacs-cpp-latex-format`,
+     D-101); ruff's messages shown when it fails.
+  3. ruff missing stops startup with its install command (Arch `sudo pacman -S
+     ruff`, macOS `sudo port install ruff`), as the Python server does (D-140).
+  4. Tests (ERT, real ruff): `import os` unused gives `F401` in flymake's
+     diagnostics; `y  =  2` formats to `y = 2`; a region formats only its lines;
+     the project's `pyproject.toml` `[tool.ruff]` settings apply (`--stdin-filename`).
+     Speed on SymPy's `solvers.py` (3674 lines): diagnostics within 100 ms. `make
+     test` on Arch; startup within 10 ms of today. Not covered: ruff's fixes as code
+     actions (`C-c l a` stays the server's).
 - T-122 (opened 2026-10-21, D-141): a match's gaps stay inside a word; `M-o`'s words
   match the file name. Tier: 2. Done when (agreed by the owner 2026-10-21:
   "Agree"); built 2026-10-21 (0096), items 1 - 4 met on Arch:
