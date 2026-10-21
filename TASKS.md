@@ -314,13 +314,14 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
   against 0.183 s. Done.
 - T-123 (opened 2026-10-21, D-142): ty's return type inference, opt-in per project.
   Tier: 2. PROPOSED done when (owner to agree):
-  1. `emacs-cpp-python-return-type-inference` (NEW defcustom, `lisp/init-python.el`,
-     default nil, safe as a directory variable when a boolean): non-nil makes the
-     config answer ty's `ty` section with `(:configuration (:analysis
+  1. `emacs-cpp-ty-return-type-inference` (NEW defcustom, `lisp/init-python.el`,
+     default nil, safe as a directory variable when a boolean; `ty` in its name since
+     pyright, on the Mac, ignores it, owner 2026-10-21): non-nil makes the config
+     answer ty's `ty` section with `(:configuration (:analysis
      (:return-type-inference "always")))`.
   2. `emacs-cpp-lsp-settings` (`lisp/init-lsp.el`) also takes a function for
      SETTINGS, called where eglot asks, so a project's `.dir-locals.el` decides
-     (`((nil . ((emacs-cpp-python-return-type-inference . t))))`);
+     (`((nil . ((emacs-cpp-ty-return-type-inference . t))))`);
      `eglot-workspace-configuration`'s default becomes a function joining the
      sections; texlab's settings (`lisp/init-latex.el`) unchanged.
   3. Tests (ERT, the real ty): in a temporary project with that `.dir-locals.el`,
@@ -335,7 +336,13 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
      buffer's text (asynchronous, a running check replaced by the next), each finding
      a flymake diagnostic (warning, with ruff's code, `F401: ...`), added beside
      eglot's backend in Python buffers (after `eglot-managed-mode-hook`, since eglot
-     sets `flymake-diagnostic-functions` to its own, eglot.el:2450).
+     sets `flymake-diagnostic-functions` to its own, eglot.el:2450). Both backends
+     show (owner's question 2026-10-21): the codes the language server already
+     reports are left out, `emacs-cpp-python-ruff-ignore` (NEW, default `("F821"
+     "F841")`: undefined name, unused variable; ty reports both, checked on a test
+     file; pyright the first as an error, the second as a hint over LSP,
+     RESEARCH_python_ty 4a), passed as `--extend-ignore`; F401 (unused import) stays,
+     ty did not report it there.
   2. `emacs-cpp-python-format` (NEW): `C-c l f` and Format Buffer in Python buffers
      run `ruff format --stdin-filename FILE -`, with a region `--range START-END`;
      only what differs is replaced, in one undo step (as `emacs-cpp-latex-format`,

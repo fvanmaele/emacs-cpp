@@ -241,7 +241,7 @@ Observed on the owner's Mac, 2026-10-09 (D-050):
   ty is tested there (T-121; a local port, RESEARCH_python_ty 7). Built by T-120.
 - DECIDED D-142 (owner 2026-10-21, O-75: "make return-type inference opt-in with a
   per-project .dir-locals.el switch"): ty's `analysis.return-type-inference` stays
-  off; a project turns it on with `emacs-cpp-python-return-type-inference` (NEW,
+  off; a project turns it on with `emacs-cpp-ty-return-type-inference` (NEW,
   default nil) in its `.dir-locals.el`. The config sends it as ty's inline
   `configuration`, computed per project: eglot reads `eglot-workspace-configuration`
   in a temporary buffer with the project's directory variables applied
