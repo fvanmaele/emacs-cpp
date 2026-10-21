@@ -126,6 +126,8 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
 | T-078 | done 0070 | S | latexindent: project settings, indent | D-103 | tests, texlab |
 | T-079 | open | S | send the texlab range formatting report | D-101 | owner sends it |
 | T-080 | done 0071 | S | `make test` in a temporary HOME | D-104 | real home unchanged |
+| T-120 | proposed | S | Python server per platform: ty on Arch | D-140 | done when to agree |
+| T-121 | deferred | S | ty on the Mac: install and test | D-140 (c) | owner's call |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -285,6 +287,30 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
   but the owner's S11 run 3 on RMO and hand check; 80 tests; startup median 0.179 s.
   S11 run 3 PASS 2026-10-11 (0051): opening 54 - 74 ms, keys 2 - 30 ms, symbols
   122 - 150 ms on RMO. Owner's hand check 2026-10-11: pass. Done.
+- T-120 (opened 2026-10-21, D-140): the Python server per platform, ty on Arch.
+  Tier: 2. PROPOSED done when (owner to agree):
+  1. `emacs-cpp-default-python-server` (NEW) in `lisp/defaults-gnu-linux.el`
+     (`("ty" "server")`) and `lisp/defaults-darwin.el` (`("pyright-langserver"
+     "--stdio")`); `lisp/init-python.el` hands it to `emacs-cpp-lsp-server`; a
+     missing program stops startup naming its package (Arch `sudo pacman -S ty`,
+     macOS `sudo port install pyright`), as the search program does (D-081).
+  2. Tests on the platform's server: `test/init-python-test.el`'s navigate-and-rename
+     test (cross-file `M-.`, rename in both files) and `test/init-lsp-test.el`'s
+     fswatch test (a registration gets an fswatch process, the server alive after
+     3 s, none left after shutdown), renamed from pyright; a test that the defaults
+     name the server.
+  3. Text naming pyright as the server updated: `lisp/init-python.el`,
+     `lisp/init-lsp.el`, `lisp/init-go-to-anything.el:167`,
+     `lisp/emacs-cpp-eglot-fswatch.el` commentary, README (Arch install line, module
+     table), `docs/CHEATSHEET.md:169`, `docs/MANUAL.md:432`; D-045 marked superseded
+     in part.
+  4. `make test` passes on Arch; startup within 10 ms of today
+     (`scripts/measure-startup.sh 10`); the Mac's run is the owner's (pyright there,
+     nothing changes but the defaults line).
+- T-121 (opened 2026-10-21, D-140 (c), deferred by the owner): ty on the Mac. Install
+  (a local port, RESEARCH_python_ty 7, or Astral's binary), then the measurements of
+  RESEARCH_python_ty 4b there and round 1's user site-packages case. Steps written
+  as an H-n item when the owner takes it up.
 - T-119 (opened 2026-10-21, D-127, S18 PASS): the fswatch backend in the config.
   Tier: 2 (the spike passed). Done when (agreed by the owner 2026-10-21: "Agree
   T-119"):

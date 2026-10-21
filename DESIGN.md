@@ -228,7 +228,16 @@ Observed on the owner's Mac, 2026-10-09 (D-050):
   Revisit when ty infers the types of unannotated code, measured as in
   `RESEARCH_python_ty.md` 4a: `ret()` of `def ret(): return 1` not `Unknown`, and
   pyright's 8 inference reports on argparse.py found. The watch advice and its pyright
-  tests stay (D-121).
+  tests stay (D-121). SUPERSEDED 2026-10-21 by D-140.
+- DECIDED D-140 (owner 2026-10-21, D-132 reconsidered: "D-132 (b), defer (c) until ty
+  testing on mac is done"; supersedes D-132, D-045 in part): the Python server is
+  chosen per platform (D-055): ty (`ty server`, pacman `extra/ty`) on Arch, pyright
+  on the Mac (MacPorts). Grounds: RESEARCH_python_ty 4b (first `M-.` 20 - 72 ms
+  against 300 - 617 ms; large `M-?` 82 ms against 1.09 s in the server, half the
+  memory; pyright's first `M-?` through eglot incomplete) and the owner's project
+  (pyright 370 errors, ty 298, both mostly `gi.repository` without stubs). Accepted:
+  ty's weaker inference of unannotated code (4a). (c), ty on the Mac too, waits until
+  ty is tested there (T-121; a local port, RESEARCH_python_ty 7). Built by T-120.
 - DECIDED D-055 (owner 2026-10-09, T-024): defaults that differ by platform live in one
   file per platform (NEW, `lisp/defaults-<platform>.el`), loaded by `init.el` for
   `system-type` before the modules; they hold choices only, e.g. the debugger offered
@@ -2257,7 +2266,7 @@ presets, GoogleTest runner.
   617 ms; on SymPy (5600 references) ty's `M-?` 1.7 - 1.9 s cold and 82 ms warm in the
   server against 9 s and 1.09 s, half the memory; through eglot about 2.9 s of a warm
   `M-?` there is eglot's own; pyright's first `M-?` through eglot was incomplete (358
-  of 5631) in all three runs, cause UNVERIFIED. D-132 stands until the owner rules.
+  of 5631) in all three runs, cause UNVERIFIED. Owner ruled D-140 (b) the same day.
 - O-71 (RESOLVED 2026-10-20 with D-128: (c); owner: "O-71 (c) agree"; D-125,
   2026-10-20; revisited the same day, owner: "Revisit O-70 and O-71"): a `lisp/*.elc`
   older than its `.el` after an edit loads without a word
@@ -3158,7 +3167,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-129 | 2026-10-20 | standard 2.15.1 `B-n` ids not adopted; `review:` prefix kept | Conventions | owner |
 | D-130 | 2026-10-21 | library index through clangd's `--index-file` (O-12 (b)) | 7 | O-12 |
 | D-131 | 2026-10-21 | index load started by a request at connect; failures told (O-73 (a)) | 7 | O-73 |
-| D-132 | 2026-10-21 | pyright stays; ty when it checks unannotated code (O-72) | 5 | O-72 |
+| D-132 | 2026-10-21 | pyright stays; ty when it checks unannotated code; SUPERSEDED by D-140 | 5 | O-72 |
 | D-133 | 2026-10-21 | library indexes by the patched package's clangd-indexer, into indexes/ | 7 | T-118 |
 | D-134 | 2026-10-21 | `lisp/` stays interpreted; D-124, D-125, D-128 not built (O-74) | 11 | O-74 |
 | D-135 | 2026-10-21 | `C-c p s r` is consult-ripgrep; no rg.el / ag.el | 12 | O-38 |
@@ -3166,6 +3175,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-137 | 2026-10-21 | no hover highlight or pointer change | 10 | O-47 |
 | D-138 | 2026-10-21 | mouse buttons 8 / 9: xref back / forward | 10 | O-44 |
 | D-139 | 2026-10-21 | no theme following macOS appearance (O-56 closed) | 5 | O-56 |
+| D-140 | 2026-10-21 | Python server per platform: ty on Arch, pyright on the Mac | 5 | D-132 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |
