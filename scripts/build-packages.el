@@ -10,8 +10,8 @@
 ;;   lib/autoloads.el   the autoloads of all packages, in one file
 ;;   lib/info/          the packages' Info manuals and their `dir' index (D-039)
 ;;
-;; git's own keys path, url, branch, ignore and shallow (a shallow first clone: AUCTeX
-;; comes from GNU ELPA's repository of all packages, D-090) are accepted.  Extra keys
+;; git's own keys path, url, branch, ignore and shallow (a shallow first clone:
+;; yasnippet comes from GNU ELPA's repository of all packages) are accepted.  Extra keys
 ;; a submodule section in .gitmodules may carry:
 ;;
 ;;   load-path = DIR        directory with the package's Lisp, relative to the

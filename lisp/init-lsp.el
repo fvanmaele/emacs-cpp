@@ -7,7 +7,7 @@
 ;; after a pause.  Each language module names its own server and settings through
 ;; `emacs-cpp-lsp-server' and `emacs-cpp-lsp-settings' and adds its own keys to
 ;; `emacs-cpp-code-map' (D-091): clangd in lisp/init-cpp.el, ty or pyright in
-;; lisp/init-python.el (D-140), texlab in lisp/init-latex.el.
+;; lisp/init-python.el (D-140).
 
 ;;; Code:
 

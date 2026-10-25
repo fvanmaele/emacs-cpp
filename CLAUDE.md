@@ -29,7 +29,7 @@ Tree follow options, not into library files (D-067, D-070); eglot refused loudly
 any preset or database error (D-018), a warning for a source missing from the
 database (D-068); fixes to vendored packages as patch files (D-069). which-key after
 3 s (D-071), narrow keys 0.2 s after `<` in prompts (D-080, 0054). `# %%` cells in
-Python and R, ESS for R (D-072, 0047); owner's RMO check left.
+Python (D-072, 0047).
 Go to anything: one consult prompt (D-074) on `M-o` (D-076); S11 (0048): one letter
 over deal.II accepted (D-075); speed settings (D-077), S11 run 2 PASS (0049); built
 (T-049, 0050, no `#`: D-078), runs and hand check pass; narrowed to symbols: consult
@@ -37,16 +37,15 @@ patch 0001 (D-079, 0052), confirmed with deal.II's files (0053). `C-c p ?` over
 projectile's files, ripgrep on macOS (D-081, 0055). `M-o` symbols: the project's, all
 on `< l` (D-082, 0056), capped at 10000 (D-083, 0057), any server's URIs (D-085);
 `< l` as `C-c l s` (D-086),
-preview after a pause (D-088); macOS PATH from MacPorts at startup (D-089). LaTeX:
-AUCTeX from GNU ELPA and texlab, `C-c l b` (D-090), `C-c l f` by latexindent (D-101);
-eglot in init-lsp.el (D-091).
+preview after a pause (D-088); macOS PATH from MacPorts at startup (D-089); eglot in
+init-lsp.el (D-091).
 Rename without file limit (D-092); CLion's navigation clicks, right-click menu (D-093);
 clang-tidy fixes, clang-move (D-094); snippets: yasnippet, its collection on `C-c y`
 (D-095); a click shows no tooltip (D-096); patched clang-change-namespace, `C-c l N`
-(D-097); no LyX keys (D-102). No module switch, modules load alone (D-098); `M-o` its
+(D-097). No module switch, modules load alone (D-098); `M-o` its
 own module (D-099).
 S12 change signature: FAIL, calls in templates (0066), O-43 (b) to the owner.
-Open: O-39 R server (AUR verified, CRAN install on Arch); O-68 (researched, S19
+Open: O-68 (researched, S19
 proposed); O-38, O-43, O-44, O-47, O-56 ruled 2026-10-21 (D-135 .. D-139);
 O-50 resolved: patch 0010 with T-104 (D-114);
 O-64 resolved: limits kept (D-115); O-65 resolved: eglot patch 0003 (D-117, T-106,
@@ -97,6 +96,8 @@ ty's return type inference per project (D-142, 0097); ruff deferred (D-143, T-12
 Mac run of H-15 by the session (0098): S18 run 6 `shipped` PASS; FSEvents kept
 `Created` on recent files, fswatch patch 0005 (pkgrel 3, D-144, T-125); Mac clangd
 rebuilt with `clangd-indexer`. H-15 left: the mouse's side buttons.
+2026-10-25 (0099): R and LaTeX removed (D-145): no ESS, AUCTeX, texlab; O-39 closed,
+T-079 dropped.
 
 ## Self-test (before the first edit of a session)
 Answer from the docs, not from memory; a miss means re-read, not edit.

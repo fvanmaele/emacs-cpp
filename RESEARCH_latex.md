@@ -1,5 +1,7 @@
 # RESEARCH - LaTeX with a language server (texlab)
 
+SUPERSEDED 2026-10-25 by D-145: LaTeX and R left the config. Kept as findings.
+
 Question (owner, 2026-10-13): LaTeX support through a language server, texlab in
 particular. Findings only; verdicts go to DESIGN.
 

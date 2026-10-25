@@ -11,8 +11,8 @@ diagnostics, CMake presets, debugger, git, "go to anything") on an Arch Linux
 workstation and a MacPorts macOS machine (D-050, D-053). The reference project is RMO
 (`RMO-gross-pitaevskii`): C++20, CMake presets, every translation unit pulls in deal.II
 9.8 (with PETSc, Trilinos, Kokkos, Boost). Non-goals: an Emacs distribution, Windows, a
-CLion keymap (DESIGN 2). Python, R and LaTeX ride along and never drive design (D-045,
-D-072, D-090).
+CLion keymap (DESIGN 2). Python rides along and never drives design (D-045); R and
+LaTeX were removed 2026-10-25 (D-145).
 
 The scale problem shaped almost everything: a deal.II translation unit takes 13.3 s
 and 780 MB for clangd's first parse (S1 run 2), and a header 6.6 - 8.0 s. Most of the
@@ -38,8 +38,8 @@ divergence from upstream below exists to keep the editor interactive in front of
 - `early-init.el`, `init.el`, then `lisp/init-*.el` in a fixed order; each module
   loads alone (test `init-modules-load-alone`, D-098). One `use-package` form per
   package (DESIGN 4).
-- Language server: Emacs 31.1's own eglot (D-121) with clangd; pyright, texlab for the
-  riders.
+- Language server: Emacs 31.1's own eglot (D-121) with clangd; ty or pyright for Python
+  (D-140).
   clangd is started only for a project with `CMakePresets.json`, pointed at the active
   preset's `binaryDir` with `--compile-commands-dir` (D-005, D-016). eglot is refused
   loudly on any preset or database error (D-018; a source missing from the database
@@ -272,7 +272,7 @@ the pinned commit (D-069, D-116):
 ## 10. Open items and risks for reviewers
 - Owner runs left: S11 rerun with D-120 (T-109), pkgrel 9 on the Mac and `make test`
   there (T-108), fswatch pkgrel 2 on the Mac, T-104's hand check, S10 (O-12).
-- Open questions: O-12 (deal.II sources index), O-38, O-39, O-47, O-56, O-57, O-68.
+- Open questions: O-12 (deal.II sources index), O-38, O-47, O-56, O-57, O-68.
 - Internal APIs used: `vertico--metadata`, `consult--tofu-get`, `consult--multi`,
   `orderless--highlight`; pinned submodules make breakage visible in tests. On macOS
   `eglot--watch-globs`, `eglot--count-file-watches`, `eglot--on-shutdown` and
