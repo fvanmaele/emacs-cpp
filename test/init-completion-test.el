@@ -110,11 +110,11 @@ eglot is not started; the buffer and the file go afterwards."
        (delete-directory dir t))))
 
 (ert-deftest init-completion-snippet-keys ()
-  "D-095: yasnippet in code and LaTeX buffers; `C-c y' expands, TAB keeps
+  "D-095: yasnippet in code buffers; `C-c y' expands, TAB keeps
 indenting and completing (D-020) outside a snippet; choosing a snippet by name
 loads the collection too."
   (init-test--load)
-  (dolist (case '(("a.cc" . c++-ts-mode) ("a.py" . python-ts-mode) ("a.tex" . LaTeX-mode)))
+  (dolist (case '(("a.cc" . c++-ts-mode) ("a.py" . python-ts-mode)))
     (init-completion-test--with-snippet-buffer (car case) ""
       (should (eq major-mode (cdr case)))
       (should yas-minor-mode)
@@ -130,14 +130,12 @@ yasnippet does not scan it; `C-c y' loads it."
                 (search-forward "(yasnippet-snippets-initialize)" nil t))))
 
 (ert-deftest init-completion-snippet-expands-and-moves-between-fields ()
-  "D-095: a key of the collection expands on `C-c y' in C++, Python and LaTeX;
+  "D-095: a key of the collection expands on `C-c y' in C++ and Python;
 TAB / S-TAB go to the next / previous field, except while corfu completes."
   (init-test--load)
-  ;; AUCTeX picks plain TeX for a file without LaTeX in it, hence the class line.
   (pcase-dolist (`(,name ,text ,expanded ,second-field)
                  '(("a.cc" "for" "for (i = 0; i < N; ++i) {" "i < N")
-                   ("a.py" "def" "def methodname(self, arg):" "arg")
-                   ("a.tex" "\\documentclass{article}\nbegin" "\\begin{environment}" nil)))
+                   ("a.py" "def" "def methodname(self, arg):" "arg")))
     (init-completion-test--with-snippet-buffer name text
       (execute-kbd-macro (kbd "C-c y"))
       (should (featurep 'yasnippet-snippets))

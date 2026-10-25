@@ -124,7 +124,7 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
 | T-076 | done | S | research: clangd patch, symlinked paths | owner | RESEARCH 2.8; O-50 |
 | T-077 | done 0069 | M | spike S13: symlinked paths | O-50 (c) | PASS Arch and Mac |
 | T-078 | done 0070 | S | latexindent: project settings, indent | D-103 | tests, texlab |
-| T-079 | open | S | send the texlab range formatting report | D-101 | owner sends it |
+| T-079 | dropped | S | send the texlab range formatting report | D-101 | LaTeX left (D-145) |
 | T-080 | done 0071 | S | `make test` in a temporary HOME | D-104 | real home unchanged |
 | T-120 | done 0095 | S | Python server per platform: ty on Arch | D-140 | 146 tests |
 | T-121 | deferred | S | ty on the Mac: install and test | D-140 (c) | owner's call |
@@ -132,6 +132,7 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
 | T-123 | done 0097 | S | ty return type inference per project | D-142 | 150 tests |
 | T-124 | deferred | S | ruff: flymake backend, `C-c l f` | D-143 | until ty alone is too slow |
 | T-125 | done 0098 | S | fswatch 0005: `Created` once per file (Mac) | D-144 | 150 tests on the Mac |
+| T-126 | done 0099 | S | remove R and LaTeX | D-145 | 142 tests on the Mac |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
@@ -361,6 +362,15 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
      Speed on SymPy's `solvers.py` (3674 lines): diagnostics within 100 ms. `make
      test` on Arch; startup within 10 ms of today. Not covered: ruff's fixes as code
      actions (`C-c l a` stays the server's).
+- T-126 (opened 2026-10-25, D-145): remove R and LaTeX. Tier: 2. Done when (agreed
+  by the owner 2026-10-25): `lisp/init-r.el` and `lisp/init-latex.el` deleted;
+  `lib/ess`, `lib/auctex` and `patches/auctex` removed; R cells dropped (Python cells
+  stay); `C-c l b`, LaTeX yasnippet hooks, pdf-viewer defaults and the MacTeX PATH
+  entry gone; tests adjusted, `make test` passes on the Mac; D-145 supersedes D-072
+  (R part), D-090, D-101, D-103; O-39 closed; T-079 dropped; README, MANUAL,
+  CHEATSHEET updated, `docs/CHEATSHEET-AUCTEX.md` and `docs/upstream/texlab-*`
+  deleted. Built 2026-10-25 (0099): 142 tests, 139 passed, 3 skipped (gdb, ty) on the
+  Mac; D-102 superseded too, `/usr/local/bin` left D-089's list with R. Done.
 - T-125 (opened 2026-10-21, D-144): `make test` on the Mac (H-15 step 3) failed
   `emacs-cpp-eglot-fswatch-real`: a change of a file created moments before came as
   created (1), not changed (2); FSEvents keeps `Created` on recent files. Tier: 2.
@@ -796,7 +806,8 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
 - T-079 (opened 2026-10-14, D-101, D-103): send
   `docs/upstream/texlab-range-formatting.md` to texlab's issue tracker (github.com/
   latex-lsp/texlab); outward, so the owner sends it. Done when: sent, issue number
-  noted here.
+  noted here. DROPPED 2026-10-25 by D-145: LaTeX left the config; the report was
+  deleted unsent.
 - T-078 (opened 2026-10-14, D-103, O-53 (a), (b)): latexindent as texlab runs it.
   Done when: C-c l f (buffer and region) passes --local and runs latexindent from the
   nearest directory upward (within the project) with .latexmkrc / latexmkrc /

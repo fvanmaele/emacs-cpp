@@ -1,5 +1,7 @@
 # RESEARCH - R language servers
 
+SUPERSEDED 2026-10-25 by D-145: LaTeX and R left the config. Kept as findings.
+
 Question (owner, 2026-10-13): which language servers exist for R, and what would
 one give this config next to ESS (D-072, which has none)? Findings only; verdicts go
 to DESIGN.

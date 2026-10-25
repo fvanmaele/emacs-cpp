@@ -192,7 +192,8 @@ Observed on the owner's Mac, 2026-10-09 (D-050):
   Checked the same day for dependencies that only init.el's order satisfied (each
   module loaded alone after init.el's prelude; each file byte-compiled alone):
   init-python called init-lsp's `emacs-cpp-lsp-server` without requiring it; it now
-  does, as init-cpp and init-latex do, and the test `init-modules-load-alone` loads
+  does, as init-cpp and init-latex (removed by D-145) do, and the test
+  `init-modules-load-alone` loads
   every module of init.el on its own in a child Emacs. At run time, not load time,
   init-completion's `M-o` calls projectile and eglot, configured by init-project and
   init-lsp below it: O-49, moved by D-099. Everything else a module uses is its own
@@ -319,9 +320,7 @@ Observed on the owner's Mac, 2026-10-09 (D-050):
 | CMake build | `lisp/emacs-cpp-presets.el`, projectile form | PROTOTYPE | T-005 (D-035) |
 | CMake mode | `lisp/init-cmake.el` | PROTOTYPE | system cmake-mode (D-013) |
 | Python | `lisp/init-python.el` | PROTOTYPE | T-018: ts-mode, pyright, debugpy (D-045) |
-| R | `lisp/init-r.el` | PROTOTYPE | T-046: ESS, no eglot (D-072) |
-| LaTeX | `lisp/init-latex.el` | PROTOTYPE | T-065: AUCTeX, texlab (D-090) |
-| cells | `lisp/init-cells.el` | PROTOTYPE | T-046: code-cells, Python and R (D-072) |
+| cells | `lisp/init-cells.el` | PROTOTYPE | T-046: code-cells, Python (D-072, D-145) |
 | debugger | `lisp/init-debug.el` | PROTOTYPE | gdb / lldb presets (D-031, D-051, D-056) |
 | git | `lisp/init-git.el` | KEEP | magit, treemacs-magit, diff-hl (T-015, T-016) |
 | keys | `lisp/init-keys.el` | UNVALIDATED | NEW: `C-c l` map (D-004) |
@@ -1700,7 +1699,8 @@ the form that loads magit is found (S17 run 2, T-113).
   (generated per package directory so files are named by bare library name, as
   package.el does). `init.el` loads both and stops with "run make packages" if absent;
   `make test` fails if any `.elc` is missing or older than its `.el`.
-- DECIDED D-072 (owner 2026-10-10, O-29 (a), (b)): `# %%` cells in Python and R
+- DECIDED D-072 (owner 2026-10-10, O-29 (a), (b); SUPERSEDED in part 2026-10-25 by
+  D-145: R and ESS left, Python's cells stay): `# %%` cells in Python and R
   scripts with code-cells (GNU ELPA, pinned b99013b = 0.5, no tags), and ESS as R's
   mode and process (pinned v25.01.0, its newest release tag per D-006; manual
   `doc/ess.texi`). Two submodules, network fetch at clone (D-014). Owner choices:
@@ -1713,7 +1713,8 @@ the form that loads magit is found (S17 run 2, T-113).
   ESS reads its directory from where its autoloads are loaded, so `lisp/init-r.el`
   names it (our autoloads are one file in `lib/`); `make packages` runs makeinfo from
   a manual's directory, for ESS's `@include ../VERSION`.
-- DECIDED D-090 (owner 2026-10-13, O-42 (b): "texlab with build key, texlab + AUCTeX,
+- DECIDED D-090 (SUPERSEDED 2026-10-25 by D-145; owner 2026-10-13, O-42 (b): "texlab
+  with build key, texlab + AUCTeX,
   use auctex from gnu if possible"; done when agreed): LaTeX with AUCTeX 14.2.0 from
   GNU ELPA's git repository (`elpa.git`, branch `externals/auctex`, pinned to the
   release commit cc5a477, no tags there; submodule `lib/auctex`, `shallow = true`:
@@ -1742,7 +1743,8 @@ the form that loads magit is found (S17 run 2, T-113).
   adds its own `C-c l` keys: clangd, `o`, `P` in init-cpp; pyright in init-python;
   texlab, `b` in init-latex. DESIGN 4 principle 3 holds: eglot is configured in
   one form, the languages only register data.
-- DECIDED D-101 (owner 2026-10-14, O-51 (a), then "use latexindent for both buffers and
+- DECIDED D-101 (SUPERSEDED 2026-10-25 by D-145; owner 2026-10-14, O-51 (a), then "use
+  latexindent for both buffers and
   regions, not a mix of texlab and latexindent"; done when agreed): in LaTeX buffers
   `C-c l f` and the menu's Format Buffer run latexindent itself
   (`emacs-cpp-latex-indent-program`), not texlab. The buffer's text goes to a temporary
@@ -1755,10 +1757,12 @@ the form that loads magit is found (S17 run 2, T-113).
   missing program or a non-zero exit stops with the fix or latexindent's message, the
   buffer unchanged. Dependency: latexindent, already texlab's (TeX Live: Arch
   `texlive-binextra`, MacTeX). `.bib` files keep texlab's format. Built (T-074, 0068).
-- DECIDED D-102 (owner 2026-10-14, O-46: "none"): no LyX keys. LaTeX buffers keep
+- DECIDED D-102 (SUPERSEDED 2026-10-25 by D-145; owner 2026-10-14, O-46: "none"): no
+  LyX keys. LaTeX buffers keep
   AUCTeX's own keys (option (c)); Emacs's and Emacs.app's bindings stay as they are
   on both machines (`RESEARCH_latex.md` 8). Options (a) and (b) closed.
-- DECIDED D-103 (owner 2026-10-14, O-53 (a), (b), (d); done when agreed; amends D-101):
+- DECIDED D-103 (SUPERSEDED 2026-10-25 by D-145; owner 2026-10-14, O-53 (a), (b), (d);
+  done when agreed; amends D-101):
   latexindent for `C-c l f` and Format Buffer gets `--local` and runs in the directory
   texlab 5.25.1 uses: the nearest directory upward, within the project, with
   `.latexmkrc`, `latexmkrc`, `.texlabroot` or `texlabroot`, else the file's own; so a
@@ -1768,12 +1772,25 @@ the form that loads magit is found (S17 run 2, T-113).
   spaces, a tab with `indent-tabs-mode`, so `C-c l f` indents with the characters
   AUCTeX's `TAB` uses (texlab ignores the request's `insertSpaces`). texlab's slow
   `exit` right after opening stays as it is (O-53 (5), (d)). Built (T-078, 0070).
+- DECIDED D-145 (owner 2026-10-25: "remove language servers/features/modules not related
+  to C/C++ or Python (R, texlab)"; done when agreed; supersedes D-090, D-101, D-102,
+  D-103 and D-072's R part): R and LaTeX leave the config. Gone: `lisp/init-r.el`,
+  `lisp/init-latex.el`, the submodules `lib/ess` and `lib/auctex` with
+  `patches/auctex`, R's cells (code-cells stays for Python), `C-c l b`, yasnippet in
+  `LaTeX-mode` / `bibtex-mode`, `emacs-cpp-default-pdf-viewer`, and from D-089's list
+  `/usr/local/bin` (only for CRAN's R) and `/Library/TeX/texbin`. `.tex` and `.R` files
+  open in Emacs's built-in modes, no server. O-39 closed, T-079 dropped (its texlab
+  report deleted unsent). Kept: `lisp/init-writing.el` (markdown-mode, org-journal, no
+  server; owner 2026-10-25), `RESEARCH_latex.md` and `RESEARCH_r_language_servers.md`
+  as findings, marked superseded. Test: init.el loads with neither module nor
+  package on `load-path`. Built (0099).
 - DECIDED D-095 (owner 2026-10-14, O-45 (b), keys (k2); done when agreed): yasnippet
   (GNU ELPA's `externals/yasnippet`, pinned dd570a6 = 0.14.3) and yasnippet-snippets
   (NonGNU ELPA's `elpa/yasnippet-snippets`, pinned 606ee92, the branch's tip of
   2025-12-15: its 1.0 release commit 39e640c has no `c++-ts-mode` / `python-ts-mode`
   directories, added upstream 2024-01), two submodules (network fetch at clone,
-  D-014). yasnippet is on in `prog-mode`, `LaTeX-mode` and `bibtex-mode` buffers
+  D-014). yasnippet is on in `prog-mode` buffers (`LaTeX-mode` and `bibtex-mode`
+  until D-145)
   (`lisp/init-completion.el`); with it eglot announces snippet support, so a chosen
   clangd completion arrives with a field per parameter (`area(double scale, int n)`),
   texlab's environments with their `\end`. A snippet key expands on `C-c y`
@@ -1831,14 +1848,15 @@ the form that loads magit is found (S17 run 2, T-113).
   the pinned one. Built (T-105, 0078).
 - DECIDED D-089 (owner report 2026-10-13, tier 1): on macOS the config puts
   `/opt/local/bin`, `/opt/local/sbin` (MacPorts, D-053) and `/usr/local/bin` (CRAN's
-  R) in front of `exec-path` and PATH at startup when missing
+  R; dropped 2026-10-25 by D-145) in front of `exec-path` and PATH at startup when missing
   (`emacs-cpp-default-exec-path-prepend`, D-055; none on Arch). Emacs started from
   the Dock or Finder got launchd's PATH (`/usr/bin:/bin:/usr/sbin:/sbin`) although
   Emacs.app's Info.plist sets `LSEnvironment` PATH, so D-081's check stopped startup
   ("rg is not on exec-path"), and cmake, ninja, pyright would not have been found
   either. Test: a child Emacs with launchd's PATH loads the config and finds its
   search program (fails without the fix). Amended 2026-10-13 (owner report "LaTeX found
-  no preview images", tier 1): `/Library/TeX/texbin` (MacTeX, D-090) joins the list;
+  no preview images", tier 1; dropped 2026-10-25 by D-145): `/Library/TeX/texbin`
+  (MacTeX, D-090) joins the list;
   shells get it from /etc/paths.d, launchd does not, so from the Dock pdflatex,
   latexmk and dvipng were missing for AUCTeX's preview and texlab's build. Checked
   in a graphical Emacs with launchd's PATH: `preview-buffer` made both previews of
@@ -2809,7 +2827,8 @@ presets, GoogleTest runner.
   symbols interpreted, against the shipped filter's 16.7 ms. Options: (a) replace
   D-083's spellings with it (tier 2: tests, toy checks with clangd and pyright);
   (b) keep the tables. Owner rules.
-- O-39 (OPEN, owner request 2026-10-13: "research R language servers"): findings in
+- O-39 (CLOSED 2026-10-25 by D-145: R left the config; owner request 2026-10-13:
+  "research R language servers"): findings in
   `RESEARCH_r_language_servers.md`. Candidates: languageserver (R package, full
   feature set, cross-file only in a package with `DESCRIPTION`; on the Mac already
   installed with CRAN's R; Arch: AUR), Arity (standalone Rust binary, navigation
@@ -3191,7 +3210,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-069 | 2026-10-10 | fixes to vendored packages as patch files in the repo | 12 | owner |
 | D-070 | 2026-10-10 | tree follows only to version-controlled projects | 10 | owner |
 | D-071 | 2026-10-10 | which-key popup after 3 s instead of 1 s | 10 | owner |
-| D-072 | 2026-10-10 | `# %%` cells (code-cells), ESS for R | 12 | O-29 |
+| D-072 | 2026-10-10 | `# %%` cells (code-cells), ESS for R; R part SUPERSEDED by D-145 | 12 | O-29 |
 | D-073 | 2026-10-10 | line number column keeps its width while scrolling | 5 | owner |
 | D-074 | 2026-10-11 | one go-to-anything prompt, measured first (S11) | 10 | O-30 |
 | D-075 | 2026-10-11 | go to anything: first letter's cost on deal.II accepted | 10 | O-32 |
@@ -3209,7 +3228,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-087 | 2026-10-13 | `M-o` symbol requests with `C-c l s`'s timing | 10 | owner |
 | D-088 | 2026-10-13 | `M-o` previews after a pause in typing | 10 | O-41 |
 | D-089 | 2026-10-13 | macOS: MacPorts, /usr/local/bin on exec-path and PATH | 12 | owner |
-| D-090 | 2026-10-13 | LaTeX: AUCTeX from GNU ELPA, texlab, build on `C-c l b` | 12 | O-42 |
+| D-090 | 2026-10-13 | LaTeX: AUCTeX from GNU ELPA, texlab, build on `C-c l b`; SUPERSEDED by D-145 | 12 | O-42 |
 | D-091 | 2026-10-13 | eglot's form in init-lsp.el; languages register servers | 5 | owner |
 | D-092 | 2026-10-13 | clangd with `--rename-file-limit=0` | 7 | O-43 |
 | D-093 | 2026-10-13 | CLion's navigation clicks; right-click menu | 10 | O-44 |
@@ -3220,9 +3239,9 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-098 | 2026-10-14 | no module switch; modules load alone (test) | 5 | O-48 |
 | D-099 | 2026-10-14 | `M-o` in its own module after init-lsp | 5 | O-49 |
 | D-100 | 2026-10-14 | macOS: patched clangd at LLVM 23.1.3, own release | 7 | owner |
-| D-101 | 2026-10-14 | LaTeX: `C-c l f` by latexindent, buffer and region | 12 | O-51 |
-| D-102 | 2026-10-14 | LaTeX: no LyX keys, AUCTeX's own only | 12 | O-46 |
-| D-103 | 2026-10-14 | latexindent as texlab runs it; indent as AUCTeX's TAB | 12 | O-53 |
+| D-101 | 2026-10-14 | LaTeX: `C-c l f` by latexindent, buffer and region; SUPERSEDED by D-145 | 12 | O-51 |
+| D-102 | 2026-10-14 | LaTeX: no LyX keys, AUCTeX's own only; SUPERSEDED by D-145 | 12 | O-46 |
+| D-103 | 2026-10-14 | latexindent as texlab runs it; indent as AUCTeX's TAB; SUPERSEDED by D-145 | 12 | O-53 |
 | D-104 | 2026-10-14 | `make test` in a temporary HOME; REAL_HOME=1 opts out | 4 | O-54 |
 | D-105 | 2026-10-15 | symbols in clangd's order; `M-o` ignores case | 10 | O-55 |
 | D-106 | 2026-10-15 | `M-o` symbols per server; `C-c l s` keeps kind groups | 10 | O-58 |
@@ -3259,6 +3278,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-142 | 2026-10-21 | ty return type inference opt-in per project (`.dir-locals.el`) | 5 | O-75 |
 | D-143 | 2026-10-21 | ruff as flymake backend and `C-c l f` formatter, no ruff server | 5 | O-75 |
 | D-144 | 2026-10-21 | fswatch patch 0005: `Created` once per file on the Mac | 7 | T-125 |
+| D-145 | 2026-10-25 | R and LaTeX removed: no ESS, AUCTeX, texlab; Python's cells stay | 12 | owner |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |

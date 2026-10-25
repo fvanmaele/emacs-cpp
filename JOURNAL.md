@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0099 | 2026-10-25 | T-126: R and LaTeX removed | T-126 | D-145 |
 | 0098 | 2026-10-21 | The Mac run of H-15; fswatch 0005: `Created` once per file | T-125, T-119 | D-144 |
 | 0097 | 2026-10-21 | T-123: ty's return type inference, opt-in per project | T-123 | D-142 |
 | 0096 | 2026-10-21 | T-122: gaps inside a word; `M-o` matches file names | T-122 | D-141 |

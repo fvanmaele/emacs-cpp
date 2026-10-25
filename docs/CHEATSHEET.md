@@ -175,38 +175,18 @@ ty infers the return types of unannotated functions only in a project whose
 `.dir-locals.el` holds `((nil . ((emacs-cpp-ty-return-type-inference . t))))`, then
 `M-x eglot-reconnect` (D-142; it slows large unannotated projects down).
 
-## Cells: Python and R (D-072)
+## Cells: Python (D-072)
 A line `# %%` (optionally with a title) starts a cell, as in jupytext, VS Code and
-Spyder. `.R` files open in ESS's `ess-r-mode`; R starts in the project root.
+Spyder.
 
 | Key | Does |
 |---|---|
-| `C-c C-c` | run the cell at point (starts the Python shell or R if needed) |
+| `C-c C-c` | run the cell at point (starts the Python shell if needed) |
 | `M-n` / `M-p` | next / previous cell |
 | `C-c % s` | run the cell, go to the next |
 | `C-c % b` | run the whole buffer |
 | `C-c % a` / `C-c % @` | run the cells above / select the cell |
-| `C-c C-r` / `C-c C-z` | run the selection / go to the shell (Python and R; R's: back) |
-
-## LaTeX (AUCTeX and texlab, D-090)
-All of AUCTeX's keys: `docs/CHEATSHEET-AUCTEX.md`.
-`.tex` files open in AUCTeX's `LaTeX-mode`; in a project texlab starts, and `M-.`,
-`M-?` and `C-c l r` follow `\ref`, `\cite` and your own commands across the files;
-`M-o` lists the project's sections and labels. Completion offers labels, citation keys
-and environments.
-
-| Key | Does |
-|---|---|
-| `C-c l b` | build with texlab (latexmk), then show this line in Skim / zathura |
-| `C-c l f` | latexindent: indent the region's lines, or the whole file; reads the project's `.latexindent.yaml` (D-101, D-103) |
-| `C-c C-e` / `C-c ]` | insert an environment (asks its name) / close the open one |
-| `C-c C-m` / `C-c C-s` | insert a macro with its arguments / a section with a label |
-| `C-c C-f` then a letter | font: `C-b` bold, `C-i` italic, `C-e` emphasis |
-| `C-c ~` | math mode keys: `` ` `` then a letter inserts a symbol |
-| `C-c C-p C-p` / `C-c C-p C-b` | preview the formula at point / the whole buffer |
-| `C-c C-o C-f` | fold macros and environments into their text |
-| `C-c C-c` / `C-c C-v` | AUCTeX's own compile step / view |
-| ``C-c ` `` | AUCTeX: next error of its own compile, with help |
+| `C-c C-r` / `C-c C-z` | run the selection / go to the shell |
 
 ## Git (magit)
 | Key | Does |

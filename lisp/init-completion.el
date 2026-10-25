@@ -307,14 +307,14 @@ The first call loads yasnippet-snippets' collection."
   (call-interactively #'yas-insert-snippet))
 
 ;; yasnippet (D-095): the language servers' snippets (clangd's argument placeholders
-;; when a completion is chosen, texlab's environments; eglot announces snippet
+;; when a completion is chosen; eglot announces snippet
 ;; support once yasnippet is there) and yasnippet-snippets' templates.  A snippet's
 ;; key expands on `C-c y', never on TAB, so TAB indents and completes as before
 ;; (D-020); inside an expanded snippet TAB / S-TAB move to the next / previous field.
 ;; The collection takes 130 - 150 ms to scan (Mac), so it loads at the first `C-c y'
 ;; or `C-c & C-s', not with yasnippet (patch 0001 drops its autoload).
 (use-package yasnippet
-  :hook ((prog-mode LaTeX-mode bibtex-mode) . yas-minor-mode)
+  :hook (prog-mode . yas-minor-mode)
   :config
   (keymap-unset yas-minor-mode-map "TAB" t)
   (keymap-unset yas-minor-mode-map "<tab>" t)

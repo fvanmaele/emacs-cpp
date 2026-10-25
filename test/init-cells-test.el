@@ -1,12 +1,11 @@
-;;; init-cells-test.el --- `# %%' cells in Python and R, ESS for R  -*- lexical-binding: t; -*-
+;;; init-cells-test.el --- `# %%' cells in Python  -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 
-;; Integration tests in the shipped profile (T-046, D-072): `.R' files open in
-;; `ess-r-mode' without eglot or lintr's flymake; `code-cells-mode' is on in Python and
-;; R buffers with the owner's keys; `C-c C-c' on two cells in turn, with no REPL
-;; running, starts it and the second cell sees the first one's variable; R starts in
-;; the project root.  Needs python3, git, and R (the R test skips without it).
+;; Integration tests in the shipped profile (T-046, D-072): `code-cells-mode' is on
+;; in Python buffers with the owner's keys; `C-c C-c' on two cells in turn, with no
+;; shell running, starts it and the second cell sees the first one's variable.  R's
+;; cells went with ESS (D-145).  Needs python3 and git.
 
 ;;; Code:
 
@@ -59,24 +58,16 @@ run BODY, then kill the buffers and processes it started."
     found))
 
 (ert-deftest init-cells-modes-and-keys ()
-  "D-072: R files open in `ess-r-mode', cells are on in Python and R buffers with
-the owner's keys, and R gets neither eglot nor lintr's flymake."
+  "D-072: cells are on in Python buffers with the owner's keys."
   (init-test--load)
-  (init-cells-test--with-dir '(("a.py" . "x = 1\n") ("a.R" . "x <- 1\n")) t
-    (dolist (file '("a.py" "a.R"))
-      (with-current-buffer (find-file-noselect (expand-file-name file root))
-        (should code-cells-mode)
-        (should (eq (keymap-lookup nil "C-c C-c") 'code-cells-eval))
-        (should (eq (keymap-lookup nil "M-n") 'code-cells-forward-cell))
-        (should (eq (keymap-lookup nil "M-p") 'code-cells-backward-cell))
-        (should (eq (keymap-lookup nil "C-c % s") 'code-cells-eval-and-step))
-        (should (eq (keymap-lookup nil "C-c % b") 'emacs-cpp-cells-eval-buffer))))
-    (with-current-buffer (get-file-buffer (expand-file-name "a.R" root))
-      (should (eq major-mode 'ess-r-mode))
-      (should-not (bound-and-true-p eglot--managed-mode))
-      (should-not (bound-and-true-p flymake-mode))
-      ;; ESS found its own directory, not lib/ (lisp/init-r.el).
-      (should (file-directory-p ess-etc-directory)))))
+  (init-cells-test--with-dir '(("a.py" . "x = 1\n")) t
+    (with-current-buffer (find-file-noselect (expand-file-name "a.py" root))
+      (should code-cells-mode)
+      (should (eq (keymap-lookup nil "C-c C-c") 'code-cells-eval))
+      (should (eq (keymap-lookup nil "M-n") 'code-cells-forward-cell))
+      (should (eq (keymap-lookup nil "M-p") 'code-cells-backward-cell))
+      (should (eq (keymap-lookup nil "C-c % s") 'code-cells-eval-and-step))
+      (should (eq (keymap-lookup nil "C-c % b") 'emacs-cpp-cells-eval-buffer)))))
 
 (ert-deftest init-cells-python-cells-share-state ()
   "D-072: with no shell running, `C-c C-c' starts `run-python'; the second cell
@@ -90,22 +81,6 @@ uses the first one's variable."
       (init-cells-test--run-two-cells)
       (should (equal (init-cells-test--wait-for (python-shell-get-buffer) "cell2 14\\.142")
                      "cell2 14.142")))))
-
-(ert-deftest init-cells-r-cells-share-state-in-the-project-root ()
-  "D-072: with no R running, `C-c C-c' starts R in the project root (the file is in
-a subdirectory); the second cell uses the first one's variable."
-  (init-test--load)
-  (unless (executable-find "R")
-    (ert-skip "R not installed (pacman r, MacPorts R)"))
-  (init-cells-test--with-dir
-      '(("R/demo.R" . "# %% setup\nx <- 2\n\n# %% compute\ncat(\"cell2\", round(sqrt(x) * 10, 3), getwd(), \"\\n\")\n"))
-      t
-    (with-current-buffer (find-file-noselect (expand-file-name "R/demo.R" root))
-      (init-cells-test--run-two-cells)
-      (should (equal (init-cells-test--wait-for
-                      (process-buffer (ess-get-process ess-local-process-name))
-                      (concat "cell2 14\\.142 " (regexp-quote (directory-file-name root))))
-                     (concat "cell2 14.142 " (directory-file-name root)))))))
 
 (provide 'init-cells-test)
 ;;; init-cells-test.el ends here

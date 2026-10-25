@@ -468,7 +468,7 @@ return types anyway and ignores the setting.
 `M-x customize-variable` (or `M-x customize-themes` for the colours), change, then
 "Save for future sessions". Saved settings win over the configuration's defaults.
 
-## 14. Python and R, cell by cell
+## 14. Python, cell by cell
 A script can be split into cells, each run on its own in a shell that keeps its state
 (D-072): a line starting with `# %%` begins a cell; text after it is the cell's title.
 The same marks work in VS Code, Spyder and jupytext.
@@ -488,16 +488,11 @@ plt.show()
 | `M-n` / `M-p` | go to the next / previous cell |
 | `C-c % s` | run the cell, then go to the next one |
 | `C-c % b` | run the whole file |
-| `C-c C-z` | go to the shell (in R's, `C-c C-z` goes back to the file) |
+| `C-c C-z` | go to the shell |
 
-The first `C-c C-c` starts the shell: Python's (`M-x run-python`) for `.py` files, R
-for `.R` files, in the project root without asking. Variables from one cell are there
+The first `C-c C-c` starts the Python shell (`M-x run-python`). Variables from one cell are there
 in the next, until the shell is ended (`C-d` in it, or `C-x k`). The shell is the same
 program as in a terminal, so plots appear as they would there.
 
-R files open in ESS's mode (`C-h i`, "ESS", has its manual): `C-c C-r` runs the
-selection, `C-M-x` the function at point, `C-c C-v` shows help for the name at point.
-There is no language server for R here: the `C-c l` keys do nothing in `.R` files, and
-`M-.` is ESS's own lookup, which asks the running R process. ESS's style checks are
-off: they need the R package lintr (CRAN, `install.packages("lintr")`, then
-`M-x customize-variable RET ess-use-flymake` = Always).
+R and LaTeX are not configured (D-145): `.R` and `.tex` files open in Emacs's own
+modes, without a language server.
