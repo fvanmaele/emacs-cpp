@@ -60,8 +60,6 @@
 (require 'init-cmake)
 (require 'init-debug)
 (require 'init-python)
-(require 'init-r)
-(require 'init-latex)
 (require 'init-cells)
 (require 'init-git)
 (require 'init-writing)

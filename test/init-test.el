@@ -164,8 +164,11 @@ another module it requires itself, so no module works only by init.el's order."
   (init-test--load)
   (dolist (feature '(init-ui init-completion init-project init-lsp init-go-to-anything
                      init-cpp init-cmake init-debug
-                     init-latex init-git init-writing))
+                     init-python init-cells init-git init-writing))
     (should (featurep feature)))
+  ;; D-145: R and LaTeX left; their modules and packages are gone.
+  (dolist (library '("init-r" "init-latex" "ess-r-mode" "tex-site"))
+    (should-not (locate-library library)))
   (should-not package-enable-at-startup)
   (should (equal custom-file (expand-file-name "custom.el" init-test--home)))
   (should (memq 'modus-vivendi-tritanopia custom-enabled-themes))
@@ -263,10 +266,7 @@ configuration loads and finds its search program."
           (should (re-search-forward "^SEARCH \\(.*\\)" nil t))
           (should (equal (match-string 1)
                          (format "%S t" emacs-cpp-default-xref-search-program))))
-      (delete-directory home t)))
-  ;; MacTeX's programs for AUCTeX's preview and texlab's build (D-090).
-  (when (eq system-type 'darwin)
-    (should (member "/Library/TeX/texbin" emacs-cpp-default-exec-path-prepend))))
+      (delete-directory home t))))
 
 (ert-deftest init-saved-theme-survives-restart ()
   "D-040: a theme saved with customize-themes is the one in effect after startup;
