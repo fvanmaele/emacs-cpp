@@ -45,7 +45,7 @@ clang-tidy fixes, clang-move (D-094); snippets: yasnippet, its collection on `C-
 (D-097). No module switch, modules load alone (D-098); `M-o` its
 own module (D-099).
 S12 change signature: FAIL, calls in templates (0066), O-43 (b) to the owner.
-Open: O-68 (researched, S19
+Open: O-76 Julia (researched 2026-10-25, owner rules); O-68 (researched, S19
 proposed); O-38, O-43, O-44, O-47, O-56 ruled 2026-10-21 (D-135 .. D-139);
 O-50 resolved: patch 0010 with T-104 (D-114);
 O-64 resolved: limits kept (D-115); O-65 resolved: eglot patch 0003 (D-117, T-106,

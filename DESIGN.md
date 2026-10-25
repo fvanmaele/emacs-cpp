@@ -1968,6 +1968,9 @@ presets, GoogleTest runner.
 - `RESEARCH_r_language_servers.md` (owner request 2026-10-13): languageserver, Arity,
   Air, Ark; packaging on Arch and MacPorts; languageserver run through eglot on the
   Mac. Findings in; O-39.
+- `RESEARCH_julia.md` (owner request 2026-10-25): LanguageServer.jl, JETLS, julia-mode,
+  julia-ts-mode, julia-snail, DebugAdapter.jl; packaging on Arch and MacPorts. No
+  hands-on (no Julia on the Mac). Findings in; O-76.
 - `RESEARCH_other_languages.md` (owner question 2026-10-08): Python, R, Perl next to
   the C++ setup. Findings in; rulings O-19, O-20.
 - `RESEARCH_notebooks_cells.md` (owner request 2026-10-10, T-045): `# %%` cells for
@@ -2007,6 +2010,36 @@ presets, GoogleTest runner.
   measured across 63 files. Findings in; O-43.
 
 ## Open questions ledger (LIVING)
+- O-76 (OPEN, owner request 2026-10-25: "Research julia language server interfacing
+  and other functionality"): findings in `RESEARCH_julia.md`. Julia 1.13 is packaged
+  on both machines (pacman `julia`, MacPorts `julia`, not installed on the Mac);
+  both servers, the debugger and julia-snail's Julia side come from Julia's own
+  package manager into `~/.julia` (network, outside the repository). LanguageServer.jl
+  is the mature one but broke with each Julia minor release and changed API in 6.0
+  (2026-09); JETLS is experimental, Julia 1.12.2 - 1.13 only, with a documented
+  memory leak. julia-mode is on NonGNU ELPA; julia-ts-mode and its grammar are not
+  packaged (MELPA, AUR). Options:
+  (a) none: D-145's scope stands. Against: Julia files get no mode at all (Emacs has
+  none built in).
+  (b) julia-mode only (one NonGNU ELPA submodule), no server. Against: no
+  navigation beyond imenu and `M-s r`; little gained over editing elsewhere.
+  (c) (b) plus LanguageServer.jl through eglot, pinned in a server environment the
+  config installs on request. Against: first start indexes for minutes; a Julia
+  update has broken the pinned server before; a Pkg install is a network call and
+  files outside the repository (needs its D-nnn).
+  (d) (b) plus JETLS through eglot. Against: experimental, its own docs say not
+  production-ready; memory grows per re-analysis; Julia 1.14 unsupported when it
+  comes; same Pkg install as (c).
+  (e) (b) plus julia-snail and eat (two more submodules; MELPA for snail) for a REPL,
+  `# %%` cells, session-based `M-.` and plots, dape debugging from the REPL.
+  Against: navigation only for code loaded in the session; a terminal emulator and a
+  second completion source next to eglot's if combined with (c) / (d).
+  Combined: (b) + (d) + (e) gives the most, also the most moving parts.
+  Recommendation: (b), with (d) as a spike before any server is configured
+  (tier 3: a real-data path through a server with a known leak), and (e) only if the
+  owner runs Julia interactively. Premises from documentation only, UNVERIFIED by
+  hand; the first step would be installing MacPorts `julia` on the Mac, a system
+  action to agree first.
 - O-75 (RESOLVED 2026-10-21 with D-142 and D-143: (b) opt-in, (r2); owner: "O-75 make
   return-type inference opt-in with a per-project .dir-locals.el switch. Draft the
   flymake backend + ruff format changes"; was OPEN, owner request 2026-10-21:
