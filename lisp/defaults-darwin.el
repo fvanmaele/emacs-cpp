@@ -50,10 +50,5 @@ ty has no port; it waits until it is tested on the Mac (T-121).")
 (defconst emacs-cpp-default-python-server-install "sudo port install pyright"
   "The command that installs `emacs-cpp-default-python-server' (D-140).")
 
-(defconst emacs-cpp-default-auto-revert-use-notify nil
-  "Non-nil: unedited buffers follow their files by notification (D-147).  nil:
-polled every `auto-revert-interval' (5 s); a kqueue watch is one descriptor per
-buffer, refused beyond 975 (D-127), and `M-.' into libraries opens many (D-019).")
-
 (provide 'defaults-darwin)
 ;;; defaults-darwin.el ends here

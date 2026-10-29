@@ -99,10 +99,9 @@ Mac run of H-15 by the session (0098): S18 run 6 `shipped` PASS; FSEvents kept
 rebuilt with `clangd-indexer`. H-15 left: the mouse's side buttons.
 2026-10-25 (0099): R and LaTeX removed (D-145): no ESS, AUCTeX, texlab; O-39 closed,
 T-079 dropped.
-2026-10-29: unedited buffers follow their files, inotify on Arch, 5 s polling on the
-Mac (D-147, T-127, 0100; Arch H-18); one fswatch per project root, tier 3 (T-128,
-S20: Mac dry run, criteria proposed). T-127 blocks Emacs about 6 s after a 190-file
-checkout on the Mac (O-78): T-128 replaces it in projects if S20 passes (D-148).
+2026-10-29: T-127 (auto-revert, D-147, 0100) froze Emacs about 6 s after a 190-file
+checkout on the Mac (O-78), reverted (D-149); one fswatch per project root, tier 3
+(T-128, S20: Mac dry run, criteria proposed) if S20 passes (D-148).
 
 ## Self-test (before the first edit of a session)
 Answer from the docs, not from memory; a miss means re-read, not edit.

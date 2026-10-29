@@ -1888,41 +1888,51 @@ the form that loads magit is found (S17 run 2, T-113).
 - DECIDED D-135 (owner 2026-10-21, O-38 (e): "O-38 (e)"): no rg.el / ag.el.
   `C-c p s r` runs `consult-ripgrep` over the project (results in the minibuffer,
   no wgrep); `C-c p s a` is unbound. No new package.
-- DECIDED D-147 (owner 2026-10-29: "Per-platform and do fswatch proposed tier 3
-  item"): `global-auto-revert-mode` (built in, `autorevert`) is on at startup on both
-  machines: a buffer without unsaved edits follows its file when a program outside
-  Emacs changes it (`git checkout` in a shell, a formatter); a buffer with unsaved
-  edits is left alone, and Emacs asks on its first edit or save, as before. How
-  changes are noticed comes from the platform's defaults file (D-055,
-  `emacs-cpp-default-auto-revert-use-notify`): on Arch inotify notifications, with
-  `auto-revert-avoid-polling`; on the Mac polling every `auto-revert-interval` (5 s),
-  since a notification there is one kqueue descriptor per buffer, refused beyond 975
-  (D-127), and `M-.` into libraries opens many buffers (D-019). magit's
-  `magit-auto-revert-mode`, which does this for git-tracked files only once magit is
-  loaded, then stays off (its initial value is off when the global mode is on).
-  Trigger: owner report 2026-10-29: `M-.` on `ManifoldKind` in RMO-drafts'
-  `src/main.cc` landed 19 lines below its definition in `option_types.h` after about
-  15 branch switches in a 3-day-old Emacs; a fresh patched clangd answered right, the
-  running one answered right when asked again, and the fault was gone. Cause
-  UNVERIFIED; the suspect is a buffer that kept a header's text from before a
+- DECIDED D-147 (SUPERSEDED 2026-10-29 by D-149; owner 2026-10-29: "Per-platform and
+  do fswatch proposed tier 3 item"): `global-auto-revert-mode` (built in,
+  `autorevert`) is on at startup on both machines: a buffer without unsaved edits
+  follows its file when a program outside Emacs changes it (`git checkout` in a shell,
+  a formatter); a buffer with unsaved edits is left alone, and Emacs asks on its first
+  edit or save, as before. How changes are noticed comes from the platform's defaults
+  file (D-055, `emacs-cpp-default-auto-revert-use-notify`): on Arch inotify
+  notifications, with `auto-revert-avoid-polling`; on the Mac polling every
+  `auto-revert-interval` (5 s), since a notification there is one kqueue descriptor
+  per buffer, refused beyond 975 (D-127), and `M-.` into libraries opens many buffers
+  (D-019). magit's `magit-auto-revert-mode`, which does this for git-tracked files
+  only once magit is loaded, then stays off (its initial value is off when the global
+  mode is on). Trigger: owner report 2026-10-29: `M-.` on `ManifoldKind` in
+  RMO-drafts' `src/main.cc` landed 19 lines below its definition in `option_types.h`
+  after about 15 branch switches in a 3-day-old Emacs; a fresh patched clangd answered
+  right, the running one answered right when asked again, and the fault was gone.
+  Cause UNVERIFIED; the suspect is a buffer that kept a header's text from before a
   checkout (no auto-revert in the config; whether magit was loaded is unknown), whose
   text eglot gives clangd in place of the file. CLion, Qt Creator and VS Code reload
   unedited buffers likewise (from memory, UNVERIFIED). Not taken: polling on both
   (Arch would lag up to 5 s for nothing), notifications on both (the kqueue cap),
   magit loaded at startup (its load cost, D-125; untracked files left out), eglot's
-  fswatch reverting buffers (clangd starts none: no fswatch ran beside its server,
-  pid 73357), fswatch as a `file-notify` backend (needs Emacs's C code). Proposed
-  (T-128, tier 3, spike S20): one fswatch per project root reverting its buffers at
-  once on both machines. Built (T-127, 0100): Mac startup within run-to-run noise
-  (`autorevert` alone 19 ms in a bare Emacs); Arch H-18. Found by S20's Mac dry run
-  (2026-10-29): a checkout of 190 open files blocks Emacs about 6 s and buffers are
-  current 10 - 11 s after it, not within 5 s (per-buffer `vc-refresh-state`); O-78.
+  fswatch reverting buffers (clangd starts none: no fswatch ran beside its server, pid
+  73357), fswatch as a `file-notify` backend (needs Emacs's C code). Proposed (T-128,
+  tier 3, spike S20): one fswatch per project root reverting its buffers at once on
+  both machines. Built (T-127, 0100): Mac startup within run-to-run noise
+  (`autorevert` alone 19 ms in a bare Emacs); Arch run dropped (D-149). Found by S20's
+  Mac dry run (2026-10-29): a checkout of 190 open files blocks Emacs about 6 s and
+  buffers are current 10 - 11 s after it, not within 5 s (per-buffer
+  `vc-refresh-state`); O-78.
 - DECIDED D-148 (owner 2026-10-29, O-78: "(d) if S20 passes"): T-128 (the per-project
   fswatch reverter) replaces `global-auto-revert-mode` in project buffers if S20
   passes; files outside project roots keep D-147's auto-revert. Until S20's verdict
   T-127 stays as built, its freeze after large checkouts included (the session's
   reading: no (c) was asked for). If S20 fails, O-78 reopens. Not taken: (a) as the
-  end state, (b) revert T-127, (c) a queued VC refresh by advice.
+  end state, (b) revert T-127, (c) a queued VC refresh by advice. Amended by D-149:
+  T-127 is reverted until then.
+- DECIDED D-149 (owner 2026-10-29: "Undo T-127 for now"): T-127's code is removed
+  (`autorevert` form, `emacs-cpp-default-auto-revert-use-notify`, its test); the
+  config again reloads no buffer itself, magit's `magit-auto-revert-mode` once magit
+  is loaded (with the same per-buffer VC refresh, O-78). Supersedes D-147 and
+  amends D-148: if S20 passes, T-128's reverter covers project buffers and auto-revert
+  for files outside project roots is ruled again; if S20 fails, O-78 reopens. Reason:
+  the freeze of about 6 s after a large checkout on the Mac (O-78). Journal 0100 keeps
+  the build and its numbers.
 - REJECTED: borg (the tool this layout imitates). It assumes the package repository is
   the Emacs directory itself, which contradicts D-003; reconsider if own glue grows past
   about 100 lines. Measured after T-002: `scripts/build-packages.el` has 183 lines of
@@ -3403,6 +3413,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-146 | 2026-10-31 | clangd stays; no ast-grep (server, search or flymake) | 7 | O-77 |
 | D-147 | 2026-10-29 | unedited buffers follow their files: inotify on Arch, 5 s polling on the Mac | 12 | owner |
 | D-148 | 2026-10-29 | the fswatch reverter (T-128) replaces auto-revert in projects if S20 passes | 12 | O-78 |
+| D-149 | 2026-10-29 | T-127 reverted until S20's verdict; no auto-revert of the config's own | 12 | owner |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |
