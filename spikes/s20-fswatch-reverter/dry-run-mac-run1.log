@@ -1,0 +1,50 @@
+S20 run 2026-10-29T22:19:57Z, Darwin arm64, GNU Emacs 31.1
+load:  5.05 4.27 3.66 
+
+S20 fswatch-queued, darwin GNU Emacs 31.1 (build 2, aarch64-apple-darwin27.0.0, NS appkit-2775.10 Version 27.0.1 (Build 26A434)), 2026-10-29T22:20:05Z
+buffers: 190 changed on b (1 edited), 10 unchanged
+ready: yes after 0.02 s
+idle fswatch: pid 18964, 6 descriptors, 6.1 MB RSS
+checkout b: git 0.09 s; all 189 unedited buffers current: yes, 0.24 s after git; Emacs blocked at most 0.15 s
+  reverts 189, first 0.02 s, last 0.24 s after git (unchanged files' buffers: 0); edited buffer kept: yes
+  VC states all refreshed 9.50 s after git; Emacs blocked at most 0.80 s
+  filter: 2 calls, 380 records, 105.0 ms total
+checkout a: git 0.08 s; all 189 unedited buffers current: yes, 0.12 s after git; Emacs blocked at most 0.06 s
+  reverts 189, first 0.00 s, last 0.12 s after git (unchanged files' buffers: 0); edited buffer kept: yes
+  VC states all refreshed 9.49 s after git; Emacs blocked at most 0.15 s
+  filter: 2 calls, 380 records, 82.7 ms total
+filter: longest call 72.9 ms; overflows 0
+shutdown: fswatch pid 18964 gone
+
+S20 fswatch, darwin GNU Emacs 31.1 (build 2, aarch64-apple-darwin27.0.0, NS appkit-2775.10 Version 27.0.1 (Build 26A434)), 2026-10-29T22:20:35Z
+buffers: 190 changed on b (1 edited), 10 unchanged
+ready: yes after 0.02 s
+idle fswatch: pid 21308, 6 descriptors, 6.1 MB RSS
+checkout b: git 0.08 s; all 189 unedited buffers current: yes, 6.84 s after git; Emacs blocked at most 4.11 s
+  reverts 189, first 0.02 s, last 6.81 s after git (unchanged files' buffers: 0); edited buffer kept: yes
+  filter: 2 calls, 380 records, 6826.8 ms total
+checkout a: git 0.09 s; all 189 unedited buffers current: yes, 6.55 s after git; Emacs blocked at most 4.06 s
+  reverts 189, first 0.00 s, last 6.51 s after git (unchanged files' buffers: 0); edited buffer kept: yes
+  filter: 2 calls, 380 records, 6543.5 ms total
+filter: longest call 4110.8 ms; overflows 0
+shutdown: fswatch pid 21308 gone
+
+S20 fswatch-novc, darwin GNU Emacs 31.1 (build 2, aarch64-apple-darwin27.0.0, NS appkit-2775.10 Version 27.0.1 (Build 26A434)), 2026-10-29T22:21:00Z
+buffers: 190 changed on b (1 edited), 10 unchanged
+ready: yes after 0.02 s
+idle fswatch: pid 23638, 6 descriptors, 6.1 MB RSS
+checkout b: git 0.08 s; all 189 unedited buffers current: yes, 0.11 s after git; Emacs blocked at most 0.06 s
+  reverts 189, first 0.01 s, last 0.11 s after git (unchanged files' buffers: 0); edited buffer kept: yes
+  filter: 3 calls, 380 records, 86.8 ms total
+checkout a: git 0.08 s; all 189 unedited buffers current: yes, 0.13 s after git; Emacs blocked at most 0.04 s
+  reverts 189, first 0.00 s, last 0.13 s after git (unchanged files' buffers: 0); edited buffer kept: yes
+  filter: 3 calls, 380 records, 87.7 ms total
+filter: longest call 57.6 ms; overflows 0
+shutdown: fswatch pid 23638 gone
+
+S20 poll, darwin GNU Emacs 31.1 (build 2, aarch64-apple-darwin27.0.0, NS appkit-2775.10 Version 27.0.1 (Build 26A434)), 2026-10-29T22:21:11Z
+buffers: 190 changed on b (1 edited), 10 unchanged
+checkout b: git 0.06 s; all 189 unedited buffers current: yes, 11.32 s after git; Emacs blocked at most 6.40 s
+  reverts 189, first 4.94 s, last 11.27 s after git (unchanged files' buffers: 0); edited buffer kept: yes
+checkout a: git 0.08 s; all 189 unedited buffers current: yes, 9.99 s after git; Emacs blocked at most 6.46 s
+  reverts 189, first 3.54 s, last 9.92 s after git (unchanged files' buffers: 0); edited buffer kept: yes

@@ -67,6 +67,12 @@ service's plan) is not an item.
   4. On Arch: `sh scripts/measure-startup.sh 10 "(with-eval-after-load 'init-project
      (remove-hook 'after-init-hook #'global-auto-revert-mode))" </dev/null`
   Report back: the `Ran ... tests` line of step 2, the `median` lines of steps 3 and 4.
+- **H-19** (2026-10-29, T-128, S20) Spike S20 on Arch, after its pass criteria are
+  confirmed (`spikes/s20-fswatch-reverter/RUN.md`). Needs H-18's step 1 and 2 first.
+  1. On Arch, machine idle: `cd ~/source/repos/emacs-cpp && sh
+     spikes/s20-fswatch-reverter/run.sh </dev/null`
+  2. On Arch: run step 1 twice more.
+  Report back: `spikes/s20-fswatch-reverter/s20.log` of each run (commit them, or paste).
 
 ## Parked
 - **H-8** (2026-10-20, 0084 review:B-3 to review:B-5, deferred; T-114) The upstream
