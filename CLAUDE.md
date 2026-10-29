@@ -102,7 +102,7 @@ T-079 dropped.
 2026-10-29: unedited buffers follow their files, inotify on Arch, 5 s polling on the
 Mac (D-147, T-127, 0100; Arch H-18); one fswatch per project root, tier 3 (T-128,
 S20: Mac dry run, criteria proposed). T-127 blocks Emacs about 6 s after a 190-file
-checkout on the Mac (O-78, owner rules).
+checkout on the Mac (O-78): T-128 replaces it in projects if S20 passes (D-148).
 
 ## Self-test (before the first edit of a session)
 Answer from the docs, not from memory; a miss means re-read, not edit.

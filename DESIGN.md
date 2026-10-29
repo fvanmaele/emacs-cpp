@@ -1917,6 +1917,12 @@ the form that loads magit is found (S17 run 2, T-113).
   (`autorevert` alone 19 ms in a bare Emacs); Arch H-18. Found by S20's Mac dry run
   (2026-10-29): a checkout of 190 open files blocks Emacs about 6 s and buffers are
   current 10 - 11 s after it, not within 5 s (per-buffer `vc-refresh-state`); O-78.
+- DECIDED D-148 (owner 2026-10-29, O-78: "(d) if S20 passes"): T-128 (the per-project
+  fswatch reverter) replaces `global-auto-revert-mode` in project buffers if S20
+  passes; files outside project roots keep D-147's auto-revert. Until S20's verdict
+  T-127 stays as built, its freeze after large checkouts included (the session's
+  reading: no (c) was asked for). If S20 fails, O-78 reopens. Not taken: (a) as the
+  end state, (b) revert T-127, (c) a queued VC refresh by advice.
 - REJECTED: borg (the tool this layout imitates). It assumes the package repository is
   the Emacs directory itself, which contradicts D-003; reconsider if own glue grows past
   about 100 lines. Measured after T-002: `scripts/build-packages.el` has 183 lines of
@@ -2047,7 +2053,8 @@ presets, GoogleTest runner.
   measured across 63 files. Findings in; O-43.
 
 ## Open questions ledger (LIVING)
-- O-78 (OPEN, found 2026-10-29 by S20's Mac dry run): T-127 (D-147) stops Emacs for
+- O-78 (RESOLVED 2026-10-29 with D-148: (d); owner: "(d) if S20 passes"; found
+  2026-10-29 by S20's Mac dry run): T-127 (D-147) stops Emacs for
   seconds after a large checkout. After each revert `auto-revert-handler` runs
   `vc-refresh-state`, one `git` process per buffer (Emacs 31.1 `autorevert.el`); with
   D-147's Mac polling, a checkout changing 190 open files blocked a bare Emacs 5.9 -
@@ -3395,6 +3402,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-145 | 2026-10-25 | R and LaTeX removed: no ESS, AUCTeX, texlab; Python's cells stay | 12 | owner |
 | D-146 | 2026-10-31 | clangd stays; no ast-grep (server, search or flymake) | 7 | O-77 |
 | D-147 | 2026-10-29 | unedited buffers follow their files: inotify on Arch, 5 s polling on the Mac | 12 | owner |
+| D-148 | 2026-10-29 | the fswatch reverter (T-128) replaces auto-revert in projects if S20 passes | 12 | O-78 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |
