@@ -133,6 +133,8 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
 | T-124 | deferred | S | ruff: flymake backend, `C-c l f` | D-143 | until ty alone is too slow |
 | T-125 | done 0098 | S | fswatch 0005: `Created` once per file (Mac) | D-144 | 150 tests on the Mac |
 | T-126 | done 0099 | S | remove R and LaTeX | D-145 | 142 tests on the Mac |
+| T-127 | open | S | unedited buffers follow their files (auto-revert) | D-147 | tier proposed 1, owner rules |
+| T-128 | proposed | M | one fswatch per project root reverts its buffers | D-147 | tier 3: spike S20 first |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO

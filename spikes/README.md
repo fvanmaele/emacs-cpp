@@ -72,6 +72,10 @@ code is written for it. Each spike is a self-contained directory with its own bu
   Lisp over the built-in eglot, deliver every change of a 20000-change burst on an
   LLVM-sized tree to pyright while Emacs is blocked, on the Mac and on Arch, at an
   acceptable CPU cost? Gates D-127 (T-116).
+- **S20 fswatch reverter** (proposed 2026-10-29) - does one patched fswatch per project
+  root revert every unedited buffer of a `git checkout` across about 190 files within
+  a second, on the Mac and on Arch, without blocking Emacs or costing more than one
+  idle fswatch (D-127's 8 descriptors, 6 MB)? Gates T-128 (D-147).
 - **S4 cold-header flags** - DROPPED 2026-10-08: replaced by D-028 (patched clangd
   takes an includer from its index; owner ruled tier 2, toy reproduction as evidence).
   Was: which mechanism gives a header opened first (no including

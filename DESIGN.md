@@ -1888,6 +1888,32 @@ the form that loads magit is found (S17 run 2, T-113).
 - DECIDED D-135 (owner 2026-10-21, O-38 (e): "O-38 (e)"): no rg.el / ag.el.
   `C-c p s r` runs `consult-ripgrep` over the project (results in the minibuffer,
   no wgrep); `C-c p s a` is unbound. No new package.
+- DECIDED D-147 (owner 2026-10-29: "Per-platform and do fswatch proposed tier 3
+  item"): `global-auto-revert-mode` (built in, `autorevert`) is on at startup on both
+  machines: a buffer without unsaved edits follows its file when a program outside
+  Emacs changes it (`git checkout` in a shell, a formatter); a buffer with unsaved
+  edits is left alone, and Emacs asks on its first edit or save, as before. How
+  changes are noticed comes from the platform's defaults file (D-055,
+  `emacs-cpp-default-auto-revert-use-notify`): on Arch inotify notifications, with
+  `auto-revert-avoid-polling`; on the Mac polling every `auto-revert-interval` (5 s),
+  since a notification there is one kqueue descriptor per buffer, refused beyond 975
+  (D-127), and `M-.` into libraries opens many buffers (D-019). magit's
+  `magit-auto-revert-mode`, which does this for git-tracked files only once magit is
+  loaded, then stays off (its initial value is off when the global mode is on).
+  Trigger: owner report 2026-10-29: `M-.` on `ManifoldKind` in RMO-drafts'
+  `src/main.cc` landed 19 lines below its definition in `option_types.h` after about
+  15 branch switches in a 3-day-old Emacs; a fresh patched clangd answered right, the
+  running one answered right when asked again, and the fault was gone. Cause
+  UNVERIFIED; the suspect is a buffer that kept a header's text from before a
+  checkout (no auto-revert in the config; whether magit was loaded is unknown), whose
+  text eglot gives clangd in place of the file. CLion, Qt Creator and VS Code reload
+  unedited buffers likewise (from memory, UNVERIFIED). Not taken: polling on both
+  (Arch would lag up to 5 s for nothing), notifications on both (the kqueue cap),
+  magit loaded at startup (its load cost, D-125; untracked files left out), eglot's
+  fswatch reverting buffers (clangd starts none: no fswatch ran beside its server,
+  pid 73357), fswatch as a `file-notify` backend (needs Emacs's C code). Proposed
+  (T-128, tier 3, spike S20): one fswatch per project root reverting its buffers at
+  once on both machines. Startup cost not yet measured (T-127).
 - REJECTED: borg (the tool this layout imitates). It assumes the package repository is
   the Emacs directory itself, which contradicts D-003; reconsider if own glue grows past
   about 100 lines. Measured after T-002: `scripts/build-packages.el` has 183 lines of
@@ -1955,6 +1981,7 @@ presets, GoogleTest runner.
 | match function ranks unlike the regexps or is slower | S16 | owner | D-124 |
 | compiled `lisp/` slows startup or stays bytecode | S17 | owner | D-125 |
 | fswatch backend loses changes or costs Emacs too much | S18 (PASS 2026-10-21) | LLM / owner | D-127 |
+| per-project fswatch reverter loses changes or costs too much | S20 (proposed) | LLM / owner | T-128 |
 | own package build glue mis-orders compilation | none (tests) | - | v0.1 |
 | config fails on macOS (paths, tools, tests) | none (`make test`) | owner | D-050 |
 | clangd too slow / too large on deal.II scale | S1 numbers | owner | v0.1 |
@@ -3342,6 +3369,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-144 | 2026-10-21 | fswatch patch 0005: `Created` once per file on the Mac | 7 | T-125 |
 | D-145 | 2026-10-25 | R and LaTeX removed: no ESS, AUCTeX, texlab; Python's cells stay | 12 | owner |
 | D-146 | 2026-10-31 | clangd stays; no ast-grep (server, search or flymake) | 7 | O-77 |
+| D-147 | 2026-10-29 | unedited buffers follow their files: inotify on Arch, 5 s polling on the Mac | 12 | owner |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |
