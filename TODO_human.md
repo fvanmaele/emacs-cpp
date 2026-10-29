@@ -58,6 +58,15 @@ service's plan) is not an item.
   2. Attach `docs/upstream/ty_return_type_inference_repro.py` (or paste it in a
      collapsed block).
   Report back: the comment's link.
+- **H-18** (2026-10-29, T-127, D-147) Auto-revert on Arch: tests and startup cost
+  (budgets bind there, D-057). The Mac's run is in 0100.
+  1. On the Mac: `cd ~/source/repos/emacs-cpp && git push` (the session does not push).
+  2. On Arch, machine idle: `cd ~/source/repos/emacs-cpp && git pull --ff-only && make
+     test </dev/null`
+  3. On Arch: `sh scripts/measure-startup.sh 10 nil </dev/null`
+  4. On Arch: `sh scripts/measure-startup.sh 10 "(with-eval-after-load 'init-project
+     (remove-hook 'after-init-hook #'global-auto-revert-mode))" </dev/null`
+  Report back: the `Ran ... tests` line of step 2, the `median` lines of steps 3 and 4.
 
 ## Parked
 - **H-8** (2026-10-20, 0084 review:B-3 to review:B-5, deferred; T-114) The upstream
