@@ -165,6 +165,10 @@ After `C-x u` (undo), plain `u` undoes again.
 | `C-x r m` / `C-x r b` | set / jump to a bookmark |
 | `C-c p m` | menu of all project commands |
 
+A file changed outside Emacs (`git checkout` in a shell) is reloaded into its buffer
+when the buffer has no unsaved edits: at once on Arch, within 5 s on the Mac. A buffer
+with unsaved edits is left alone; Emacs asks when you next edit or save it.
+
 ## 7. Searching
 | Key | Does |
 |---|---|

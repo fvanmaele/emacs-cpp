@@ -100,7 +100,7 @@ rebuilt with `clangd-indexer`. H-15 left: the mouse's side buttons.
 2026-10-25 (0099): R and LaTeX removed (D-145): no ESS, AUCTeX, texlab; O-39 closed,
 T-079 dropped.
 2026-10-29: unedited buffers follow their files, inotify on Arch, 5 s polling on the
-Mac (D-147, T-127); one fswatch per project root proposed (T-128, tier 3, S20).
+Mac (D-147, T-127, 0100; Arch H-18); one fswatch per project root, tier 3 (T-128, S20).
 
 ## Self-test (before the first edit of a session)
 Answer from the docs, not from memory; a miss means re-read, not edit.

@@ -1913,7 +1913,8 @@ the form that loads magit is found (S17 run 2, T-113).
   fswatch reverting buffers (clangd starts none: no fswatch ran beside its server,
   pid 73357), fswatch as a `file-notify` backend (needs Emacs's C code). Proposed
   (T-128, tier 3, spike S20): one fswatch per project root reverting its buffers at
-  once on both machines. Startup cost not yet measured (T-127).
+  once on both machines. Built (T-127, 0100): Mac startup within run-to-run noise
+  (`autorevert` alone 19 ms in a bare Emacs); Arch H-18.
 - REJECTED: borg (the tool this layout imitates). It assumes the package repository is
   the Emacs directory itself, which contradicts D-003; reconsider if own glue grows past
   about 100 lines. Measured after T-002: `scripts/build-packages.el` has 183 lines of
