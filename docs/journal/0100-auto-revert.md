@@ -53,15 +53,17 @@ On Arch changes arrive as inotify notifications; on the Mac buffers are checked 
 - **Assumed:** startup cost stays small. Mac: `require` of `autorevert` in a bare
   Emacs 19 ms (14 ms of it `filenotify`); full startup with and without the mode
   within run-to-run noise (medians 0.50 / 0.55 s on, 0.52 / 0.63 s off; machine not
-  idle). **Would break if:** Arch's measurement (H-16) shows it past the 0.5 s budget
+  idle). **Would break if:** Arch's measurement (H-18) shows it past the 0.5 s budget
   (D-057). **DESIGN bet:** D-147.
 - **Assumed:** inotify watches stay well under the system limit (one per directory of
   a visited file). **Would break if:** thousands of library directories are visited.
 - **Assumed:** a checkout across about 190 files reverts open buffers without
-  blocking Emacs long. Not measured; S20 measures it for the fswatch variant.
+  blocking Emacs long. **Broken** the same day by S20's Mac dry run: about 6 s
+  blocked, buffers current 10 - 11 s after `git`, from one `vc-refresh-state` (a git
+  process) per reverted buffer; O-78.
 
 ## How to verify
 - `make test` (143 tests on the Mac, 3 skipped).
 - In Emacs: open a tracked header, `git checkout` a branch that changes it in a shell;
-  the buffer shows the new text (Arch at once, Mac within 5 s); with an unsaved edit
+  the buffer shows the new text (Arch at once, Mac within about 10 s); with an unsaved edit
   it does not change.

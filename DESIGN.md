@@ -1914,7 +1914,9 @@ the form that loads magit is found (S17 run 2, T-113).
   pid 73357), fswatch as a `file-notify` backend (needs Emacs's C code). Proposed
   (T-128, tier 3, spike S20): one fswatch per project root reverting its buffers at
   once on both machines. Built (T-127, 0100): Mac startup within run-to-run noise
-  (`autorevert` alone 19 ms in a bare Emacs); Arch H-18.
+  (`autorevert` alone 19 ms in a bare Emacs); Arch H-18. Found by S20's Mac dry run
+  (2026-10-29): a checkout of 190 open files blocks Emacs about 6 s and buffers are
+  current 10 - 11 s after it, not within 5 s (per-buffer `vc-refresh-state`); O-78.
 - REJECTED: borg (the tool this layout imitates). It assumes the package repository is
   the Emacs directory itself, which contradicts D-003; reconsider if own glue grows past
   about 100 lines. Measured after T-002: `scripts/build-packages.el` has 183 lines of
@@ -1982,7 +1984,7 @@ presets, GoogleTest runner.
 | match function ranks unlike the regexps or is slower | S16 | owner | D-124 |
 | compiled `lisp/` slows startup or stays bytecode | S17 | owner | D-125 |
 | fswatch backend loses changes or costs Emacs too much | S18 (PASS 2026-10-21) | LLM / owner | D-127 |
-| per-project fswatch reverter loses changes or costs too much | S20 (proposed) | LLM / owner | T-128 |
+| per-project fswatch reverter loses changes or blocks Emacs | S20 (Mac dry run) | LLM / owner | T-128 |
 | own package build glue mis-orders compilation | none (tests) | - | v0.1 |
 | config fails on macOS (paths, tools, tests) | none (`make test`) | owner | D-050 |
 | clangd too slow / too large on deal.II scale | S1 numbers | owner | v0.1 |
@@ -2045,6 +2047,28 @@ presets, GoogleTest runner.
   measured across 63 files. Findings in; O-43.
 
 ## Open questions ledger (LIVING)
+- O-78 (OPEN, found 2026-10-29 by S20's Mac dry run): T-127 (D-147) stops Emacs for
+  seconds after a large checkout. After each revert `auto-revert-handler` runs
+  `vc-refresh-state`, one `git` process per buffer (Emacs 31.1 `autorevert.el`); with
+  D-147's Mac polling, a checkout changing 190 open files blocked a bare Emacs 5.9 -
+  6.5 s in one timer tick, and the buffers were current 10 - 11 s after `git`. Arch's
+  notifications run the same handler (UNVERIFIED there; Linux starts processes faster).
+  magit's `magit-auto-revert-mode` reverts through the same handler, so a loaded magit
+  had this cost before T-127 (UNVERIFIED, read from the source). Options:
+  (a) keep T-127 as built. Against: a freeze of several seconds after every large
+  checkout on the Mac.
+  (b) revert T-127. Against: stale buffers mislead clangd again (the 2026-10-29
+  report), and a loaded magit keeps the freeze anyway.
+  (c) keep T-127; advice on `auto-revert-handler` defers its `vc-refresh-state` to a
+  queue, one buffer per 0.05 s timer step (S20's `fswatch-queued` refresh: blocked at
+  most 0.15 - 0.80 s, VC states current 9.5 s after `git`). Against: advice on an
+  autorevert internal (a new Emacs may move the call); the mode line's branch lags
+  about 10 s after a large checkout; own Lisp and tests (tier 2).
+  (d) T-128 sooner: S20's criteria confirmed, its runs, then the reverter replacing
+  `global-auto-revert-mode` in projects. Against: tier 3, a new subsystem; files
+  outside project roots (library headers) still need auto-revert, so (c)'s problem
+  stays for them.
+  Combined: (c) now, (d) if S20 passes. Recommendation: (c), then (d) on S20's verdict.
 - O-77 (RESOLVED 2026-10-31 with D-146: (a); owner: "O-77 (a)"; was OPEN, owner
   request 2026-10-31: "Research ast-grep instead of clangd for LSP
   functionality in C/C++"): findings in `RESEARCH_ast_grep.md`. ast-grep is syntax
