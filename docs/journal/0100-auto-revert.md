@@ -3,6 +3,8 @@
 - **Date:** 2026-10-29
 - **Commits:** see `git log --grep T-127`
 - **Tier:** 2
+- **Reverted:** 2026-10-29 by D-149 (owner), after S20's dry run found the freeze (O-78);
+  the code is gone, this entry keeps what was built and measured.
 - **Decisions:** D-147
 - **Done when:** `global-auto-revert-mode` is on after startup; both defaults files
   define `emacs-cpp-default-auto-revert-use-notify` (t on Arch, nil on the Mac); a test
@@ -53,8 +55,8 @@ On Arch changes arrive as inotify notifications; on the Mac buffers are checked 
 - **Assumed:** startup cost stays small. Mac: `require` of `autorevert` in a bare
   Emacs 19 ms (14 ms of it `filenotify`); full startup with and without the mode
   within run-to-run noise (medians 0.50 / 0.55 s on, 0.52 / 0.63 s off; machine not
-  idle). **Would break if:** Arch's measurement (H-18) shows it past the 0.5 s budget
-  (D-057). **DESIGN bet:** D-147.
+  idle). **Would break if:** Arch's measurement (H-18, dropped by D-149) shows it
+  past the 0.5 s budget (D-057). **DESIGN bet:** D-147.
 - **Assumed:** inotify watches stay well under the system limit (one per directory of
   a visited file). **Would break if:** thousands of library directories are visited.
 - **Assumed:** a checkout across about 190 files reverts open buffers without

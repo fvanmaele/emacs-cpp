@@ -27,16 +27,6 @@ Signal an error naming the executable otherwise (D-081)."
   (setq xref-search-program
         (emacs-cpp-search-program-check emacs-cpp-default-xref-search-program)))
 
-;; Built in: a buffer without unsaved edits follows its file when a program outside
-;; Emacs changes it (`git checkout' in a shell); eglot gives the server a buffer's
-;; text in place of its file, so a stale buffer misleads clangd (D-147).  Notified
-;; or polled by platform (D-055).  magit's own auto-revert then stays off.
-(use-package autorevert
-  :hook (after-init . global-auto-revert-mode)
-  :init
-  (setq auto-revert-use-notify emacs-cpp-default-auto-revert-use-notify
-        auto-revert-avoid-polling emacs-cpp-default-auto-revert-use-notify))
-
 (use-package projectile
   :hook (after-init . projectile-mode)
   :config

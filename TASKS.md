@@ -133,7 +133,7 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
 | T-124 | deferred | S | ruff: flymake backend, `C-c l f` | D-143 | until ty alone is too slow |
 | T-125 | done 0098 | S | fswatch 0005: `Created` once per file (Mac) | D-144 | 150 tests on the Mac |
 | T-126 | done 0099 | S | remove R and LaTeX | D-145 | 142 tests on the Mac |
-| T-127 | done 0100 | S | unedited buffers follow their files (auto-revert) | D-147 | tier 2; 143 tests on the Mac; Arch H-18; freeze O-78 |
+| T-127 | reverted (D-149) | S | unedited buffers follow their files (auto-revert) | D-147 | built 0100; freeze O-78; removed until S20 |
 | T-128 | open | M | one fswatch per project root reverts its buffers | D-147, D-148 | tier 3 (owner 2026-10-29); spike S20 first |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c

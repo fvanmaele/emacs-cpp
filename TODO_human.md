@@ -58,20 +58,13 @@ service's plan) is not an item.
   2. Attach `docs/upstream/ty_return_type_inference_repro.py` (or paste it in a
      collapsed block).
   Report back: the comment's link.
-- **H-18** (2026-10-29, T-127, D-147) Auto-revert on Arch: tests and startup cost
-  (budgets bind there, D-057). The Mac's run is in 0100.
-  1. On the Mac: `cd ~/source/repos/emacs-cpp && git push` (the session does not push).
-  2. On Arch, machine idle: `cd ~/source/repos/emacs-cpp && git pull --ff-only && make
-     test </dev/null`
-  3. On Arch: `sh scripts/measure-startup.sh 10 nil </dev/null`
-  4. On Arch: `sh scripts/measure-startup.sh 10 "(with-eval-after-load 'init-project
-     (remove-hook 'after-init-hook #'global-auto-revert-mode))" </dev/null`
-  Report back: the `Ran ... tests` line of step 2, the `median` lines of steps 3 and 4.
 - **H-19** (2026-10-29, T-128, S20) Spike S20 on Arch, after its pass criteria are
-  confirmed (`spikes/s20-fswatch-reverter/RUN.md`). Needs H-18's step 1 and 2 first.
-  1. On Arch, machine idle: `cd ~/source/repos/emacs-cpp && sh
+  confirmed (`spikes/s20-fswatch-reverter/RUN.md`).
+  1. On the Mac: `cd ~/source/repos/emacs-cpp && git push` (the session does not push).
+  2. On Arch: `cd ~/source/repos/emacs-cpp && git pull --ff-only`
+  3. On Arch, machine idle: `cd ~/source/repos/emacs-cpp && sh
      spikes/s20-fswatch-reverter/run.sh </dev/null`
-  2. On Arch: run step 1 twice more.
+  4. On Arch: run step 3 twice more.
   Report back: `spikes/s20-fswatch-reverter/s20.log` of each run (commit them, or paste).
 
 ## Parked
