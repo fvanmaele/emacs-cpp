@@ -1971,6 +1971,9 @@ presets, GoogleTest runner.
 - `RESEARCH_julia.md` (owner request 2026-10-25): LanguageServer.jl, JETLS, julia-mode,
   julia-ts-mode, julia-snail, DebugAdapter.jl; packaging on Arch and MacPorts. No
   hands-on (no Julia on the Mac). Findings in; O-76.
+- `RESEARCH_ast_grep.md` (owner request 2026-10-31): ast-grep's language server against
+  clangd's features, tree-sitter parse quality on deal.II, packaging on Arch and
+  MacPorts. No ast-grep run (not installed). Findings in; O-77.
 - `RESEARCH_other_languages.md` (owner question 2026-10-08): Python, R, Perl next to
   the C++ setup. Findings in; rulings O-19, O-20.
 - `RESEARCH_notebooks_cells.md` (owner request 2026-10-10, T-045): `# %%` cells for
@@ -2010,6 +2013,27 @@ presets, GoogleTest runner.
   measured across 63 files. Findings in; O-43.
 
 ## Open questions ledger (LIVING)
+- O-77 (OPEN, owner request 2026-10-31: "Research ast-grep instead of clangd for LSP
+  functionality in C/C++"): findings in `RESEARCH_ast_grep.md`. ast-grep is syntax
+  only (its FAQ: no scope, no types); `ast-grep lsp` serves rule diagnostics, their
+  fixes as code actions and rule notes as hover, nothing else (0.51.0's
+  capabilities), and needs an `sgconfig.yml` with rules. tree-sitter-cpp 0.23 leaves
+  146 ERROR nodes in deal.II's `tensor.h` around its macros. Packaged: pacman 0.44.1,
+  MacPorts 0.51.0. Options:
+  (a) none: clangd stays, no ast-grep. Recommended. Against: no structural search or
+  rewrite; text search (`M-s r`) and clang's tools (D-094) remain the only routes.
+  (b) ast-grep in place of clangd. Against: loses definition, references, rename,
+  symbols, hierarchies, completion, types and compiler diagnostics (RESEARCH 3);
+  undoes D-001 / D-026 and every patch built on them.
+  (c) clangd stays; ast-grep as a structural search / rewrite command into a grep-edit
+  list (D-097's shape). Against: a new dependency on both machines (0.44 against 0.51);
+  patterns written in tree-sitter's node terms; misses code inside deal.II's macros;
+  scope-blind, so not a rename.
+  (d) (c) plus `ast-grep scan` rules as a flymake backend (D-143's shape). Against: (c)'s,
+  plus per-project rule files to write, overlapping clang-tidy (D-094).
+  (e) (d) through rassumfrassum (`rass -- clangd -- ast-grep lsp`, Emacs 31's eglot
+  manual). Against: rass is AUR / pip only, outside pacman and MacPorts (D-053); a
+  0.3.x relay in front of the patched clangd's navigation path.
 - O-76 (OPEN, owner request 2026-10-25: "Research julia language server interfacing
   and other functionality"): findings in `RESEARCH_julia.md`. Julia 1.13 is packaged
   on both machines (pacman `julia`, MacPorts `julia`, not installed on the Mac);
