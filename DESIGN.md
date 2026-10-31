@@ -382,6 +382,10 @@ Known defects: none yet (nothing built).
   built and ran once `square.cc` was in CMakeLists.txt. Built (T-068, 0063).
 - DECIDED D-136 (owner 2026-10-21, O-43 (b3): "O-43 (b3)"): no change-signature
   tweak for clangd; S12's FAIL stands and MANUAL 8's by-hand route is the way.
+- DECIDED D-146 (owner 2026-10-31, O-77 (a): "O-77 (a)"): clangd stays the C/C++
+  server and ast-grep is not added, neither as a server, a search command nor a
+  flymake backend: its server serves rule diagnostics only, it sees no scopes or types,
+  and tree-sitter misreads deal.II's macros (RESEARCH_ast_grep 2 - 4).
 - DECIDED D-097 (owner 2026-10-14, "package + `C-c l N`"; done when agreed):
   `packaging/clang-change-namespace/` holds D-094's fix as a patch file (0001,
   `git format-patch` form) and `build.sh`, one script for both machines: the tool's
@@ -1973,7 +1977,7 @@ presets, GoogleTest runner.
   hands-on (no Julia on the Mac). Findings in; O-76.
 - `RESEARCH_ast_grep.md` (owner request 2026-10-31): ast-grep's language server against
   clangd's features, tree-sitter parse quality on deal.II, packaging on Arch and
-  MacPorts. No ast-grep run (not installed). Findings in; O-77.
+  MacPorts. No ast-grep run (not installed). Findings in; O-77 -> D-146.
 - `RESEARCH_other_languages.md` (owner question 2026-10-08): Python, R, Perl next to
   the C++ setup. Findings in; rulings O-19, O-20.
 - `RESEARCH_notebooks_cells.md` (owner request 2026-10-10, T-045): `# %%` cells for
@@ -2013,7 +2017,8 @@ presets, GoogleTest runner.
   measured across 63 files. Findings in; O-43.
 
 ## Open questions ledger (LIVING)
-- O-77 (OPEN, owner request 2026-10-31: "Research ast-grep instead of clangd for LSP
+- O-77 (RESOLVED 2026-10-31 with D-146: (a); owner: "O-77 (a)"; was OPEN, owner
+  request 2026-10-31: "Research ast-grep instead of clangd for LSP
   functionality in C/C++"): findings in `RESEARCH_ast_grep.md`. ast-grep is syntax
   only (its FAQ: no scope, no types); `ast-grep lsp` serves rule diagnostics, their
   fixes as code actions and rule notes as hover, nothing else (0.51.0's
@@ -3336,6 +3341,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-143 | 2026-10-21 | ruff as flymake backend and `C-c l f` formatter, no ruff server | 5 | O-75 |
 | D-144 | 2026-10-21 | fswatch patch 0005: `Created` once per file on the Mac | 7 | T-125 |
 | D-145 | 2026-10-25 | R and LaTeX removed: no ESS, AUCTeX, texlab; Python's cells stay | 12 | owner |
+| D-146 | 2026-10-31 | clangd stays; no ast-grep (server, search or flymake) | 7 | O-77 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |
