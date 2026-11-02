@@ -105,4 +105,4 @@ Status words: `not started`, `ready` (RUN.md written, the owner runs it; no RESU
 | S16 | PASS compiled, FAIL interpreted; not built (D-134) | s16-match-function/RESULTS.md |
 | S17 | PASS run 3; run 4: little gain, `lisp/` stays interpreted (D-134) | s17-compiled-lisp/RESULTS.md |
 | S18 | PASS on Arch and the Mac (`dedup`); next T-119 | s18-fswatch-backend/RESULTS.md |
-| S20 | ready: Mac dry run (DRY-RUN.md), criteria proposed, owner confirms; Arch H-19 | |
+| S20 | PASS on Arch (runs 1 - 3); Mac runs H-20 | s20-fswatch-reverter/RESULTS.md |

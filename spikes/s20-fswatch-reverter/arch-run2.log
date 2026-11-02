@@ -1,0 +1,50 @@
+S20 run 2026-11-02T01:32:07Z, Linux x86_64, GNU Emacs 31.1
+load: 0.89 0.96 0.61
+
+S20 fswatch-queued, gnu/linux GNU Emacs 31.1 (build 2, x86_64-pc-linux-gnu, GTK+ Version 3.24.52, cairo version 1.18.4), 2026-11-02T01:32:12Z
+buffers: 190 changed on b (1 edited), 10 unchanged
+ready: yes after 0.54 s
+idle fswatch: pid 862694, 6 descriptors, 5.2 MB RSS
+checkout b: git 0.06 s; all 189 unedited buffers current: yes, 0.13 s after git; Emacs blocked at most 0.12 s
+  reverts 189, first 0.01 s, last 0.13 s after git (unchanged files' buffers: 0); edited buffer kept: yes
+  VC states all refreshed 9.50 s after git; Emacs blocked at most 0.15 s
+  filter: 1 calls, 760 records, 116.0 ms total
+checkout a: git 0.06 s; all 189 unedited buffers current: yes, 0.12 s after git; Emacs blocked at most 0.11 s
+  reverts 189, first 0.00 s, last 0.11 s after git (unchanged files' buffers: 0); edited buffer kept: yes
+  VC states all refreshed 9.50 s after git; Emacs blocked at most 0.14 s
+  filter: 1 calls, 760 records, 112.7 ms total
+filter: longest call 116.0 ms; overflows 0
+shutdown: fswatch pid 862694 gone
+
+S20 fswatch, gnu/linux GNU Emacs 31.1 (build 2, x86_64-pc-linux-gnu, GTK+ Version 3.24.52, cairo version 1.18.4), 2026-11-02T01:32:38Z
+buffers: 190 changed on b (1 edited), 10 unchanged
+ready: yes after 0.54 s
+idle fswatch: pid 876703, 6 descriptors, 5.2 MB RSS
+checkout b: git 0.05 s; all 189 unedited buffers current: yes, 2.81 s after git; Emacs blocked at most 2.80 s
+  reverts 189, first 0.01 s, last 2.79 s after git (unchanged files' buffers: 0); edited buffer kept: yes
+  filter: 1 calls, 760 records, 2797.6 ms total
+checkout a: git 0.05 s; all 189 unedited buffers current: yes, 2.94 s after git; Emacs blocked at most 2.94 s
+  reverts 189, first 0.00 s, last 2.92 s after git (unchanged files' buffers: 0); edited buffer kept: yes
+  filter: 1 calls, 760 records, 2936.6 ms total
+filter: longest call 2936.6 ms; overflows 0
+shutdown: fswatch pid 876703 gone
+
+S20 fswatch-novc, gnu/linux GNU Emacs 31.1 (build 2, x86_64-pc-linux-gnu, GTK+ Version 3.24.52, cairo version 1.18.4), 2026-11-02T01:32:52Z
+buffers: 190 changed on b (1 edited), 10 unchanged
+ready: yes after 0.55 s
+idle fswatch: pid 890719, 6 descriptors, 5.1 MB RSS
+checkout b: git 0.04 s; all 189 unedited buffers current: yes, 0.12 s after git; Emacs blocked at most 0.11 s
+  reverts 189, first 0.01 s, last 0.12 s after git (unchanged files' buffers: 0); edited buffer kept: yes
+  filter: 1 calls, 760 records, 112.3 ms total
+checkout a: git 0.05 s; all 189 unedited buffers current: yes, 0.13 s after git; Emacs blocked at most 0.13 s
+  reverts 189, first 0.00 s, last 0.13 s after git (unchanged files' buffers: 0); edited buffer kept: yes
+  filter: 1 calls, 760 records, 127.5 ms total
+filter: longest call 127.5 ms; overflows 0
+shutdown: fswatch pid 890719 gone
+
+S20 poll, gnu/linux GNU Emacs 31.1 (build 2, x86_64-pc-linux-gnu, GTK+ Version 3.24.52, cairo version 1.18.4), 2026-11-02T01:32:59Z
+buffers: 190 changed on b (1 edited), 10 unchanged
+checkout b: git 0.05 s; all 189 unedited buffers current: yes, 8.29 s after git; Emacs blocked at most 3.36 s
+  reverts 189, first 4.95 s, last 8.27 s after git (unchanged files' buffers: 0); edited buffer kept: yes
+checkout a: git 0.04 s; all 189 unedited buffers current: yes, 4.93 s after git; Emacs blocked at most 3.34 s
+  reverts 189, first 1.63 s, last 4.90 s after git (unchanged files' buffers: 0); edited buffer kept: yes
