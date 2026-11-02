@@ -134,7 +134,7 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
 | T-125 | done 0098 | S | fswatch 0005: `Created` once per file (Mac) | D-144 | 150 tests on the Mac |
 | T-126 | done 0099 | S | remove R and LaTeX | D-145 | 142 tests on the Mac |
 | T-127 | reverted (D-149) | S | unedited buffers follow their files (auto-revert) | D-147 | built 0100; freeze O-78; removed until S20 |
-| T-128 | open | M | one fswatch per project root reverts its buffers | D-147, D-148 | tier 3 (owner 2026-10-29); S20 PASS on Arch (0101), Mac H-20; queue reverts too |
+| T-128 | open | M | one fswatch per project root reverts its buffers | D-147, D-148 | tier 3 (owner 2026-10-29); S20 PASS on Arch (0101), FAIL on the Mac: VC steps (0102); waits on O-78; queue reverts too |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
   o / c c / c t on the active preset from any buffer, D-035). Left: the owner's RMO
