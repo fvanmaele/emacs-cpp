@@ -2097,34 +2097,59 @@ presets, GoogleTest runner.
   stays for them.
   Combined: (c) now, (d) if S20 passes. Recommendation: (c), then (d) on S20's verdict.
   (Options (a) - (d) superseded 2026-11-02 by the options below; T-127 is out, D-149.)
-  Reopened 2026-11-02 (0102): S20 passes on Arch and fails on the Mac on criterion 3
-  alone. Each queued VC step (`vc-refresh-state`: 8 `git` processes, 35 - 45 ms on a
-  quiet tree) blocks Emacs 0.20 - 0.35 s right after a checkout on the idle Mac, 3.24 s
-  once on a busy one; the reverter without VC refresh blocks at most 0.09 s (Arch
-  0.15 s) and meets criteria 1, 2, 4 and 5 on both machines. Options:
-  (e) T-128 refreshes VC state only for buffers shown in a window: those after the
-  reverts, the others when `window-buffer-change-functions` (in Emacs 31.1) shows
-  them. Against: unmeasured, so S20 needs a mode for it and a rerun on both machines
-  (tier 3), and criterion 3's "VC states current within 15 s" becomes "shown
-  buffers'" (the owner's criteria); a shown buffer still costs one step of up to
-  0.35 s on the Mac (UNVERIFIED for 1 - 3 windows); a hidden buffer's VC state
-  stays stale until shown, where anything listing buffers with it would see the old
-  branch (UNVERIFIED which of the config's prompts do).
-  (f) keep the queue, run its steps on an idle timer, one per pause. Against: every
-  step still blocks 0.20 - 0.35 s, now when the user pauses, so criterion 3 still
-  fails; 189 steps take minutes of pauses to finish.
-  (g) refresh VC state with an asynchronous `git` (`make-process`) and set the mode
-  line from its output. Against: reimplements part of `vc-git`'s state and caches
-  (`vc-file-setprop`), which a new Emacs may change; the most new Lisp of all.
-  (h) raise criterion 3 to 0.4 s and build T-128 as measured. Against: 189 blocks
-  of 0.2 - 0.35 s over 9.5 s are a visible stutter while typing, and the busy run's
-  3.24 s step shows the tail is not bounded.
+  Reopened 2026-11-02 (0102); options revisited the same day after follow-up
+  measurements on the Mac (`spikes/s20-fswatch-reverter/RESULTS.md`, follow-up). S20
+  passes on Arch and fails on the Mac on criterion 3 alone. Premises:
+  - The 0.20 - 0.35 s blocks are S20's queue, not slow `git`: inside S20 one wait
+    runs 2 - 4 VC timer steps back to back (the repeating 0.05 s timer is due again
+    when a 40 ms step ends; why it stacks only there is UNVERIFIED); the runs' 0.35 s
+    fits 8. One `vc-refresh-state` (4 `git` commands, each run twice) takes 34 - 95
+    ms, as fast right after a checkout as on a quiet tree; no GC in the steps.
+  - S20 ran `emacs -Q`; the shipped profile does more per revert. diff-hl runs
+    `diff-hl-update` from `after-revert-hook`, synchronously (`diff-hl-update-async`
+    nil): 2 `git` processes, 19 ms per revert against 0.6 ms without, so 189 reverts
+    in the filter would block about 3.6 s. eglot sends didClose and didOpen per
+    revert (Emacs 31.1 `eglot.el`); its cost and clangd's reparse are unmeasured (no
+    compile database in the generated repository).
+  - `magit-auto-revert-mode` starts on once magit loads (`:init-value` non-nil when
+    interactive and `global-auto-revert-mode` is off; the config leaves it) and reverts
+    through `auto-revert-handler`, VC refresh included. Read from the source,
+    UNVERIFIED live.
+  Every option but (i) turns `magit-auto-revert-mode` off and is measured first by a
+  new S20 mode with diff-hl loaded (tier 3); eglot's share needs a real project
+  (RMO, the owner's). Options:
+  (e) shown buffers only: the filter reverts with diff-hl's revert hook held back; a
+  buffer shown in a window gets its VC state and diff-hl marks at once, one per
+  step, the others when `window-buffer-change-functions` (in Emacs 31.1) shows them:
+  1 - 3 steps of about 60 ms on the Mac per checkout instead of 189. Against: holds
+  back a vendored package's hook by its function name (`diff-hl-after-revert`); a
+  hidden buffer's cached VC state stays stale until shown (UNVERIFIED whether any VC
+  command or prompt reads another buffer's); criterion 3's "VC states current within
+  15 s" becomes "shown buffers'" (the owner's criteria); eglot's per-revert work
+  stays in the filter.
+  (f) every buffer through a fixed queue: a one-shot timer re-armed after each step,
+  one buffer per step, VC state and diff-hl (about 60 ms on the Mac). Against: Emacs
+  busy about two thirds of the time for 15 - 17 s after a 190-file checkout (189 x
+  (0.06 + 0.02 - 0.03 s)), criterion 3's 15 s at its edge; about 1900 `git`
+  processes per checkout, most for buffers nobody looks at; one step per wait with a
+  re-armed timer is UNVERIFIED inside S20.
+  (g) asynchronous `git`: VC state from `make-process` output, diff-hl with
+  `diff-hl-update-async`. Against: reimplements part of `vc-git`'s state and caches
+  (`vc-file-setprop`), which a new Emacs may change; diff-hl's async mode runs `git`
+  in a Lisp thread, and whether Emacs reads keys during that thread's `call-process`
+  is UNVERIFIED; the most new Lisp.
+  (h) raise criterion 3 and build the queue as measured. Against: the blocks come from
+  the queue's timer, which (f)'s re-armed timer likely removes (UNVERIFIED); diff-hl's
+  3.6 s in the filter fails any limit under seconds.
   (i) drop T-128, no reverter (today's state, D-149). Against: stale buffers mislead
-  clangd again (the 2026-10-29 report); `global-auto-revert-mode` instead blocks the
-  Mac 6.4 - 9.0 s per checkout (S20's `poll`).
-  Combined: (e) with (g) for the shown buffers removes their steps too, at (g)'s
-  cost; worth it only if S20 measures (e)'s steps above 0.25 s. Recommendation: (e),
-  S20's new mode measured first, (g) added only on that measurement.
+  clangd (the 2026-10-29 report); once magit has loaded, `magit-auto-revert-mode`
+  already reverts with a per-buffer VC refresh, O-78's freeze (UNVERIFIED live), so
+  (i) alone does not avoid it.
+  Combined: (e) for shown buffers and (f) at a slow pace for hidden ones keeps every
+  buffer current without blocking. Against: the code of both; (f)'s `git` volume
+  stays. Recommendation: (e): 1 - 3 steps per checkout instead of 189 and no `git`
+  for buffers nobody looks at; S20's new mode with diff-hl first, eglot's share on
+  RMO before T-128 ships; the combination only if a stale hidden buffer shows up.
 - O-77 (RESOLVED 2026-10-31 with D-146: (a); owner: "O-77 (a)"; was OPEN, owner
   request 2026-10-31: "Research ast-grep instead of clangd for LSP
   functionality in C/C++"): findings in `RESEARCH_ast_grep.md`. ast-grep is syntax

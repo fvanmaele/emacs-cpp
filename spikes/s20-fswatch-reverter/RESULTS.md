@@ -90,11 +90,12 @@ Contrast modes (recorded, not judged), range over runs 1 - 6:
 Findings:
 - The failing part is VC's state, not the reverter: without VC refresh the whole
   checkout blocks Emacs at most 0.09 s and the longest filter call is 86 ms (Arch:
-  0.15 s, 116 ms).
+  0.15 s, 116 ms). In `emacs -Q` only: diff-hl adds 0.019 s per revert (follow-up).
 - One `vc-refresh-state` starts 8 `git` processes and takes 35 - 45 ms on a quiet
   checkout of this repository (50 buffers, measured 2026-11-02 in a batch Emacs).
   The queued steps right after a checkout take 0.20 - 0.35 s, once 3.24 s on the busy
-  machine; why a step takes up to 8 times the quiet cost is UNVERIFIED.
+  machine; why a step takes up to 8 times the quiet cost is UNVERIFIED. (Superseded
+  by the follow-up below: a block is several steps in one wait, not one slow step.)
 - Mac VC steps (0.20 - 0.35 s idle) are about twice Arch's (0.11 - 0.20 s); costlier
   process starts on the Mac would explain it (UNVERIFIED, as in O-78).
 - The Mac delivers a checkout as 380 records in 2 - 3 filter calls (FSEvents: two per
@@ -106,3 +107,25 @@ Findings:
   failed at its first `git checkout` and `run.sh` stopped. The husk was removed by
   hand and `run.sh` now stops on it (db30ea7). Run 1's numbers are from the
   regenerated repository.
+
+## Follow-up on the Mac (session, 2026-11-02, O-78 revisited)
+Load 3.6 - 8.1 during these (not the session's), so absolute times run high.
+- Several steps per wait: `wait-trace.el` runs S20's `fswatch-queued` unchanged and
+  breaks its slowest waits down. Each holds 2 - 4 VC timer steps back to back (0.10 -
+  0.16 s that run); single `vc-refresh-state` calls take 0.040 s median, 0.095 s at
+  most, no GC in them. The repeating 0.05 s timer is due again when a 40 ms step
+  ends. The runs' 0.30 - 0.35 s fit 7 - 8 steps. A bare repeating timer with a busy
+  42 ms step ran one step per wait (`timer-max-repeats` 10), so the stacking needs
+  S20's surroundings (fswatch's process); why is UNVERIFIED.
+- `git` is not slower after a checkout: 190 sequential refreshes right after one
+  took 0.034 s median, 0.043 s at most, no GC (`gc-cons-threshold` 800000).
+- One `vc-refresh-state` runs `symbolic-ref`, `rev-parse`, `status` and `ls-files`,
+  each twice: 8 processes, 0.041 - 0.044 s median, quiet or right after a checkout
+  (`vc-cost.el`, 50 buffers).
+- diff-hl, as the config loads it in every file buffer, runs `diff-hl-update` from
+  `after-revert-hook` when modes are preserved, synchronously (`diff-hl-update-async`
+  nil): `diff-index` and `rev-parse` per revert, 0.019 s median against 0.0006 s
+  without diff-hl. S20 ran `emacs -Q`; with diff-hl, 189 reverts in one filter call
+  would block about 3.6 s.
+- eglot sends didClose and didOpen on every revert (Emacs 31.1 `eglot.el`); not
+  measured here, the generated repository has no compile database.

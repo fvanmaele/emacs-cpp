@@ -67,8 +67,10 @@ service's plan) is not an item.
   Steps written when the owner moves this item back.
 
 ## Decide
-- **H-21** (2026-11-02, answers O-78, gates T-128) S20 failed on the Mac (0102): the
-  reverter itself passes, its queued VC refresh steps block Emacs 0.20 - 0.35 s.
-  Options (e) - (i) in DESIGN's O-78, each with its case against. The session
-  recommends (e): VC state refreshed only for buffers shown in a window, measured
-  first by a new S20 mode on both machines.
+- **H-21** (2026-11-02, answers O-78, gates T-128) S20 failed on the Mac (0102): its
+  VC queue runs several refresh steps in one wait (0.20 - 0.35 s), and in the shipped
+  profile diff-hl would add about 3.6 s to the reverts (S20 ran `emacs -Q`). Options
+  (e) - (i) in DESIGN's O-78, revisited 2026-11-02, each with its case against. The
+  session recommends (e): VC state and diff-hl refreshed only for buffers shown in a
+  window, `magit-auto-revert-mode` off, measured first by a new S20 mode with diff-hl
+  on both machines.
