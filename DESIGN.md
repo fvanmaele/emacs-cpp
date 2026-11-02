@@ -2009,7 +2009,7 @@ presets, GoogleTest runner.
 | match function ranks unlike the regexps or is slower | S16 | owner | D-124 |
 | compiled `lisp/` slows startup or stays bytecode | S17 | owner | D-125 |
 | fswatch backend loses changes or costs Emacs too much | S18 (PASS 2026-10-21) | LLM / owner | D-127 |
-| per-project fswatch reverter loses changes or blocks Emacs | S20 (PASS on Arch 2026-11-02; Mac H-20) | LLM / owner | T-128 |
+| per-project fswatch reverter loses changes or blocks Emacs | S20 (FAIL 2026-11-02: Mac criterion 3, VC steps; PASS on Arch) | LLM / owner | O-78 |
 | own package build glue mis-orders compilation | none (tests) | - | v0.1 |
 | config fails on macOS (paths, tools, tests) | none (`make test`) | owner | D-050 |
 | clangd too slow / too large on deal.II scale | S1 numbers | owner | v0.1 |
@@ -2072,7 +2072,8 @@ presets, GoogleTest runner.
   measured across 63 files. Findings in; O-43.
 
 ## Open questions ledger (LIVING)
-- O-78 (RESOLVED 2026-10-29 with D-148: (d); owner: "(d) if S20 passes"; found
+- O-78 (REOPENED 2026-11-02: S20 failed on the Mac, 0102, as D-148 and D-149 set;
+  was RESOLVED 2026-10-29 with D-148: (d); owner: "(d) if S20 passes"; found
   2026-10-29 by S20's Mac dry run): T-127 (D-147) stops Emacs for
   seconds after a large checkout. After each revert `auto-revert-handler` runs
   `vc-refresh-state`, one `git` process per buffer (Emacs 31.1 `autorevert.el`); with
@@ -2095,6 +2096,35 @@ presets, GoogleTest runner.
   outside project roots (library headers) still need auto-revert, so (c)'s problem
   stays for them.
   Combined: (c) now, (d) if S20 passes. Recommendation: (c), then (d) on S20's verdict.
+  (Options (a) - (d) superseded 2026-11-02 by the options below; T-127 is out, D-149.)
+  Reopened 2026-11-02 (0102): S20 passes on Arch and fails on the Mac on criterion 3
+  alone. Each queued VC step (`vc-refresh-state`: 8 `git` processes, 35 - 45 ms on a
+  quiet tree) blocks Emacs 0.20 - 0.35 s right after a checkout on the idle Mac, 3.24 s
+  once on a busy one; the reverter without VC refresh blocks at most 0.09 s (Arch
+  0.15 s) and meets criteria 1, 2, 4 and 5 on both machines. Options:
+  (e) T-128 refreshes VC state only for buffers shown in a window: those after the
+  reverts, the others when `window-buffer-change-functions` (in Emacs 31.1) shows
+  them. Against: unmeasured, so S20 needs a mode for it and a rerun on both machines
+  (tier 3), and criterion 3's "VC states current within 15 s" becomes "shown
+  buffers'" (the owner's criteria); a shown buffer still costs one step of up to
+  0.35 s on the Mac (UNVERIFIED for 1 - 3 windows); a hidden buffer's VC state
+  stays stale until shown, where anything listing buffers with it would see the old
+  branch (UNVERIFIED which of the config's prompts do).
+  (f) keep the queue, run its steps on an idle timer, one per pause. Against: every
+  step still blocks 0.20 - 0.35 s, now when the user pauses, so criterion 3 still
+  fails; 189 steps take minutes of pauses to finish.
+  (g) refresh VC state with an asynchronous `git` (`make-process`) and set the mode
+  line from its output. Against: reimplements part of `vc-git`'s state and caches
+  (`vc-file-setprop`), which a new Emacs may change; the most new Lisp of all.
+  (h) raise criterion 3 to 0.4 s and build T-128 as measured. Against: 189 blocks
+  of 0.2 - 0.35 s over 9.5 s are a visible stutter while typing, and the busy run's
+  3.24 s step shows the tail is not bounded.
+  (i) drop T-128, no reverter (today's state, D-149). Against: stale buffers mislead
+  clangd again (the 2026-10-29 report); `global-auto-revert-mode` instead blocks the
+  Mac 6.4 - 9.0 s per checkout (S20's `poll`).
+  Combined: (e) with (g) for the shown buffers removes their steps too, at (g)'s
+  cost; worth it only if S20 measures (e)'s steps above 0.25 s. Recommendation: (e),
+  S20's new mode measured first, (g) added only on that measurement.
 - O-77 (RESOLVED 2026-10-31 with D-146: (a); owner: "O-77 (a)"; was OPEN, owner
   request 2026-10-31: "Research ast-grep instead of clangd for LSP
   functionality in C/C++"): findings in `RESEARCH_ast_grep.md`. ast-grep is syntax
