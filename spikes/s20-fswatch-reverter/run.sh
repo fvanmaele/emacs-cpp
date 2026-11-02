@@ -20,6 +20,11 @@ else fsw=${S20_FSWATCH:-/opt/fswatch-no-loss/bin/fswatch}; fi
 if [ ! -d "$repo" ]; then
     python3 -I "$here/gen_repo.py" "$repo"
 fi
+# macOS deletes TMPDIR files unused for 3 days and keeps the directories.
+git -C "$repo" rev-parse -q --verify b >/dev/null || {
+    echo "s20: $repo is not the generated repository (emptied?); remove it and rerun" >&2
+    exit 1
+}
 out=$(mktemp "${TMPDIR:-/tmp}/s20-out.XXXXXX")
 trap 'rm -f "$out"' EXIT
 {
