@@ -36,7 +36,7 @@ promoted; a PASS leads to a DESIGN section and the reverter written fresh in `li
 - `run.sh`: the repository once (kept under TMPDIR for reruns), then the four modes;
   `S20_MODES` picks some.
 
-## Pass criteria (proposed 2026-10-29, after the Mac dry run; owner confirms)
+## Pass criteria (proposed 2026-10-29 after the Mac dry run; owner confirmed 2026-11-02)
 On the generated repository, idle machine, each of the Mac and Arch, three runs of
 `fswatch-queued`:
 1. Current: in each checkout, all 189 unedited changed buffers show the file's text
@@ -56,10 +56,10 @@ The patched fswatch (`packaging/fswatch-no-loss`): `~/opt/fswatch-no-loss` on th
 `emacs` is not on PATH); `lsof` on the Mac. About 200 MB free under TMPDIR.
 
 ## Commands
-The session runs it on the Mac. The owner on Arch (`TODO_human.md`):
+The session runs it where it runs; the other machine is the owner's (`TODO_human.md`):
 ```sh
 cd ~/source/repos/emacs-cpp
 sh spikes/s20-fswatch-reverter/run.sh </dev/null
 ```
-The log is `spikes/s20-fswatch-reverter/s20.log`; results go to `RESULTS.md` once both
-machines have run (`DRY-RUN.md` holds the Mac dry run).
+The log is `spikes/s20-fswatch-reverter/s20.log`; results go to `RESULTS.md` (Arch
+runs 1 - 3 there, the Mac's wait on H-20; `DRY-RUN.md` holds the Mac dry run).

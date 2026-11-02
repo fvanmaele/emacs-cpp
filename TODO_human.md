@@ -58,14 +58,20 @@ service's plan) is not an item.
   2. Attach `docs/upstream/ty_return_type_inference_repro.py` (or paste it in a
      collapsed block).
   Report back: the comment's link.
-- **H-19** (2026-10-29, T-128, S20) Spike S20 on Arch, after its pass criteria are
-  confirmed (`spikes/s20-fswatch-reverter/RUN.md`).
-  1. On the Mac: `cd ~/source/repos/emacs-cpp && git push` (the session does not push).
-  2. On Arch: `cd ~/source/repos/emacs-cpp && git pull --ff-only`
-  3. On Arch, machine idle: `cd ~/source/repos/emacs-cpp && sh
-     spikes/s20-fswatch-reverter/run.sh </dev/null`
-  4. On Arch: run step 3 twice more.
-  Report back: `spikes/s20-fswatch-reverter/s20.log` of each run (commit them, or paste).
+- **H-20** (2026-11-02, T-128, S20) Spike S20 on the Mac, three runs; Arch passed
+  (`spikes/s20-fswatch-reverter/RESULTS.md`).
+  1. On Arch: `cd ~/source/repos/emacs-cpp && git push` (the session does not push).
+  2. On the Mac: `cd ~/source/repos/emacs-cpp && git pull --ff-only`
+  3. On the Mac, machine idle (quit Emacs and builds): `cd ~/source/repos/emacs-cpp &&
+     sh spikes/s20-fswatch-reverter/run.sh </dev/null && cp
+     spikes/s20-fswatch-reverter/s20.log spikes/s20-fswatch-reverter/mac-run1.log`
+  4. On the Mac: `cd ~/source/repos/emacs-cpp && sh
+     spikes/s20-fswatch-reverter/run.sh </dev/null && cp
+     spikes/s20-fswatch-reverter/s20.log spikes/s20-fswatch-reverter/mac-run2.log`
+  5. On the Mac: `cd ~/source/repos/emacs-cpp && sh
+     spikes/s20-fswatch-reverter/run.sh </dev/null && cp
+     spikes/s20-fswatch-reverter/s20.log spikes/s20-fswatch-reverter/mac-run3.log`
+  Report back: the three `mac-run*.log` files (commit them, or paste).
 
 ## Parked
 - **H-8** (2026-10-20, 0084 review:B-3 to review:B-5, deferred; T-114) The upstream

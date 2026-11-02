@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0101 | 2026-11-02 | S20 Arch runs 1 - 3: PASS, Mac left | S20 | D-148 |
 | 0100 | 2026-10-29 | T-127: unedited buffers follow their files | T-127 | D-147 |
 | 0099 | 2026-10-25 | T-126: R and LaTeX removed | T-126 | D-145 |
 | 0098 | 2026-10-21 | The Mac run of H-15; fswatch 0005: `Created` once per file | T-125, T-119 | D-144 |
