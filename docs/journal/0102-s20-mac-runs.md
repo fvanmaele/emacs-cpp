@@ -37,7 +37,8 @@ the repository regenerated; `run.sh` now stops with a message on such a director
   It runs `git` synchronously: Emacs waits for each process before doing anything
   else. Measured in a batch Emacs on this repository: 8 `git` processes per call,
   35 - 45 ms when nothing changed; right after a checkout the queued calls take up to
-  8 times that (cause UNVERIFIED).
+  8 times that (cause UNVERIFIED). (Superseded by the follow-up below: one call stays
+  at 34 - 95 ms; a block is several calls in one wait.)
 - `accept-process-output` lets Emacs read subprocess output and run due timers. The
   spike's "blocked" figure is the longest single such call, so a VC timer step that
   fires during the reverts counts in the reverts' figure too (runs 1 and 2: 0.44 s
@@ -59,15 +60,30 @@ the repository regenerated; `run.sh` now stops with a message on such a director
   **DESIGN bet:** D-148.
 - **Assumed:** the VC refresh, not the reverter, is what fails. **Would break if:**
   larger checkouts make the revert pass itself exceed 0.25 s (Arch: 105 - 116 ms at
-  190 files, 0101). **DESIGN bet:** O-78 (e).
+  190 files, 0101). **DESIGN bet:** O-78 (e). (Broken the same day for the shipped
+  profile: diff-hl adds 19 ms per revert, about 3.6 s for 189; follow-up below.)
 - **Assumed:** the cost is `git`'s process starts. **Would break if:** the slow
   steps come from `git` refreshing its index after the checkout (UNVERIFIED; the
-  quiet-tree cost is 8 times lower). **DESIGN bet:** O-78.
+  quiet-tree cost is 8 times lower). **DESIGN bet:** O-78. (Broken the same day:
+  neither; the queue's timer runs several steps in one wait; follow-up below.)
 
 ## How to verify
 On the Mac with Emacs quit: `sh spikes/s20-fswatch-reverter/run.sh </dev/null` and
 read the `fswatch-queued` block of `spikes/s20-fswatch-reverter/s20.log`: the
 `VC states ... Emacs blocked at most` line against criterion 3's 0.25 s.
+
+## Follow-up: O-78's options revisited (same day)
+On the owner's request the session checked the premises under options (e) - (i)
+before the ruling; numbers in `RESULTS.md`, follow-up. Three changed the options:
+the 0.20 - 0.35 s blocks are S20's repeating timer running 2 - 4 VC steps in one
+wait (`wait-trace.el`), not slow `git`; the config's diff-hl runs 2 `git` processes
+synchronously on every revert, 19 ms each time, which S20's `emacs -Q` never saw
+(`vc-cost.el`), so the reverter itself would block about 3.6 s in the shipped profile;
+and `magit-auto-revert-mode` turns itself on once magit loads, reverting with the
+same per-buffer VC cost (read from the source). DESIGN's O-78 now carries the
+revised (e) - (i); every option but (i) needs a new S20 mode with diff-hl loaded.
+The lesson for the next spike: run it in the profile the config ships (CLAUDE.md,
+Tests), or list what `-Q` leaves out.
 
 ## Standard feedback (optional; the standard pulls it with `make feedback`)
 - Helped: the choice rule; asking whether busy runs count turned up the idle reruns,
