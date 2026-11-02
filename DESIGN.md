@@ -455,13 +455,22 @@ Known defects: none yet (nothing built).
   (`pacman-contrib`) when they differ, then runs `makepkg` with `MAKEPKG_FLAGS`
   (`-si` installs). `depends` stay exact (D-027's reason: the binary links the
   system `libLLVM` and reads the system clangd's shards). `pkgrel` keeps counting
-  the patch series, not reset per LLVM release. The patch is the review's
+  the patch series, not reset per LLVM release (superseded by D-150: reset to 1).
+  The patch is the review's
   (`pepopepopepo/emacs-cpp`, `review/llvm-unpin.patch`), with a stricter version
   check and tests (`test/build-clangd-test.el`). The PKGBUILD is committed at
   23.1.3; the review built all 13 patches on it, no offset, `check()` passed.
   Done when: `make clangd MAKEPKG_FLAGS=-si` on the owner's Arch machine builds,
   passes `check()` and installs `clangd-index-nav` at pacman's LLVM (owner's run);
   the two refusals are tested. Built (0085).
+- DECIDED D-150 (owner 2026-11-02, amends D-123): on an LLVM release `pkgrel` of
+  `packaging/clangd-index-nav` resets to 1, as pacman's own convention; it counts the
+  patch-series changes within one LLVM release only. The PKGBUILD is committed at
+  23.1.4-1, the version installed on Arch since 2026-10-31. Reason: the installed
+  package already carries 23.1.4-1; a label kept at 10 would mismatch it. Not taken:
+  pkgrel 10 per D-123 (the series count "pkgrel 9", "pkgrel 10" in older entries
+  stays as history; the patch files' numbers identify the series). `make clangd`
+  still writes only `pkgver` and checksums; the reset is by hand.
 - DECIDED D-060 (owner 2026-10-09, O-27 (b)): patch 0009 for the local clangd: at
   startup the background index also re-indexes the sources whose stored shards carry
   `HadErrors` (through each flagged shard's `DependentTU`, as for stale shards), so a
@@ -3387,7 +3396,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-115 | 2026-10-19 | Arch file-watch limits kept as they are | 7 | O-64 |
 | D-121 | 2026-10-20 | Emacs's own eglot; macOS watch fixes as config Lisp | 7 | O-69 |
 | D-122 | 2026-10-20 | MIT license for own work; patch files keep theirs | 2 | owner |
-| D-123 | 2026-10-20 | Arch clangd `pkgver` from the installed LLVM | 7 | owner |
+| D-123 | 2026-10-20 | Arch clangd `pkgver` from the installed LLVM (pkgrel: D-150) | 7 | owner |
 | D-124 | 2026-10-20 | match tiers as a function (option C), spike S16 first; SUPERSEDED by D-134 | 7 | owner |
 | D-125 | 2026-10-20 | compile `lisp/` as DESIGN 11.1, spike S17 first; SUPERSEDED by D-134 | 11 | owner |
 | D-126 | 2026-10-20 | DESIGN 1 rows DECIDED with their decisions, gaps kept | 1 | owner |
@@ -3414,6 +3423,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-147 | 2026-10-29 | unedited buffers follow their files: inotify on Arch, 5 s polling on the Mac | 12 | owner |
 | D-148 | 2026-10-29 | the fswatch reverter (T-128) replaces auto-revert in projects if S20 passes | 12 | O-78 |
 | D-149 | 2026-10-29 | T-127 reverted until S20's verdict; no auto-revert of the config's own | 12 | owner |
+| D-150 | 2026-11-02 | clangd-index-nav `pkgrel` resets to 1 per LLVM release; 23.1.4-1 | 7 | D-123 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |
