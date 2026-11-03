@@ -1989,6 +1989,23 @@ the form that loads magit is found (S17 run 2, T-113).
   taken: (b) kill an unedited deleted file's buffer (Qt Creator closes its editor).
   Against: a buffer shown in a window disappears from under the owner, with its undo
   history and point.
+- DECIDED D-153 (owner 2026-11-03: "Rule (e), new S20 mode first"; O-78 (e)):
+  T-128's reverter reverts every unedited buffer at once with diff-hl's revert hook
+  held back; VC state and diff-hl marks are refreshed one buffer per timer step for
+  buffers shown in a window, and for a hidden buffer when a window shows it
+  (`window-buffer-change-functions`); edge cases D-151, D-152.
+  `magit-auto-revert-mode` goes off in the commit that ships T-128's code, never
+  earlier (until then it is the only reverter), by `:init (setq
+  magit-auto-revert-mode nil)` on `(use-package magit)` before magit loads (`:config
+  (magit-auto-revert-mode -1)` would first turn it on in every open buffer). First a
+  new S20 mode, `fswatch-shown`, measures it with diff-hl loaded on both machines
+  (criteria in S20's `RUN.md`, confirmed with the session's plan 2026-11-03); eglot's
+  share is measured on RMO before T-128 ships; files outside project roots are ruled
+  with T-128 (D-149). Amends D-148: the reverter replaces magit's auto-revert in
+  project buffers if `fswatch-shown` passes. Not taken: (f) - (i), each with its case
+  against in O-78. Against: holds back a vendored package's hook by its function name
+  (`diff-hl-after-revert`); a hidden buffer's VC state stays stale until shown;
+  eglot's work per revert stays in the filter, unmeasured.
 - REJECTED: borg (the tool this layout imitates). It assumes the package repository is
   the Emacs directory itself, which contradicts D-003; reconsider if own glue grows past
   about 100 lines. Measured after T-002: `scripts/build-packages.el` has 183 lines of
@@ -2056,7 +2073,7 @@ presets, GoogleTest runner.
 | match function ranks unlike the regexps or is slower | S16 | owner | D-124 |
 | compiled `lisp/` slows startup or stays bytecode | S17 | owner | D-125 |
 | fswatch backend loses changes or costs Emacs too much | S18 (PASS 2026-10-21) | LLM / owner | D-127 |
-| per-project fswatch reverter loses changes or blocks Emacs | S20 (FAIL 2026-11-02: Mac criterion 3, VC steps; PASS on Arch) | LLM / owner | O-78 |
+| per-project fswatch reverter loses changes or blocks Emacs | S20 (FAIL 2026-11-02: Mac criterion 3, VC steps; PASS on Arch; mode `fswatch-shown` for (e) next, D-153) | LLM / owner | O-78 |
 | own package build glue mis-orders compilation | none (tests) | - | v0.1 |
 | config fails on macOS (paths, tools, tests) | none (`make test`) | owner | D-050 |
 | clangd too slow / too large on deal.II scale | S1 numbers | owner | v0.1 |
@@ -2119,7 +2136,8 @@ presets, GoogleTest runner.
   measured across 63 files. Findings in; O-43.
 
 ## Open questions ledger (LIVING)
-- O-78 (REOPENED 2026-11-02: S20 failed on the Mac, 0102, as D-148 and D-149 set;
+- O-78 (RESOLVED 2026-11-03 with D-153: (e); owner: "Rule (e), new S20 mode first";
+  was REOPENED 2026-11-02: S20 failed on the Mac, 0102, as D-148 and D-149 set;
   was RESOLVED 2026-10-29 with D-148: (d); owner: "(d) if S20 passes"; found
   2026-10-29 by S20's Mac dry run): T-127 (D-147) stops Emacs for
   seconds after a large checkout. After each revert `auto-revert-handler` runs
@@ -3530,6 +3548,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-150 | 2026-11-02 | clangd-index-nav `pkgrel` resets to 1 per LLVM release; 23.1.4-1 | 7 | D-123 |
 | D-151 | 2026-11-03 | O-78 (e)'s edge cases: no check on a jump, a message for edited buffers, previews pay | 12 | O-78 |
 | D-152 | 2026-11-03 | T-128 skips a deleted file; its buffer stays, named in D-151's message | 12 | O-78 |
+| D-153 | 2026-11-03 | O-78 (e): VC and diff-hl refresh for shown buffers; S20 `fswatch-shown` first | 12 | O-78 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |
