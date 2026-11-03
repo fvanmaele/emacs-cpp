@@ -96,6 +96,33 @@ repository, each of the Mac and Arch, three runs of `fswatch-shown`:
 7. Wiring (the Mac, terminal Emacs): `window-buffer-change-functions` runs after each
    of the four actions above.
 
+## eglot's share (D-153, 2026-11-03; the Mac)
+eglot sends didClose and didOpen on every revert (Emacs 31.1 `eglot.el`), inside the
+reverter's filter, and clangd reparses; the generated repository's two-line files
+cannot show that. `eglot-share.sh` measures it on a clone of `~/source/repos/RMO-drafts`
+(RMO's code on the Mac: 39 tracked files under `src/` and `include/`, deal.II from
+`/Applications/deal.II.app`), made once under TMPDIR without touching that tree
+(`fmt` from its checkout, no network), configured with `cmake --preset mac-debug`.
+Branch `s20-base` is its HEAD, `s20-shift` puts 19 lines in front of all 39 files.
+`eglot-share.el` opens the 39 files in `c++-ts-mode` with diff-hl, starts eglot with
+the config's clangd command and settings (`lisp/emacs-cpp-presets.el`,
+`lisp/init-lsp.el`; the patched clangd), waits until clangd settles, then runs
+`fswatch-shown`'s reverter (3 headers shown) over checkouts of `s20-shift` and
+`s20-base`. Settled: every reverted buffer had a publishDiagnostics after its didOpen,
+clangd was quiet 5 s and used less than 0.1 s of CPU over 5 s (`process-attributes`),
+at most 300 s; each judged checkout starts settled. The CPU condition was added by
+the owner 2026-11-03 after the dry run: a quiet clangd was still reparsing (its
+symbols answered in 2.1 s, the next settle took 57 s) and the next checkout blocked
+Emacs 0.326 s. Contrast (recorded): the two checkouts back to back, the second once
+clangd is only quiet. Modes: `eglot` (judged), `no-eglot` (contrast, recorded).
+
+Pass criteria (owner confirmed 2026-11-03 with the session's plan), three runs:
+- E1 Current: all 39 buffers show the file's text within 1.0 s of `git` returning.
+- E2 Responsive: Emacs blocked at most 0.25 s in any wait from `git` until clangd
+  settles, eglot's work and the VC and diff-hl refresh included.
+- E3 Correct: once settled, the document symbols clangd gives for the 3 shown
+  (reverted) headers sit on the buffer lines that name them; none offset by 19.
+
 ## Prerequisites
 The patched fswatch (`packaging/fswatch-no-loss`): `~/opt/fswatch-no-loss` on the Mac,
 `/opt/fswatch-no-loss` on Arch; git; python3; Emacs 31.1 (`EMACS` names it when

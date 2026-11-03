@@ -2007,7 +2007,9 @@ the form that loads magit is found (S17 run 2, T-113).
   (`diff-hl-after-revert`); a hidden buffer's VC state stays stale until shown;
   eglot's work per revert stays in the filter, unmeasured. `fswatch-shown` PASS on the
   Mac 2026-11-03 (0103): blocked at most 0.13 s, shown buffers current 0.33 s after
-  `git`; Arch runs on H-22.
+  `git`; Arch runs on H-22. eglot's share on RMO-drafts (0104): E1 - E3 PASS on the
+  Mac (blocked at most 0.183 s with 39 eglot buffers); a checkout during clangd's
+  reparse blocks 0.36 - 0.98 s, O-79.
 - REJECTED: borg (the tool this layout imitates). It assumes the package repository is
   the Emacs directory itself, which contradicts D-003; reconsider if own glue grows past
   about 100 lines. Measured after T-002: `scripts/build-packages.el` has 183 lines of
@@ -2138,6 +2140,22 @@ presets, GoogleTest runner.
   measured across 63 files. Findings in; O-43.
 
 ## Open questions ledger (LIVING)
+- O-79 (OPEN, found 2026-11-03 by S20's eglot runs, 0104): a checkout while clangd
+  still reparses after the previous one (here the second of two checkouts 5 s apart)
+  blocks Emacs 0.36 - 0.98 s in one filter call of 39 reverts; without eglot 19 -
+  36 ms. eglot's didClose and didOpen per revert cost about 10 - 25 ms each while
+  clangd uses every core, under 1 ms when it is idle. Mechanism UNVERIFIED
+  (suspected: `process-send-string` of a whole file waiting on clangd's input pipe).
+  Options:
+  (a) accept: T-128 as measured. Against: up to about 1 s frozen when a large
+  checkout follows another within about a minute, more with more open files.
+  (b) T-128 reverts eglot-managed buffers a few per timer step. Against: buffers
+  current later than E1's 1.0 s for many files; more code; the chunk size is a guess
+  until the mechanism is known.
+  (c) measure the mechanism first: time each didOpen's send under contention in
+  S20's eglot run, then choose (a) or (b). Against: one more spike step (about
+  20 min) before T-128's code.
+  Combined: (c), then (b) only if the sends are the cost. Recommendation: (c).
 - O-78 (RESOLVED 2026-11-03 with D-153: (e); owner: "Rule (e), new S20 mode first";
   was REOPENED 2026-11-02: S20 failed on the Mac, 0102, as D-148 and D-149 set;
   was RESOLVED 2026-10-29 with D-148: (d); owner: "(d) if S20 passes"; found
