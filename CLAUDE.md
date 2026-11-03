@@ -106,11 +106,16 @@ checkout on the Mac (O-78), reverted (D-149); one fswatch per project root, tier
 outside `-Q`; O-78 reopened, resolved 2026-11-03 with (e) (D-153; edge cases D-151,
 D-152): S20 mode `fswatch-shown` PASS on the Mac (0103) and on Arch (0110); eglot's
 share on RMO-drafts PASS on the Mac (0104). A checkout during clangd's reparse froze
-Emacs up to 1.1 s (O-79, 0105 - 0109): Emacs's own timers, mainly the reverter's
+Emacs up to 1.1 s (O-79, 0105 - 0109, 0111): Emacs's own timers, mainly the reverter's
 queue step, ran inside a write to clangd that met a full pipe (not clangd's includer
-lookup: T-130's premise refuted, 6bde78c; not CPU contention, 0107); D-156 (e), the
-queue step waits out the filter, cuts it to 0.22 - 0.28 s (0108); the residual 56 KB
-write stall is not clangd's doing either (0109); O-79 (l) recommended.
+lookup: T-130's premise refuted, 6bde78c); D-156 (e), the queue step waits out the
+filter, cuts it to 0.21 - 0.29 s (0108, 0111). D-160 (0111): the "residual write
+stall" was the reverter's filter run inside a blocked send (the pipe held the write
+10 - 15 ms; `send_process` then waits a fixed 20 ms); the block is the reverts' first
+file opens waiting for G DATA's on-access scan, starved by clangd's load (7 - 9 of 11
+cores, preambles unthrottled). O-79: (l) with (p), (s), (n) recommended. Emacs's
+`process-attributes` CPU times are 41.7 times too small on Apple silicon: S18's Mac
+cost misread (O-80).
 
 ## Self-test (before the first edit of a session)
 Answer from the docs, not from memory; a miss means re-read, not edit.

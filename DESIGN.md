@@ -2308,6 +2308,8 @@ presets, GoogleTest runner.
   in the back-to-back case) stays unexplained. (g) as before. Against: D-028.
   Recommendation: (l): the remaining stall is outside both T-128 and the clangd
   patches, bounded, and only in a checkout during a reparse.
+  Corrected 2026-11-03 (D-160, 0111): the residual stalls of D-158 and D-159 were
+  nested filter calls; the pipe held the 56 KB write 10 - 15 ms.
 - DECIDED D-160 (owner 2026-11-03: "O-79 - do more research on the leftover write
   stall"): S20's eglot run traces Emacs's side of clangd's input pipe, to split the
   residual stall into time clangd leaves the pipe full and time Emacs waits with room
@@ -2317,6 +2319,44 @@ presets, GoogleTest runner.
   fill from `fstat`), each `pselect` while a write waits, and the pipe's fill polled
   about every 0.1 ms until it drains. Runs: the patched flags with D-156 (e) in the
   usual back-to-back pair, stock flags as control. Not taken yet: (l), (g).
+  Result (0111, S20 RESULTS): the residual "write stall" was not the pipe. In all six
+  runs that showed one (74 - 181 ms; D-158, D-159, D-160) it equals the second filter
+  call to within 2 ms: waiting on the full pipe, Emacs read fswatch's next records
+  and ran the reverter's filter inside the send. At the pipe the 56 KB write waited
+  9.8 - 15.1 ms: clangd took bytes 2.6 - 9.8 ms after the pipe filled, then Emacs
+  waited out a fixed 20 ms (Emacs 31.1's `send_process`, not woken by the pipe
+  draining) with room in it; two blocked sends per checkout, patched flags only. So
+  0105's "one single write stalls 0.26 - 1.04 s", on which D-155 set (b) aside,
+  measured nested timers and filter calls, not the pipe. The block (0.21 - 0.29 s,
+  once 0.59 s) is the reverts, mostly off the CPU in their file reads (161 - 241 ms
+  at 14 - 17 ms of CPU): the first open of a just-checked-out file waits for G DATA's
+  on-access scan (an endpoint security client), starved while clangd keeps 7 - 9 of
+  11 cores busy. Without clangd, CPU burners alone stretch such opens to up to 0.7 s
+  in this repository's tree (idle 0.2 - 0.3 ms); UNVERIFIED with the scan paused.
+  clangd's `-j` caps AST builds only; its preambles build unthrottled (about 21
+  threads want a CPU with the patched flags, 9 with stock). Arch has no such scan
+  (its share UNVERIFIED). Options:
+  (l) close O-79: T-128 with (e) as ruled, T-130 dropped, the residual recorded as
+  the Mac's on-access scan under clangd's load. Against: 0.21 - 0.29 s (once 0.59 s)
+  blocked on the owner's Mac when a checkout lands during a reparse, while G DATA
+  scans the trees.
+  (s) confirm the scan: the owner pauses G DATA's real-time protection for one run of
+  the open test (an H-n, about 5 min). Against: the owner's time; protection off
+  briefly.
+  (n) exclude the source trees from G DATA's real-time scan (the owner's machine
+  setting). Against: no on-access scan there; the setting may be centrally managed;
+  the pipe part (20 - 45 ms) stays.
+  (p) T-128's filter never runs inside itself: a call that finds it running leaves
+  its records to a timer. Against: more code; it splits the block only when a
+  second batch arrives during the first (6 of 11 runs with (e); traced 1: 0.29 s
+  into about 0.11 and 0.18 s, UNVERIFIED).
+  (o) T-128 reverts a few buffers per timer step ((b), its premise corrected).
+  Against: buffers current later; one first open under load can still take hundreds
+  of ms; more code than (p).
+  Combined: (l) with (p) in T-128, (s) beside it, (n) by (s)'s result. Against: the
+  block stays on the Mac until the owner acts on (n).
+  Recommendation: the combination: what remains is outside Emacs and clangd on this
+  Mac; (p) is small and bounds the reverter's own share.
 - DECIDED D-154 (owner 2026-11-03: "O-79 (c)"): before T-128's code, S20's eglot run
   times each revert under clangd's reparse, split into eglot's didClose, didOpen (its
   `process-send-string` calls to clangd, their bytes) and the rest of the revert;
@@ -2327,8 +2367,9 @@ presets, GoogleTest runner.
   when a checkout lands during clangd's reparse (0105); T-129 finds what keeps clangd
   from reading its input (stock flags against the patched ones, clangd's verbose log
   around didOpen), and O-79 reopens if it finds a cause T-128 or a clangd patch
-  (D-069) can remove. Not taken: (b) (one write alone stalls up to 1.04 s).
-  Amended by D-156 after T-129 (0106).
+  (D-069) can remove. Not taken: (b) (one write alone stalls up to 1.04 s; premise
+  refuted 2026-11-03, 0111: that time was nested timers and filter calls, the pipe
+  held a write at most about 25 ms). Amended by D-156 after T-129 (0106).
 - DECIDED D-156 (owner 2026-11-03: "O-79 combined (e) in T-128, (f) as task"): T-128's
   VC and diff-hl queue step never runs while the reverter's filter runs: a step that
   finds the filter active arms its timer again instead (O-79 (e)). T-130 moves the

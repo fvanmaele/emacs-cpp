@@ -356,3 +356,72 @@ another process's output, not by the pipe draining (Emacs `process.c`); or clang
 reader is woken but waits for a CPU while the reparse runs. Either way the cost is
 neither the includer lookup nor anything T-128 controls. Why the stock runs never
 hit it is UNVERIFIED.
+
+## D-160: Emacs's side of clangd's pipe traced (session, 2026-11-03)
+New in the spike: `pipetrace.c`, loaded into the batch Emacs only (`DYLD_INSERT_LIBRARIES`,
+built by `eglot-share.sh` when `S20_PIPETRACE` names a trace file), records each write
+to a pipe (bytes asked, written or EAGAIN, the pipe's fill from `fstat` on the write
+end), each `pselect` while a write waits, and the fill polled about every 0.1 ms
+until it drains; `pipetrace.py` summarizes it per checkout into the log. The filter's
+calls with wall time, Emacs's CPU (`current-cpu-time`) and clangd's CPU; the reverts'
+file reads (`insert-file-contents`) wall against CPU; `S20_SAMPLE_EMACS` samples this
+Emacs. Logs: `mac-d160-patched1.log`, `-patched2`, `-stock1` (traced), `mac-d160-cpu-*`,
+`mac-d160-io-*`; traces and samples in the session's scratch directory. Load 2.0 - 5.9
+at the start; the owner's second clangd was gone; G DATA's antivirus ran throughout.
+
+Checks first. Emacs 31.1 (MacPorts' distfile): after a write gets EAGAIN,
+`send_process` waits in `wait_reading_process_output (0, 20 ms, ...)` (`process.c`
+6886 - 6913), which wakes on process output only, never on the pipe draining; batch
+Emacs reaches plain `pselect` (`nsterm.m` 5214). A macOS pipe holds 64 KB. A 168 KB
+send to `cat`: 25 + 25 ms waiting with the pipe empty 50.1 of 50.6 ms (the 20 ms
+timeout sleeps 20.2 - 25.0 ms here). Emacs 31.1's `process-attributes` CPU times are
+41.7 times too small on Apple silicon (a 1 s burner read 0.027 s; DESIGN O-80), so
+this spike's settle test was "under about 4.2 s of clangd's CPU over 5 s" on the Mac
+until the io runs, which scale it (41.7, measured at load); the judged checkouts
+only got harder by it. clangd figures below are corrected by the factor.
+
+Back-to-back 2, patched flags with (e):
+| run | blocked | the pipe: blocked sends (span), full / with room | longest send seen in Lisp | filter calls |
+|---|---|---|---|---|
+| traced 1 | 0.291 s | 56 KB 9.8 ms, 22 KB 23.3 ms; 15.2 / 17.9 ms | 181 ms | 289.6 ms, the second (181.3 ms) nested inside it |
+| traced 2 | 0.250 s | 56 KB 15.1 ms, 22 KB 20.0 ms; 10.4 / 24.7 ms | 39 ms | 249.6 and 3.4 ms |
+| cpu 1, 2 | 0.209, 0.214 s | - | 21, 23 ms | wall 56 - 186 ms at 15 - 26 ms of Emacs's CPU; clangd 8.1 - 9.2 cores |
+| io 1, 2 | 0.593, 0.226 s | - | 34, 22 ms | reverts' file reads 241, 161 ms at 17, 14 ms of CPU |
+Stock flags (traced, cpu): blocked 0.106, 0.132 s; no EAGAIN, sends under 2 ms in
+all; filter calls at 2 - 5 times their CPU while clangd ran 7.3 - 9.6 cores, already
+in the first checkout. In the patched runs' first two checkouts (clangd ramping up,
+2.6 - 3.6 cores) the filter calls run at 1.2 - 1.6 times their CPU and the 39 reads
+take 20 - 33 ms.
+
+Open test (no clangd, 39 files written as git writes them, 12 - 20 KB), first `open`:
+| where | idle: median, total | 11 CPU burners: median, max, total |
+|---|---|---|
+| scratch, `/private/tmp` | 2.1 - 5.8 ms, 85 - 244 ms | 30 - 395 ms, 2.6 s, 2.0 - 19.2 s |
+| beside the clone, `$TMPDIR` | 0.4 - 1.0 ms, 16 - 39 ms | 0.2 - 16 ms, 0.69 s, 0.1 - 6.7 s |
+| this repository's tree | 0.2 - 0.3 ms, 9 - 12 ms | 0.3 - 86 ms, 0.70 s, 0.8 - 5.7 s |
+A second open: 0.02 - 0.09 ms everywhere. Idle, the first open grows with the file
+(2 KB 1.6 ms, 20 KB 4.1 ms, 200 KB 18.7 ms in scratch), waiting 1 - 2 s after the
+write does not shorten it, and PCH-sized writes beside it change nothing.
+`gdesclientd` (G DATA's real-time service) holds
+`com.apple.developer.endpoint-security.client`.
+
+So:
+- The residual "write stall" (74 - 181 ms, D-158, D-159, traced 1) was a nested filter
+  call: in all six runs with one, the stalled send equals the filter's total less its
+  longest call to within 2 ms. Waiting on the full pipe, Emacs read fswatch's next
+  records and ran the reverter's filter inside the send (traced 1: 22 reverts in it).
+  At the pipe the 56 KB write waited 9.8 and 15.1 ms.
+- The pipe part, patched flags only: clangd took bytes 2.6 - 9.8 ms after the pipe
+  filled (a write drains in 0.3 ms median, 13 - 15 ms at the 90th percentile, up to
+  57 ms, against at most 4 ms elsewhere), then Emacs waited out its 20 ms with room
+  in the pipe: two blocked sends per checkout, 10 - 23 ms each.
+- The block itself is the reverts, mostly off the CPU, in their file reads: the first
+  open of each just-checked-out file waits for G DATA's on-access scan, and the scan
+  is starved while clangd keeps 7 - 9 of 11 cores busy (the open test shows the same
+  with CPU burners alone). UNVERIFIED with real-time protection paused (owner's).
+- clangd's load: D-159's sample re-read shows about 21 threads wanting a CPU with the
+  patched flags (11 PreambleWorkers among the 15 busiest), about 9 with stock; `-j`
+  caps AST builds only (`TUScheduler.cpp` 1448); the binary sets no
+  `PreambleThrottler`, so preambles build unthrottled.
+- The Emacs sample (io 1) missed the checkout: its window began after the reverts,
+  cause UNVERIFIED (self-sampling a small batch Emacs works).

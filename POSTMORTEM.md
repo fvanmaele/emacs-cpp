@@ -552,3 +552,16 @@ encoded structurally rather than in a comment.
   `current-cpu-time` with D-160's spike commit.
 - Lesson: a measurement source a verdict rests on is checked once against a known
   quantity on each machine before its first verdict.
+
+## 2026-11-03 - A send's duration read as a pipe stall (short)
+- What failed: 0105 - 0109 reported `process-send-string`'s duration as the write's
+  stall ("one write stalls 0.26 - 1.04 s", the residual 74 - 181 ms); D-155 set
+  O-79 (b) aside on it, D-158 and D-159 were ruled on it.
+- Caught by: the session (D-160): a trace of Emacs's writes showed the pipe held the
+  write 10 - 15 ms; the rest was the reverter's filter and timers run inside the send.
+- Cause: `send_process` runs timers and other processes' filters while it waits; a
+  timer around the call counted all of it as the callee's own time.
+- Fix (commit): this commit corrects O-79, D-155, the D-159 result, S20 RESULTS; (b)
+  is offered again as O-79 (o).
+- Lesson: a duration around a call that can wait counts what runs inside the wait;
+  name the place of a stall only from a measurement at that level.
