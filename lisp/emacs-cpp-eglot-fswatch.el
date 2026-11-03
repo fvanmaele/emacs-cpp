@@ -44,6 +44,12 @@ uses; update the backend (D-127)" internal)))
 (defconst emacs-cpp-eglot-fswatch-exclude '("/\\.git/")
   "Regexps of paths fswatch does not report (its -e): git's own churn.")
 
+(defconst emacs-cpp-eglot-fswatch--created 1 "LSP FileChangeType Created.")
+(defconst emacs-cpp-eglot-fswatch--changed 2 "LSP FileChangeType Changed.")
+(defconst emacs-cpp-eglot-fswatch--deleted 3 "LSP FileChangeType Deleted.")
+(defconst emacs-cpp-eglot-fswatch--all-kinds 7
+  "LSP WatchKind Create | Change | Delete (1 | 2 | 4), a watcher's default.")
+
 (defvar emacs-cpp-eglot-fswatch--processes (make-hash-table :test #'eq :weakness 'key)
   "Server -> alist (REGISTRATION-ID . PROCESS).")
 
@@ -52,48 +58,58 @@ uses; update the backend (D-127)" internal)))
 
 ;;;; Globs
 
+(defun emacs-cpp-eglot-fswatch--braces (glob start)
+  "Return (ALTERNATIVES . END) for the `{a,b}' at START in GLOB; END is its `}'.
+Nested braces are counted; each alternative is a glob itself."
+  (let ((depth 0) (j start) (from (1+ start)) alternatives)
+    (while (progn
+             (pcase (aref glob j)
+               (?{ (cl-incf depth))
+               (?} (cl-decf depth)
+                   (when (= depth 0)
+                     (push (substring glob from j) alternatives)))
+               (?, (when (= depth 1)
+                     (push (substring glob from j) alternatives)
+                     (setq from (1+ j)))))
+             (and (> depth 0) (< (cl-incf j) (length glob)))))
+    (unless (= depth 0) (error "emacs-cpp: unclosed { in glob %S" glob))
+    (cons (nreverse alternatives) j)))
+
+(defun emacs-cpp-eglot-fswatch--bracket (content)
+  "Return the regexp class for the CONTENT of a glob's `[...]'; `[!...]' negates."
+  (if (string-prefix-p "!" content)
+      (concat "[^" (substring content 1) "]")
+    (concat "[" content "]")))
+
 (defun emacs-cpp-eglot-fswatch--glob-body (glob)
   "Return a regexp, unanchored, for LSP GLOB: `*', `**', `?', `{a,b}', `[...]'."
   (let ((i 0) (n (length glob)) (parts nil))
-    (while (< i n)
-      (let ((c (aref glob i)))
+    (cl-flet ((at (offset char)         ; GLOB has CHAR at I + OFFSET
+                (and (< (+ i offset) n) (eq (aref glob (+ i offset)) char)))
+              (emit (regexp width)      ; REGEXP stands for the next WIDTH chars
+                (push regexp parts)
+                (cl-incf i width)))
+      (while (< i n)
         (cond
-         ((and (eq c ?*) (< (1+ i) n) (eq (aref glob (1+ i)) ?*))
-          (cond ((and (< (+ i 2) n) (eq (aref glob (+ i 2)) ?/))
-                 (push "\\(?:.*/\\)?" parts) (setq i (+ i 3)))
-                (t (push ".*" parts) (setq i (+ i 2)))))
-         ((eq c ?*) (push "[^/]*" parts) (setq i (1+ i)))
-         ((eq c ??) (push "[^/]" parts) (setq i (1+ i)))
-         ((eq c ?{)
-          ;; Alternatives, each a glob itself; nested braces are counted.
-          (let ((depth 0) (j i) (start (1+ i)) alternatives)
-            (while (progn
-                     (pcase (aref glob j)
-                       (?{ (cl-incf depth))
-                       (?} (cl-decf depth)
-                           (when (= depth 0)
-                             (push (substring glob start j) alternatives)))
-                       (?, (when (= depth 1)
-                             (push (substring glob start j) alternatives)
-                             (setq start (1+ j)))))
-                     (and (> depth 0) (< (cl-incf j) n))))
-            (unless (= depth 0) (error "emacs-cpp: unclosed { in glob %S" glob))
-            (push (concat "\\(?:"
+         ;; `**/': any directories, or none; `**': anything; `*': within one name.
+         ((and (at 0 ?*) (at 1 ?*) (at 2 ?/)) (emit "\\(?:.*/\\)?" 3))
+         ((and (at 0 ?*) (at 1 ?*)) (emit ".*" 2))
+         ((at 0 ?*) (emit "[^/]*" 1))
+         ((at 0 ??) (emit "[^/]" 1))
+         ((at 0 ?{)
+          (pcase-let ((`(,alternatives . ,end)
+                       (emacs-cpp-eglot-fswatch--braces glob i)))
+            (emit (concat "\\(?:"
                           (mapconcat #'emacs-cpp-eglot-fswatch--glob-body
-                                     (nreverse alternatives) "\\|")
+                                     alternatives "\\|")
                           "\\)")
-                  parts)
-            (setq i (1+ j))))
-         ((eq c ?\[)
+                  (- (1+ end) i))))
+         ((at 0 ?\[)
           (let ((end (or (cl-position ?\] glob :start (1+ i))
                          (error "emacs-cpp: unclosed [ in glob %S" glob))))
-            (push (concat "[" (if (eq (aref glob (1+ i)) ?!)
-                                  (concat "^" (substring glob (+ i 2) end))
-                                (substring glob (1+ i) end))
-                          "]")
-                  parts)
-            (setq i (1+ end))))
-         (t (push (regexp-quote (string c)) parts) (setq i (1+ i))))))
+            (emit (emacs-cpp-eglot-fswatch--bracket (substring glob (1+ i) end))
+                  (- (1+ end) i))))
+         (t (emit (regexp-quote (string (aref glob i))) 1)))))
     (apply #'concat (nreverse parts))))
 
 (defun emacs-cpp-eglot-fswatch-glob-regexp (glob &optional prefix)
@@ -103,21 +119,28 @@ watcher's base lies; GLOB is relative to it."
   (concat "\\`" (regexp-quote (or prefix "")) (emacs-cpp-eglot-fswatch--glob-body glob)
           "\\'"))
 
+(defun emacs-cpp-eglot-fswatch--watcher-base (pattern)
+  "Return the directory a relative glob PATTERN is based on; nil for a plain glob."
+  (when-let* ((base-uri (and (consp pattern) (plist-get pattern :baseUri))))
+    (eglot-uri-to-path (if (stringp base-uri) base-uri (plist-get base-uri :uri)))))
+
+(defun emacs-cpp-eglot-fswatch--prefix (base root)
+  "Return BASE relative to ROOT: \"\" for ROOT itself, else ending in /."
+  (let ((rel (file-relative-name base root)))
+    (if (equal rel ".") "" (file-name-as-directory rel))))
+
 (defun emacs-cpp-eglot-fswatch--matchers (watchers root)
   "Return (REGEXP . KIND) for the WATCHERS of a registration; ROOT is the project.
 Watchers based outside ROOT are left out (D-121)."
   (cl-loop
    for watcher across watchers
    for pattern = (plist-get watcher :globPattern)
-   for base-uri = (and (consp pattern) (plist-get pattern :baseUri))
-   for base = (and base-uri (eglot-uri-to-path (if (stringp base-uri) base-uri
-                                                  (plist-get base-uri :uri))))
    for glob = (if (consp pattern) (plist-get pattern :pattern) pattern)
+   for base = (emacs-cpp-eglot-fswatch--watcher-base pattern)
    when (or (null base) (file-in-directory-p base root))
    collect (cons (emacs-cpp-eglot-fswatch-glob-regexp
-                  glob (and base (let ((rel (file-relative-name base root)))
-                                   (if (equal rel ".") "" (file-name-as-directory rel)))))
-                 (or (plist-get watcher :kind) 7))))
+                  glob (and base (emacs-cpp-eglot-fswatch--prefix base root)))
+                 (or (plist-get watcher :kind) emacs-cpp-eglot-fswatch--all-kinds))))
 
 ;;;; Records to changes
 
@@ -143,6 +166,24 @@ The flags of a path's records are joined with commas."
                    flags))))
     (mapcar (lambda (path) (cons path (gethash path flags))) (nreverse order))))
 
+(defun emacs-cpp-eglot-fswatch--change-type (path flags)
+  "Return PATH's LSP FileChangeType: gone, created (fswatch's FLAGS) or changed."
+  (cond ((not (file-exists-p path)) emacs-cpp-eglot-fswatch--deleted)
+        ((string-search "Created" flags) emacs-cpp-eglot-fswatch--created)
+        (t emacs-cpp-eglot-fswatch--changed)))
+
+(defun emacs-cpp-eglot-fswatch--wanted-p (matchers rel type)
+  "Non-nil if one of MATCHERS whose kind includes change TYPE matches REL."
+  (let ((bit (ash 1 (1- type)))         ; WatchKind bit of a FileChangeType
+        (case-fold-search nil))
+    (cl-loop for (regexp . kind) in matchers
+             thereis (and (> (logand kind bit) 0) (string-match-p regexp rel)))))
+
+(defun emacs-cpp-eglot-fswatch--server-has-text-p (server file)
+  "Non-nil if a buffer of SERVER visits FILE: the server has its text already."
+  (when-let* ((buffer (get-file-buffer file)))
+    (eq server (with-current-buffer buffer (eglot-current-server)))))
+
 (defun emacs-cpp-eglot-fswatch-changes (server merged real-root root matchers)
   "Return the LSP changes of MERGED, (PATH . FLAGS) under REAL-ROOT, for MATCHERS.
 ROOT is the root as eglot spells it, for buffers; a file a buffer of SERVER's
@@ -151,22 +192,14 @@ visits is left out, as eglot does (the server has its text)."
         changes)
     (pcase-dolist (`(,path . ,flags) merged)
       (when (string-prefix-p real-root path)
-        (let* ((rel (substring path (length real-root)))
-               (type (cond ((not (file-exists-p path)) 3)
-                           ((string-search "Created" flags) 1)
-                           (t 2)))
-               (bit (ash 1 (1- type)))
-               (buffer (get-file-buffer (concat root rel))))
-          (when (and (cl-loop for (regexp . kind) in matchers
-                              thereis (and (> (logand kind bit) 0)
-                                           (let ((case-fold-search nil))
-                                             (string-match-p regexp rel))))
-                     (not (and buffer
-                               (eq server (with-current-buffer buffer
-                                            (eglot-current-server))))))
-            (push `(:uri ,(concat root-uri "/" (url-hexify-string
-                                                rel eglot--uri-path-allowed-chars))
-                         :type ,type)
+        (let ((rel (substring path (length real-root)))
+              (type (emacs-cpp-eglot-fswatch--change-type path flags)))
+          (when (and (emacs-cpp-eglot-fswatch--wanted-p matchers rel type)
+                     (not (emacs-cpp-eglot-fswatch--server-has-text-p
+                           server (concat root rel))))
+            (push (list :uri (concat root-uri "/" (url-hexify-string
+                                                   rel eglot--uri-path-allowed-chars))
+                        :type type)
                   changes)))))
     (nreverse changes)))
 
@@ -177,28 +210,58 @@ visits is left out, as eglot does (the server has its text)."
   (when-let* ((space (cl-position ?\s record :from-end t)))
     (member "Overflow" (split-string (substring record (1+ space)) ","))))
 
+(defun emacs-cpp-eglot-fswatch--warn-overflow (root)
+  (display-warning
+   'emacs-cpp
+   (format "fswatch for %s overflowed: changes were lost; `M-x \
+eglot-reconnect' lets the server see the files again" root)
+   :warning))
+
 (defun emacs-cpp-eglot-fswatch--filter (server real-root root matchers)
   "Return the process filter turning fswatch's records into notifications."
   (let ((pending "")
         (overflow-warned 0))
     (lambda (_process output)
-      (let* ((records (split-string (concat pending output) "\0"))
-             (complete (butlast records)))
-        (setq pending (car (last records)))
-        (when (cl-some #'emacs-cpp-eglot-fswatch--overflow-p complete)
-          (when (> (- (float-time) overflow-warned) 60)
+      ;; Records end in NUL; the last piece is the start of a record still coming.
+      (let* ((pieces (split-string (concat pending output) "\0"))
+             (records (butlast pieces)))
+        (setq pending (car (last pieces)))
+        (when (cl-some #'emacs-cpp-eglot-fswatch--overflow-p records)
+          (when (> (- (float-time) overflow-warned) 60) ; at most once a minute
             (setq overflow-warned (float-time))
-            (display-warning
-             'emacs-cpp
-             (format "fswatch for %s overflowed: changes were lost; `M-x \
-eglot-reconnect' lets the server see the files again" root)
-             :warning))
-          (setq complete (cl-remove-if #'emacs-cpp-eglot-fswatch--overflow-p complete)))
+            (emacs-cpp-eglot-fswatch--warn-overflow root))
+          (setq records (cl-remove-if #'emacs-cpp-eglot-fswatch--overflow-p records)))
         (when-let* ((changes (emacs-cpp-eglot-fswatch-changes
-                              server (emacs-cpp-eglot-fswatch-merge complete)
+                              server (emacs-cpp-eglot-fswatch-merge records)
                               real-root root matchers)))
           (jsonrpc-notify server :workspace/didChangeWatchedFiles
                           `(:changes ,(vconcat changes))))))))
+
+(defun emacs-cpp-eglot-fswatch--command (real-root)
+  "Return the fswatch command line watching REAL-ROOT."
+  `(,emacs-cpp-default-fswatch-program
+    "-0" "-r" "-x" "--event-flag-separator=," ; NUL-ended records, recursive, flags
+    "-l" ,(number-to-string emacs-cpp-eglot-fswatch-latency)
+    "--allow-overflow"                  ; report lost changes, not exit
+    ,@(cl-loop for regexp in emacs-cpp-eglot-fswatch-exclude
+               append (list "-e" regexp))
+    ,(directory-file-name real-root)))
+
+(defun emacs-cpp-eglot-fswatch--sentinel (root stderr)
+  "Return the sentinel of ROOT's fswatch.
+It warns when fswatch ends unasked, then kills the STDERR buffer."
+  (lambda (process event)
+    (unless (process-live-p process)
+      (unless (process-get process 'emacs-cpp-stopping)
+        (let ((text (with-current-buffer stderr (string-trim (buffer-string)))))
+          (display-warning
+           'emacs-cpp
+           (format "fswatch for %s ended (%s)%s; its changes are no longer \
+reported; `M-x eglot-reconnect' starts it again"
+                   root (string-trim event)
+                   (if (string-empty-p text) "" (format ": %s" text)))
+           :warning)))
+      (when (buffer-live-p stderr) (kill-buffer stderr)))))
 
 (defun emacs-cpp-eglot-fswatch--start (server id matchers)
   "Start SERVER's fswatch for registration ID, its globs MATCHERS; return it."
@@ -206,34 +269,14 @@ eglot-reconnect' lets the server see the files again" root)
                 (expand-file-name (project-root (eglot--project server)))))
          (real-root (file-name-as-directory (file-truename root)))
          (stderr (generate-new-buffer (format " *emacs-cpp-fswatch %s stderr*" id)))
-         (process
-          (make-process
-           :name (format "emacs-cpp-fswatch %s" id)
-           :command `(,emacs-cpp-default-fswatch-program
-                      "-0" "-r" "-x" "--event-flag-separator=,"
-                      "-l" ,(number-to-string emacs-cpp-eglot-fswatch-latency)
-                      "--allow-overflow"
-                      ,@(cl-loop for regexp in emacs-cpp-eglot-fswatch-exclude
-                                 append (list "-e" regexp))
-                      ,(directory-file-name real-root))
-           :connection-type 'pipe :noquery t :coding 'utf-8-unix
-           :stderr stderr
-           :filter (emacs-cpp-eglot-fswatch--filter server real-root root matchers)
-           :sentinel
-           (lambda (process event)
-             (unless (or (process-get process 'emacs-cpp-stopping)
-                         (process-live-p process))
-               (display-warning
-                'emacs-cpp
-                (format "fswatch for %s ended (%s)%s; its changes are no longer \
-reported; `M-x eglot-reconnect' starts it again"
-                        root (string-trim event)
-                        (let ((text (with-current-buffer stderr
-                                      (string-trim (buffer-string)))))
-                          (if (string-empty-p text) "" (format ": %s" text))))
-                :warning))
-             (unless (process-live-p process)
-               (when (buffer-live-p stderr) (kill-buffer stderr)))))))
+         (process (make-process
+                   :name (format "emacs-cpp-fswatch %s" id)
+                   :command (emacs-cpp-eglot-fswatch--command real-root)
+                   :connection-type 'pipe :noquery t :coding 'utf-8-unix
+                   :stderr stderr
+                   :filter (emacs-cpp-eglot-fswatch--filter
+                            server real-root root matchers)
+                   :sentinel (emacs-cpp-eglot-fswatch--sentinel root stderr))))
     (process-put process 'emacs-cpp-stderr stderr)
     process))
 
