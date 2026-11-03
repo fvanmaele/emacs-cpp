@@ -538,3 +538,17 @@ encoded structurally rather than in a comment.
 - Fix (commit): this commit corrects 0106, O-79, D-156, S20 RESULTS; T-130 blocked.
 - Lesson: a mechanism inside another program is UNVERIFIED until its source or a
   trace of that thread shows it; offer no fix built on it before that.
+
+## 2026-11-03 - CPU times on the Mac read 41.7 times too small (short)
+- What failed: S18's Mac criterion 3 (2 - 9 ms per 1000 records, "PASS on both
+  machines", D-127) and S20's settle test (0.1 s over 5 s) used `process-attributes`
+  CPU times, which Emacs 31.1 gives 41.7 times too small on Apple silicon.
+- Caught by: the session (D-160): clangd's CPU over a 186 ms filter call read 40 ms
+  while a sample showed about 21 of its threads busy; a 1 s burner read 0.027 s.
+- Cause: Emacs's Darwin `system_process_attributes` takes proc_pid_rusage's Mach
+  ticks for ns (`sysdep.c`); the spikes never checked the unit against a known load.
+- Fix (commit): this commit (S18 reads `current-cpu-time`; its verdict, D-127,
+  T-116 corrected; O-80); S20's spike gets a scale measured against
+  `current-cpu-time` with D-160's spike commit.
+- Lesson: a measurement source a verdict rests on is checked once against a known
+  quantity on each machine before its first verdict.

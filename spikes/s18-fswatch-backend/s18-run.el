@@ -21,9 +21,11 @@
 (defvar s18-run--poll-cpu 0.0 "CPU seconds spent reading the log, subtracted.")
 
 (defun s18-run--cpu ()
-  "This Emacs's user + system CPU seconds."
-  (let ((a (process-attributes (emacs-pid))))
-    (+ (float-time (alist-get 'utime a)) (float-time (alist-get 'stime a)))))
+  "This Emacs's user + system CPU seconds.
+Not `process-attributes' (O-80): Emacs 31.1 on Apple silicon reads
+proc_pid_rusage's times, Mach ticks of 125/3 ns, as ns, 41.7 times too small."
+  (let ((cpu (current-cpu-time)))
+    (/ (float (car cpu)) (cdr cpu))))
 
 (defun s18-run--wait (pred seconds)
   "Process output until PRED is non-nil or SECONDS pass; return PRED's value."

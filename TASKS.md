@@ -486,7 +486,8 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
   FAIL on cost only (194 ms per 1000 records, at most 50). Session's run 2 on Arch
   2026-10-21 (0090): PASS in mode `dedup` (URIs from the root's, records merged per
   path; 37 - 39 ms). Owner's Mac run 4 2026-10-21 (0093): PASS, 2 ms. Done; the
-  build is T-119.
+  build is T-119. Corrected 2026-11-03 (O-80): the Mac's figures (7 - 9 ms, 2 ms) read
+  41.7 times too small, about 290 - 375 and 83 ms.
 - T-115 (opened 2026-10-20, review 0084 fold-in): `lib/load-path.el` still named the
   removed `lib/eglot` after D-121 until `make packages` ran again, and the session
   loaded the old eglot (1.24); `init-packages-are-built-and-fresh` does not see a load

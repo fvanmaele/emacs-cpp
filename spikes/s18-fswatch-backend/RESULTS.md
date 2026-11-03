@@ -7,6 +7,16 @@ criterion 3 in the modes then built (194 ms). D-127 is gated through (T-119).
 The shipped backend (mode `shipped`) passes on Arch (run 5) at 48 - 49 ms, a thin
 margin, and on the Mac (run 6) at 2 ms.
 
+SUPERSEDED in part (2026-11-03, O-80, journal 0111): every Mac figure of criterion 3
+is 41.7 times too small. `s18-run--cpu` read Emacs's CPU through `process-attributes`,
+and Emacs 31.1 on Apple silicon takes proc_pid_rusage's times, Mach ticks of 125/3 ns,
+for ns (`sysdep.c`; a child that burned 1.0 s of CPU read as 0.027 s). Times the
+factor, not rerun: the dry run's 7 - 9 ms is about 290 - 375 ms, run 3's 6 ms about
+250 ms, runs 4 and 6's 2 ms about 83 ms per 1000 records, all over the limit of 50.
+Arch's figures (Linux's `/proc`) stand. The verdict holds on Arch; on the Mac
+criterion 3 is not met as corrected (UNVERIFIED by a rerun), O-80. `s18-run.el` now
+reads `current-cpu-time`.
+
 ## Run 7 (session, Arch, 2026-10-21): pkgrel 3 (patch 0005, D-144)
 Owner: "verify if fswatch macos patch (0005) causes issues on Arch". 0005 changes
 only `fsevents_monitor.cpp`, which configure builds only with macOS's CoreServices
