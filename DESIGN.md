@@ -2140,8 +2140,9 @@ presets, GoogleTest runner.
   measured across 63 files. Findings in; O-43.
 
 ## Open questions ledger (LIVING)
-- O-79 (REOPENED 2026-11-03 by T-129, 0106, as D-155 set; was RESOLVED 2026-11-03
-  with D-155: (a) for T-128 now, (d) beside it; owner: "O-79 (a) for T-128 now, (d)
+- O-79 (RESOLVED 2026-11-03 with D-156: (e) in T-128, (f) as a task; owner: "O-79
+  combined (e) in T-128, (f) as task"; was REOPENED 2026-11-03 by T-129, 0106, as
+  D-155 set; was RESOLVED 2026-11-03 with D-155: (a) for T-128 now, (d) beside it; owner: "O-79 (a) for T-128 now, (d)
   alongside"; (c) ruled 2026-11-03, D-154, measured the same
   day (0105); found 2026-11-03 by
   S20's eglot runs, 0104): a checkout while clangd still reparses after the previous
@@ -2217,6 +2218,15 @@ presets, GoogleTest runner.
   from reading its input (stock flags against the patched ones, clangd's verbose log
   around didOpen), and O-79 reopens if it finds a cause T-128 or a clangd patch
   (D-069) can remove. Not taken: (b) (one write alone stalls up to 1.04 s).
+  Amended by D-156 after T-129 (0106).
+- DECIDED D-156 (owner 2026-11-03: "O-79 combined (e) in T-128, (f) as task"): T-128's
+  VC and diff-hl queue step never runs while the reverter's filter runs: a step that
+  finds the filter active arms its timer again instead (O-79 (e)). T-130 moves the
+  includer lookup of `--header-flags-from-index` (D-028) off clangd's main thread
+  (O-79 (f)), a patch to clangd-index-nav (D-069). The freeze during a reparse is
+  measured again after each with S20's eglot run (`eglot-share.sh`, back-to-back
+  pair). Not taken: (g) (headers opened first would lose their includer's flags).
+  Amends D-155.
 - O-78 (RESOLVED 2026-11-03 with D-153: (e); owner: "Rule (e), new S20 mode first";
   was REOPENED 2026-11-02: S20 failed on the Mac, 0102, as D-148 and D-149 set;
   was RESOLVED 2026-10-29 with D-148: (d); owner: "(d) if S20 passes"; found
@@ -3632,6 +3642,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-153 | 2026-11-03 | O-78 (e): VC and diff-hl refresh for shown buffers; S20 `fswatch-shown` first | 12 | O-78 |
 | D-154 | 2026-11-03 | O-79 (c): time eglot's sends and the revert's parts under clangd's reparse first | 12 | O-79 |
 | D-155 | 2026-11-03 | O-79: T-128 accepts the freeze during clangd's reparse; T-129 finds its cause | 12 | O-79 |
+| D-156 | 2026-11-03 | O-79: T-128's queue step waits out the filter; T-130 moves clangd's includer lookup off its main thread | 12 | O-79 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |

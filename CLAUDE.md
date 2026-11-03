@@ -108,7 +108,8 @@ D-152): S20 mode `fswatch-shown` PASS on the Mac (0103), Arch runs H-22; eglot's
 RMO-drafts PASS on the Mac (0104), a checkout during clangd's reparse blocks up to
 0.98 s (O-79; (c), D-154: its writes to clangd stall, 0105); accepted for T-128 (D-155);
 T-129 placed it (0106): `--header-flags-from-index` stops clangd reading, Emacs's
-write runs timers while it waits; O-79 reopened.
+write runs timers while it waits; O-79 resolved (D-156): T-128's queue step waits out
+the filter, T-130 moves clangd's includer lookup off its main thread.
 
 ## Self-test (before the first edit of a session)
 Answer from the docs, not from memory; a miss means re-read, not edit.
