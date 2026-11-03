@@ -2234,6 +2234,18 @@ presets, GoogleTest runner.
   contention before (f)'s place is ruled: stock flags with the second checkout 1 s
   after the first, the patched flags the same as reference, and the patched flags
   with clangd's `-j=5` in the usual back-to-back pair. Not taken yet: (i), (j).
+  Result (0107, S20 RESULTS): CPU contention alone does not stall clangd's reading
+  (stock flags 1 s into the reparse: no stalled write; patched with `-j=5`: 209 and
+  137 ms stalls); output volume does not explain it either (stock writes 6 times
+  more). Cause still UNVERIFIED. Options revisited:
+  (i) is refuted for this purpose (`-j=5` keeps the stalls).
+  (j) (e) alone. Against: the nested timers' share stays (up to about 0.3 s).
+  (g) drop `--header-flags-from-index`. Against: headers opened first lose their
+  includer's flags (D-028).
+  (k) sample clangd's threads during a stall (macOS `sample <pid>`, every thread's
+  stack) and decide on what blocks its main thread. Against: one more spike step
+  (about 15 min); the answer may need a clangd patch.
+  Recommendation: (k): every other option guesses at the cause.
 - DECIDED D-154 (owner 2026-11-03: "O-79 (c)"): before T-128's code, S20's eglot run
   times each revert under clangd's reparse, split into eglot's didClose, didOpen (its
   `process-send-string` calls to clangd, their bytes) and the rest of the revert;

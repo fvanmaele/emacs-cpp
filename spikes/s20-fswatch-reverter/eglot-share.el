@@ -191,7 +191,10 @@ for clangd's stderr with --log=verbose (through sh's exec, so the pid stays clan
                         ("navigation" '("--navigation-from-index"))
                         ("header-flags" '("--header-flags-from-index"))
                         (other (error "s20: S20_CLANGD_FLAGS %s" other)))
-                    ,@(and log '("--log=verbose")))))
+                    ,@(and log '("--log=verbose"))
+                    ;; D-157: S20_CLANGD_JOBS caps clangd's worker threads.
+                    ,@(when-let* ((jobs (getenv "S20_CLANGD_JOBS")))
+                        (list (concat "-j=" jobs))))))
     (add-to-list 'eglot-server-programs
                  `((c++-ts-mode c++-mode)
                    . ,(if log
@@ -336,9 +339,11 @@ Return (ON-LINE TOTAL OFFSET-19 SECONDS)."
       (goto-char (point-min))
       (eq (and (looking-at-p "// s20 shift 0$") t) shifted))))
 
-(defun s20--checkout (branch buffers shown shifted &optional label quiet-only)
+(defun s20--checkout (branch buffers shown shifted &optional label settle)
   "Check out BRANCH; wait for BUFFERS to be current (SHIFTED or not) and settled.
-LABEL marks a contrast checkout (no symbol check); QUIET-ONLY as `s20--settled-p'."
+LABEL marks a contrast checkout (no symbol check).  SETTLE nil waits until clangd
+is quiet and idle, `quiet' until it is quiet only, a number of seconds until that
+long after `git' (D-157's gap)."
   (setq s20-reverted nil s20-stall 0.0 s20-shown-steps nil s20-filter-max 0.0
         s20-cpu-samples nil s20-stalled nil)
   (clrhash s20-timer-names)
@@ -354,12 +359,18 @@ LABEL marks a contrast checkout (no symbol check); QUIET-ONLY as `s20--settled-p
          (t2 (float-time))
          (settled (s20--wait (lambda ()
                                (and (null s20-shown-timer) (null s20-shown-queue)
-                                    (s20--settled-p buffers quiet-only)))
+                                    (if (numberp settle)
+                                        (>= (float-time) (+ t1 settle))
+                                      (s20--settled-p buffers (eq settle 'quiet)))))
                              300))
          (t3 (float-time)))
     (s20--emit "%scheckout %s: git %.2f s; all %d buffers current: %s, %.2f s after git; settled%s: %s, %.1f s after git; Emacs blocked at most %.3f s"
                (if label (concat label ", ") "") branch (- t1 t0) (length buffers)
-               (if current "yes" "NO") (- t2 t1) (if quiet-only " (quiet only)" "")
+               (if current "yes" "NO") (- t2 t1)
+               (pcase settle
+                 ('quiet " (quiet only)")
+                 ((pred numberp) (format " (gap %.1f s, not settled)" settle))
+                 (_ ""))
                (if settled "yes" "NO") (- t3 t1) s20-stall)
     (s20--emit "  reverts %d; didOpen %d; diagnostics after didOpen in %d of %d; filter %d calls, %d records, %.1f ms total, longest %.1f ms"
                (length s20-reverted) (- s20-did-open opened)
@@ -464,7 +475,9 @@ LABEL marks a contrast checkout (no symbol check); QUIET-ONLY as `s20--settled-p
     (s20--checkout "s20-shift" buffers shown t)
     (s20--checkout "s20-base" buffers shown nil)
     ;; Contrast (owner 2026-11-03): the second checkout during clangd's reparse.
-    (s20--checkout "s20-shift" buffers shown t "contrast back-to-back 1" t)
+    (s20--checkout "s20-shift" buffers shown t "contrast back-to-back 1"
+                   ;; D-157: S20_GAP seconds after the first checkout's git.
+                   (if-let* ((gap (getenv "S20_GAP"))) (string-to-number gap) 'quiet))
     (s20--checkout "s20-base" buffers shown nil "contrast back-to-back 2")
     (s20--emit "filter: overflows %d" s20-overflows)
     (let ((pid (process-id process)))
