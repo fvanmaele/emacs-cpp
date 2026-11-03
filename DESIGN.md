@@ -2282,6 +2282,15 @@ presets, GoogleTest runner.
   in the back-to-back case) stays unexplained. (g) as before. Against: D-028.
   Recommendation: (l): the remaining stall is outside both T-128 and the clangd
   patches, bounded, and only in a checkout during a reparse.
+- DECIDED D-160 (owner 2026-11-03: "O-79 - do more research on the leftover write
+  stall"): S20's eglot run traces Emacs's side of clangd's input pipe, to split the
+  residual stall into time clangd leaves the pipe full and time Emacs waits with room
+  in it. `pipetrace.c` (spike code), loaded into the spike's batch Emacs only with
+  `DYLD_INSERT_LIBRARIES` (the Mac; both binaries are ad hoc signed, no hardened
+  runtime), records each write to a pipe (bytes asked, written or EAGAIN, the pipe's
+  fill from `fstat`), each `pselect` while a write waits, and the pipe's fill polled
+  about every 0.1 ms until it drains. Runs: the patched flags with D-156 (e) in the
+  usual back-to-back pair, stock flags as control. Not taken yet: (l), (g).
 - DECIDED D-154 (owner 2026-11-03: "O-79 (c)"): before T-128's code, S20's eglot run
   times each revert under clangd's reparse, split into eglot's didClose, didOpen (its
   `process-send-string` calls to clangd, their bytes) and the rest of the revert;
@@ -3723,6 +3732,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-157 | 2026-11-03 | O-79 (h): test CPU contention (stock with a 1 s gap, patched with `-j=5`) first | 12 | O-79 |
 | D-158 | 2026-11-03 | O-79 (k): sample clangd's threads during the stall first | 12 | O-79 |
 | D-159 | 2026-11-03 | O-79 (m): sample clangd during the residual write stall, (e) on | 12 | O-79 |
+| D-160 | 2026-11-03 | O-79: trace Emacs's side of clangd's input pipe during the residual stall | 12 | O-79 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |
