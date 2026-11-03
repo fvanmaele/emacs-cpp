@@ -2142,11 +2142,11 @@ presets, GoogleTest runner.
 ## Open questions ledger (LIVING)
 - O-79 (RESOLVED 2026-11-03 with D-156: (e) in T-128, (f) as a task; owner: "O-79
   combined (e) in T-128, (f) as task"; was REOPENED 2026-11-03 by T-129, 0106, as
-  D-155 set; was RESOLVED 2026-11-03 with D-155: (a) for T-128 now, (d) beside it; owner: "O-79 (a) for T-128 now, (d)
-  alongside"; (c) ruled 2026-11-03, D-154, measured the same
-  day (0105); found 2026-11-03 by
-  S20's eglot runs, 0104): a checkout while clangd still reparses after the previous
-  one (here the second of two checkouts 5 s apart) blocks Emacs 0.36 - 0.98 s in one
+  D-155 set; was RESOLVED 2026-11-03 with D-155: (a) for T-128 now, (d) beside it;
+  owner: "O-79 (a) for T-128 now, (d) alongside"; (c) ruled 2026-11-03, D-154,
+  measured the same day (0105); found 2026-11-03 by S20's eglot runs, 0104): a
+  checkout while clangd still reparses after the previous one (here the second of
+  two checkouts 5 s apart) blocks Emacs 0.36 - 0.98 s in one
   filter call of 39 reverts, about 10 - 25 ms per revert against under 1 ms with
   clangd idle. Without eglot 19 - 36 ms, but that contrast ran with no clangd, so no
   CPU contention: whether the cost is eglot's sends or every revert slowed by a busy

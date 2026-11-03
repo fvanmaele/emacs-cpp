@@ -518,3 +518,13 @@ encoded structurally rather than in a comment.
 - Cause: the item copied RUN.md's command of 2026-10-08 unchecked against RMO's tree.
 - Fix (commit): this commit; S10 run 2 names a probe file the runner writes itself.
 - Lesson: an `H-n` naming a path in another repository checks that path when written.
+
+## 2026-11-03 - A commit that failed docs-check was pushed (short)
+- What failed: 214cb3e (D-156) reached origin with a 118-column line in DESIGN's O-79.
+- Caught by: the session, reading the chain's output after the push.
+- Cause: `make docs-check | tail -1 && git commit ... && git push`: the pipe gave
+  `tail`'s status, not make's; the same day an edit script's failure was likewise
+  followed by a commit (fixed by amending before push).
+- Fix (commit): this commit re-wraps the line; checks run alone, their status read,
+  before any commit or push.
+- Lesson: never pipe a gate's output in an `&&` chain; run the gate, then commit.
