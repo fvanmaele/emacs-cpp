@@ -2250,6 +2250,23 @@ presets, GoogleTest runner.
   threads (macOS `sample`) during the back-to-back pair's second checkout, with the
   patched flags and with stock flags as control; O-79 is ruled on where clangd's
   main thread waits. Not taken yet: (g), (j).
+  Result (0108, S20 RESULTS): during a sampled 264 ms stall clangd's main thread
+  waited for input (`read`, all 831 samples); no garbage collection ran inside a
+  stalled send. The freeze was Emacs's own timers, mainly the reverter's queue step
+  (up to 501 ms per run during the reparse), run inside a write that met a full
+  pipe. With D-156 (e) in the spike the back-to-back pair's second checkout blocks
+  0.224 - 0.282 s (before: 0.42 - 1.12 s; stock flags without (e): 0.104 - 0.211 s);
+  one 56 KB write still waits 74 - 173 ms with the patched flags, cause UNVERIFIED.
+  Options:
+  (l) close O-79: T-128 with (e) as ruled, T-130 dropped (clangd is not the cause
+  found), the residual accepted. Against: 0.282 s once, over S20's 0.25 s, in the
+  back-to-back case at load 7; the residual write's cause stays unknown.
+  (m) sample the residual write stall (`sample` with (e) on). Against: one more
+  spike step (about 15 min) for at most 0.17 s.
+  (g) as before. Against: D-028's flags lost for headers opened first, for about
+  0.05 - 0.1 s less freeze in this case.
+  Recommendation: (l): (e) removed the part that mattered; the rest is bounded and
+  only in a checkout during a reparse.
 - DECIDED D-154 (owner 2026-11-03: "O-79 (c)"): before T-128's code, S20's eglot run
   times each revert under clangd's reparse, split into eglot's didClose, didOpen (its
   `process-send-string` calls to clangd, their bytes) and the rest of the revert;

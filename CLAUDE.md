@@ -110,8 +110,9 @@ RMO-drafts PASS on the Mac (0104), a checkout during clangd's reparse blocks up 
 T-129 placed it (0106): `--header-flags-from-index` stops clangd reading, Emacs's
 write runs timers while it waits; O-79 resolved (D-156): T-128's queue step waits out
 the filter; T-130 (lookup off clangd's main thread) blocked: the lookup already runs
-on the worker thread; O-79 (h), D-157: CPU contention ruled out (0107), (k) sampling
-clangd's threads proposed.
+on the worker thread; O-79 (h), D-157: CPU contention ruled out (0107); (k), D-158:
+clangd waits in read, the freeze was Emacs's timers in a full-pipe write; (e) cuts it
+to 0.22 - 0.28 s (0108).
 
 ## Self-test (before the first edit of a session)
 Answer from the docs, not from memory; a miss means re-read, not edit.
