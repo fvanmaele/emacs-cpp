@@ -220,3 +220,35 @@ not read its input for that long. The rest of a revert slows 2 - 4 times. In cla
 23.1.1's source, closing a file does not wait for its worker (`TUScheduler::remove`,
 `ASTWorker::stop` only take locks and notify), so what keeps clangd from reading is
 UNVERIFIED. Verdict for D-154: the sends are the cost; O-79 rules next.
+
+## T-129: why the writes stall (session, 2026-11-03; D-155)
+`eglot-share.el` gained `S20_CLANGD_FLAGS` (patched, stock, navigation,
+header-flags), `S20_CLANGD_LOG` (clangd's `--log=verbose` to a file, through sh's
+exec), the stalled writes (over 50 ms) with their local time, clangd's output and
+diagnostics handled while a send runs, and the timers run while a send runs. Logs:
+`mac-t129-patched-verbose.log`, `mac-t129-stock-verbose.log`, `mac-t129-stock.log`
+(round 1; its stock run overlapped a `make test`), `mac-t129-r2-*.log` (round 2, one
+per flag set), `mac-t129-r3-patched.log`, `mac-t129-r4-patched.log` (timers). clangd's
+verbose logs stayed in the session's scratch directory (6837 lines); excerpts below.
+
+| flags | stalled writes, any checkout | reparse after a checkout | back-to-back 2 blocked |
+|---|---|---|---|
+| patched (both) | yes: 65 - 302 ms | 41 - 48 s | 0.157 - 0.747 s |
+| `--header-flags-from-index` alone | yes: 323 ms | 42 - 44 s | 0.432 s |
+| `--navigation-from-index` alone | none (sends 0.5 - 0.6 ms in all) | 21 - 22 s | 0.168 s |
+| stock | none (sends 0.6 - 0.7 ms in all) | 21 - 22 s | 0.104 - 0.114 s |
+
+Placed, in two parts:
+1. clangd: with `--header-flags-from-index` (D-028) the main thread handles a
+   header's didOpen in up to about 12 ms during the reparse (verbose log: `<<<` at
+   13.665, `<--` at 13.677, its "Compile command for ... which includes it (index)"
+   lines in those gaps) and does not read meanwhile; before residual.h's didOpen it
+   read nothing for 81 ms (13.721 - 13.802) while Emacs's 7 KB write took 84 ms. The
+   pipe fills and Emacs's write gets EAGAIN. Without the flag no write stalls.
+2. Emacs: on EAGAIN `send_process` waits in `wait_reading_process_output`, which
+   runs due timers. Inside the stalled sends of back-to-back 2 ran the reverter's
+   queue step (2 runs, 415 - 446 ms, up to 280 ms each: VC and diff-hl during the
+   reparse) and 44 - 47 runs of one byte-compiled closure, nested: timers that send
+   to clangd again (62-byte writes) stall on the same pipe and run more timers.
+   clangd's output read inside sends 0.2 - 0.3 ms, its diagnostics 1.0 - 1.1 ms: not
+   the cost. Wall time is the block (0.595 - 0.747 s); the timer totals overlap.

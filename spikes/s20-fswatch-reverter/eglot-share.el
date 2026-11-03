@@ -165,14 +165,38 @@
 
 ;;;; eglot, as the config sets it up
 
+(defvar s20-stalled nil "(START SECONDS BYTES METHOD URI) of sends over 50 ms, newest first.")
+(defvar s20--sending nil "Non-nil while a send to clangd runs (T-129).")
+(defvar s20-timer-names (make-hash-table :test #'equal) "Timer function -> runs inside sends.")
+
+(defun s20--timer-name (function)
+  "A short name for timer FUNCTION: its symbol, or the first symbol a closure calls."
+  (cond ((symbolp function) (symbol-name function))
+        (t (let ((text (format "%S" function)))
+             (if (string-match "(\\(\\(?:jsonrpc\\|eglot\\|flymake\\|s20\\)[-a-z/]*\\)" text)
+                 (match-string 1 text)
+               (substring text 0 (min 60 (length text))))))))
+
 (defun s20--setup-eglot ()
-  "The config's clangd command (`emacs-cpp-presets--clangd-command') and settings."
-  (add-to-list 'eglot-server-programs
-               `((c++-ts-mode c++-mode)
-                 . (,(s20--env "S20_CLANGD")
+  "The config's clangd command (`emacs-cpp-presets--clangd-command') and settings.
+T-129: S20_CLANGD_FLAGS=stock drops the patched flags; S20_CLANGD_LOG names a file
+for clangd's stderr with --log=verbose (through sh's exec, so the pid stays clangd's)."
+  (let* ((log (getenv "S20_CLANGD_LOG"))
+         (command `(,(s20--env "S20_CLANGD")
                     ,(concat "--compile-commands-dir=" s20-root "build/mac-debug")
                     "--rename-file-limit=0"
-                    "--navigation-from-index" "--header-flags-from-index")))
+                    ,@(pcase (or (getenv "S20_CLANGD_FLAGS") "patched")
+                        ("patched" '("--navigation-from-index" "--header-flags-from-index"))
+                        ("stock" nil)
+                        ("navigation" '("--navigation-from-index"))
+                        ("header-flags" '("--header-flags-from-index"))
+                        (other (error "s20: S20_CLANGD_FLAGS %s" other)))
+                    ,@(and log '("--log=verbose")))))
+    (add-to-list 'eglot-server-programs
+                 `((c++-ts-mode c++-mode)
+                   . ,(if log
+                          `("/bin/sh" "-c" "exec \"$0\" \"$@\" 2>\"$S20_CLANGD_LOG\"" ,@command)
+                        command))))
   (setq eglot-events-buffer-config '(:size 0 :format full)
         eglot-autoshutdown t
         eglot-extend-to-xref t)
@@ -188,14 +212,45 @@
               (lambda (fn &rest args) (apply #'s20--timed 'close fn args)))
   (advice-add 'eglot--signal-textDocument/didOpen :around
               (lambda (fn &rest args) (apply #'s20--timed 'open fn args)))
+  ;; T-129: clangd's output read while a send waits on a full pipe
+  ;; (`wait_reading_process_output' inside `send_process').
+  (advice-add 'jsonrpc--process-filter :around
+              (lambda (fn &rest args)
+                (apply #'s20--timed (if s20--sending 'output-in-send 'output) fn args)))
+  (advice-add 'timer-event-handler :around
+              (lambda (fn timer)
+                (if s20--sending
+                    (let ((function (timer--function timer)))
+                      (unless (eq function #'s20--shown-step)
+                        (cl-incf (gethash (s20--timer-name function) s20-timer-names 0)))
+                      (s20--timed (if (eq function #'s20--shown-step)
+                                      'queue-step-in-send 'other-timer-in-send)
+                                  fn timer))
+                  (funcall fn timer))))
+  (advice-add 'eglot-handle-notification :around
+              (lambda (fn server method &rest params)
+                (if (eq method 'textDocument/publishDiagnostics)
+                    (apply #'s20--timed (if s20--sending 'diagnostics-in-send 'diagnostics)
+                           fn server method params)
+                  (apply fn server method params))))
   (advice-add 'process-send-string :around
               (lambda (fn process string)
                 (if (and s20-clangd-pid (processp process)
                          (eql (process-id process) s20-clangd-pid))
-                    (progn
+                    (let ((start (float-time))
+                          (s20--sending t))
                       (puthash 'bytes (+ (gethash 'bytes s20-split 0) (string-bytes string))
                                s20-split)
-                      (s20--timed 'send fn process string))
+                      (prog1 (s20--timed 'send fn process string)
+                        ;; T-129: which write stalled, at clangd's log's local time.
+                        (let ((seconds (- (float-time) start)))
+                          (when (> seconds 0.05)
+                            (push (list start seconds (string-bytes string)
+                                        (and (string-match "\"method\":\"\\([^\"]+\\)\"" string)
+                                             (match-string 1 string))
+                                        (and (string-match "\"uri\":\"file://[^\"]*/\\([^/\"]+\\)\"" string)
+                                             (match-string 1 string)))
+                                  s20-stalled)))))
                   (funcall fn process string))))
   (advice-add 'eglot-handle-notification :before
               (lambda (_server method &rest params)
@@ -285,7 +340,8 @@ Return (ON-LINE TOTAL OFFSET-19 SECONDS)."
   "Check out BRANCH; wait for BUFFERS to be current (SHIFTED or not) and settled.
 LABEL marks a contrast checkout (no symbol check); QUIET-ONLY as `s20--settled-p'."
   (setq s20-reverted nil s20-stall 0.0 s20-shown-steps nil s20-filter-max 0.0
-        s20-cpu-samples nil)
+        s20-cpu-samples nil s20-stalled nil)
+  (clrhash s20-timer-names)
   (clrhash s20-split)
   (let* ((records s20-records) (calls s20-calls) (total s20-filter-total)
          (opened s20-did-open)
@@ -320,7 +376,18 @@ LABEL marks a contrast checkout (no symbol check); QUIET-ONLY as `s20--settled-p
       (s20--emit "  split (D-154): revert-buffer %s; didClose %s; didOpen %s; sends to clangd %s, %d KB; revert without didClose and didOpen %.1f ms"
                  (funcall part 'revert) (funcall part 'close) (funcall part 'open)
                  (funcall part 'send) (/ (gethash 'bytes s20-split 0) 1024)
-                 (- (funcall total 'revert) (funcall total 'close) (funcall total 'open))))
+                 (- (funcall total 'revert) (funcall total 'close) (funcall total 'open)))
+      (s20--emit "  clangd's output (T-129): read inside sends %s; elsewhere %s; publishDiagnostics handled inside sends %s; elsewhere %s"
+                 (funcall part 'output-in-send) (funcall part 'output)
+                 (funcall part 'diagnostics-in-send) (funcall part 'diagnostics))
+      (s20--emit "  timers inside sends (T-129): reverter's queue step %s; others %s %S"
+                 (funcall part 'queue-step-in-send) (funcall part 'other-timer-in-send)
+                 (let (names) (maphash (lambda (k v) (push (cons k v) names)) s20-timer-names)
+                      names)))
+    (dolist (s (reverse s20-stalled))
+      (s20--emit "  stalled send (T-129): %s +%.0f ms, %d bytes, %s %s"
+                 (format-time-string "%H:%M:%S.%3N" (nth 0 s)) (* 1000 (nth 1 s))
+                 (nth 2 s) (nth 3 s) (nth 4 s)))
     (s20--emit "  shown buffers: queue done %.2f s after git; %d steps, median %.3f s, longest %.3f s; VC names %s: %d of %d"
                (- s20-shown-last t1) (length s20-shown-steps) (s20--median s20-shown-steps)
                (apply #'max 0.0 s20-shown-steps) branch

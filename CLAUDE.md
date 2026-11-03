@@ -106,8 +106,9 @@ checkout on the Mac (O-78), reverted (D-149); one fswatch per project root, tier
 outside `-Q`; O-78 reopened, resolved 2026-11-03 with (e) (D-153; edge cases D-151,
 D-152): S20 mode `fswatch-shown` PASS on the Mac (0103), Arch runs H-22; eglot's share on
 RMO-drafts PASS on the Mac (0104), a checkout during clangd's reparse blocks up to
-0.98 s (O-79; (c), D-154: its writes to clangd stall, 0105); accepted for T-128 (D-155),
-its cause T-129.
+0.98 s (O-79; (c), D-154: its writes to clangd stall, 0105); accepted for T-128 (D-155);
+T-129 placed it (0106): `--header-flags-from-index` stops clangd reading, Emacs's
+write runs timers while it waits; O-79 reopened.
 
 ## Self-test (before the first edit of a session)
 Answer from the docs, not from memory; a miss means re-read, not edit.
