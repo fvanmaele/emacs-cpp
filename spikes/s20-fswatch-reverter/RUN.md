@@ -48,7 +48,53 @@ On the generated repository, idle machine, each of the Mac and Arch, three runs 
 4. Cost: the idle fswatch holds at most 16 descriptors and 12 MB RSS (twice D-127's
    8 and 6 MB).
 5. Ready within 5 s; no fswatch of the run left after `delete-process`.
-The contrast modes are recorded, not judged.
+The contrast modes are recorded, not judged. Verdict: FAIL on the Mac (0102), PASS on
+Arch (0101); O-78 then ruled (e) (D-153), measured by the mode below.
+
+## Mode `fswatch-shown` (D-153, 2026-11-03)
+O-78 (e) with its edge cases (D-151, D-152), in the shipped profile's diff-hl.
+- Branch `c`: `b` plus one deleted file, `t000/l01/f000001.cc` (unchanged on `b`);
+  `run.sh` adds it to an existing repository. The modes below check out `c`, then `a`.
+- diff-hl from `lib/diff-hl`, turned on per visited file as `lisp/init-git.el` does
+  (`find-file-hook`, depth 90).
+- The reverter skips a file that is not readable (D-152); per filter call one
+  `message` names the edited and deleted buffers it skipped (D-151 (2b)).
+- `fswatch-shown` (judged): reverts with diff-hl's revert hook held back
+  (`after-revert-hook` bound without `diff-hl-after-revert`). A buffer shown in a
+  window joins a queue drained one buffer per step (`vc-refresh-state`, then
+  `diff-hl-update`), by a one-shot 0.05 s timer armed again after each step; any
+  other reverted buffer is marked stale and refreshed at once when a window shows it
+  (`window-buffer-change-functions`). Batch Emacs runs no window change functions
+  (checked 2026-11-03), so the run calls the handler itself after
+  `set-window-buffer`; `wiring.el` checks the hook in a terminal Emacs.
+- `fswatch-diffhl` (contrast): no VC refresh, diff-hl's revert hook live; checks the
+  0102 follow-up's 3.6 s estimate.
+- The run splits the frame into 3 windows showing 3 changed unedited buffers. Per
+  checkout it adds: when the shown buffers' queue was done, the queue steps' median
+  and longest time, whether the shown buffers' `vc-mode` names the branch, their
+  `diff-hl-update` calls, showing one hidden reverted buffer (time, `vc-mode`), the
+  deleted file's buffer, the messages.
+- `wiring.el`: a terminal Emacs (`-nw` under `script`) records whether
+  `window-buffer-change-functions` runs after `switch-to-buffer`, `pop-to-buffer`
+  into another window, `xref-pop-to-location` and `tab-bar-switch-to-tab`.
+
+Pass criteria (owner confirmed 2026-11-03 with the session's plan): on the generated
+repository, each of the Mac and Arch, three runs of `fswatch-shown`:
+1. Current: in each checkout, all 189 unedited changed buffers show the file's text
+   within 1.0 s of `git` returning; no Overflow record.
+2. Edits kept: the edited buffer keeps its edit and stays modified; no unchanged
+   file's buffer is reverted; the deleted file's buffer is not reverted, raises no
+   error and stays (D-152).
+3. Responsive: diff-hl on in every file buffer; Emacs blocked at most 0.25 s in any
+   checkout, VC and diff-hl refresh included; the 3 shown buffers' VC states (the
+   mode line names the branch) and diff-hl updates current within 15 s; showing one
+   hidden reverted buffer blocks at most 0.25 s and leaves its VC state current.
+4. Cost: the idle fswatch holds at most 16 descriptors and 12 MB RSS.
+5. Ready within 5 s; no fswatch of the run left after `delete-process`.
+6. Message: per checkout the filter's message names the edited buffer, on `c` also
+   the deleted file (D-151 (2b), D-152).
+7. Wiring (the Mac, terminal Emacs): `window-buffer-change-functions` runs after each
+   of the four actions above.
 
 ## Prerequisites
 The patched fswatch (`packaging/fswatch-no-loss`): `~/opt/fswatch-no-loss` on the Mac,
@@ -60,6 +106,9 @@ The session runs it where it runs; the other machine is the owner's (`TODO_human
 ```sh
 cd ~/source/repos/emacs-cpp
 sh spikes/s20-fswatch-reverter/run.sh </dev/null
+sh spikes/s20-fswatch-reverter/wiring.sh
 ```
+`S20_MODES="fswatch-shown fswatch-diffhl"` runs the new modes alone. `wiring.sh`
+prints the wiring check's result (the Mac only, criterion 7).
 The log is `spikes/s20-fswatch-reverter/s20.log`; results go to `RESULTS.md` (Arch
 runs 1 - 3 there, the Mac's wait on H-20; `DRY-RUN.md` holds the Mac dry run).

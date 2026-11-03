@@ -10,10 +10,16 @@
 ;; VC state as `auto-revert-handler' does.  fswatch-queued: the VC states from a
 ;; queue, one buffer per 0.05 s timer step.  fswatch-novc: no VC refresh.
 ;; poll: D-147's Mac setting, `global-auto-revert-mode' polling every 5 s.
-;; Opens every file branch b changes plus 10 it does not, edits one changed file's
-;; buffer, then checks out b and a again, each time waiting up to 15 s for every
-;; unedited changed buffer to show the file's first line.  Appends one block to
-;; S20_OUT.
+;; fswatch-shown (D-153) and fswatch-diffhl load diff-hl (S20_DIFF_HL) as the config
+;; does, skip unreadable files (D-152) and message the buffers they skip (D-151).
+;; fswatch-shown holds diff-hl's revert hook back and refreshes VC state and diff-hl
+;; for shown buffers from a queue, one per step of a one-shot 0.05 s timer armed
+;; again after each step, and for other buffers when a window shows them.
+;; fswatch-diffhl: no VC refresh, diff-hl's revert hook live.
+;; Opens every file branch b (c for the diff-hl modes: b plus one deleted file)
+;; changes plus 10 it does not, edits one changed file's buffer, then checks out b
+;; (c) and a again, each time waiting up to 15 s for every unedited changed buffer to
+;; show the file's first line.  Appends one block to S20_OUT.
 
 (require 'cl-lib)
 (require 'subr-x)
@@ -32,6 +38,10 @@
 (defvar s20-filter-max 0.0)
 (defvar s20-probe-seen nil)
 (defvar s20-stall 0.0 "Longest single wait step of `s20--wait': Emacs blocked.")
+(defvar s20-diff-hl (member s20-mode '("fswatch-shown" "fswatch-diffhl")))
+(defvar s20-skipped nil "(BUFFER . WHY) the current filter call did not revert.")
+(defvar s20-messages nil "Texts of the filter's messages, newest first.")
+(defvar s20-filter-errors nil)
 
 (defun s20--emit (fmt &rest args)
   (write-region (concat (apply #'format fmt args) "\n") nil (s20--env "S20_OUT") t 'silent))
@@ -58,16 +68,90 @@
   (when (string-prefix-p s20-real-root path)
     (let ((buffer (get-file-buffer
                    (concat s20-root (substring path (length s20-real-root))))))
-      (when (and buffer
-                 (not (buffer-modified-p buffer))
-                 (not (verify-visited-file-modtime buffer)))
-        (with-current-buffer buffer
-          (revert-buffer t t t)
-          ;; As `auto-revert-handler': VC's state (mode line branch) per buffer,
-          ;; one git process each.
-          (pcase s20-mode
-            ("fswatch" (vc-refresh-state))
-            ("fswatch-queued" (s20--queue-vc buffer))))))))
+      (when (and buffer (not (verify-visited-file-modtime buffer)))
+        (cond
+         ((buffer-modified-p buffer) (push (cons buffer 'edited) s20-skipped))
+         ;; D-152: `revert-buffer' signals for a missing file.
+         ((and s20-diff-hl (not (file-readable-p (buffer-file-name buffer))))
+          (push (cons buffer 'deleted) s20-skipped))
+         (t
+          (with-current-buffer buffer
+            (if (equal s20-mode "fswatch-shown")
+                (let ((after-revert-hook (remq 'diff-hl-after-revert after-revert-hook)))
+                  (revert-buffer t t t))
+              (revert-buffer t t t))
+            ;; As `auto-revert-handler': VC's state (mode line branch) per buffer,
+            ;; one git process each.
+            (pcase s20-mode
+              ("fswatch" (vc-refresh-state))
+              ("fswatch-queued" (s20--queue-vc buffer))
+              ("fswatch-shown"
+               (if (get-buffer-window buffer t)
+                   (s20--queue-shown buffer)
+                 (setq s20--stale t)))))))))))
+
+(defun s20--message-skipped ()
+  "One message naming the buffers this filter call skipped (D-151 (2b), D-152)."
+  (when (and s20-diff-hl s20-skipped)
+    (let* ((names (lambda (why)
+                    (mapcar (lambda (s) (buffer-name (car s)))
+                            (cl-remove-if-not (lambda (s) (eq (cdr s) why)) s20-skipped))))
+           (edited (funcall names 'edited))
+           (deleted (funcall names 'deleted))
+           (text (string-join
+                  (delq nil
+                        (list (and edited
+                                   (format "%d %s with unsaved edits changed on disk: %s"
+                                           (length edited)
+                                           (if (cdr edited) "buffers" "buffer")
+                                           (string-join edited ", ")))
+                              (and deleted
+                                   (format "%d %s deleted on disk: %s"
+                                           (length deleted)
+                                           (if (cdr deleted) "buffers' files" "buffer's file")
+                                           (string-join deleted ", ")))))
+                  "; ")))
+      (push text s20-messages)
+      (message "%s" text)))
+  (setq s20-skipped nil))
+
+;;;; fswatch-shown: VC state and diff-hl for shown buffers (D-153)
+
+(defvar-local s20--stale nil "Reverted while hidden; VC state and marks wait.")
+(defvar s20-shown-queue nil "Shown buffers waiting for a refresh, oldest last.")
+(defvar s20-shown-timer nil)
+(defvar s20-shown-last 0.0 "Time the last queue step ended.")
+(defvar s20-shown-steps nil "Durations of the queue's steps.")
+
+(defun s20--refresh (buffer)
+  (with-current-buffer buffer
+    (vc-refresh-state)
+    (diff-hl-update)
+    (setq s20--stale nil)))
+
+(defun s20--shown-step ()
+  "Refresh the oldest queued buffer; arm the timer again while any is left."
+  (setq s20-shown-timer nil)
+  (when-let* ((next (car (last s20-shown-queue))))
+    (setq s20-shown-queue (butlast s20-shown-queue))
+    (let ((start (float-time)))
+      (when (buffer-live-p next) (s20--refresh next))
+      (setq s20-shown-last (float-time))
+      (push (- s20-shown-last start) s20-shown-steps)))
+  (when s20-shown-queue
+    (setq s20-shown-timer (run-with-timer 0.05 nil #'s20--shown-step))))
+
+(defun s20--queue-shown (buffer)
+  (unless (memq buffer s20-shown-queue) (push buffer s20-shown-queue))
+  (unless s20-shown-timer
+    (setq s20-shown-timer (run-with-timer 0.05 nil #'s20--shown-step))))
+
+(defun s20--on-show (frame)
+  "Refresh each stale buffer FRAME's windows show (`window-buffer-change-functions')."
+  (dolist (window (window-list frame 'no-minibuf))
+    (let ((buffer (window-buffer window)))
+      (when (buffer-local-value 's20--stale buffer)
+        (s20--refresh buffer)))))
 
 (defvar s20-vc-queue nil "Buffers whose VC state waits for a refresh, oldest last.")
 (defvar s20-vc-timer nil)
@@ -106,7 +190,11 @@
                 (cl-incf s20-overflows)
               (when (string-suffix-p "/.s20-probe" path) (setq s20-probe-seen t))
               (puthash path t paths))))
-        (maphash (lambda (path _) (s20--revert path)) paths)
+        (condition-case err
+            (maphash (lambda (path _) (s20--revert path)) paths)
+          ;; Recorded for the output, then signalled again as Emacs would.
+          (error (push err s20-filter-errors) (signal (car err) (cdr err))))
+        (s20--message-skipped)
         (let ((spent (- (float-time) start)))
           (cl-incf s20-calls)
           (cl-incf s20-filter-total spent)
@@ -136,14 +224,52 @@
 
 ;;;; The run
 
-(defun s20--checkout (branch changed edited marker)
-  "Check out BRANCH; wait for CHANGED's unedited buffers to show MARKER; emit."
-  (setq s20-reverted nil s20-stall 0.0)
+(defun s20--median (xs)
+  (if xs (nth (/ (length xs) 2) (sort (copy-sequence xs) #'<)) 0.0))
+
+(defun s20--names-branch-p (buffer branch)
+  "Non-nil if BUFFER's mode line VC string names BRANCH (\" Git-c\")."
+  (let ((mode (buffer-local-value 'vc-mode buffer)))
+    (and mode (string-match-p (concat "[-:!?@]" (regexp-quote branch) "\\'")
+                              (substring-no-properties mode)))))
+
+(defvar s20-diff-hl-calls (make-hash-table :test #'eq) "BUFFER -> `diff-hl-update' calls.")
+
+(defun s20--shown-report (branch t1 shown)
+  "Emit fswatch-shown's queue, then show one hidden reverted buffer and emit."
+  (s20--wait (lambda () (and (null s20-shown-timer) (null s20-shown-queue))) 30)
+  (s20--emit "  shown buffers: queue done %.2f s after git; %d steps, median %.3f s, longest %.3f s; VC names %s: %d of %d; diff-hl updates %s; Emacs blocked at most %.2f s"
+             (- s20-shown-last t1) (length s20-shown-steps) (s20--median s20-shown-steps)
+             (apply #'max 0.0 s20-shown-steps) branch
+             (cl-count-if (lambda (b) (s20--names-branch-p b branch)) shown) (length shown)
+             (mapcar (lambda (b) (gethash b s20-diff-hl-calls 0)) shown) s20-stall)
+  (let* ((stale (cl-remove-if-not (lambda (b) (buffer-local-value 's20--stale b))
+                                  (buffer-list)))
+         (hidden (car stale))
+         (window (selected-window))
+         (before (window-buffer window)))
+    (if (not hidden)
+        (s20--emit "  hidden: no stale buffer")
+      (let ((start (float-time)))
+        (set-window-buffer window hidden)
+        ;; Batch runs no window change functions (2026-11-03); call the handler.
+        (s20--on-show (selected-frame))
+        (s20--emit "  hidden: %d stale; showing one took %.3f s; VC names %s: %s; diff-hl updates %d"
+                   (length stale) (- (float-time) start) branch
+                   (if (s20--names-branch-p hidden branch) "yes" "NO")
+                   (gethash hidden s20-diff-hl-calls 0)))
+      (set-window-buffer window before))))
+
+(defun s20--checkout (branch changed edited marker &optional deleted shown)
+  "Check out BRANCH; wait for CHANGED's unedited buffers to show MARKER; emit.
+DELETED is the buffer whose file BRANCH deletes, SHOWN the buffers in windows."
+  (setq s20-reverted nil s20-stall 0.0 s20-messages nil s20-shown-steps nil)
+  (clrhash s20-diff-hl-calls)
   (let* ((records s20-records) (calls s20-calls) (total s20-filter-total)
          (t0 (float-time))
          (_ (s20--git "checkout" "-q" branch))
          (t1 (float-time))
-         (waiting (cl-remove edited changed))
+         (waiting (cl-remove deleted (cl-remove edited changed)))
          (done (s20--wait
                 (lambda ()
                   (cl-every (lambda (b)
@@ -171,6 +297,16 @@
       (s20--wait (lambda () (null s20-vc-timer)) 30)
       (s20--emit "  VC states all refreshed %.2f s after git; Emacs blocked at most %.2f s"
                  (- s20-vc-last t1) s20-stall))
+    (when (equal s20-mode "fswatch-shown")
+      (s20--shown-report branch t1 shown))
+    (when s20-diff-hl
+      (when deleted
+        (s20--emit "  deleted file's buffer: live %s, reverted %s, file exists %s"
+                   (if (buffer-live-p deleted) "yes" "NO")
+                   (if (assq deleted s20-reverted) "yes" "no")
+                   (if (file-exists-p (buffer-file-name deleted)) "yes" "no")))
+      (s20--emit "  messages: %S; filter errors: %S" (reverse s20-messages)
+                 s20-filter-errors))
     (when (string-prefix-p "fswatch" s20-mode)
       (s20--emit "  filter: %d calls, %d records, %.1f ms total"
                  (- s20-calls calls) (- s20-records records)
@@ -179,25 +315,42 @@
 (defun s20-main ()
   (add-hook 'after-revert-hook
             (lambda () (push (cons (current-buffer) (float-time)) s20-reverted)))
+  (when s20-diff-hl
+    ;; As `lisp/init-git.el': diff-hl per visited file, after `vc-refresh-state'.
+    (add-to-list 'load-path (s20--env "S20_DIFF_HL"))
+    (require 'diff-hl)
+    (add-hook 'find-file-hook #'turn-on-diff-hl-mode 90)
+    (advice-add 'diff-hl-update :before
+                (lambda () (cl-incf (gethash (current-buffer) s20-diff-hl-calls 0))))
+    (add-hook 'window-buffer-change-functions #'s20--on-show))
   (s20--git "checkout" "-q" "a")
-  (let* ((names (split-string (s20--git "diff" "--name-only" "a" "b") "\n" t))
+  (let* ((branch (if s20-diff-hl "c" "b"))
+         (names (split-string (s20--git "diff" "--name-only" "a" branch) "\n" t))
          (others (seq-take (cl-set-difference
                             (split-string (s20--git "ls-files" "t000") "\n" t)
                             names :test #'equal)
                            10))
          (changed (mapcar (lambda (n) (find-file-noselect (concat s20-root n))) names))
          (edited (car changed))
+         (deleted (and s20-diff-hl (get-file-buffer (concat s20-root "t000/l01/f000001.cc"))))
+         (shown (and (equal s20-mode "fswatch-shown")
+                     (seq-take (cl-remove deleted (cdr changed)) 3)))
          process ready)
     (mapc (lambda (n) (find-file-noselect (concat s20-root n))) others)
     (with-current-buffer edited
       (goto-char (point-max))
       (insert "// mine\n"))
+    (when shown
+      (delete-other-windows)
+      (let* ((w1 (selected-window)) (w2 (split-window w1)) (w3 (split-window w2)))
+        (cl-mapc #'set-window-buffer (list w1 w2 w3) shown)))
     (s20--emit "S20 %s, %s %s, %s" s20-mode system-type
                (car (split-string (emacs-version) "\n")) (format-time-string "%FT%TZ" nil t))
-    (s20--emit "buffers: %d changed on b (1 edited), %d unchanged" (length changed)
-               (length others))
+    (s20--emit "buffers: %d changed on %s (1 edited%s), %d unchanged%s" (length changed)
+               branch (if deleted ", 1 deleted" "") (length others)
+               (if shown (format "; %d shown in windows" (length shown)) ""))
     (pcase s20-mode
-      ((or "fswatch" "fswatch-novc" "fswatch-queued")
+      ((or "fswatch" "fswatch-novc" "fswatch-queued" "fswatch-shown" "fswatch-diffhl")
        (setq process (s20--start-fswatch))
        (let ((t0 (float-time)) (probe (concat s20-root ".s20-probe")))
          (setq ready
@@ -215,8 +368,8 @@
        (setq auto-revert-use-notify nil auto-revert-interval 5)
        (global-auto-revert-mode 1))
       (_ (error "s20: unknown mode %s" s20-mode)))
-    (s20--checkout "b" changed edited "// s20 b")
-    (s20--checkout "a" changed edited "// s20 a")
+    (s20--checkout branch changed edited "// s20 b" deleted shown)
+    (s20--checkout "a" changed edited "// s20 a" deleted shown)
     (when process
       (s20--emit "filter: longest call %.1f ms; overflows %d"
                  (* 1000 s20-filter-max) s20-overflows)
