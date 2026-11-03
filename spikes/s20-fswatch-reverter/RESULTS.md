@@ -255,3 +255,24 @@ Placed, in two parts:
    to clangd again (62-byte writes) stall on the same pipe and run more timers.
    clangd's output read inside sends 0.2 - 0.3 ms, its diagnostics 1.0 - 1.1 ms: not
    the cost. Wall time is the block (0.595 - 0.747 s); the timer totals overlap.
+
+## D-157: CPU contention test (session, 2026-11-03)
+`eglot-share.el` gained `S20_GAP` (the first back-to-back checkout returns that many
+seconds after `git`, not settled) and `S20_CLANGD_JOBS` (clangd's `-j`). Logs:
+`mac-d157-stock-gap1.log`, `mac-d157-patched-gap1.log`, `mac-d157-patched-j5.log`;
+load 1.6 - 6.6 at the start.
+
+| run | stalled writes, back-to-back 2 | Emacs blocked | settled after |
+|---|---|---|---|
+| stock, second checkout 1 s after the first | none (sends 0.8 ms in all) | 0.211 s | 27.1 s |
+| patched, the same 1 s gap | 251 ms, 168 ms | 0.284 s | 104.0 s |
+| patched, `-j=5` (6 of 11 cores free), usual pair | 209 ms, 137 ms | 0.254 s | 71.9 s |
+
+CPU contention alone does not stall clangd's reading: stock flags inside the reparse
+never stall, and with 6 cores left free the patched flags still do. clangd's
+verbose log at the 81 ms gap (0106): the main thread logs `>>>` of the empty
+publishDiagnostics it sends on residual.h's didClose at 13.721, then nothing until
+it reads the next didOpen at 13.802, so the write of that message may be what
+blocks (Emacs, inside the reverter's filter, reads no output meanwhile). But stock
+clangd writes more (652 KB of publishDiagnostics in its verbose run against 99 KB
+patched) and never stalls, so the volume does not explain it. Cause UNVERIFIED.
