@@ -393,7 +393,8 @@ in the first checkout. In the patched runs' first two checkouts (clangd ramping 
 2.6 - 3.6 cores) the filter calls run at 1.2 - 1.6 times their CPU and the 39 reads
 take 20 - 33 ms.
 
-Open test (no clangd, 39 files written as git writes them, 12 - 20 KB), first `open`:
+Open test (no clangd, 39 files written as git writes them, 12 - 20 KB; `opentest.py
+DIR`, its rename and size variants were scratch), first `open`:
 | where | idle: median, total | 11 CPU burners: median, max, total |
 |---|---|---|
 | scratch, `/private/tmp` | 2.1 - 5.8 ms, 85 - 244 ms | 30 - 395 ms, 2.6 s, 2.0 - 19.2 s |
