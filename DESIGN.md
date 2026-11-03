@@ -2271,6 +2271,17 @@ presets, GoogleTest runner.
   threads (macOS `sample`) with D-156 (e) on and the patched flags, during the
   back-to-back pair's second checkout, to place the residual 56 KB write stall.
   Not taken yet: (l), (g).
+  Result (0109, S20 RESULTS): during the residual stalls (170, 162 ms) clangd's main
+  thread was in `read` in 845 / 845 and 773 / 777 samples. Two readings fit: Emacs's
+  `send_process` waits up to 20 ms after each blocked write and is not woken by the
+  pipe draining, or clangd's reader waits for a CPU during the reparse. Neither is
+  the includer lookup or anything T-128 controls; why stock flags never hit it is
+  UNVERIFIED. A second patched clangd (the owner's, on RMO-drafts) ran beside every
+  run of the day. Options as before: (l) close O-79 (T-128 with (e), T-130 dropped,
+  the residual accepted). Against: the residual (up to about 0.17 s, 0.26 s blocked
+  in the back-to-back case) stays unexplained. (g) as before. Against: D-028.
+  Recommendation: (l): the remaining stall is outside both T-128 and the clangd
+  patches, bounded, and only in a checkout during a reparse.
 - DECIDED D-154 (owner 2026-11-03: "O-79 (c)"): before T-128's code, S20's eglot run
   times each revert under clangd's reparse, split into eglot's didClose, didOpen (its
   `process-send-string` calls to clangd, their bytes) and the rest of the revert;

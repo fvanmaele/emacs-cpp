@@ -303,3 +303,22 @@ So the freeze during a reparse was Emacs's own timers, mainly the reverter's que
 step, run inside a write that hit a full pipe; (e) removes that part. What makes the
 one large write wait 74 - 173 ms with the patched flags only is UNVERIFIED (the
 sampled run's stall was a timer one).
+
+## D-159: the residual write stall sampled (session, 2026-11-03)
+Two patched runs with D-156 (e) on and `sample` during back-to-back 2: logs
+`mac-d159-run1.log`, `mac-d159-run2.log`; samples in the session's scratch
+directory. Each caught the residual stall: transport.h's didOpen (56 KB) waited 170
+and 162 ms; back-to-back 2 blocked 0.257 and 0.259 s; the queue step deferred twice
+in each. A second patched clangd, not the spike's (pid 65628, on RMO-drafts' own
+build, running for over an hour), ran beside every run of the day; its load is in
+all absolute numbers.
+
+clangd's main thread was in `read` (`JSONTransport::loop`, `fgets`,
+`__read_nocancel`) in 845 of 845 and 773 of 777 samples (the other 3 waiting on
+its logger's mutex). A sample cannot tell a thread waiting for data from one woken
+but not yet on a CPU, so two readings fit: Emacs's `send_process` waits up to 20 ms
+in `wait_reading_process_output` after each blocked write, woken early only by
+another process's output, not by the pipe draining (Emacs `process.c`); or clangd's
+reader is woken but waits for a CPU while the reparse runs. Either way the cost is
+neither the includer lookup nor anything T-128 controls. Why the stock runs never
+hit it is UNVERIFIED.
