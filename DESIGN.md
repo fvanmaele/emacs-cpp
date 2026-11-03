@@ -1942,6 +1942,41 @@ the form that loads magit is found (S17 run 2, T-113).
   for files outside project roots is ruled again; if S20 fails, O-78 reopens. Reason:
   the freeze of about 6 s after a large checkout on the Mac (O-78). Journal 0100 keeps
   the build and its numbers.
+- DECIDED D-151 (owner 2026-11-03: "Put to DESIGN: 1a), 2(b), (3a); record (3b) and
+  (1b) for later reference"): the edge cases of O-78 (e), binding T-128 if (e) is
+  ruled. Under (e) T-128 reverts every unedited buffer at once; only VC state and
+  diff-hl marks wait until a window shows the buffer (`window-buffer-change-functions`).
+  Shown means displayed in a live window of any frame, selected or not; a buffer only
+  in another `tab-bar` tab or the buffer list is hidden. Which frames count
+  (`get-buffer-window` with `'visible` or `t`) is ruled with T-128's code.
+  - (1a) A jump (`M-.`) into a buffer within fswatch's delay, before T-128 reverts it:
+    nothing done. Text was current 0.14 - 0.15 s after `git` on the Mac (S20
+    `fswatch-novc`, `-l 0.1`, 0102), faster than a jump after a checkout. Against:
+    eglot's work per revert runs in the filter, unmeasured (RMO); it may stretch the
+    delay.
+  - (2b) A buffer with unsaved edits whose file changed: T-128 leaves it (as S20's
+    `s20--revert`, `buffer-modified-p`), Emacs's prompts stay
+    (`ask-user-about-supersession-threat` on the first edit, the modification-time
+    check on save), and the filter adds one message per batch naming the skipped
+    buffers, e.g. `2 buffers with unsaved edits changed on disk: foo.cpp, bar.h`.
+    Against: the echo area is soon overwritten (`*Messages*` keeps it); one more string
+    to test. Reverting would drop the edits silently (principle 1).
+  - (3a) Previews (`M-o` after D-088's pause, moving through `*xref*`): a stale buffer
+    pays its VC and diff-hl refresh, about 60 ms on the Mac (VC 34 - 95 ms, diff-hl
+    19 ms, S20 RESULTS follow-up; the hook path unmeasured), once, the first time a
+    preview shows it. Against: stepping through many files after a large checkout pays
+    it per new file; whether that is felt is UNVERIFIED.
+  Recorded for later reference, not taken:
+  - (1b) a modification-time check on show: the `window-buffer-change-functions`
+    handler runs `verify-visited-file-modtime` and reverts an unedited stale buffer
+    before its VC refresh. Revisit if RMO shows eglot's share stretches the delay past
+    about 0.5 s. Against: fixes only the jump's target (clangd answered from the old
+    text); point is kept only where the text around it is unchanged
+    (`insert-file-contents` with REPLACE); code and a test.
+  - (3b) refresh after an idle pause: `run-with-idle-timer` (about 0.3 s), only if the
+    buffer is still shown, so previews passing by skip it. Revisit if S20's new mode
+    or daily use shows the stutter. Against: mode line and marks lag about 0.3 s after
+    every jump into a stale buffer; a timer per show; more code.
 - REJECTED: borg (the tool this layout imitates). It assumes the package repository is
   the Emacs directory itself, which contradicts D-003; reconsider if own glue grows past
   about 100 lines. Measured after T-002: `scripts/build-packages.el` has 183 lines of
@@ -2150,6 +2185,7 @@ presets, GoogleTest runner.
   stays. Recommendation: (e): 1 - 3 steps per checkout instead of 189 and no `git`
   for buffers nobody looks at; S20's new mode with diff-hl first, eglot's share on
   RMO before T-128 ships; the combination only if a stale hidden buffer shows up.
+  (e)'s edge cases ruled 2026-11-03 (D-151): (1a), (2b), (3a); (1b), (3b) recorded.
 - O-77 (RESOLVED 2026-10-31 with D-146: (a); owner: "O-77 (a)"; was OPEN, owner
   request 2026-10-31: "Research ast-grep instead of clangd for LSP
   functionality in C/C++"): findings in `RESEARCH_ast_grep.md`. ast-grep is syntax
@@ -3479,6 +3515,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-148 | 2026-10-29 | the fswatch reverter (T-128) replaces auto-revert in projects if S20 passes | 12 | O-78 |
 | D-149 | 2026-10-29 | T-127 reverted until S20's verdict; no auto-revert of the config's own | 12 | owner |
 | D-150 | 2026-11-02 | clangd-index-nav `pkgrel` resets to 1 per LLVM release; 23.1.4-1 | 7 | D-123 |
+| D-151 | 2026-11-03 | O-78 (e)'s edge cases: no check on a jump, a message for edited buffers, previews pay | 12 | O-78 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |
