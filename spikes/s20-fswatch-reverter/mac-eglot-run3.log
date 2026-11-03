@@ -1,0 +1,54 @@
+S20 eglot-share 2026-11-03T00:59:06Z, Darwin arm64, GNU Emacs 31.1
+source: /Users/fvanmaele/source/repos/RMO-drafts at aad752e; clangd: clangd version 23.1.3
+load:  3.73 6.93 6.69 
+
+S20 eglot-share eglot, darwin GNU Emacs 31.1 (build 2, aarch64-apple-darwin27.0.0, NS appkit-2775.10 Version 27.0.1 (Build 26A434)), 2026-11-03T00:59:11Z
+buffers: 39 (19 headers), c++-ts-mode major mode; 3 shown in windows
+eglot: 39 of 39 buffers managed; server ("/Users/fvanmaele/opt/clangd-index-nav/bin/clangd" "--compile-commands-dir=/var/folders/97/_w6hwfk17v7dlzb35nklbm9h0000gn/T/s20-rmo/build/mac-debug" "--rename-file-limit=0" "--navigation-from-index" "--header-flags-from-index"); settled: yes after 48.7 s
+ready: yes after 0.56 s
+checkout s20-shift: git 0.17 s; all 39 buffers current: yes, 0.10 s after git; settled: yes, 42.0 s after git; Emacs blocked at most 0.087 s
+  reverts 39; didOpen 39; diagnostics after didOpen in 39 of 39; filter 2 calls, 78 records, 68.8 ms total, longest 36.8 ms
+  shown buffers: queue done 0.36 s after git; 3 steps, median 0.053 s, longest 0.062 s; VC names s20-shift: 3 of 3
+  hidden: showing one took 0.124 s; VC names s20-shift: yes
+  symbols assemble.h: 15 of 15 on their lines, 0 offset by 19 (answered in 0.3 s)
+  symbols grid.h: 11 of 11 on their lines, 0 offset by 19 (answered in 0.2 s)
+  symbols space.h: 34 of 34 on their lines, 0 offset by 19 (answered in 0.2 s)
+checkout s20-base: git 0.07 s; all 39 buffers current: yes, 0.10 s after git; settled: yes, 42.7 s after git; Emacs blocked at most 0.086 s
+  reverts 39; didOpen 39; diagnostics after didOpen in 39 of 39; filter 2 calls, 78 records, 36.5 ms total, longest 19.0 ms
+  shown buffers: queue done 0.37 s after git; 3 steps, median 0.048 s, longest 0.063 s; VC names s20-base: 3 of 3
+  hidden: showing one took 0.127 s; VC names s20-base: yes
+  symbols assemble.h: 15 of 15 on their lines, 0 offset by 19 (answered in 0.2 s)
+  symbols grid.h: 11 of 11 on their lines, 0 offset by 19 (answered in 0.2 s)
+  symbols space.h: 34 of 34 on their lines, 0 offset by 19 (answered in 0.2 s)
+contrast back-to-back 1, checkout s20-shift: git 0.11 s; all 39 buffers current: yes, 0.07 s after git; settled (quiet only): yes, 5.1 s after git; Emacs blocked at most 0.086 s
+  reverts 39; didOpen 39; diagnostics after didOpen in 39 of 39; filter 2 calls, 78 records, 32.6 ms total, longest 17.8 ms
+  shown buffers: queue done 0.34 s after git; 3 steps, median 0.046 s, longest 0.061 s; VC names s20-shift: 3 of 3
+  hidden: showing one took 0.092 s; VC names s20-shift: yes
+contrast back-to-back 2, checkout s20-base: git 0.20 s; all 39 buffers current: yes, 0.40 s after git; settled: yes, 68.9 s after git; Emacs blocked at most 0.361 s
+  reverts 39; didOpen 39; diagnostics after didOpen in 39 of 39; filter 2 calls, 79 records, 392.3 ms total, longest 355.9 ms
+  shown buffers: queue done 0.93 s after git; 3 steps, median 0.236 s, longest 0.257 s; VC names s20-base: 3 of 3
+  hidden: showing one took 0.147 s; VC names s20-base: yes
+filter: overflows 0
+shutdown: fswatch pid 71007 gone
+
+S20 eglot-share no-eglot, darwin GNU Emacs 31.1 (build 2, aarch64-apple-darwin27.0.0, NS appkit-2775.10 Version 27.0.1 (Build 26A434)), 2026-11-03T01:02:50Z
+buffers: 39 (19 headers), c++-ts-mode major mode; 3 shown in windows
+ready: yes after 0.57 s
+checkout s20-shift: git 0.11 s; all 39 buffers current: yes, 0.09 s after git; settled: yes, 0.5 s after git; Emacs blocked at most 0.125 s
+  reverts 39; didOpen 0; diagnostics after didOpen in 0 of 39; filter 2 calls, 78 records, 56.1 ms total, longest 31.0 ms
+  shown buffers: queue done 0.47 s after git; 3 steps, median 0.090 s, longest 0.101 s; VC names s20-shift: 3 of 3
+  hidden: showing one took 0.085 s; VC names s20-shift: yes
+checkout s20-base: git 0.11 s; all 39 buffers current: yes, 0.08 s after git; settled: yes, 0.5 s after git; Emacs blocked at most 0.117 s
+  reverts 39; didOpen 0; diagnostics after didOpen in 0 of 39; filter 2 calls, 78 records, 49.7 ms total, longest 26.5 ms
+  shown buffers: queue done 0.45 s after git; 3 steps, median 0.091 s, longest 0.093 s; VC names s20-base: 3 of 3
+  hidden: showing one took 0.082 s; VC names s20-base: yes
+contrast back-to-back 1, checkout s20-shift: git 0.11 s; all 39 buffers current: yes, 0.06 s after git; settled (quiet only): yes, 0.5 s after git; Emacs blocked at most 0.149 s
+  reverts 39; didOpen 0; diagnostics after didOpen in 0 of 39; filter 2 calls, 78 records, 33.3 ms total, longest 19.1 ms
+  shown buffers: queue done 0.52 s after git; 3 steps, median 0.104 s, longest 0.125 s; VC names s20-shift: 3 of 3
+  hidden: showing one took 0.091 s; VC names s20-shift: yes
+contrast back-to-back 2, checkout s20-base: git 0.14 s; all 39 buffers current: yes, 0.04 s after git; settled: yes, 0.5 s after git; Emacs blocked at most 0.125 s
+  reverts 39; didOpen 0; diagnostics after didOpen in 0 of 39; filter 2 calls, 78 records, 36.4 ms total, longest 18.6 ms
+  shown buffers: queue done 0.45 s after git; 3 steps, median 0.092 s, longest 0.100 s; VC names s20-base: 3 of 3
+  hidden: showing one took 0.089 s; VC names s20-base: yes
+filter: overflows 0
+shutdown: fswatch pid 71268 gone

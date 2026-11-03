@@ -1,7 +1,9 @@
 # S20 results
 
 Verdict for `fswatch-shown` (D-153): PASS on the Mac (runs 1 - 3, 2026-11-03), Arch
-runs on H-22; section at the end. Earlier verdict for `fswatch-queued`:
+runs on H-22; eglot's share E1 - E3 PASS on the Mac (2026-11-03), a checkout during
+clangd's reparse blocks 0.36 - 0.98 s (O-79); sections at the end. Earlier verdict
+for `fswatch-queued`:
 
 Verdict: FAIL (2026-11-02). PASS on Arch (runs 1 - 3); FAIL on the Mac on criterion
 3 (runs 4 - 6, idle): one VC refresh step blocks Emacs 0.30 - 0.35 s. Criteria 1, 2,
@@ -167,3 +169,36 @@ Limits:
   below the follow-up's 0.06 s estimate; why is UNVERIFIED.
 - eglot's work per revert is not in it (no compile database); RMO before T-128 ships
   (D-153).
+
+## eglot's share, Mac runs 1 - 3 (session, 2026-11-03; D-153)
+A clone of `~/source/repos/RMO-drafts` at aad752e (39 files, deal.II from
+`/Applications/deal.II.app`, preset `mac-debug`); patched clangd 23.1.3 with the
+config's flags; Emacs 31.1's eglot with the config's settings. Logs:
+`mac-eglot-run1.log` .. `mac-eglot-run3.log`. Load 3.7 - 4.7 at the start (clangd
+of the run before; 60 s pause between runs). Two dry runs before: the first timed
+out on `documentSymbol` (10 s) and lost its log (both fixed); the second found that
+"settled" as first approved (diagnostics plus 5 s quiet) leaves clangd reparsing, so
+the owner added the CPU condition and the back-to-back contrast.
+
+| criterion | `eglot`, judged checkouts, runs 1 - 3 | limit | pass |
+|---|---|---|---|
+| E1 buffers current after `git` | 0.08 - 0.18 s | 1.0 s | yes |
+| E2 Emacs blocked, `git` to settled | 0.075 - 0.183 s (the filter's longest call 18 - 183 ms) | 0.25 s | yes |
+| E3 symbols on their lines | 60 of 60 in each checkout, 0 offset by 19 | - | yes |
+
+Also per judged checkout: 39 didOpen, diagnostics after didOpen in 39 of 39, settled
+42.0 - 45.7 s after `git` (clangd reparsing the 39 files), shown buffers' queue done
+0.35 - 0.40 s after `git`, showing a hidden buffer 0.100 - 0.130 s.
+
+Contrast, recorded:
+- Back to back (the second checkout once clangd is quiet, not idle): Emacs blocked
+  0.361 - 0.736 s (the second dry run 0.978 s), one filter call 356 - 736 ms for 39
+  reverts; queue steps up to 0.275 s; settled 64 - 70 s after `git`. The same in
+  `no-eglot`: blocked 0.125 - 0.128 s, the filter's longest call 19 - 36 ms. So the
+  cost is eglot's work per revert (didClose, didOpen) while clangd reparses on every
+  core, about 10 - 25 ms per buffer against under 1 ms idle. Mechanism UNVERIFIED
+  (suspected: `process-send-string` of a whole file waiting on clangd's input pipe).
+- `no-eglot`, the same checkouts: blocked 0.115 - 0.163 s; its queue steps (median
+  0.085 - 0.122 s) ran slower than with eglot (0.044 - 0.069 s); why is UNVERIFIED.
+
+Verdict: E1 - E3 PASS on the Mac. Open: the back-to-back block, O-79.
