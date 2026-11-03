@@ -2140,7 +2140,7 @@ presets, GoogleTest runner.
   measured across 63 files. Findings in; O-43.
 
 ## Open questions ledger (LIVING)
-- O-79 (OPEN; (c) ruled 2026-11-03, D-154, measurement pending; found 2026-11-03 by
+- O-79 (OPEN; (c) ruled 2026-11-03, D-154, measured the same day (0105); found 2026-11-03 by
   S20's eglot runs, 0104): a checkout while clangd still reparses after the previous
   one (here the second of two checkouts 5 s apart) blocks Emacs 0.36 - 0.98 s in one
   filter call of 39 reverts, about 10 - 25 ms per revert against under 1 ms with
@@ -2159,10 +2159,31 @@ presets, GoogleTest runner.
   S20's eglot run, then choose (a) or (b). Against: one more spike step (about
   20 min) before T-128's code.
   Combined: (c), then (b) only if the sends are the cost. Recommendation: (c).
+  (c)'s result (0105, S20 RESULTS): during the reparse the writes to clangd are most
+  of the block (0.46 - 1.31 s of 0.54 - 1.06 s in `revert-buffer`), and one single
+  write stalls 0.26 - 1.04 s; the rest of a revert slows 2 - 4 times (68 - 151 ms
+  for 39). With clangd idle the sends take under 1 ms in all. What keeps clangd from
+  reading its input is UNVERIFIED (clangd 23.1.1's didClose does not wait for its
+  worker). Options revisited:
+  (a) accept: T-128 as measured. Against: a freeze of 0.28 - 1.12 s when a checkout
+  lands during clangd's reparse (two checkouts within about a minute, a rebase's
+  steps), more with more open files.
+  (b) revert eglot-managed buffers a few per timer step. Against: one write alone
+  stalls up to 1.04 s, so smaller batches likely keep the freeze (UNVERIFIED); buffers
+  current later; more code.
+  (d) find what keeps clangd from reading: rerun the back-to-back pair with stock
+  flags (no `--navigation-from-index --header-flags-from-index`, D-026, D-028) and
+  with clangd's `--log=verbose` timestamps around didOpen. Against: more spike time
+  (about 30 min); the fix may be a clangd change (patch work, D-069) or none.
+  Combined: (a) for T-128 now, (d) beside it, revisited when (d) finds a cause.
+  Against: T-128 ships with the freeze known until then. Recommendation: the
+  combination: (b)'s premise fails on the split, (a)'s cost is now measured and
+  limited to checkouts during a reparse.
 - DECIDED D-154 (owner 2026-11-03: "O-79 (c)"): before T-128's code, S20's eglot run
   times each revert under clangd's reparse, split into eglot's didClose, didOpen (its
   `process-send-string` calls to clangd, their bytes) and the rest of the revert;
-  (a) or (b) is then ruled on that split. Not taken yet: (a), (b).
+  (a) or (b) is then ruled on that split. Not taken yet: (a), (b). Measured 2026-11-03
+  (0105): the sends are the cost; O-79's options revisited.
 - O-78 (RESOLVED 2026-11-03 with D-153: (e); owner: "Rule (e), new S20 mode first";
   was REOPENED 2026-11-02: S20 failed on the Mac, 0102, as D-148 and D-149 set;
   was RESOLVED 2026-10-29 with D-148: (d); owner: "(d) if S20 passes"; found
