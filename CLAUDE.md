@@ -103,7 +103,8 @@ T-079 dropped.
 checkout on the Mac (O-78), reverted (D-149); one fswatch per project root, tier 3
 (T-128) if S20 passes (D-148). 2026-11-02: S20 PASS on Arch (0101), FAIL on the Mac
 (0102): the VC queue stacks steps (0.20 - 0.35 s), diff-hl adds 19 ms per revert
-outside `-Q`; O-78 reopened and revisited, (e) recommended.
+outside `-Q`; O-78 reopened and revisited, (e) recommended; its edge cases ruled
+(D-151).
 
 ## Self-test (before the first edit of a session)
 Answer from the docs, not from memory; a miss means re-read, not edit.
