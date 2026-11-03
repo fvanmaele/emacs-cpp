@@ -2140,9 +2140,11 @@ presets, GoogleTest runner.
   measured across 63 files. Findings in; O-43.
 
 ## Open questions ledger (LIVING)
-- O-79 (RESOLVED 2026-11-03 with D-156: (e) in T-128, (f) as a task; owner: "O-79
-  combined (e) in T-128, (f) as task"; was REOPENED 2026-11-03 by T-129, 0106, as
-  D-155 set; was RESOLVED 2026-11-03 with D-155: (a) for T-128 now, (d) beside it;
+- O-79 (REOPENED 2026-11-03 for (f): its premise refuted when T-130 started, see the
+  correction below; (e) stands, D-156; was RESOLVED 2026-11-03 with D-156: (e) in
+  T-128, (f) as a task; owner: "O-79 combined (e) in T-128, (f) as task"; was
+  REOPENED 2026-11-03 by T-129, 0106, as D-155 set; was RESOLVED 2026-11-03 with
+  D-155: (a) for T-128 now, (d) beside it;
   owner: "O-79 (a) for T-128 now, (d) alongside"; (c) ruled 2026-11-03, D-154,
   measured the same day (0105); found 2026-11-03 by S20's eglot runs, 0104): a
   checkout while clangd still reparses after the previous one (here the second of
@@ -2207,6 +2209,27 @@ presets, GoogleTest runner.
   Against: two pieces of work; (f) is clangd C++.
   Recommendation: the combination: (e) is small and removes the reverter's own
   share; (f) removes the cause for every eglot write, not only T-128's.
+  Correction (2026-11-03, when T-130 started): the includer lookup does not run on
+  clangd's main thread. `ASTWorker::update` fetches the compile command, and so
+  `IncluderFromIndexCDB::getCompileCommand` and `includerOf`, inside its "Update"
+  task on the file's worker thread (clangd 23.1.3 `TUScheduler.cpp:871`); the
+  "Compile command ... (index)" lines in the main thread's gaps were other threads'
+  logging. What stays measured: with the flag writes stall, without it none, and
+  the flag doubles the reparse. Why clangd's main thread stops reading is again
+  UNVERIFIED; suspected: the main thread starved of CPU while the heavier header
+  builds (the includer's flags pull in deal.II) keep all 11 cores busy for twice as
+  long. The stock runs do not rule that out: their back-to-back pair landed in a
+  21 - 22 s reparse about 16.5 s in, near its end. So (f) as written cannot be done.
+  Options for (f)'s place:
+  (h) test CPU contention first: stock flags with the second checkout about 1 s
+  after the first (inside the reparse), and the patched flags with clangd's `-j=5`
+  (the 5 performance cores, leaving 6). Against: two more spike runs (about 15
+  min); still no fix.
+  (i) cap clangd's workers in the config's command (`-j`) now. Against: unmeasured;
+  a slower reparse and background index on every project.
+  (j) no replacement: (e) alone. Against: the nested timers' share of the freeze
+  (up to about 0.3 s here) stays.
+  Recommendation: (h): (i) and (j) both rest on what (h) measures.
 - DECIDED D-154 (owner 2026-11-03: "O-79 (c)"): before T-128's code, S20's eglot run
   times each revert under clangd's reparse, split into eglot's didClose, didOpen (its
   `process-send-string` calls to clangd, their bytes) and the rest of the revert;
@@ -2223,7 +2246,9 @@ presets, GoogleTest runner.
   VC and diff-hl queue step never runs while the reverter's filter runs: a step that
   finds the filter active arms its timer again instead (O-79 (e)). T-130 moves the
   includer lookup of `--header-flags-from-index` (D-028) off clangd's main thread
-  (O-79 (f)), a patch to clangd-index-nav (D-069). The freeze during a reparse is
+  (O-79 (f)), a patch to clangd-index-nav (D-069); refuted the same day, the lookup
+  already runs on the worker thread (O-79's correction), T-130 blocked. The freeze
+  during a reparse is
   measured again after each with S20's eglot run (`eglot-share.sh`, back-to-back
   pair). Not taken: (g) (headers opened first would lose their includer's flags).
   Amends D-155.

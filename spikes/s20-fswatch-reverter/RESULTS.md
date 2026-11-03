@@ -239,10 +239,13 @@ verbose logs stayed in the session's scratch directory (6837 lines); excerpts be
 | stock | none (sends 0.6 - 0.7 ms in all) | 21 - 22 s | 0.104 - 0.114 s |
 
 Placed, in two parts:
-1. clangd: with `--header-flags-from-index` (D-028) the main thread handles a
-   header's didOpen in up to about 12 ms during the reparse (verbose log: `<<<` at
-   13.665, `<--` at 13.677, its "Compile command for ... which includes it (index)"
-   lines in those gaps) and does not read meanwhile; before residual.h's didOpen it
+1. clangd (corrected 2026-11-03: the includer lookup runs on the worker thread,
+   `TUScheduler.cpp:871`, so the gaps below are not the lookup; cause UNVERIFIED,
+   CPU starvation suspected, DESIGN O-79): with `--header-flags-from-index`
+   (D-028) the main thread handles a header's didOpen in up to about 12 ms during
+   the reparse (verbose log: `<<<` at 13.665, `<--` at 13.677, its "Compile
+   command for ... which includes it (index)" lines in those gaps) and does not
+   read meanwhile; before residual.h's didOpen it
    read nothing for 81 ms (13.721 - 13.802) while Emacs's 7 KB write took 84 ms. The
    pipe fills and Emacs's write gets EAGAIN. Without the flag no write stalls.
 2. Emacs: on EAGAIN `send_process` waits in `wait_reading_process_output`, which

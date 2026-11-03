@@ -528,3 +528,13 @@ encoded structurally rather than in a comment.
 - Fix (commit): this commit re-wraps the line; checks run alone, their status read,
   before any commit or push.
 - Lesson: never pipe a gate's output in an `&&` chain; run the gate, then commit.
+
+## 2026-11-03 - A clangd mechanism stated from log lines, ruled on, then refuted (short)
+- What failed: 0106 and O-79 (f) said clangd's main thread runs the includer lookup;
+  the owner ruled D-156 (f) / T-130 on it; it was pushed (07f07bb, 214cb3e).
+- Caught by: the session, reading `TUScheduler.cpp` when T-130 started.
+- Cause: log lines from worker threads, interleaved in the main thread's gaps, read
+  as the main thread's work; the source was not opened before the option was offered.
+- Fix (commit): this commit corrects 0106, O-79, D-156, S20 RESULTS; T-130 blocked.
+- Lesson: a mechanism inside another program is UNVERIFIED until its source or a
+  trace of that thread shows it; offer no fix built on it before that.
