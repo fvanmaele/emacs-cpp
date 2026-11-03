@@ -1,8 +1,9 @@
 # S20 results
 
-Verdict for `fswatch-shown` (D-153): PASS on the Mac (runs 1 - 3, 2026-11-03), Arch
-runs on H-22; eglot's share E1 - E3 PASS on the Mac (2026-11-03), a checkout during
-clangd's reparse blocks 0.36 - 0.98 s (O-79); sections at the end. Earlier verdict
+Verdict for `fswatch-shown` (D-153): PASS on the Mac (runs 1 - 3, 2026-11-03) and on
+Arch (runs 1 - 3, the owner's, 2026-11-03, H-22); eglot's share E1 - E3 PASS on the
+Mac (2026-11-03), a checkout during clangd's reparse blocks 0.36 - 0.98 s (O-79);
+sections at the end. Earlier verdict
 for `fswatch-queued`:
 
 Verdict: FAIL (2026-11-02). PASS on Arch (runs 1 - 3); FAIL on the Mac on criterion
@@ -169,6 +170,39 @@ Limits:
   below the follow-up's 0.06 s estimate; why is UNVERIFIED.
 - eglot's work per revert is not in it (no compile database); RMO before T-128 ships
   (D-153).
+
+## Mode `fswatch-shown`, Arch runs 1 - 3 (owner, 2026-11-03; H-22, D-153)
+Linux x86_64, GNU Emacs 31.1 (GTK 3.24.52), the session's commits through b9e2146,
+diff-hl from `lib/diff-hl`. Logs: `arch-shown-run1.log` .. `arch-shown-run3.log`
+(`s20.log` is run 3). Load 0.85 - 1.31 at the start, runs 23:05 - 23:07Z.
+
+| criterion | `fswatch-shown`, runs 1 - 3 | limit | pass |
+|---|---|---|---|
+| 1 buffers current after `git` | 0.13 - 0.14 s, no Overflow | 1.0 s | yes |
+| 2 edits kept | edit kept; 0 unchanged files' buffers reverted; the deleted file's buffer live, not reverted on `c`, no filter error | - | yes |
+| 3 Emacs blocked | 0.12 - 0.14 s (the filter's longest call 124 - 141 ms) | 0.25 s | yes |
+| 3 shown buffers | queue done 0.33 - 0.36 s after `git`; VC names the branch in 3 of 3; 1 diff-hl update each; steps 0.037 - 0.051 s | 15 s | yes |
+| 3 showing a hidden buffer | 0.020 - 0.047 s; VC names the branch | 0.25 s | yes |
+| 4 idle fswatch | 6 descriptors, 5.2 MB RSS | 16, 12 MB | yes |
+| 5 ready, shutdown | 0.54 - 0.55 s; gone | 5 s | yes |
+| 6 messages | the edited buffer named on `c` and `a`, the deleted file on `c` | - | yes |
+| 7 wiring | the Mac only (criterion 7) | - | - |
+
+Contrast `fswatch-diffhl`: buffers current 1.55 - 2.43 s after `git`, Emacs blocked
+1.55 - 2.40 s, one filter call per checkout of the same length.
+
+Verdict: PASS on Arch, criteria 1 - 6; with the Mac's runs, S20 `fswatch-shown`
+passes on both machines.
+
+Findings:
+- Arch's block is the one filter call (761 - 763 inotify records, 124 - 141 ms), up
+  from the Mac's 87 - 95 ms: inotify delivers the checkout in one call, the reverts
+  then run back to back. 0.11 s of margin at 190 files; T-128's note "queue reverts
+  too" (0101) stands for larger checkouts.
+- Ready stays 0.54 s (inotify watches the directories one by one), as in runs 1 - 3
+  of 2026-11-02.
+- The queue steps (0.037 - 0.051 s) match the Mac's (0.040 - 0.085 s); the
+  contrast's diff-hl cost is lower than the Mac's (1.6 - 2.4 s against 2.2 - 2.5 s).
 
 ## eglot's share, Mac runs 1 - 3 (session, 2026-11-03; D-153)
 A clone of `~/source/repos/RMO-drafts` at aad752e (39 files, deal.II from
