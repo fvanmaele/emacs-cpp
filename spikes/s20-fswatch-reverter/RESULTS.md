@@ -276,3 +276,30 @@ it reads the next didOpen at 13.802, so the write of that message may be what
 blocks (Emacs, inside the reverter's filter, reads no output meanwhile). But stock
 clangd writes more (652 KB of publishDiagnostics in its verbose run against 99 KB
 patched) and never stalls, so the volume does not explain it. Cause UNVERIFIED.
+
+## D-158: clangd's threads sampled; D-156 (e) in the spike (session, 2026-11-03)
+`eglot-share.el` gained `S20_SAMPLE` (macOS `sample` on clangd, 3 s, 1 ms apart,
+attached before the back-to-back pair's second `git`), garbage collection counts
+per checkout and per stalled send, and `S20_STEP_WAITS` (D-156 (e): a queue step
+that finds the reverter's filter running arms its timer again). Logs:
+`mac-d158-patched.log`, `mac-d158-stock.log` (sampled), `mac-d158-patched-gc.log`,
+`mac-d158-patched-stepwaits1.log` .. `3.log`. The samples (28 MB, 11 MB) stayed in
+the session's scratch directory.
+- Sampled stall (patched, a 200-byte didClose waiting 264 ms): clangd's main
+  thread was in `fgets`, then `read`, in `JSONTransport::loop` in all 831 samples. It
+  waited for input; it was not blocked on a write, a lock or the index.
+- No garbage collection inside any stalled send (0 GCs; 1 GC of 16 - 32 ms per
+  checkout elsewhere).
+- Without (e), patched: back-to-back 2 blocked 1.123 s; inside its stalled sends
+  ran the reverter's queue step (2 runs, 862 ms, up to 501 ms each, VC and diff-hl
+  during the reparse) and 43 nested runs of one closure around it.
+- With (e), patched, runs 1 - 3: back-to-back 2 blocked 0.253, 0.282, 0.224 s; the
+  queue step deferred 1 - 2 times and ran 0 ms inside sends; the nested closure 38 -
+  42 runs, 5 - 6 ms in all; one write still stalls 159, 173, 74 ms (transport.h's
+  didOpen, 56 KB) with no timer time in it. Judged checkouts blocked at most 0.075 -
+  0.091 s. Load 5.7 - 7.0 at the start.
+
+So the freeze during a reparse was Emacs's own timers, mainly the reverter's queue
+step, run inside a write that hit a full pipe; (e) removes that part. What makes the
+one large write wait 74 - 173 ms with the patched flags only is UNVERIFIED (the
+sampled run's stall was a timer one).

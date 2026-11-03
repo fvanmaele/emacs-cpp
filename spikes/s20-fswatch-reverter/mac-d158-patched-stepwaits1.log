@@ -1,0 +1,49 @@
+S20 eglot-share 2026-11-03T12:42:45Z, Darwin arm64, GNU Emacs 31.1
+source: /Users/fvanmaele/source/repos/RMO-drafts at aad752e; clangd: clangd version 23.1.3
+load:  5.67 7.49 6.54 
+
+S20 eglot-share eglot, darwin GNU Emacs 31.1 (build 2, aarch64-apple-darwin27.0.0, NS appkit-2775.10 Version 27.0.1 (Build 26A434)), 2026-11-03T12:42:51Z
+buffers: 39 (19 headers), c++-ts-mode major mode; 3 shown in windows
+eglot: 39 of 39 buffers managed; server ("/Users/fvanmaele/opt/clangd-index-nav/bin/clangd" "--compile-commands-dir=/var/folders/97/_w6hwfk17v7dlzb35nklbm9h0000gn/T/s20-rmo/build/mac-debug" "--rename-file-limit=0" "--navigation-from-index" "--header-flags-from-index"); settled: yes after 51.9 s
+ready: yes after 0.56 s
+checkout s20-shift: git 0.20 s; all 39 buffers current: yes, 0.17 s after git; settled: yes, 44.8 s after git; Emacs blocked at most 0.080 s
+  reverts 39; didOpen 39; diagnostics after didOpen in 39 of 39; filter 2 calls, 78 records, 90.8 ms total, longest 80.2 ms
+  split (D-154): revert-buffer 39, 87.1 ms total, max 28.3 ms; didClose 39, 0.7 ms total, max 0.1 ms; didOpen 39, 38.1 ms total, max 27.5 ms; sends to clangd 117, 0.7 ms total, max 0.0 ms, 473 KB; revert without didClose and didOpen 48.3 ms
+  clangd's output (T-129): read inside sends 0, 0.0 ms total, max 0.0 ms; elsewhere 80, 5.8 ms total, max 0.8 ms; publishDiagnostics handled inside sends 0, 0.0 ms total, max 0.0 ms; elsewhere 78, 11.2 ms total, max 1.4 ms
+  timers inside sends (T-129): reverter's queue step 0, 0.0 ms total, max 0.0 ms; others 0, 0.0 ms total, max 0.0 ms nil
+  garbage collection (D-158): 1 GCs, 27 ms, from git to settled; gc-cons-threshold 800000; queue steps deferred (D-156 (e)): 0
+  shown buffers: queue done 0.34 s after git; 3 steps, median 0.045 s, longest 0.067 s; VC names s20-shift: 3 of 3
+  hidden: showing one took 0.089 s; VC names s20-shift: yes
+  symbols assemble.h: 15 of 15 on their lines, 0 offset by 19 (answered in 0.1 s)
+  symbols grid.h: 11 of 11 on their lines, 0 offset by 19 (answered in 0.0 s)
+  symbols space.h: 34 of 34 on their lines, 0 offset by 19 (answered in 0.0 s)
+checkout s20-base: git 0.11 s; all 39 buffers current: yes, 0.07 s after git; settled: yes, 44.5 s after git; Emacs blocked at most 0.091 s
+  reverts 39; didOpen 39; diagnostics after didOpen in 39 of 39; filter 2 calls, 78 records, 39.1 ms total, longest 20.0 ms
+  split (D-154): revert-buffer 39, 37.0 ms total, max 1.6 ms; didClose 39, 0.5 ms total, max 0.0 ms; didOpen 39, 7.0 ms total, max 0.5 ms; sends to clangd 117, 0.5 ms total, max 0.0 ms, 461 KB; revert without didClose and didOpen 29.5 ms
+  clangd's output (T-129): read inside sends 0, 0.0 ms total, max 0.0 ms; elsewhere 80, 4.7 ms total, max 0.2 ms; publishDiagnostics handled inside sends 0, 0.0 ms total, max 0.0 ms; elsewhere 78, 11.3 ms total, max 0.9 ms
+  timers inside sends (T-129): reverter's queue step 0, 0.0 ms total, max 0.0 ms; others 0, 0.0 ms total, max 0.0 ms nil
+  garbage collection (D-158): 1 GCs, 17 ms, from git to settled; gc-cons-threshold 800000; queue steps deferred (D-156 (e)): 0
+  shown buffers: queue done 0.35 s after git; 3 steps, median 0.054 s, longest 0.066 s; VC names s20-base: 3 of 3
+  hidden: showing one took 0.097 s; VC names s20-base: yes
+  symbols assemble.h: 15 of 15 on their lines, 0 offset by 19 (answered in 0.3 s)
+  symbols grid.h: 11 of 11 on their lines, 0 offset by 19 (answered in 0.2 s)
+  symbols space.h: 34 of 34 on their lines, 0 offset by 19 (answered in 0.2 s)
+contrast back-to-back 1, checkout s20-shift: git 0.11 s; all 39 buffers current: yes, 0.06 s after git; settled (quiet only): yes, 5.1 s after git; Emacs blocked at most 0.092 s
+  reverts 39; didOpen 39; diagnostics after didOpen in 39 of 39; filter 2 calls, 78 records, 35.0 ms total, longest 18.6 ms
+  split (D-154): revert-buffer 39, 33.2 ms total, max 1.6 ms; didClose 39, 0.4 ms total, max 0.0 ms; didOpen 39, 6.0 ms total, max 0.5 ms; sends to clangd 78, 0.1 ms total, max 0.0 ms, 471 KB; revert without didClose and didOpen 26.9 ms
+  clangd's output (T-129): read inside sends 0, 0.0 ms total, max 0.0 ms; elsewhere 2, 0.1 ms total, max 0.1 ms; publishDiagnostics handled inside sends 0, 0.0 ms total, max 0.0 ms; elsewhere 39, 2.7 ms total, max 0.4 ms
+  timers inside sends (T-129): reverter's queue step 0, 0.0 ms total, max 0.0 ms; others 0, 0.0 ms total, max 0.0 ms nil
+  garbage collection (D-158): 0 GCs, 0 ms, from git to settled; gc-cons-threshold 800000; queue steps deferred (D-156 (e)): 0
+  shown buffers: queue done 0.34 s after git; 3 steps, median 0.053 s, longest 0.068 s; VC names s20-shift: 3 of 3
+  hidden: showing one took 0.065 s; VC names s20-shift: yes
+contrast back-to-back 2, checkout s20-base: git 0.09 s; all 39 buffers current: yes, 0.28 s after git; settled: yes, 74.4 s after git; Emacs blocked at most 0.253 s
+  reverts 39; didOpen 39; diagnostics after didOpen in 39 of 39; filter 2 calls, 78 records, 392.7 ms total, longest 234.1 ms
+  split (D-154): revert-buffer 39, 389.7 ms total, max 161.8 ms; didClose 39, 17.9 ms total, max 17.2 ms; didOpen 39, 189.8 ms total, max 158.8 ms; sends to clangd 155, 197.8 ms total, max 158.6 ms, 463 KB; revert without didClose and didOpen 182.0 ms
+  clangd's output (T-129): read inside sends 10, 0.4 ms total, max 0.1 ms; elsewhere 112, 26.1 ms total, max 5.9 ms; publishDiagnostics handled inside sends 38, 3.0 ms total, max 0.5 ms; elsewhere 40, 14.1 ms total, max 2.8 ms
+  timers inside sends (T-129): reverter's queue step 2, 0.0 ms total, max 0.0 ms; others 42, 5.2 ms total, max 0.5 ms (("#[514 \"\\300\\301\\302\\\"r\\211q\\210\\303\\304\\\"\\216\\305\\\"*\\207\"" . 42))
+  garbage collection (D-158): 1 GCs, 31 ms, from git to settled; gc-cons-threshold 800000; queue steps deferred (D-156 (e)): 2
+  stalled send (T-129): 13:45:21.930 +159 ms, 56017 bytes, 0 GCs 0 ms, textDocument/didOpen transport.h
+  shown buffers: queue done 0.95 s after git; 3 steps, median 0.195 s, longest 0.204 s; VC names s20-base: 3 of 3
+  hidden: showing one took 0.062 s; VC names s20-base: yes
+filter: overflows 0
+shutdown: fswatch pid 83391 gone

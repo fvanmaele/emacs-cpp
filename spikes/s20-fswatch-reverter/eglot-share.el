@@ -86,9 +86,20 @@
     (diff-hl-update)
     (setq s20--stale nil)))
 
+(defvar s20--in-filter nil "Non-nil while the reverter's filter runs.")
+(defvar s20-step-waits (getenv "S20_STEP_WAITS")
+  "D-156 (e): a queue step that finds the filter running arms its timer again.")
+(defvar s20-steps-deferred 0)
+
 (defun s20--shown-step ()
   "Refresh the oldest queued buffer; arm the timer again while any is left."
   (setq s20-shown-timer nil)
+  (if (and s20-step-waits s20--in-filter)
+      (progn (cl-incf s20-steps-deferred)
+             (setq s20-shown-timer (run-with-timer 0.05 nil #'s20--shown-step)))
+    (s20--shown-step-1)))
+
+(defun s20--shown-step-1 ()
   (when-let* ((next (car (last s20-shown-queue))))
     (setq s20-shown-queue (butlast s20-shown-queue))
     (let ((start (float-time)))
@@ -145,7 +156,8 @@
                 (cl-incf s20-overflows)
               (when (string-suffix-p "/.s20-probe" path) (setq s20-probe-seen t))
               (puthash path t paths))))
-        (maphash (lambda (path _) (s20--revert path)) paths)
+        (let ((s20--in-filter t))
+          (maphash (lambda (path _) (s20--revert path)) paths))
         (when s20-skipped
           (message "s20: skipped %S" s20-skipped)
           (setq s20-skipped nil))
@@ -241,6 +253,8 @@ for clangd's stderr with --log=verbose (through sh's exec, so the pid stays clan
                 (if (and s20-clangd-pid (processp process)
                          (eql (process-id process) s20-clangd-pid))
                     (let ((start (float-time))
+                          (gcs gcs-done)
+                          (gc-time gc-elapsed)
                           (s20--sending t))
                       (puthash 'bytes (+ (gethash 'bytes s20-split 0) (string-bytes string))
                                s20-split)
@@ -249,6 +263,8 @@ for clangd's stderr with --log=verbose (through sh's exec, so the pid stays clan
                         (let ((seconds (- (float-time) start)))
                           (when (> seconds 0.05)
                             (push (list start seconds (string-bytes string)
+                                        ;; D-158: garbage collections inside the send.
+                                        (- gcs-done gcs) (- gc-elapsed gc-time)
                                         (and (string-match "\"method\":\"\\([^\"]+\\)\"" string)
                                              (match-string 1 string))
                                         (and (string-match "\"uri\":\"file://[^\"]*/\\([^/\"]+\\)\"" string)
@@ -339,17 +355,37 @@ Return (ON-LINE TOTAL OFFSET-19 SECONDS)."
       (goto-char (point-min))
       (eq (and (looking-at-p "// s20 shift 0$") t) shifted))))
 
+(defun s20--start-sample ()
+  "D-158: start macOS `sample' on clangd (3 s, 1 ms apart) into S20_SAMPLE.
+Return the process once `sample' has attached, or nil without S20_SAMPLE."
+  (when-let* ((file (getenv "S20_SAMPLE")))
+    (let ((process (make-process
+                    :name "s20-sample" :buffer (generate-new-buffer " *s20-sample*")
+                    :command (list "/usr/bin/sample" (number-to-string s20-clangd-pid)
+                                   "3" "1" "-mayDie" "-file" file)
+                    :noquery t)))
+      (process-put process 'started (float-time))
+      (unless (s20--wait (lambda ()
+                           (with-current-buffer (process-buffer process)
+                             (string-search "Sampling process" (buffer-string))))
+                         10)
+        (error "s20: sample did not start: %s"
+               (with-current-buffer (process-buffer process) (buffer-string))))
+      process)))
+
 (defun s20--checkout (branch buffers shown shifted &optional label settle)
   "Check out BRANCH; wait for BUFFERS to be current (SHIFTED or not) and settled.
 LABEL marks a contrast checkout (no symbol check).  SETTLE nil waits until clangd
 is quiet and idle, `quiet' until it is quiet only, a number of seconds until that
 long after `git' (D-157's gap)."
   (setq s20-reverted nil s20-stall 0.0 s20-shown-steps nil s20-filter-max 0.0
-        s20-cpu-samples nil s20-stalled nil)
+        s20-cpu-samples nil s20-stalled nil s20-steps-deferred 0)
   (clrhash s20-timer-names)
   (clrhash s20-split)
   (let* ((records s20-records) (calls s20-calls) (total s20-filter-total)
          (opened s20-did-open)
+         (sampler (and (equal label "contrast back-to-back 2") (s20--start-sample)))
+         (gcs gcs-done) (gc-time gc-elapsed)
          (t0 (float-time))
          (_ (s20--git "checkout" "-q" branch))
          (t1 (float-time))
@@ -395,10 +431,13 @@ long after `git' (D-157's gap)."
                  (funcall part 'queue-step-in-send) (funcall part 'other-timer-in-send)
                  (let (names) (maphash (lambda (k v) (push (cons k v) names)) s20-timer-names)
                       names)))
+    (s20--emit "  garbage collection (D-158): %d GCs, %.0f ms, from git to settled; gc-cons-threshold %d; queue steps deferred (D-156 (e)): %s"
+               (- gcs-done gcs) (* 1000 (- gc-elapsed gc-time)) gc-cons-threshold
+               (if s20-step-waits s20-steps-deferred "off"))
     (dolist (s (reverse s20-stalled))
-      (s20--emit "  stalled send (T-129): %s +%.0f ms, %d bytes, %s %s"
+      (s20--emit "  stalled send (T-129): %s +%.0f ms, %d bytes, %d GCs %.0f ms, %s %s"
                  (format-time-string "%H:%M:%S.%3N" (nth 0 s)) (* 1000 (nth 1 s))
-                 (nth 2 s) (nth 3 s) (nth 4 s)))
+                 (nth 2 s) (nth 3 s) (* 1000 (nth 4 s)) (nth 5 s) (nth 6 s)))
     (s20--emit "  shown buffers: queue done %.2f s after git; %d steps, median %.3f s, longest %.3f s; VC names %s: %d of %d"
                (- s20-shown-last t1) (length s20-shown-steps) (s20--median s20-shown-steps)
                (apply #'max 0.0 s20-shown-steps) branch
@@ -416,6 +455,12 @@ long after `git' (D-157's gap)."
                      (- (float-time) start) branch
                      (if (s20--names-branch-p hidden branch) "yes" "NO")))
         (set-window-buffer window before)))
+    (when sampler
+      (s20--wait (lambda () (not (process-live-p sampler))) 60)
+      (s20--emit "  sample (D-158): %s, started %.2f s before git; %s"
+                 (getenv "S20_SAMPLE") (- t0 (process-get sampler 'started))
+                 (string-trim (with-current-buffer (process-buffer sampler)
+                                (buffer-string)))))
     (when (and s20-eglot (not label))
       (dolist (b shown)
         (pcase-let ((`(,on ,all ,offset ,seconds) (s20--symbols-check b)))
