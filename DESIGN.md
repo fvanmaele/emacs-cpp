@@ -2140,7 +2140,9 @@ presets, GoogleTest runner.
   measured across 63 files. Findings in; O-43.
 
 ## Open questions ledger (LIVING)
-- O-79 (OPEN; (c) ruled 2026-11-03, D-154, measured the same day (0105); found 2026-11-03 by
+- O-79 (RESOLVED 2026-11-03 with D-155: (a) for T-128 now, (d) beside it; owner: "O-79
+  (a) for T-128 now, (d) alongside"; (c) ruled 2026-11-03, D-154, measured the same
+  day (0105); found 2026-11-03 by
   S20's eglot runs, 0104): a checkout while clangd still reparses after the previous
   one (here the second of two checkouts 5 s apart) blocks Emacs 0.36 - 0.98 s in one
   filter call of 39 reverts, about 10 - 25 ms per revert against under 1 ms with
@@ -2184,6 +2186,12 @@ presets, GoogleTest runner.
   `process-send-string` calls to clangd, their bytes) and the rest of the revert;
   (a) or (b) is then ruled on that split. Not taken yet: (a), (b). Measured 2026-11-03
   (0105): the sends are the cost; O-79's options revisited.
+- DECIDED D-155 (owner 2026-11-03: "O-79 (a) for T-128 now, (d) alongside"): T-128 is
+  built with eglot's revert hooks as they are, accepting a freeze of 0.28 - 1.12 s
+  when a checkout lands during clangd's reparse (0105); T-129 finds what keeps clangd
+  from reading its input (stock flags against the patched ones, clangd's verbose log
+  around didOpen), and O-79 reopens if it finds a cause T-128 or a clangd patch
+  (D-069) can remove. Not taken: (b) (one write alone stalls up to 1.04 s).
 - O-78 (RESOLVED 2026-11-03 with D-153: (e); owner: "Rule (e), new S20 mode first";
   was REOPENED 2026-11-02: S20 failed on the Mac, 0102, as D-148 and D-149 set;
   was RESOLVED 2026-10-29 with D-148: (d); owner: "(d) if S20 passes"; found
@@ -3598,6 +3606,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-152 | 2026-11-03 | T-128 skips a deleted file; its buffer stays, named in D-151's message | 12 | O-78 |
 | D-153 | 2026-11-03 | O-78 (e): VC and diff-hl refresh for shown buffers; S20 `fswatch-shown` first | 12 | O-78 |
 | D-154 | 2026-11-03 | O-79 (c): time eglot's sends and the revert's parts under clangd's reparse first | 12 | O-79 |
+| D-155 | 2026-11-03 | O-79: T-128 accepts the freeze during clangd's reparse; T-129 finds its cause | 12 | O-79 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |
