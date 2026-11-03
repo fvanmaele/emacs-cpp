@@ -1,0 +1,36 @@
+S20 eglot-share 2026-11-03T01:24:52Z, Darwin arm64, GNU Emacs 31.1
+source: /Users/fvanmaele/source/repos/RMO-drafts at aad752e; clangd: clangd version 23.1.3
+load:  5.70 9.10 8.08 
+
+S20 eglot-share eglot, darwin GNU Emacs 31.1 (build 2, aarch64-apple-darwin27.0.0, NS appkit-2775.10 Version 27.0.1 (Build 26A434)), 2026-11-03T01:24:57Z
+buffers: 39 (19 headers), c++-ts-mode major mode; 3 shown in windows
+eglot: 39 of 39 buffers managed; server ("/Users/fvanmaele/opt/clangd-index-nav/bin/clangd" "--compile-commands-dir=/var/folders/97/_w6hwfk17v7dlzb35nklbm9h0000gn/T/s20-rmo/build/mac-debug" "--rename-file-limit=0" "--navigation-from-index" "--header-flags-from-index"); settled: yes after 46.4 s
+ready: yes after 0.57 s
+checkout s20-shift: git 0.23 s; all 39 buffers current: yes, 0.13 s after git; settled: yes, 40.9 s after git; Emacs blocked at most 0.080 s
+  reverts 39; didOpen 39; diagnostics after didOpen in 39 of 39; filter 2 calls, 79 records, 51.5 ms total, longest 40.4 ms
+  split (D-154): revert-buffer 39, 48.1 ms total, max 5.4 ms; didClose 39, 0.9 ms total, max 0.2 ms; didOpen 39, 11.3 ms total, max 1.9 ms; sends to clangd 117, 0.8 ms total, max 0.0 ms, 473 KB; revert without didClose and didOpen 36.0 ms
+  shown buffers: queue done 0.31 s after git; 3 steps, median 0.042 s, longest 0.057 s; VC names s20-shift: 3 of 3
+  hidden: showing one took 0.085 s; VC names s20-shift: yes
+  symbols assemble.h: 15 of 15 on their lines, 0 offset by 19 (answered in 0.1 s)
+  symbols grid.h: 11 of 11 on their lines, 0 offset by 19 (answered in 0.0 s)
+  symbols space.h: 34 of 34 on their lines, 0 offset by 19 (answered in 0.3 s)
+checkout s20-base: git 0.07 s; all 39 buffers current: yes, 0.10 s after git; settled: yes, 46.0 s after git; Emacs blocked at most 0.082 s
+  reverts 39; didOpen 39; diagnostics after didOpen in 39 of 39; filter 2 calls, 78 records, 38.4 ms total, longest 19.7 ms
+  split (D-154): revert-buffer 39, 36.4 ms total, max 2.4 ms; didClose 39, 0.4 ms total, max 0.0 ms; didOpen 39, 6.0 ms total, max 0.5 ms; sends to clangd 117, 0.5 ms total, max 0.0 ms, 461 KB; revert without didClose and didOpen 30.0 ms
+  shown buffers: queue done 0.38 s after git; 3 steps, median 0.051 s, longest 0.057 s; VC names s20-base: 3 of 3
+  hidden: showing one took 0.133 s; VC names s20-base: yes
+  symbols assemble.h: 15 of 15 on their lines, 0 offset by 19 (answered in 0.3 s)
+  symbols grid.h: 11 of 11 on their lines, 0 offset by 19 (answered in 0.2 s)
+  symbols space.h: 34 of 34 on their lines, 0 offset by 19 (answered in 0.2 s)
+contrast back-to-back 1, checkout s20-shift: git 0.09 s; all 39 buffers current: yes, 0.08 s after git; settled (quiet only): yes, 5.1 s after git; Emacs blocked at most 0.073 s
+  reverts 39; didOpen 39; diagnostics after didOpen in 39 of 39; filter 2 calls, 78 records, 31.4 ms total, longest 15.7 ms
+  split (D-154): revert-buffer 39, 29.7 ms total, max 1.6 ms; didClose 39, 0.3 ms total, max 0.0 ms; didOpen 39, 5.5 ms total, max 0.5 ms; sends to clangd 78, 0.2 ms total, max 0.0 ms, 471 KB; revert without didClose and didOpen 23.8 ms
+  shown buffers: queue done 0.34 s after git; 3 steps, median 0.044 s, longest 0.049 s; VC names s20-shift: 3 of 3
+  hidden: showing one took 0.118 s; VC names s20-shift: yes
+contrast back-to-back 2, checkout s20-base: git 0.18 s; all 39 buffers current: yes, 0.61 s after git; settled: yes, 54.0 s after git; Emacs blocked at most 0.606 s
+  reverts 39; didOpen 39; diagnostics after didOpen in 39 of 39; filter 2 calls, 79 records, 904.6 ms total, longest 606.0 ms
+  split (D-154): revert-buffer 39, 901.8 ms total, max 464.7 ms; didClose 39, 279.8 ms total, max 279.3 ms; didOpen 39, 471.3 ms total, max 461.9 ms; sends to clangd 145, 874.0 ms total, max 461.6 ms, 463 KB; revert without didClose and didOpen 150.7 ms
+  shown buffers: queue done 0.76 s after git; 3 steps, median 0.163 s, longest 0.228 s; VC names s20-base: 3 of 3
+  hidden: showing one took 0.118 s; VC names s20-base: yes
+filter: overflows 0
+shutdown: fswatch pid 87167 gone

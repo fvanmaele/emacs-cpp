@@ -39,6 +39,20 @@
 (defvar s20-diagnosed (make-hash-table :test #'eq) "BUFFER -> time of its last diagnostics.")
 (defvar s20-did-open 0)
 (defvar s20-last-message 0.0 "Time of the last message from the server.")
+(defvar s20-split (make-hash-table :test #'eq)
+  "Per checkout (D-154): KEY -> (SECONDS-TOTAL COUNT SECONDS-MAX); `bytes' -> total.")
+
+(defun s20--split-add (key seconds)
+  (let ((entry (gethash key s20-split (list 0.0 0 0.0))))
+    (puthash key (list (+ (nth 0 entry) seconds) (1+ (nth 1 entry))
+                       (max (nth 2 entry) seconds))
+             s20-split)))
+
+(defun s20--timed (key fn &rest args)
+  "Call FN with ARGS; add its time to KEY in `s20-split'."
+  (let ((start (float-time)))
+    (prog1 (apply fn args)
+      (s20--split-add key (- (float-time) start)))))
 
 (defun s20--emit (fmt &rest args)
   (write-region (concat (apply #'format fmt args) "\n") nil (s20--env "S20_OUT") t 'silent))
@@ -110,7 +124,7 @@
           (with-current-buffer buffer
             ;; eglot's own revert hooks (didClose, didOpen) stay.
             (let ((after-revert-hook (remq 'diff-hl-after-revert after-revert-hook)))
-              (revert-buffer t t t))
+              (s20--timed 'revert #'revert-buffer t t t))
             (if (get-buffer-window buffer t)
                 (s20--queue-shown buffer)
               (setq s20--stale t)))))))))
@@ -169,6 +183,20 @@
                 (puthash (current-buffer) (float-time) s20-opened)))
   (advice-add 'jsonrpc-connection-receive :before
               (lambda (&rest _) (setq s20-last-message (float-time))))
+  ;; D-154: the parts of a revert while clangd reparses.
+  (advice-add 'eglot--signal-textDocument/didClose :around
+              (lambda (fn &rest args) (apply #'s20--timed 'close fn args)))
+  (advice-add 'eglot--signal-textDocument/didOpen :around
+              (lambda (fn &rest args) (apply #'s20--timed 'open fn args)))
+  (advice-add 'process-send-string :around
+              (lambda (fn process string)
+                (if (and s20-clangd-pid (processp process)
+                         (eql (process-id process) s20-clangd-pid))
+                    (progn
+                      (puthash 'bytes (+ (gethash 'bytes s20-split 0) (string-bytes string))
+                               s20-split)
+                      (s20--timed 'send fn process string))
+                  (funcall fn process string))))
   (advice-add 'eglot-handle-notification :before
               (lambda (_server method &rest params)
                 (when (eq method 'textDocument/publishDiagnostics)
@@ -258,6 +286,7 @@ Return (ON-LINE TOTAL OFFSET-19 SECONDS)."
 LABEL marks a contrast checkout (no symbol check); QUIET-ONLY as `s20--settled-p'."
   (setq s20-reverted nil s20-stall 0.0 s20-shown-steps nil s20-filter-max 0.0
         s20-cpu-samples nil)
+  (clrhash s20-split)
   (let* ((records s20-records) (calls s20-calls) (total s20-filter-total)
          (opened s20-did-open)
          (t0 (float-time))
@@ -283,6 +312,15 @@ LABEL marks a contrast checkout (no symbol check); QUIET-ONLY as `s20--settled-p
                             buffers)
                (length buffers) (- s20-calls calls) (- s20-records records)
                (* 1000 (- s20-filter-total total)) (* 1000 s20-filter-max))
+    (let ((part (lambda (key)
+                  (let ((entry (gethash key s20-split (list 0.0 0 0.0))))
+                    (format "%d, %.1f ms total, max %.1f ms" (nth 1 entry)
+                            (* 1000 (nth 0 entry)) (* 1000 (nth 2 entry))))))
+          (total (lambda (key) (* 1000 (car (gethash key s20-split (list 0.0)))))))
+      (s20--emit "  split (D-154): revert-buffer %s; didClose %s; didOpen %s; sends to clangd %s, %d KB; revert without didClose and didOpen %.1f ms"
+                 (funcall part 'revert) (funcall part 'close) (funcall part 'open)
+                 (funcall part 'send) (/ (gethash 'bytes s20-split 0) 1024)
+                 (- (funcall total 'revert) (funcall total 'close) (funcall total 'open))))
     (s20--emit "  shown buffers: queue done %.2f s after git; %d steps, median %.3f s, longest %.3f s; VC names %s: %d of %d"
                (- s20-shown-last t1) (length s20-shown-steps) (s20--median s20-shown-steps)
                (apply #'max 0.0 s20-shown-steps) branch

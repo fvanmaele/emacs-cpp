@@ -202,3 +202,21 @@ Contrast, recorded:
   0.085 - 0.122 s) ran slower than with eglot (0.044 - 0.069 s); why is UNVERIFIED.
 
 Verdict: E1 - E3 PASS on the Mac. Open: the back-to-back block, O-79.
+
+## D-154: the parts of a revert during clangd's reparse (session, 2026-11-03)
+`eglot-share.el` times each revert's `revert-buffer`, eglot's didClose and didOpen,
+and every `process-send-string` to clangd (with its bytes). Logs:
+`mac-split-run1.log` .. `mac-split-run3.log`, mode `eglot`, load 4.4 - 6.1 at the
+start; a dry run before (its log not kept) gave the same picture.
+
+| checkout | Emacs blocked | `revert-buffer`, 39 calls | sends to clangd | longest send | revert without didClose / didOpen |
+|---|---|---|---|---|---|
+| judged (clangd idle) | 0.078 - 0.168 s | 32 - 168 ms | 0.5 - 112 ms | 0.0 - 112 ms | 25 - 53 ms |
+| back-to-back 2 (reparse) | 0.281 - 0.707 s (dry run 1.120 s) | 538 - 1061 ms | 463 - 1314 ms | 262 - 568 ms (dry run 1039 ms) | 68 - 151 ms |
+
+About 463 KB go to clangd per checkout (39 whole files). During the reparse the
+sends are most of the block, and one single write stalls 0.26 - 1.04 s: clangd does
+not read its input for that long. The rest of a revert slows 2 - 4 times. In clangd
+23.1.1's source, closing a file does not wait for its worker (`TUScheduler::remove`,
+`ASTWorker::stop` only take locks and notify), so what keeps clangd from reading is
+UNVERIFIED. Verdict for D-154: the sends are the cost; O-79 rules next.
