@@ -28,6 +28,14 @@ other timers that themselves wrote to clangd, found the pipe full and waited in
 turn. The freeze is mostly that Lisp, run inside a write. O-79 reopens with options
 for both halves.
 
+Correction (2026-11-03, when T-130 started): the lookup does not run on clangd's
+main thread. clangd fetches a file's compile command inside the file's own worker
+task (`ASTWorker::update`, `TUScheduler.cpp:871` in clangd 23.1.3), so the "Compile
+command" lines seen in the main thread's gaps came from worker threads writing to
+the same log. The measured part stands (stalls with the flag, none without, the
+reparse twice as long with it); why the main thread stops reading is open again,
+CPU starvation by the heavier header builds being the suspect (DESIGN O-79).
+
 ## Concepts explained
 - A pipe has a fixed buffer. When the reading process (clangd) stops reading, the
   writer (Emacs) gets "try again" (EAGAIN) once the buffer is full.
@@ -52,7 +60,8 @@ for both halves.
 - **Assumed:** the gaps in clangd's verbose log are its main thread busy with the
   includer lookup. **Would break if:** another main-thread step of the patched
   didOpen is the cost; the "Compile command ... (index)" lines sit in the gaps but
-  are not timed themselves. **DESIGN bet:** O-79 (f).
+  are not timed themselves. **DESIGN bet:** O-79 (f). Broken 2026-11-03: the lookup
+  runs on the worker thread (`TUScheduler.cpp:871`); O-79 reopened for (f).
 - **Assumed:** the timers inside sends are what the config would run too. **Would
   break if:** the spike's own timers (its queue step) dominate and the config's are
   fewer; the nested closure's identity is UNVERIFIED (byte-compiled, 2 arguments).
