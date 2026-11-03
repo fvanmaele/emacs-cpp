@@ -2267,6 +2267,10 @@ presets, GoogleTest runner.
   0.05 - 0.1 s less freeze in this case.
   Recommendation: (l): (e) removed the part that mattered; the rest is bounded and
   only in a checkout during a reparse.
+- DECIDED D-159 (owner 2026-11-03: "O-79 (m)"): S20's eglot run samples clangd's
+  threads (macOS `sample`) with D-156 (e) on and the patched flags, during the
+  back-to-back pair's second checkout, to place the residual 56 KB write stall.
+  Not taken yet: (l), (g).
 - DECIDED D-154 (owner 2026-11-03: "O-79 (c)"): before T-128's code, S20's eglot run
   times each revert under clangd's reparse, split into eglot's didClose, didOpen (its
   `process-send-string` calls to clangd, their bytes) and the rest of the revert;
@@ -3707,6 +3711,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-156 | 2026-11-03 | O-79: T-128's queue step waits out the filter; T-130 moves clangd's includer lookup off its main thread | 12 | O-79 |
 | D-157 | 2026-11-03 | O-79 (h): test CPU contention (stock with a 1 s gap, patched with `-j=5`) first | 12 | O-79 |
 | D-158 | 2026-11-03 | O-79 (k): sample clangd's threads during the stall first | 12 | O-79 |
+| D-159 | 2026-11-03 | O-79 (m): sample clangd during the residual write stall, (e) on | 12 | O-79 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |
