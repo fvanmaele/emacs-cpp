@@ -1977,6 +1977,18 @@ the form that loads magit is found (S17 run 2, T-113).
     buffer is still shown, so previews passing by skip it. Revisit if S20's new mode
     or daily use shows the stutter. Against: mode line and marks lag about 0.3 s after
     every jump into a stale buffer; a timer per show; more code.
+- DECIDED D-152 (owner 2026-11-03: "Rule (a)"): a file deleted on disk, for T-128 if
+  (e) is ruled. T-128 reverts only a file that exists and is readable (as
+  `auto-revert-handler`, `autorevert.el:834` in Emacs 31.1); the deleted file's buffer
+  stays as it is and (2b)'s message names it, e.g. `1 buffer's file deleted on disk:
+  baz.h`. Reason: `revert-buffer` on a missing file signals `"File %s no longer
+  exists!"` (`files.el:7301`); inside the fswatch filter, as S20's `s20--revert` does
+  it unguarded, the error ends the filter call and the rest of the batch stays
+  stale. S20's checkout deletes no file, so T-128's tests add one. Against: clangd
+  keeps the open buffer's symbols, so `M-.` can still land in the deleted file. Not
+  taken: (b) kill an unedited deleted file's buffer (Qt Creator closes its editor).
+  Against: a buffer shown in a window disappears from under the owner, with its undo
+  history and point.
 - REJECTED: borg (the tool this layout imitates). It assumes the package repository is
   the Emacs directory itself, which contradicts D-003; reconsider if own glue grows past
   about 100 lines. Measured after T-002: `scripts/build-packages.el` has 183 lines of
@@ -2185,7 +2197,8 @@ presets, GoogleTest runner.
   stays. Recommendation: (e): 1 - 3 steps per checkout instead of 189 and no `git`
   for buffers nobody looks at; S20's new mode with diff-hl first, eglot's share on
   RMO before T-128 ships; the combination only if a stale hidden buffer shows up.
-  (e)'s edge cases ruled 2026-11-03 (D-151): (1a), (2b), (3a); (1b), (3b) recorded.
+  (e)'s edge cases ruled 2026-11-03 (D-151): (1a), (2b), (3a); (1b), (3b) recorded;
+  deleted files kept and named (D-152).
 - O-77 (RESOLVED 2026-10-31 with D-146: (a); owner: "O-77 (a)"; was OPEN, owner
   request 2026-10-31: "Research ast-grep instead of clangd for LSP
   functionality in C/C++"): findings in `RESEARCH_ast_grep.md`. ast-grep is syntax
@@ -3516,6 +3529,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-149 | 2026-10-29 | T-127 reverted until S20's verdict; no auto-revert of the config's own | 12 | owner |
 | D-150 | 2026-11-02 | clangd-index-nav `pkgrel` resets to 1 per LLVM release; 23.1.4-1 | 7 | D-123 |
 | D-151 | 2026-11-03 | O-78 (e)'s edge cases: no check on a jump, a message for edited buffers, previews pay | 12 | O-78 |
+| D-152 | 2026-11-03 | T-128 skips a deleted file; its buffer stays, named in D-151's message | 12 | O-78 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |
