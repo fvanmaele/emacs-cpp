@@ -194,10 +194,10 @@ Contrast, recorded:
 - Back to back (the second checkout once clangd is quiet, not idle): Emacs blocked
   0.361 - 0.736 s (the second dry run 0.978 s), one filter call 356 - 736 ms for 39
   reverts; queue steps up to 0.275 s; settled 64 - 70 s after `git`. The same in
-  `no-eglot`: blocked 0.125 - 0.128 s, the filter's longest call 19 - 36 ms. So the
-  cost is eglot's work per revert (didClose, didOpen) while clangd reparses on every
-  core, about 10 - 25 ms per buffer against under 1 ms idle. Mechanism UNVERIFIED
-  (suspected: `process-send-string` of a whole file waiting on clangd's input pipe).
+  `no-eglot`: blocked 0.125 - 0.128 s, the filter's longest call 19 - 36 ms, but with
+  no clangd running, so no CPU contention: about 10 - 25 ms per revert during the
+  reparse against under 1 ms idle, whether from eglot's sends or every revert slowed
+  by the busy machine is UNVERIFIED (corrected 2026-11-03; D-154 measures the split).
 - `no-eglot`, the same checkouts: blocked 0.115 - 0.163 s; its queue steps (median
   0.085 - 0.122 s) ran slower than with eglot (0.044 - 0.069 s); why is UNVERIFIED.
 

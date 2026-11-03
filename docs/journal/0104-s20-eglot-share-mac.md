@@ -31,8 +31,10 @@ done: it publishes diagnostics early and keeps reparsing. A checkout started the
 blocked Emacs 0.33 s. The owner ruled that settled also means clangd's CPU time grows
 by less than 0.1 s over 5 s, and asked to keep the early checkout as a contrast. That
 contrast blocks Emacs 0.36 - 0.98 s in one filter call, against 19 - 36 ms without
-eglot: eglot's work per revert becomes slow while clangd uses every core. O-79 asks
-what T-128 does about it.
+eglot. That contrast ran with no clangd at all, so it does not tell eglot's sends
+from every revert being slowed by the busy machine (corrected the same day; the
+first text said eglot's work). O-79 asks what T-128 does about it; D-154 measures
+the split first.
 
 ## Concepts (Emacs Lisp) explained
 - `eglot--connect` with `eglot--guess-contact`: what `eglot-ensure` runs from
