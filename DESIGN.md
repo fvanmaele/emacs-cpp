@@ -2007,7 +2007,8 @@ the form that loads magit is found (S17 run 2, T-113).
   (`diff-hl-after-revert`); a hidden buffer's VC state stays stale until shown;
   eglot's work per revert stays in the filter, unmeasured. `fswatch-shown` PASS on the
   Mac 2026-11-03 (0103): blocked at most 0.13 s, shown buffers current 0.33 s after
-  `git`; Arch runs on H-22. eglot's share on RMO-drafts (0104): E1 - E3 PASS on the
+  `git`; PASS on Arch 2026-11-03 (0110): blocked at most 0.14 s, shown buffers
+  current 0.36 s after `git`. eglot's share on RMO-drafts (0104): E1 - E3 PASS on the
   Mac (blocked at most 0.183 s with 39 eglot buffers); a checkout during clangd's
   reparse blocks 0.36 - 0.98 s, O-79.
 - REJECTED: borg (the tool this layout imitates). It assumes the package repository is
@@ -2077,7 +2078,7 @@ presets, GoogleTest runner.
 | match function ranks unlike the regexps or is slower | S16 | owner | D-124 |
 | compiled `lisp/` slows startup or stays bytecode | S17 | owner | D-125 |
 | fswatch backend loses changes or costs Emacs too much | S18 (PASS 2026-10-21) | LLM / owner | D-127 |
-| per-project fswatch reverter loses changes or blocks Emacs | S20 (FAIL 2026-11-02: Mac criterion 3, VC steps; PASS on Arch; mode `fswatch-shown` for (e), D-153: PASS on the Mac 2026-11-03, Arch on H-22) | LLM / owner | O-78 |
+| per-project fswatch reverter loses changes or blocks Emacs | S20 (FAIL 2026-11-02: Mac criterion 3, VC steps; PASS on Arch; mode `fswatch-shown` for (e), D-153: PASS on the Mac and on Arch 2026-11-03, 0103, 0110) | LLM / owner | O-78 |
 | own package build glue mis-orders compilation | none (tests) | - | v0.1 |
 | config fails on macOS (paths, tools, tests) | none (`make test`) | owner | D-050 |
 | clangd too slow / too large on deal.II scale | S1 numbers | owner | v0.1 |

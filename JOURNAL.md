@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0110 | 2026-11-04 | S20 `fswatch-shown`: PASS on Arch, S20 passes on both machines | S20 | D-153 |
 | 0109 | 2026-11-03 | D-159: the residual write stall sampled, clangd in read | S20 | D-159 |
 | 0108 | 2026-11-03 | D-158: clangd waits in read; Emacs's timers were the freeze, (e) cuts it | S20 | D-158, D-156 |
 | 0107 | 2026-11-03 | D-157: CPU contention does not explain the stalled writes | S20 | D-157 |
