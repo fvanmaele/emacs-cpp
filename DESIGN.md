@@ -874,9 +874,13 @@ Known defects: none yet (nothing built).
   `file-truename` and inotify's three records per file); the owner's Mac run 4
   2 ms. Next: T-119, this section rewritten and the backend written fresh in
   `lisp/` (done when proposed there).
+  Corrected 2026-11-03 (O-80, 0111): the Mac's figures in this entry (7 - 9 ms, 2 ms)
+  are 41.7 times too small (`process-attributes` on Apple silicon), about 290 - 375
+  and 83 ms per 1000 records, over S18's 50; Arch's stand. The PASS holds on Arch.
 **The backend as built (T-119, 2026-10-21; supersedes the design below for the built-in
 eglot).** `lisp/emacs-cpp-eglot-fswatch.el`, written fresh in the shape S18's `dedup`
-mode measured (37 - 39 ms of Emacs's CPU per 1000 records on Arch, 2 ms on the Mac):
+mode measured (37 - 39 ms of Emacs's CPU per 1000 records on Arch; the Mac's 2 ms
+read 41.7 times too small, about 83 ms, O-80):
 - **Where it hooks.** An `:around` method on `eglot-register-capability` and on
   `eglot-unregister-capability` for `workspace/didChangeWatchedFiles` takes the
   registration over (eglot's own method is not called, so `file-notify` holds no
@@ -2077,7 +2081,7 @@ presets, GoogleTest runner.
 | Mid-word ranking changes good fuzzy matches or slows clangd | S15 (PASS) | owner | O-67 |
 | match function ranks unlike the regexps or is slower | S16 | owner | D-124 |
 | compiled `lisp/` slows startup or stays bytecode | S17 | owner | D-125 |
-| fswatch backend loses changes or costs Emacs too much | S18 (PASS 2026-10-21) | LLM / owner | D-127 |
+| fswatch backend loses changes or costs Emacs too much | S18 (PASS 2026-10-21 on Arch; the Mac's cost misread, O-80) | LLM / owner | D-127 |
 | per-project fswatch reverter loses changes or blocks Emacs | S20 (FAIL 2026-11-02: Mac criterion 3, VC steps; PASS on Arch; mode `fswatch-shown` for (e), D-153: PASS on the Mac and on Arch 2026-11-03, 0103, 0110) | LLM / owner | O-78 |
 | own package build glue mis-orders compilation | none (tests) | - | v0.1 |
 | config fails on macOS (paths, tools, tests) | none (`make test`) | owner | D-050 |
@@ -2141,6 +2145,27 @@ presets, GoogleTest runner.
   measured across 63 files. Findings in; O-43.
 
 ## Open questions ledger (LIVING)
+- O-80 (OPEN 2026-11-03, found in D-160's research, 0111): Emacs 31.1's
+  `process-attributes` gives CPU times 41.7 times too small on Apple silicon: its
+  Darwin code takes proc_pid_rusage's times, Mach ticks of 125/3 ns, for ns
+  (`sysdep.c`; a child that burned 1.0 s of CPU read as 0.027 s). S18 judged its
+  criterion 3 (Emacs's CPU per 1000 records, at most 50 ms) on the Mac with it: times
+  the factor, the Mac costs about 83 ms (runs 4, 6), 250 ms (run 3) and 290 - 375 ms
+  (dry run), over the limit; Arch's 37 - 49 ms stand (Linux's `/proc`). D-057 judges
+  budgets on Arch only, but D-127 asked for S18 on both machines. The config's
+  `lisp/` reads no CPU times; S20's settle test did (fixed in the spike, 0111).
+  Options:
+  (a) record the Mac's cost, judge Arch only (D-057); D-127 stands. Against: the
+  Mac's cost (about 1.7 s of Emacs's CPU for S18's 20000-file burst) stays
+  unexamined; the factor-corrected numbers are not a run.
+  (b) rerun S18's `shipped` mode on the Mac with `current-cpu-time` (`s18-run.el`
+  reads it now), then rule. Against: about 15 min of the session's time on the Mac;
+  the limit of 50 was set with Arch's three records per file in mind.
+  (c) report the bug to Emacs (`report-emacs-bug`, the owner's to send) with the
+  1 s burner as reproduction. Against: outward, the owner's time; fixes nothing here.
+  Combined: (b), then (a) or a Mac cost task by its result; (c) beside it.
+  Against: two steps before the Mac's verdict is restated.
+  Recommendation: the combination: a verdict should rest on a measured number.
 - O-79 (REOPENED 2026-11-03 for (f): its premise refuted when T-130 started, see the
   correction below; (e) stands, D-156; was RESOLVED 2026-11-03 with D-156: (e) in
   T-128, (f) as a task; owner: "O-79 combined (e) in T-128, (f) as task"; was
