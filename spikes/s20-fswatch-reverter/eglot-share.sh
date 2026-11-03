@@ -53,13 +53,33 @@ trap 'rm -f "$out"' EXIT
     echo "source: $src at $(git -C "$src" rev-parse --short HEAD); clangd: $("$clangd" --version | head -1)"
     echo "load: $(sysctl -n vm.loadavg | tr -d '{}')"
 } | tee "$log"
+# D-160: S20_PIPETRACE=<file> loads pipetrace.c into Emacs (EMACS must be the
+# binary: macOS drops DYLD_* when a script runs it), writes the trace to
+# <file>.<mode> and appends pipetrace.py's summary to the log.
+trace=${S20_PIPETRACE:-}
+if [ -n "$trace" ]; then
+    cc -O2 -Wall -Wextra -dynamiclib -o "$trace.dylib" "$here/pipetrace.c"
+fi
 status=0
 for mode in ${S20_MODES:-eglot no-eglot}; do
     : > "$out"
     # T-129: S20_CLANGD_FLAGS (patched / stock) and S20_CLANGD_LOG pass through.
-    S20_ROOT=$clone S20_MODE=$mode S20_FSWATCH=$fsw S20_CLANGD=$clangd S20_OUT=$out \
-        S20_DIFF_HL=$diff_hl "$EMACS" -Q --batch -l "$here/eglot-share.el" </dev/null ||
-        status=$?
+    (
+        if [ -n "$trace" ]; then
+            rm -f "$trace.$mode"
+            DYLD_INSERT_LIBRARIES=$trace.dylib PIPETRACE_OUT=$trace.$mode
+            export DYLD_INSERT_LIBRARIES PIPETRACE_OUT
+        fi
+        S20_ROOT=$clone S20_MODE=$mode S20_FSWATCH=$fsw S20_CLANGD=$clangd S20_OUT=$out \
+            S20_DIFF_HL=$diff_hl "$EMACS" -Q --batch -l "$here/eglot-share.el" </dev/null
+    ) || status=$?
     { echo; cat "$out"; } | tee -a "$log"
     [ "$status" -eq 0 ] || { echo "s20: $mode failed ($status)" | tee -a "$log"; exit "$status"; }
+    if [ -n "$trace" ]; then
+        [ -s "$trace.$mode" ] || {
+            echo "s20: no trace at $trace.$mode (is EMACS a script?)" | tee -a "$log"
+            exit 1
+        }
+        python3 -I "$here/pipetrace.py" "$trace.$mode" "$out" | tee -a "$log"
+    fi
 done

@@ -21,6 +21,10 @@
 (defun s20--env (name)
   (or (getenv name) (error "s20: %s is not set" name)))
 
+;; D-160: pipetrace.c stays in this Emacs, out of clangd, git and fswatch.
+(setenv "DYLD_INSERT_LIBRARIES")
+(defvar s20-pipetrace (getenv "PIPETRACE_OUT"))
+
 (defvar s20-root (file-name-as-directory (expand-file-name (s20--env "S20_ROOT"))))
 (defvar s20-real-root (file-name-as-directory (file-truename s20-root)))
 (defvar s20-mode (s20--env "S20_MODE"))
@@ -121,6 +125,17 @@
       (when (buffer-local-value 's20--stale buffer)
         (s20--refresh buffer)))))
 
+(defvar s20--reverting nil "Non-nil inside the reverter's `revert-buffer'.")
+
+;; D-160: each revert's file read, wall and Emacs's CPU time.
+(advice-add 'insert-file-contents :around
+            (lambda (fn &rest args)
+              (if (not s20--reverting)
+                  (apply fn args)
+                (let ((cpu (current-cpu-time)))
+                  (prog1 (apply #'s20--timed 'read fn args)
+                    (s20--split-add 'read-cpu (s20--cpu-since cpu)))))))
+
 (defun s20--revert (path)
   "Revert the unedited buffer visiting PATH (a real path) if its file is newer."
   (when (string-prefix-p s20-real-root path)
@@ -134,16 +149,32 @@
          (t
           (with-current-buffer buffer
             ;; eglot's own revert hooks (didClose, didOpen) stay.
-            (let ((after-revert-hook (remq 'diff-hl-after-revert after-revert-hook)))
-              (s20--timed 'revert #'revert-buffer t t t))
+            (let ((after-revert-hook (remq 'diff-hl-after-revert after-revert-hook))
+                  (s20--reverting t)
+                  (cpu (current-cpu-time)))
+              (s20--timed 'revert #'revert-buffer t t t)
+              (s20--split-add 'revert-cpu (s20--cpu-since cpu)))
             (if (get-buffer-window buffer t)
                 (s20--queue-shown buffer)
               (setq s20--stale t)))))))))
+
+(defvar s20-filter-calls nil
+  "D-160: (WALL CPU CLANGD-CPU DEPTH REVERTS) of each filter call, newest first.
+CPU is Emacs's (`current-cpu-time'), CLANGD-CPU clangd's over the same span.")
+(defvar s20--filter-depth 0 "Filter calls running: above 0 inside one.")
+
+(defun s20--cpu-since (cpu)
+  (let ((now (current-cpu-time)))
+    (/ (float (- (car now) (car cpu))) (cdr now))))
 
 (defun s20--filter ()
   (let ((pending ""))
     (lambda (_process output)
       (let* ((start (float-time))
+             (cpu (current-cpu-time))
+             (clangd-cpu (and s20-clangd-pid (s20--clangd-cpu)))
+             (depth s20--filter-depth)
+             (reverts (length s20-reverted))
              (records (split-string (concat pending output) "\0"))
              (complete (butlast records))
              (paths (make-hash-table :test #'equal)))
@@ -156,12 +187,17 @@
                 (cl-incf s20-overflows)
               (when (string-suffix-p "/.s20-probe" path) (setq s20-probe-seen t))
               (puthash path t paths))))
-        (let ((s20--in-filter t))
+        (let ((s20--in-filter t)
+              (s20--filter-depth (1+ depth)))
           (maphash (lambda (path _) (s20--revert path)) paths))
         (when s20-skipped
           (message "s20: skipped %S" s20-skipped)
           (setq s20-skipped nil))
         (let ((spent (- (float-time) start)))
+          (push (list spent (s20--cpu-since cpu)
+                      (and clangd-cpu (- (s20--clangd-cpu) clangd-cpu))
+                      depth (- (length s20-reverted) reverts))
+                s20-filter-calls)
           (cl-incf s20-calls)
           (cl-incf s20-filter-total spent)
           (setq s20-filter-max (max s20-filter-max spent)))))))
@@ -282,10 +318,28 @@ for clangd's stderr with --log=verbose (through sh's exec, so the pid stays clan
 (defvar s20-clangd-pid nil)
 (defvar s20-cpu-samples nil "(TIME . CLANGD-CPU-SECONDS), newest first, at most 0.25 s apart.")
 
-(defun s20--clangd-cpu ()
-  (let ((attributes (process-attributes s20-clangd-pid)))
+(defun s20--attributes-cpu (pid)
+  (let ((attributes (process-attributes pid)))
     (+ (float-time (alist-get 'utime attributes))
        (float-time (alist-get 'stime attributes)))))
+
+(defvar s20-cpu-scale
+  (let* ((cpu (current-cpu-time))
+         (attributes (s20--attributes-cpu (emacs-pid)))
+         (end (+ (float-time) 0.2))
+         (_ (while (< (float-time) end)))
+         (seen (- (s20--attributes-cpu (emacs-pid)) attributes))
+         (scale (and (> seen 0) (/ (s20--cpu-since cpu) seen))))
+    (unless (and scale (< 0.5 scale 100))
+      (error "s20: process-attributes CPU scale %S (0.2 s of work seen as %S s)"
+             scale seen))
+    scale)
+  "D-160: `process-attributes' CPU seconds to real ones, measured at load against
+`current-cpu-time' over 0.2 s of work.  Emacs 31.1 on Apple silicon reads
+proc_pid_rusage's times, Mach ticks of 125/3 ns, as ns (sysdep.c): 41.7 there.")
+
+(defun s20--clangd-cpu ()
+  (* s20-cpu-scale (s20--attributes-cpu s20-clangd-pid)))
 
 (defun s20--clangd-idle-p ()
   "Non-nil if clangd used less than 0.1 s of CPU over the last 5 s (owner 2026-11-03)."
@@ -357,11 +411,15 @@ Return (ON-LINE TOTAL OFFSET-19 SECONDS)."
 
 (defun s20--start-sample ()
   "D-158: start macOS `sample' on clangd (3 s, 1 ms apart) into S20_SAMPLE.
-Return the process once `sample' has attached, or nil without S20_SAMPLE."
-  (when-let* ((file (getenv "S20_SAMPLE")))
+D-160: S20_SAMPLE_EMACS samples this Emacs instead.
+Return the process once `sample' has attached, or nil without either."
+  (when-let* ((file (or (getenv "S20_SAMPLE") (getenv "S20_SAMPLE_EMACS"))))
     (let ((process (make-process
                     :name "s20-sample" :buffer (generate-new-buffer " *s20-sample*")
-                    :command (list "/usr/bin/sample" (number-to-string s20-clangd-pid)
+                    :command (list "/usr/bin/sample"
+                                   (number-to-string (if (getenv "S20_SAMPLE")
+                                                         s20-clangd-pid
+                                                       (emacs-pid)))
                                    "3" "1" "-mayDie" "-file" file)
                     :noquery t)))
       (process-put process 'started (float-time))
@@ -379,7 +437,7 @@ LABEL marks a contrast checkout (no symbol check).  SETTLE nil waits until clang
 is quiet and idle, `quiet' until it is quiet only, a number of seconds until that
 long after `git' (D-157's gap)."
   (setq s20-reverted nil s20-stall 0.0 s20-shown-steps nil s20-filter-max 0.0
-        s20-cpu-samples nil s20-stalled nil s20-steps-deferred 0)
+        s20-cpu-samples nil s20-stalled nil s20-steps-deferred 0 s20-filter-calls nil)
   (clrhash s20-timer-names)
   (clrhash s20-split)
   (let* ((records s20-records) (calls s20-calls) (total s20-filter-total)
@@ -408,6 +466,8 @@ long after `git' (D-157's gap)."
                  ((pred numberp) (format " (gap %.1f s, not settled)" settle))
                  (_ ""))
                (if settled "yes" "NO") (- t3 t1) s20-stall)
+    (when s20-pipetrace
+      (s20--emit "  pipetrace window (D-160): git %.6f, settled %.6f" t0 t3))
     (s20--emit "  reverts %d; didOpen %d; diagnostics after didOpen in %d of %d; filter %d calls, %d records, %.1f ms total, longest %.1f ms"
                (length s20-reverted) (- s20-did-open opened)
                (cl-count-if (lambda (b) (> (gethash b s20-diagnosed 0.0)
@@ -415,6 +475,16 @@ long after `git' (D-157's gap)."
                             buffers)
                (length buffers) (- s20-calls calls) (- s20-records records)
                (* 1000 (- s20-filter-total total)) (* 1000 s20-filter-max))
+    (s20--emit "  filter calls (D-160): %s"
+               (mapconcat (pcase-lambda (`(,wall ,cpu ,clangd ,depth ,reverts))
+                            (format "wall %.1f ms, Emacs CPU %.1f ms, clangd CPU %s, depth %d, %d reverts"
+                                    (* 1000 wall) (* 1000 cpu)
+                                    (if clangd
+                                        (format "%.0f ms (%.1f cores)" (* 1000 clangd)
+                                                (/ clangd (max wall 1e-6)))
+                                      "-")
+                                    depth reverts))
+                          (reverse s20-filter-calls) "; "))
     (let ((part (lambda (key)
                   (let ((entry (gethash key s20-split (list 0.0 0 0.0))))
                     (format "%d, %.1f ms total, max %.1f ms" (nth 1 entry)
@@ -424,6 +494,9 @@ long after `git' (D-157's gap)."
                  (funcall part 'revert) (funcall part 'close) (funcall part 'open)
                  (funcall part 'send) (/ (gethash 'bytes s20-split 0) 1024)
                  (- (funcall total 'revert) (funcall total 'close) (funcall total 'open)))
+      (s20--emit "  reverts (D-160): Emacs CPU %.1f ms of %.1f ms; their file reads (insert-file-contents) %s, Emacs CPU %.1f ms"
+                 (funcall total 'revert-cpu) (funcall total 'revert) (funcall part 'read)
+                 (funcall total 'read-cpu))
       (s20--emit "  clangd's output (T-129): read inside sends %s; elsewhere %s; publishDiagnostics handled inside sends %s; elsewhere %s"
                  (funcall part 'output-in-send) (funcall part 'output)
                  (funcall part 'diagnostics-in-send) (funcall part 'diagnostics))
@@ -458,7 +531,8 @@ long after `git' (D-157's gap)."
     (when sampler
       (s20--wait (lambda () (not (process-live-p sampler))) 60)
       (s20--emit "  sample (D-158): %s, started %.2f s before git; %s"
-                 (getenv "S20_SAMPLE") (- t0 (process-get sampler 'started))
+                 (or (getenv "S20_SAMPLE") (getenv "S20_SAMPLE_EMACS"))
+                 (- t0 (process-get sampler 'started))
                  (string-trim (with-current-buffer (process-buffer sampler)
                                 (buffer-string)))))
     (when (and s20-eglot (not label))
@@ -493,6 +567,7 @@ long after `git' (D-157's gap)."
     (s20--emit "buffers: %d (%d headers), %S major mode; %d shown in windows"
                (length buffers) (length headers)
                (buffer-local-value 'major-mode (car buffers)) (length shown))
+    (s20--emit "process-attributes CPU scale (D-160): %.1f" s20-cpu-scale)
     (when s20-eglot
       (let ((t0 (float-time)))
         (with-current-buffer (car buffers)

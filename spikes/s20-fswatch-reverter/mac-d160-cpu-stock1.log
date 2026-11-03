@@ -1,0 +1,52 @@
+S20 eglot-share 2026-11-03T14:13:27Z, Darwin arm64, GNU Emacs 31.1
+source: /Users/fvanmaele/source/repos/RMO-drafts at aad752e; clangd: clangd version 23.1.3
+load:  4.32 6.53 5.90 
+
+S20 eglot-share eglot, darwin GNU Emacs 31.1 (build 2, aarch64-apple-darwin27.0.0, NS appkit-2775.10 Version 27.0.1 (Build 26A434)), 2026-11-03T14:13:32Z
+buffers: 39 (19 headers), c++-ts-mode major mode; 3 shown in windows
+eglot: 39 of 39 buffers managed; server ("/Users/fvanmaele/opt/clangd-index-nav/bin/clangd" "--compile-commands-dir=/var/folders/97/_w6hwfk17v7dlzb35nklbm9h0000gn/T/s20-rmo/build/mac-debug" "--rename-file-limit=0"); settled: yes after 22.5 s
+ready: yes after 0.56 s
+checkout s20-shift: git 0.14 s; all 39 buffers current: yes, 0.17 s after git; settled: yes, 21.6 s after git; Emacs blocked at most 0.123 s
+  reverts 39; didOpen 39; diagnostics after didOpen in 39 of 39; filter 2 calls, 78 records, 146.9 ms total, longest 117.7 ms
+  filter calls (D-160): wall 29.2 ms, Emacs CPU 20.8 ms, clangd CPU 3 ms (0.1 cores), depth 0, 16 reverts; wall 117.7 ms, Emacs CPU 42.2 ms, clangd CPU 27 ms (0.2 cores), depth 0, 23 reverts
+  split (D-154): revert-buffer 39, 142.1 ms total, max 21.4 ms; didClose 39, 0.8 ms total, max 0.1 ms; didOpen 39, 30.4 ms total, max 18.4 ms; sends to clangd 117, 0.7 ms total, max 0.0 ms, 473 KB; revert without didClose and didOpen 110.9 ms
+  clangd's output (T-129): read inside sends 0, 0.0 ms total, max 0.0 ms; elsewhere 64, 5.6 ms total, max 0.8 ms; publishDiagnostics handled inside sends 0, 0.0 ms total, max 0.0 ms; elsewhere 78, 11.7 ms total, max 1.7 ms
+  timers inside sends (T-129): reverter's queue step 0, 0.0 ms total, max 0.0 ms; others 0, 0.0 ms total, max 0.0 ms nil
+  garbage collection (D-158): 1 GCs, 18 ms, from git to settled; gc-cons-threshold 800000; queue steps deferred (D-156 (e)): 0
+  shown buffers: queue done 0.45 s after git; 3 steps, median 0.043 s, longest 0.093 s; VC names s20-shift: 3 of 3
+  hidden: showing one took 0.081 s; VC names s20-shift: yes
+  symbols assemble.h: 10 of 10 on their lines, 0 offset by 19 (answered in 0.1 s)
+  symbols grid.h: 11 of 11 on their lines, 0 offset by 19 (answered in 0.0 s)
+  symbols space.h: 33 of 33 on their lines, 0 offset by 19 (answered in 0.0 s)
+checkout s20-base: git 0.06 s; all 39 buffers current: yes, 0.17 s after git; settled: yes, 21.3 s after git; Emacs blocked at most 0.116 s
+  reverts 39; didOpen 39; diagnostics after didOpen in 39 of 39; filter 2 calls, 78 records, 92.5 ms total, longest 71.2 ms
+  filter calls (D-160): wall 21.3 ms, Emacs CPU 14.2 ms, clangd CPU 3 ms (0.1 cores), depth 0, 16 reverts; wall 71.2 ms, Emacs CPU 23.3 ms, clangd CPU 16 ms (0.2 cores), depth 0, 23 reverts
+  split (D-154): revert-buffer 39, 88.8 ms total, max 9.2 ms; didClose 39, 0.8 ms total, max 0.2 ms; didOpen 39, 9.7 ms total, max 0.5 ms; sends to clangd 117, 0.7 ms total, max 0.1 ms, 461 KB; revert without didClose and didOpen 78.4 ms
+  clangd's output (T-129): read inside sends 0, 0.0 ms total, max 0.0 ms; elsewhere 63, 3.8 ms total, max 0.2 ms; publishDiagnostics handled inside sends 0, 0.0 ms total, max 0.0 ms; elsewhere 78, 13.5 ms total, max 1.2 ms
+  timers inside sends (T-129): reverter's queue step 0, 0.0 ms total, max 0.0 ms; others 0, 0.0 ms total, max 0.0 ms nil
+  garbage collection (D-158): 0 GCs, 0 ms, from git to settled; gc-cons-threshold 800000; queue steps deferred (D-156 (e)): 0
+  shown buffers: queue done 0.48 s after git; 3 steps, median 0.048 s, longest 0.116 s; VC names s20-base: 3 of 3
+  hidden: showing one took 0.083 s; VC names s20-base: yes
+  symbols assemble.h: 10 of 10 on their lines, 0 offset by 19 (answered in 0.1 s)
+  symbols grid.h: 11 of 11 on their lines, 0 offset by 19 (answered in 0.0 s)
+  symbols space.h: 33 of 33 on their lines, 0 offset by 19 (answered in 0.0 s)
+contrast back-to-back 1, checkout s20-shift: git 0.08 s; all 39 buffers current: yes, 0.19 s after git; settled (quiet only): yes, 8.8 s after git; Emacs blocked at most 0.103 s
+  reverts 39; didOpen 39; diagnostics after didOpen in 39 of 39; filter 2 calls, 78 records, 133.8 ms total, longest 93.0 ms
+  filter calls (D-160): wall 40.8 ms, Emacs CPU 33.1 ms, clangd CPU 7 ms (0.2 cores), depth 0, 16 reverts; wall 93.0 ms, Emacs CPU 26.4 ms, clangd CPU 20 ms (0.2 cores), depth 0, 23 reverts
+  split (D-154): revert-buffer 39, 129.8 ms total, max 21.0 ms; didClose 39, 0.8 ms total, max 0.0 ms; didOpen 39, 29.0 ms total, max 18.9 ms; sends to clangd 113, 0.7 ms total, max 0.0 ms, 473 KB; revert without didClose and didOpen 100.0 ms
+  clangd's output (T-129): read inside sends 0, 0.0 ms total, max 0.0 ms; elsewhere 55, 3.5 ms total, max 0.1 ms; publishDiagnostics handled inside sends 0, 0.0 ms total, max 0.0 ms; elsewhere 74, 14.4 ms total, max 1.8 ms
+  timers inside sends (T-129): reverter's queue step 0, 0.0 ms total, max 0.0 ms; others 0, 0.0 ms total, max 0.0 ms nil
+  garbage collection (D-158): 1 GCs, 18 ms, from git to settled; gc-cons-threshold 800000; queue steps deferred (D-156 (e)): 0
+  shown buffers: queue done 0.47 s after git; 3 steps, median 0.047 s, longest 0.084 s; VC names s20-shift: 3 of 3
+  hidden: showing one took 0.036 s; VC names s20-shift: yes
+contrast back-to-back 2, checkout s20-base: git 0.04 s; all 39 buffers current: yes, 0.24 s after git; settled: yes, 23.3 s after git; Emacs blocked at most 0.132 s
+  reverts 39; didOpen 39; diagnostics after didOpen in 39 of 39; filter 2 calls, 78 records, 158.5 ms total, longest 124.2 ms
+  filter calls (D-160): wall 34.3 ms, Emacs CPU 14.3 ms, clangd CPU 6 ms (0.2 cores), depth 0, 16 reverts; wall 124.2 ms, Emacs CPU 23.6 ms, clangd CPU 27 ms (0.2 cores), depth 0, 23 reverts
+  split (D-154): revert-buffer 39, 154.7 ms total, max 28.1 ms; didClose 39, 0.9 ms total, max 0.2 ms; didOpen 39, 9.9 ms total, max 0.6 ms; sends to clangd 121, 0.7 ms total, max 0.0 ms, 461 KB; revert without didClose and didOpen 143.9 ms
+  clangd's output (T-129): read inside sends 0, 0.0 ms total, max 0.0 ms; elsewhere 68, 4.5 ms total, max 0.3 ms; publishDiagnostics handled inside sends 0, 0.0 ms total, max 0.0 ms; elsewhere 78, 14.5 ms total, max 1.5 ms
+  timers inside sends (T-129): reverter's queue step 0, 0.0 ms total, max 0.0 ms; others 0, 0.0 ms total, max 0.0 ms nil
+  garbage collection (D-158): 0 GCs, 0 ms, from git to settled; gc-cons-threshold 800000; queue steps deferred (D-156 (e)): 0
+  shown buffers: queue done 0.54 s after git; 3 steps, median 0.053 s, longest 0.097 s; VC names s20-base: 3 of 3
+  hidden: showing one took 0.097 s; VC names s20-base: yes
+filter: overflows 0
+shutdown: fswatch pid 16049 gone
