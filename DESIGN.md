@@ -2140,8 +2140,9 @@ presets, GoogleTest runner.
   measured across 63 files. Findings in; O-43.
 
 ## Open questions ledger (LIVING)
-- O-79 (RESOLVED 2026-11-03 with D-155: (a) for T-128 now, (d) beside it; owner: "O-79
-  (a) for T-128 now, (d) alongside"; (c) ruled 2026-11-03, D-154, measured the same
+- O-79 (REOPENED 2026-11-03 by T-129, 0106, as D-155 set; was RESOLVED 2026-11-03
+  with D-155: (a) for T-128 now, (d) beside it; owner: "O-79 (a) for T-128 now, (d)
+  alongside"; (c) ruled 2026-11-03, D-154, measured the same
   day (0105); found 2026-11-03 by
   S20's eglot runs, 0104): a checkout while clangd still reparses after the previous
   one (here the second of two checkouts 5 s apart) blocks Emacs 0.36 - 0.98 s in one
@@ -2181,6 +2182,30 @@ presets, GoogleTest runner.
   Against: T-128 ships with the freeze known until then. Recommendation: the
   combination: (b)'s premise fails on the split, (a)'s cost is now measured and
   limited to checkouts during a reparse.
+  T-129's result (0106, S20 RESULTS): the freeze has two parts. clangd with
+  `--header-flags-from-index` (D-028) spends up to about 12 ms per header's didOpen
+  on its main thread during the reparse (the includer lookup in its index) and
+  reads nothing meanwhile, so Emacs's writes fill the pipe; with stock flags or
+  `--navigation-from-index` alone no write stalls (back-to-back 2 blocked 0.104 -
+  0.168 s). Emacs then waits in `send_process`, which runs due timers: the
+  reverter's queue step (VC and diff-hl, up to 280 ms per run during the reparse)
+  and nested timers that send again and stall on the same pipe. The flag also
+  doubles the reparse (41 - 48 s against 21 - 22 s). Options after T-129:
+  (e) T-128's queue step never runs while the reverter's filter runs (the step arms
+  itself again when it finds the filter active). Against: other timers still run
+  inside a stalled write (the nested ones, unmeasured without the step); the freeze
+  shrinks by the steps only (up to about 0.45 s of 0.6 - 0.75 s here, UNVERIFIED as
+  a whole).
+  (f) a clangd patch: the includer lookup of `--header-flags-from-index` off the
+  main thread (where clangd fetches compile commands for its workers). Against:
+  patch work on clangd-index-nav (D-069) and rebuilds on both machines; the lookup
+  must still finish before the header's first build.
+  (g) drop `--header-flags-from-index`. Against: headers opened first lose their
+  includer's flags (D-028's reason: wrong diagnostics and navigation in them).
+  Combined: (e) in T-128 now, (f) as a task, the freeze measured again after each.
+  Against: two pieces of work; (f) is clangd C++.
+  Recommendation: the combination: (e) is small and removes the reverter's own
+  share; (f) removes the cause for every eglot write, not only T-128's.
 - DECIDED D-154 (owner 2026-11-03: "O-79 (c)"): before T-128's code, S20's eglot run
   times each revert under clangd's reparse, split into eglot's didClose, didOpen (its
   `process-send-string` calls to clangd, their bytes) and the rest of the revert;

@@ -56,6 +56,7 @@ trap 'rm -f "$out"' EXIT
 status=0
 for mode in ${S20_MODES:-eglot no-eglot}; do
     : > "$out"
+    # T-129: S20_CLANGD_FLAGS (patched / stock) and S20_CLANGD_LOG pass through.
     S20_ROOT=$clone S20_MODE=$mode S20_FSWATCH=$fsw S20_CLANGD=$clangd S20_OUT=$out \
         S20_DIFF_HL=$diff_hl "$EMACS" -Q --batch -l "$here/eglot-share.el" </dev/null ||
         status=$?

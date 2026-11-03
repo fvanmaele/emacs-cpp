@@ -1,0 +1,36 @@
+S20 eglot-share 2026-11-03T01:57:02Z, Darwin arm64, GNU Emacs 31.1
+source: /Users/fvanmaele/source/repos/RMO-drafts at aad752e; clangd: clangd version 23.1.3
+load:  5.49 5.94 4.88 
+
+S20 eglot-share eglot, darwin GNU Emacs 31.1 (build 2, aarch64-apple-darwin27.0.0, NS appkit-2775.10 Version 27.0.1 (Build 26A434)), 2026-11-03T01:57:06Z
+buffers: 39 (19 headers), c++-ts-mode major mode; 3 shown in windows
+eglot: 39 of 39 buffers managed; server ("/bin/sh" "-c" "exec \"$0\" \"$@\" 2>\"$S20_CLANGD_LOG\"" "/Users/fvanmaele/opt/clangd-index-nav/bin/clangd" "--compile-commands-dir=/var/folders/97/_w6hwfk17v7dlzb35nklbm9h0000gn/T/s20-rmo/build/mac-debug" "--rename-file-limit=0" "--log=verbose"); settled: yes after 23.2 s
+ready: yes after 0.56 s
+checkout s20-shift: git 0.16 s; all 39 buffers current: yes, 0.12 s after git; settled: yes, 21.5 s after git; Emacs blocked at most 0.115 s
+  reverts 39; didOpen 39; diagnostics after didOpen in 39 of 39; filter 2 calls, 78 records, 113.9 ms total, longest 88.2 ms
+  split (D-154): revert-buffer 39, 110.2 ms total, max 18.9 ms; didClose 39, 0.8 ms total, max 0.1 ms; didOpen 39, 11.3 ms total, max 1.0 ms; sends to clangd 117, 0.7 ms total, max 0.0 ms, 473 KB; revert without didClose and didOpen 98.1 ms
+  shown buffers: queue done 0.44 s after git; 3 steps, median 0.050 s, longest 0.115 s; VC names s20-shift: 3 of 3
+  hidden: showing one took 0.078 s; VC names s20-shift: yes
+  symbols assemble.h: 10 of 10 on their lines, 0 offset by 19 (answered in 0.0 s)
+  symbols grid.h: 11 of 11 on their lines, 0 offset by 19 (answered in 0.0 s)
+  symbols space.h: 33 of 33 on their lines, 0 offset by 19 (answered in 0.0 s)
+checkout s20-base: git 0.10 s; all 39 buffers current: yes, 0.12 s after git; settled: yes, 21.8 s after git; Emacs blocked at most 0.124 s
+  reverts 39; didOpen 39; diagnostics after didOpen in 39 of 39; filter 2 calls, 78 records, 79.3 ms total, longest 59.0 ms
+  split (D-154): revert-buffer 39, 76.2 ms total, max 10.6 ms; didClose 39, 0.6 ms total, max 0.0 ms; didOpen 39, 9.5 ms total, max 0.5 ms; sends to clangd 117, 0.6 ms total, max 0.0 ms, 461 KB; revert without didClose and didOpen 66.0 ms
+  shown buffers: queue done 0.45 s after git; 3 steps, median 0.049 s, longest 0.124 s; VC names s20-base: 3 of 3
+  hidden: showing one took 0.093 s; VC names s20-base: yes
+  symbols assemble.h: 10 of 10 on their lines, 0 offset by 19 (answered in 0.1 s)
+  symbols grid.h: 11 of 11 on their lines, 0 offset by 19 (answered in 0.0 s)
+  symbols space.h: 33 of 33 on their lines, 0 offset by 19 (answered in 0.0 s)
+contrast back-to-back 1, checkout s20-shift: git 0.07 s; all 39 buffers current: yes, 0.19 s after git; settled (quiet only): yes, 16.8 s after git; Emacs blocked at most 0.111 s
+  reverts 39; didOpen 39; diagnostics after didOpen in 39 of 39; filter 2 calls, 78 records, 112.2 ms total, longest 88.4 ms
+  split (D-154): revert-buffer 39, 108.4 ms total, max 11.1 ms; didClose 39, 0.7 ms total, max 0.0 ms; didOpen 39, 10.3 ms total, max 0.6 ms; sends to clangd 117, 0.7 ms total, max 0.0 ms, 473 KB; revert without didClose and didOpen 97.3 ms
+  shown buffers: queue done 0.48 s after git; 3 steps, median 0.047 s, longest 0.087 s; VC names s20-shift: 3 of 3
+  hidden: showing one took 0.071 s; VC names s20-shift: yes
+contrast back-to-back 2, checkout s20-base: git 0.04 s; all 39 buffers current: yes, 0.22 s after git; settled: yes, 22.6 s after git; Emacs blocked at most 0.114 s
+  reverts 39; didOpen 39; diagnostics after didOpen in 39 of 39; filter 2 calls, 78 records, 133.3 ms total, longest 109.8 ms
+  split (D-154): revert-buffer 39, 129.7 ms total, max 12.3 ms; didClose 39, 0.7 ms total, max 0.0 ms; didOpen 39, 10.9 ms total, max 0.8 ms; sends to clangd 117, 0.7 ms total, max 0.0 ms, 461 KB; revert without didClose and didOpen 118.0 ms
+  shown buffers: queue done 0.51 s after git; 3 steps, median 0.049 s, longest 0.092 s; VC names s20-base: 3 of 3
+  hidden: showing one took 0.094 s; VC names s20-base: yes
+filter: overflows 0
+shutdown: fswatch pid 4531 gone
