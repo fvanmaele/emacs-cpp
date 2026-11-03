@@ -1,5 +1,8 @@
 # S20 results
 
+Verdict for `fswatch-shown` (D-153): PASS on the Mac (runs 1 - 3, 2026-11-03), Arch
+runs on H-22; section at the end. Earlier verdict for `fswatch-queued`:
+
 Verdict: FAIL (2026-11-02). PASS on Arch (runs 1 - 3); FAIL on the Mac on criterion
 3 (runs 4 - 6, idle): one VC refresh step blocks Emacs 0.30 - 0.35 s. Criteria 1, 2,
 4 and 5 hold on both machines, and the reverter without VC refresh (`fswatch-novc`)
@@ -129,3 +132,38 @@ Load 3.6 - 8.1 during these (not the session's), so absolute times run high.
   would block about 3.6 s.
 - eglot sends didClose and didOpen on every revert (Emacs 31.1 `eglot.el`); not
   measured here, the generated repository has no compile database.
+
+## Mode `fswatch-shown`, Mac runs 1 - 3 (session, 2026-11-03; D-153)
+Darwin 27.0.0 arm64, GNU Emacs 31.1, `~/opt/fswatch-no-loss`, diff-hl from
+`lib/diff-hl`. Logs: `mac-shown-run1.log` .. `mac-shown-run3.log`. Load 2.54 - 4.32
+at the start (Emacs.app open; 0102's idle with it quit was 2.2 - 2.7). A dry run
+before them passed the same checks and found the message saying "1 buffers" (fixed).
+
+| criterion | `fswatch-shown`, runs 1 - 3 | limit | pass |
+|---|---|---|---|
+| 1 buffers current after `git` | 0.13 - 0.19 s, no Overflow | 1.0 s | yes |
+| 2 edits kept | edit kept; 0 unchanged files' buffers reverted; the deleted file's buffer live, not reverted on `c`, no filter error | - | yes |
+| 3 Emacs blocked | 0.07 - 0.13 s (the filter's longest call 87 - 95 ms) | 0.25 s | yes |
+| 3 shown buffers | queue done 0.28 - 0.33 s after `git`; VC names the branch in 3 of 3; 1 diff-hl update each; steps 0.040 - 0.085 s | 15 s | yes |
+| 3 showing a hidden buffer | 0.043 - 0.054 s; VC names the branch | 0.25 s | yes |
+| 4 idle fswatch | 6 descriptors, 6.1 MB RSS | 16, 12 MB | yes |
+| 5 ready, shutdown | 0.02 s; gone | 5 s | yes |
+| 6 messages | the edited buffer named on `c` and `a`, the deleted file on `c` | - | yes |
+| 7 wiring (`wiring.sh`) | the hook runs after all four actions; the control (a `message`) NOT RUN | - | yes |
+
+Contrast `fswatch-diffhl` (diff-hl's revert hook live, no VC refresh): buffers current
+3.56 - 3.97 s after `git`, Emacs blocked 2.20 - 2.49 s, the filter 3.56 - 3.96 s per
+checkout. The follow-up's 3.6 s estimate holds live.
+
+Verdict: PASS on the Mac, criteria 1 - 7. Arch runs: H-22.
+
+Limits:
+- Batch Emacs runs no window change functions (checked 2026-11-03), so the run calls
+  `s20--on-show` itself after `set-window-buffer`; `wiring.sh` shows the hook runs in
+  a terminal Emacs (the Mac, one run).
+- 186 - 187 hidden buffers stay stale until shown (D-153's design); one is shown per
+  checkout.
+- A step (`vc-refresh-state`, then `diff-hl-update`) took 0.040 - 0.048 s median,
+  below the follow-up's 0.06 s estimate; why is UNVERIFIED.
+- eglot's work per revert is not in it (no compile database); RMO before T-128 ships
+  (D-153).

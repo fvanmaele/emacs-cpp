@@ -75,7 +75,9 @@ code is written for it. Each spike is a self-contained directory with its own bu
 - **S20 fswatch reverter** (written 2026-10-29) - does one patched fswatch per project
   root revert every unedited buffer of a `git checkout` across about 190 files within
   a second, on the Mac and on Arch, without blocking Emacs or costing more than one
-  idle fswatch (D-127's 8 descriptors, 6 MB)? Gates T-128 (D-147).
+  idle fswatch (D-127's 8 descriptors, 6 MB)? Gates T-128 (D-147). Since 2026-11-03
+  judged in mode `fswatch-shown` (D-153): VC state and diff-hl refreshed for shown
+  buffers only, diff-hl loaded, a deleted file in the checkout.
 - **S4 cold-header flags** - DROPPED 2026-10-08: replaced by D-028 (patched clangd
   takes an includer from its index; owner ruled tier 2, toy reproduction as evidence).
   Was: which mechanism gives a header opened first (no including
@@ -105,4 +107,4 @@ Status words: `not started`, `ready` (RUN.md written, the owner runs it; no RESU
 | S16 | PASS compiled, FAIL interpreted; not built (D-134) | s16-match-function/RESULTS.md |
 | S17 | PASS run 3; run 4: little gain, `lisp/` stays interpreted (D-134) | s17-compiled-lisp/RESULTS.md |
 | S18 | PASS on Arch and the Mac (`dedup`); next T-119 | s18-fswatch-backend/RESULTS.md |
-| S20 | FAIL: Mac criterion 3, VC steps (runs 4 - 6); PASS on Arch (runs 1 - 3) | s20-fswatch-reverter/RESULTS.md |
+| S20 | `fswatch-shown` (D-153): PASS on the Mac (2026-11-03), Arch on H-22; was FAIL: Mac criterion 3, VC steps (runs 4 - 6); PASS on Arch (runs 1 - 3) | s20-fswatch-reverter/RESULTS.md |

@@ -58,6 +58,20 @@ service's plan) is not an item.
   2. Attach `docs/upstream/ty_return_type_inference_repro.py` (or paste it in a
      collapsed block).
   Report back: the comment's link.
+- **H-22** (2026-11-03, T-128, S20 `fswatch-shown`, D-153) The Arch half of S20's new
+  mode; the Mac passed (0103). Needs the session's commits on Arch.
+  1. On Arch: `git -C ~/source/repos/emacs-cpp pull`
+  2. On Arch, machine idle: `cd ~/source/repos/emacs-cpp && S20_MODES="fswatch-shown
+     fswatch-diffhl" sh spikes/s20-fswatch-reverter/run.sh </dev/null && cp
+     spikes/s20-fswatch-reverter/s20.log spikes/s20-fswatch-reverter/arch-shown-run1.log`
+  3. On Arch: `cd ~/source/repos/emacs-cpp && S20_MODES="fswatch-shown fswatch-diffhl"
+     sh spikes/s20-fswatch-reverter/run.sh </dev/null && cp
+     spikes/s20-fswatch-reverter/s20.log spikes/s20-fswatch-reverter/arch-shown-run2.log`
+  4. On Arch: `cd ~/source/repos/emacs-cpp && S20_MODES="fswatch-shown fswatch-diffhl"
+     sh spikes/s20-fswatch-reverter/run.sh </dev/null && cp
+     spikes/s20-fswatch-reverter/s20.log spikes/s20-fswatch-reverter/arch-shown-run3.log`
+  Report back: `arch-shown-run1.log` .. `arch-shown-run3.log` in
+  `spikes/s20-fswatch-reverter/` (commit them, or paste).
 
 ## Parked
 - **H-8** (2026-10-20, 0084 review:B-3 to review:B-5, deferred; T-114) The upstream
