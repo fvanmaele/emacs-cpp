@@ -2200,6 +2200,33 @@ presets, GoogleTest runner.
   measured across 63 files. Findings in; O-43.
 
 ## Open questions ledger (LIVING)
+- O-85 (OPEN 2026-11-04, T-133, RESEARCH_go_to_anything 22): projectile lists the
+  project on every `C-c p f` and `M-o` (no cache by default with `alien` indexing):
+  444 - 493 ms for emacs-cpp (31 submodules), 68 ms for deal.II's 34556 files, 25 - 50
+  ms for RMO-drafts. Options:
+  (a) Cache for the session (`projectile-enable-caching` t), files opened or deleted
+  in Emacs kept current by projectile. Against: files created or removed outside
+  Emacs (a checkout, a build, a shell) are missing or stale in `C-c p f` and `M-o`
+  until `C-c p i`.
+  (b) (a) plus projectile's own watches (`projectile-auto-update-cache-with-watches`).
+  Against: experimental; one watch per directory with a limit of 512, so deal.II-sized
+  trees (1805) are not watched and stay stale as in (a); on macOS one kqueue
+  descriptor per directory beside eglot's and the reverter's (UNVERIFIED whether it
+  fits; Emacs refused at 975 before, D-127).
+  (c) (a) with the cache of a root dropped whenever the reverter's fswatch for that
+  root reports a created, removed or renamed path, and when that fswatch stops; the
+  next listing rebuilds it (once, 25 - 493 ms). Against: config code coupling
+  init-project to the reverter (tier 2, with tests); a root the reverter does not
+  watch (no file buffer yet, opted out by D-163 (b), outside version control) gets
+  no cache, as today; a checkout drops the cache, so the next `M-o` pays one listing.
+  (d) No cache, a cheaper listing: one `git ls-files --recurse-submodules` for git
+  roots in place of projectile's per-submodule commands (8 ms for emacs-cpp).
+  Against: changes projectile's file set (untracked files of submodules, fd's view)
+  or needs its own listing code; the progress message still flashes on each call.
+  (e) (a) with `projectile-files-cache-expire` (e.g. 30 s). Against: stale for up to
+  that long and a full listing every time it expires.
+  Combined: (c) holds (a)'s speed with fresh lists where the reverter already
+  watches. Recommendation: (c).
 - O-84 (RESOLVED 2026-11-04 with D-175: (a); owner: "O-84 (a)"; from S19's FAIL,
   0125): what follows for O-68's gapped
   in-word queries (`eto` -> `Vector`). S19 (D-171 .. D-174): the index side fits

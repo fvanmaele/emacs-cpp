@@ -1197,6 +1197,49 @@ scratch directory, not kept.
   (D-134), where the destructuring cost more than the regexps saved. With `nth`, as
   the code had it, the numbers above.
 
+## 22. "Projectile is indexing" on every `C-c p f` and `M-o` (owner 2026-11-04, T-133)
+Owner: "\"projectile is indexing\" repeated delays on C-c p f or M-o, caching or
+incremental updates?". Read in the pinned projectile 3.4.0 (`lib/projectile`) and the
+config; measured on hp-elitedesk in batch Emacs with that projectile, medians of 7.
+
+**Why it repeats:** `lisp/` sets nothing about projectile's cache, so its defaults
+apply: indexing method `alien` on Linux and macOS (`projectile.el:130`), caching only
+for `native` (`:196`). Each `C-c p f` and each opening of `M-o` (`projectile-project-files`,
+`init-go-to-anything.el:301`) lists the project again; the asynchronous indexer's
+progress reporter prints "Projectile is indexing" while it waits.
+
+**What a listing costs** (uncached; cached: 0.000 - 0.002 ms in all three):
+| project | files | as configured (git via fd) | git ls-files (`projectile-git-use-fd` nil) | submodules not listed |
+|---|---|---|---|---|
+| emacs-cpp (31 submodules) | 7224 | 444 - 493 ms | 270 ms | 16 ms |
+| RMO-drafts (1 submodule) | 973 | 25 - 50 ms | 24 ms | 13 ms |
+| deal.II checkout | 34556 | 68 - 75 ms | 400 ms | 75 ms |
+Submodules are the cost: projectile lists each sub-project with its own command
+(`projectile-get-sub-projects-files`, `:3770`); one `git ls-files --recurse-submodules`
+takes 8 ms for emacs-cpp. Size alone matters little with fd (deal.II: 68 ms).
+
+**What projectile offers** (3.4.0):
+- `projectile-enable-caching` `t`: the list kept for the session; with
+  `projectile-auto-update-cache` (default `t`) files opened or deleted in Emacs are
+  added or removed. Files created or removed outside Emacs (`git checkout`, a build,
+  a shell) stay unseen until `projectile-invalidate-cache` (`C-c p i`).
+- `persistent`: the same, saved as `.projectile-cache.eld` in the project root.
+- `projectile-files-cache-expire`: a cache older than N seconds is rebuilt.
+- `projectile-auto-update-cache-with-watches` (experimental, off): one Emacs
+  file-notify watch per directory, at most `projectile-watch-directory-limit` (512)
+  per project, events debounced and applied incrementally, else the cache dropped.
+  Directories needed: emacs-cpp 357, RMO-drafts 66, deal.II 1805 (so not watched,
+  one message when `projectile-verbose`). macOS watches with kqueue, one file
+  descriptor per directory, and Emacs refused watches at 975 in 2026-10-20's run
+  (D-127's reason); whether 357 fit beside eglot's and the reverter's is UNVERIFIED.
+
+**What the config already watches:** the reverter's fswatch (D-162, D-163) runs per
+project root with file buffers, recursively, without a directory limit, on both
+machines, `-x` with every event's flags, all paths under the root but `.git/`
+(`emacs-cpp-reverter--command`): created, removed and renamed files, open or not, are
+in its records. Its roots are those with version control or a `.projectile` file; it
+stops when the root's last file buffer goes.
+
 ## Sources
 - JetBrains, CLion help "Search everywhere":
   https://www.jetbrains.com/help/clion/searching-everywhere.html
