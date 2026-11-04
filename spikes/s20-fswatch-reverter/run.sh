@@ -4,7 +4,8 @@
 # Spike code, never promoted. Generates the repository once (2000 directories, 20000
 # files, 190 changed between branches a and b; kept for reruns, removed by hand) and
 # adds branch c (b plus one deleted file, D-152), then one batch Emacs per mode:
-# fswatch-shown (judged, D-153) with fswatch-diffhl for contrast; the earlier
+# fswatch-chunked (judged, D-167; S20_BUDGET) and fswatch-shown (D-153) with
+# fswatch-diffhl for contrast; the earlier
 # fswatch-queued, fswatch, fswatch-novc and poll (D-147's Mac setting).
 # Prints the blocks; the log is spikes/s20-fswatch-reverter/s20.log. Run on an idle
 # machine.

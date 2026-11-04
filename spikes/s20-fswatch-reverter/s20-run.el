@@ -15,6 +15,9 @@
 ;; fswatch-shown holds diff-hl's revert hook back and refreshes VC state and diff-hl
 ;; for shown buffers from a queue, one per step of a one-shot 0.05 s timer armed
 ;; again after each step, and for other buffers when a window shows them.
+;; fswatch-chunked (D-167): fswatch-shown with the reverts out of the filter: it
+;; queues the buffers, shown ones first, and a one-shot 0.01 s timer reverts until
+;; S20_BUDGET seconds (default 0.05) are spent, armed again while any is left.
 ;; fswatch-diffhl: no VC refresh, diff-hl's revert hook live.
 ;; shipped (D-162 (d)): the config's lisp/emacs-cpp-reverter.el (T-128) with its
 ;; program S20_FSWATCH and projectile from lib/, counted by advice; it starts its own
@@ -42,7 +45,9 @@
 (defvar s20-filter-max 0.0)
 (defvar s20-probe-seen nil)
 (defvar s20-stall 0.0 "Longest single wait step of `s20--wait': Emacs blocked.")
-(defvar s20-diff-hl (member s20-mode '("fswatch-shown" "fswatch-diffhl" "shipped")))
+(defvar s20-diff-hl (member s20-mode '("fswatch-shown" "fswatch-chunked" "fswatch-diffhl" "shipped")))
+(defvar s20-chunked (equal s20-mode "fswatch-chunked"))
+(defvar s20-shown-like (member s20-mode '("fswatch-shown" "fswatch-chunked")))
 (defvar s20-shipped (equal s20-mode "shipped"))
 (defvar s20-skipped nil "(BUFFER . WHY) the current filter call did not revert.")
 (defvar s20-messages nil "Texts of the filter's messages, newest first.")
@@ -68,32 +73,38 @@
 
 ;;;; The reverter (fswatch mode)
 
+(defun s20--path-buffer (path)
+  "The buffer visiting PATH (a real path) under the root, or nil."
+  (and (string-prefix-p s20-real-root path)
+       (get-file-buffer (concat s20-root (substring path (length s20-real-root))))))
+
 (defun s20--revert (path)
   "Revert the unedited buffer visiting PATH (a real path) if its file is newer."
-  (when (string-prefix-p s20-real-root path)
-    (let ((buffer (get-file-buffer
-                   (concat s20-root (substring path (length s20-real-root))))))
-      (when (and buffer (not (verify-visited-file-modtime buffer)))
-        (cond
-         ((buffer-modified-p buffer) (push (cons buffer 'edited) s20-skipped))
-         ;; D-152: `revert-buffer' signals for a missing file.
-         ((and s20-diff-hl (not (file-readable-p (buffer-file-name buffer))))
-          (push (cons buffer 'deleted) s20-skipped))
-         (t
-          (with-current-buffer buffer
-            (if (equal s20-mode "fswatch-shown")
-                (let ((after-revert-hook (remq 'diff-hl-after-revert after-revert-hook)))
-                  (revert-buffer t t t))
+  (s20--revert-buffer (s20--path-buffer path)))
+
+(defun s20--revert-buffer (buffer)
+  "Revert BUFFER if it is live, unedited and its file is newer."
+  (when (and buffer (buffer-live-p buffer) (not (verify-visited-file-modtime buffer)))
+    (cond
+     ((buffer-modified-p buffer) (push (cons buffer 'edited) s20-skipped))
+     ;; D-152: `revert-buffer' signals for a missing file.
+     ((and s20-diff-hl (not (file-readable-p (buffer-file-name buffer))))
+      (push (cons buffer 'deleted) s20-skipped))
+     (t
+      (with-current-buffer buffer
+        (if s20-shown-like
+            (let ((after-revert-hook (remq 'diff-hl-after-revert after-revert-hook)))
               (revert-buffer t t t))
-            ;; As `auto-revert-handler': VC's state (mode line branch) per buffer,
-            ;; one git process each.
-            (pcase s20-mode
-              ("fswatch" (vc-refresh-state))
-              ("fswatch-queued" (s20--queue-vc buffer))
-              ("fswatch-shown"
-               (if (get-buffer-window buffer t)
-                   (s20--queue-shown buffer)
-                 (setq s20--stale t)))))))))))
+          (revert-buffer t t t))
+        ;; As `auto-revert-handler': VC's state (mode line branch) per buffer,
+        ;; one git process each.
+        (pcase s20-mode
+          ("fswatch" (vc-refresh-state))
+          ("fswatch-queued" (s20--queue-vc buffer))
+          ((or "fswatch-shown" "fswatch-chunked")
+           (if (get-buffer-window buffer t)
+               (s20--queue-shown buffer)
+             (setq s20--stale t)))))))))
 
 (defun s20--message-skipped ()
   "One message naming the buffers this filter call skipped (D-151 (2b), D-152)."
@@ -179,6 +190,35 @@
                (cancel-timer s20-vc-timer)
                (setq s20-vc-timer nil)))))))
 
+;;;; fswatch-chunked: reverts from a queue, a time budget per step (D-167)
+
+(defvar s20-budget (string-to-number (or (getenv "S20_BUDGET") "0.05"))
+  "Seconds of reverting per revert step.")
+(defvar s20-revert-queue nil "Buffers waiting for a revert, next first.")
+(defvar s20-revert-timer nil)
+(defvar s20-revert-steps nil "(DURATION . REVERTS) of each revert step, newest first.")
+
+(defun s20--enqueue (buffer)
+  "Queue BUFFER for a revert; a shown buffer goes to the front."
+  (when (and buffer (not (memq buffer s20-revert-queue)))
+    (if (get-buffer-window buffer t)
+        (push buffer s20-revert-queue)
+      (setq s20-revert-queue (nconc s20-revert-queue (list buffer)))))
+  (unless s20-revert-timer
+    (setq s20-revert-timer (run-with-timer 0.01 nil #'s20--revert-step))))
+
+(defun s20--revert-step ()
+  "Revert queued buffers until `s20-budget' is spent; arm again while any is left."
+  (setq s20-revert-timer nil)
+  (let ((start (float-time)) (n 0))
+    (while (and s20-revert-queue (< (- (float-time) start) s20-budget))
+      (s20--revert-buffer (pop s20-revert-queue))
+      (cl-incf n))
+    (push (cons (- (float-time) start) n) s20-revert-steps))
+  (if s20-revert-queue
+      (setq s20-revert-timer (run-with-timer 0.01 nil #'s20--revert-step))
+    (s20--message-skipped)))
+
 (defun s20--filter ()
   (let ((pending ""))
     (lambda (_process output)
@@ -196,10 +236,14 @@
               (when (string-suffix-p "/.s20-probe" path) (setq s20-probe-seen t))
               (puthash path t paths))))
         (condition-case err
-            (maphash (lambda (path _) (s20--revert path)) paths)
+            (maphash (lambda (path _)
+                       (if s20-chunked
+                           (s20--enqueue (s20--path-buffer path))
+                         (s20--revert path)))
+                     paths)
           ;; Recorded for the output, then signalled again as Emacs would.
           (error (push err s20-filter-errors) (signal (car err) (cdr err))))
-        (s20--message-skipped)
+        (unless s20-chunked (s20--message-skipped))
         (let ((spent (- (float-time) start)))
           (cl-incf s20-calls)
           (cl-incf s20-filter-total spent)
@@ -282,7 +326,8 @@ where `emacs-cpp-reverter--refresh' runs; the module itself carries no counters.
   (s20--wait (lambda ()
                (if s20-shipped
                    (and (null emacs-cpp-reverter--timer) (null emacs-cpp-reverter--queue))
-                 (and (null s20-shown-timer) (null s20-shown-queue))))
+                 (and (null s20-shown-timer) (null s20-shown-queue)
+                      (null s20-revert-timer) (null s20-revert-queue))))
              30)
   (s20--emit "  shown buffers: queue done %.2f s after git; %d steps, median %.3f s, longest %.3f s; VC names %s: %d of %d; diff-hl updates %s; Emacs blocked at most %.2f s"
              (- s20-shown-last t1) (length s20-shown-steps) (s20--median s20-shown-steps)
@@ -312,7 +357,8 @@ where `emacs-cpp-reverter--refresh' runs; the module itself carries no counters.
 (defun s20--checkout (branch changed edited marker &optional deleted shown)
   "Check out BRANCH; wait for CHANGED's unedited buffers to show MARKER; emit.
 DELETED is the buffer whose file BRANCH deletes, SHOWN the buffers in windows."
-  (setq s20-reverted nil s20-stall 0.0 s20-messages nil s20-shown-steps nil)
+  (setq s20-reverted nil s20-stall 0.0 s20-messages nil s20-shown-steps nil
+        s20-revert-steps nil)
   (clrhash s20-diff-hl-calls)
   (let* ((records s20-records) (calls s20-calls) (total s20-filter-total)
          (t0 (float-time))
@@ -346,8 +392,13 @@ DELETED is the buffer whose file BRANCH deletes, SHOWN the buffers in windows."
       (s20--wait (lambda () (null s20-vc-timer)) 30)
       (s20--emit "  VC states all refreshed %.2f s after git; Emacs blocked at most %.2f s"
                  (- s20-vc-last t1) s20-stall))
-    (when (member s20-mode '("fswatch-shown" "shipped"))
+    (when (member s20-mode '("fswatch-shown" "fswatch-chunked" "shipped"))
       (s20--shown-report branch t1 shown))
+    (when s20-chunked
+      (s20--emit "  revert queue: %d steps, reverts per step %s, longest step %.1f ms, budget %.0f ms"
+                 (length s20-revert-steps) (mapcar #'cdr (reverse s20-revert-steps))
+                 (* 1000 (apply #'max 0.0 (mapcar #'car s20-revert-steps)))
+                 (* 1000 s20-budget)))
     (when s20-diff-hl
       (when deleted
         (s20--emit "  deleted file's buffer: live %s, reverted %s, file exists %s"
@@ -386,7 +437,7 @@ DELETED is the buffer whose file BRANCH deletes, SHOWN the buffers in windows."
          (changed (mapcar (lambda (n) (find-file-noselect (concat s20-root n))) names))
          (edited (car changed))
          (deleted (and s20-diff-hl (get-file-buffer (concat s20-root "t000/l01/f000001.cc"))))
-         (shown (and (member s20-mode '("fswatch-shown" "shipped"))
+         (shown (and (member s20-mode '("fswatch-shown" "fswatch-chunked" "shipped"))
                      (seq-take (cl-remove deleted (cdr changed)) 3)))
          process ready)
     (mapc (lambda (n) (find-file-noselect (concat s20-root n))) others)
@@ -403,8 +454,8 @@ DELETED is the buffer whose file BRANCH deletes, SHOWN the buffers in windows."
                branch (if deleted ", 1 deleted" "") (length others)
                (if shown (format "; %d shown in windows" (length shown)) ""))
     (pcase s20-mode
-      ((or "fswatch" "fswatch-novc" "fswatch-queued" "fswatch-shown" "fswatch-diffhl"
-           "shipped")
+      ((or "fswatch" "fswatch-novc" "fswatch-queued" "fswatch-shown" "fswatch-chunked"
+           "fswatch-diffhl" "shipped")
        (setq process (if s20-shipped
                          (let ((processes (emacs-cpp-reverter-processes)))
                            (unless (= 1 (length processes))
