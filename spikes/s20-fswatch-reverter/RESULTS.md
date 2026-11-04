@@ -523,8 +523,8 @@ expected (46.9 s); logs `arch-shipped-run1.log` .. `arch-shipped-run3.log`. Load
 Verdict: FAIL on Arch, criterion 3 (run 3, 250.6 ms), at a load above H-23's idle
 condition; by D-166 the shipped module's reverts at once are what changes (O-81).
 Ready 0.01 s against the spike's 0.54 s: the module does not wait for fswatch's
-watches the way the spike's `ready` does (UNVERIFIED which part of the 0.54 s that
-is).
+watches the way the spike's `ready` does. Verified (0120): the module starts fswatch
+at the first visit, 3.6 s before the ready check, so its watches are set by then.
 
 ## Mode `fswatch-chunked`, Arch runs 1 - 3 (session, 2026-11-04; D-167)
 The new mode at the default budget (0.05 s), `fswatch-shown` after it in each run as
@@ -557,7 +557,7 @@ Findings:
   one `accept-process-output` call, in which the revert step and a shown buffer's
   refresh step (up to 63 ms) can both fall due, plus its 0.02 s wait. The module
   should keep the two from running in one pass (the refresh step waits while reverts
-  are queued, or both share one budget); UNVERIFIED which costs less.
+  are queued, or both share one budget); answered by D-168 (one timer, 0118, 0119).
 - Shown buffers are current first (their queue done 0.25 - 0.37 s, before the last
   revert in 4 of 6 checkouts).
 
@@ -658,10 +658,34 @@ Findings:
 - One kind of work per step (D-168) lowers Arch's block from the spike's 0.08 - 0.11 s
   to 0.07 - 0.09 s; the shown buffers' refresh comes about 0.2 s later, as on the Mac.
 - On checkout `a` one revert step ran 63.1 - 65.1 ms in each run (on `c` at most
-  50.6 ms; the spike's `a` at most 50.5 ms): one revert of 13 - 15 ms that the budget
-  cannot split. Which buffer, and whether it is the deleted file's buffer coming back
-  to a readable file, is UNVERIFIED.
-- The module's filter takes 10.8 - 11.0 ms against the spike's 3.9 - 4.6 ms for the
-  same 761 - 763 records; UNVERIFIED where the module spends it (its root and
-  opt-out checks per path are the likely part).
+  50.6 ms): one garbage collection of 27 - 30 ms inside one revert, a different file
+  each run, never the deleted file's buffer (0120).
+- The module's filter takes 10.8 - 11.0 ms against the spike's 3.9 - 4.6 ms: it calls
+  `get-file-buffer` and queues once per record (761, about four per file) where the
+  spike does so once per path; one record per path brings it to 4.0 ms (0120).
+
+## Probes: the UNVERIFIED of 0115 - 0119 (session, 2026-11-04; 0120)
+Scripts in `probe/` (`run-probe.sh` loads one of `trace.el`, `dedupe.el`,
+`ready.el` before `s20-run.el` in mode `shipped`; `tstep.sh` runs `tstep.el` in a
+terminal Emacs). Arch, at f42abe1, load about 2.
+
+- Slow revert on `a` (0119): `trace.el` times each revert with `gcs-done`. In 3 of 3
+  runs the slowest revert on `a` (30.7 - 33.1 ms) held one garbage collection of
+  27.3 - 29.7 ms; the file differed (`f010500.h`, `f006930.h` twice, `f016380.h`),
+  shown no, result `reverted`; the next slowest 1.0 - 1.7 ms. On `c` none over 2.6 ms.
+- Filter (0119): inside `emacs-cpp-reverter--handle` (with the probe's advice, 14.7 -
+  15.9 ms): `get-file-buffer` 761 - 763 calls, 8.1 - 8.7 ms; `--path` 1.0 ms;
+  `--enqueue-revert` 1.0 ms; `--overflow-p` (in the filter, outside S20's count) 1522
+  calls, 2.5 ms. Without probe advice, three pairs of runs: as shipped 10.1 - 10.5 ms,
+  with `dedupe.el` (one record per path into `--handle`) 4.0 - 4.2 ms.
+- Ready 0.01 s (0115): `ready.el`: the module's fswatch started 3.59 - 3.60 s before
+  S20's ready check began (the visits of 201 files in between).
+- Steps in a live Emacs (0116): `tstep.el`, terminal Emacs (`window-system` nil), 20
+  steps of 50 ms busy work, each arming the next at 0.01 s, a process writing every
+  5 ms, keys typed every 30 ms. Gaps between steps 10.0 - 10.4 ms in 4 of 4 runs, never
+  back to back; process output read in 19 of 19 gaps; with the typing over all the
+  steps, commands ran in 19 of 19 gaps (2 - 3 each). GTK Emacs not run.
+
+Not verified here: the Mac-only marks above (G DATA, clangd's write stall, the
+scan's share), and why `git` took 0.11 - 0.13 s in 0115's run 6 (past, unrecorded).
 
