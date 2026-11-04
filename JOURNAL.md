@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0119 | 2026-11-04 | The rewritten reverter: S20 `shipped` PASS on Arch; T-128 done | T-128, S20 | D-168 |
 | 0118 | 2026-11-04 | The reverter reverts in timer steps | T-128, S20 | D-167, D-168 |
 | 0117 | 2026-11-04 | S20 `fswatch-chunked`: PASS on the Mac | S20 | D-167 |
 | 0116 | 2026-11-04 | S20 `fswatch-chunked`: PASS on Arch, the Mac on H-25 | S20 | D-167 |
