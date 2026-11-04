@@ -2135,7 +2135,7 @@ presets, GoogleTest runner.
 | match function ranks unlike the regexps or is slower | S16 | owner | D-124 |
 | compiled `lisp/` slows startup or stays bytecode | S17 | owner | D-125 |
 | fswatch backend loses changes or costs Emacs too much | S18 (PASS 2026-10-21 on Arch; the Mac's cost misread, O-80) | LLM / owner | D-127 |
-| per-project fswatch reverter loses changes or blocks Emacs | S20 (FAIL 2026-11-02: Mac criterion 3, VC steps; PASS on Arch; mode `fswatch-shown` for (e), D-153: PASS on the Mac 2026-11-03, 0103; FAIL on Arch 2026-11-04, criterion 3, D-166, 0115; `fswatch-chunked` D-167 PASS on Arch 0116 and the Mac 0117; module rewritten, D-168: `shipped` PASS on the Mac 0118 and on Arch 0119) | LLM / owner | O-78 |
+| per-project fswatch reverter loses changes or blocks Emacs | S20 (FAIL 2026-11-02: Mac criterion 3, VC steps; PASS on Arch; mode `fswatch-shown` for (e), D-153: PASS on the Mac 2026-11-03, 0103; FAIL on Arch 2026-11-04, criterion 3, D-166, 0115; `fswatch-chunked` D-167 PASS on Arch 0116 and the Mac 0117; module rewritten, D-168: `shipped` PASS on the Mac 0118 and on Arch 0119; refresh first, D-169: PASS on Arch 0122 and the Mac 0123) | LLM / owner | O-78 |
 | own package build glue mis-orders compilation | none (tests) | - | v0.1 |
 | config fails on macOS (paths, tools, tests) | none (`make test`) | owner | D-050 |
 | clangd too slow / too large on deal.II scale | S1 numbers | owner | v0.1 |
@@ -2556,7 +2556,7 @@ presets, GoogleTest runner.
   0.09 s. Against: hidden buffers' text 0.15 - 0.2 s later; refresh steps 0.01 s
   apart where D-168 had 0.05 s. Amends D-168. Not taken: (a) D-168 unchanged, (c) two
   timers. Built (T-131, 0122): Arch PASS (blocked 0.07 - 0.09 s, shown 0.20 - 0.25 s);
-  the Mac on H-27.
+  the Mac PASS (blocked 0.08 - 0.11 s, shown 0.23 - 0.31 s; 0123).
 - DECIDED D-168 (session 2026-11-04, within D-167's rewrite; owner to confirm): the
   module's steps from S20 `fswatch-chunked` (0116, 0117) with one change: one timer
   runs both queues and a step does one kind of work, reverts while any are queued,

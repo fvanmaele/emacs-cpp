@@ -59,24 +59,6 @@ service's plan) is not an item.
      collapsed block).
   Report back: the comment's link.
 
-- **H-27** (2026-11-04, T-131, S20 `shipped`, D-169) The Mac half of D-169's done
-  when; Arch passed (0122). Needs the session's commits on the Mac.
-  1. On Arch: `cd ~/source/repos/emacs-cpp && git push` (the session does not push).
-  2. On the Mac: `git -C ~/source/repos/emacs-cpp pull --ff-only`
-  3. On the Mac: `cd ~/source/repos/emacs-cpp && make test </dev/null 2>&1 | tail -3`
-  4. On the Mac, machine idle: `cd ~/source/repos/emacs-cpp && S20_MODES="shipped
-     fswatch-chunked" sh spikes/s20-fswatch-reverter/run.sh </dev/null && cp
-     spikes/s20-fswatch-reverter/s20.log
-     spikes/s20-fswatch-reverter/mac-d169-shipped-run1.log`
-  5. On the Mac: `cd ~/source/repos/emacs-cpp && S20_MODES="shipped fswatch-chunked" sh
-     spikes/s20-fswatch-reverter/run.sh </dev/null && cp spikes/s20-fswatch-reverter/s20.log
-     spikes/s20-fswatch-reverter/mac-d169-shipped-run2.log`
-  6. On the Mac: `cd ~/source/repos/emacs-cpp && S20_MODES="shipped fswatch-chunked" sh
-     spikes/s20-fswatch-reverter/run.sh </dev/null && cp spikes/s20-fswatch-reverter/s20.log
-     spikes/s20-fswatch-reverter/mac-d169-shipped-run3.log`
-  Report back: step 3's last line; `mac-d169-shipped-run1.log` .. `run3.log` (commit
-  them on a branch, or paste).
-
 - **H-24** (2026-11-04, O-80, D-165) Send the report on `process-attributes` CPU times
   to the Emacs bug tracker (outward, so yours); the draft is
   `docs/upstream/process-attributes-cpu-time-apple-silicon.md`.
