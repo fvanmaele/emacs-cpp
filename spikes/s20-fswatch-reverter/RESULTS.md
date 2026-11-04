@@ -619,7 +619,7 @@ Load 7.78 - 8.15 at the start (not the session's; not idle).
 Contrast `fswatch-chunked`, the same three runs: Emacs blocked 0.11 - 0.13 s, buffers
 current 0.28 - 0.44 s, shown buffers' queue done 0.33 - 0.38 s after `git`.
 
-Verdict: PASS on the Mac, criteria 1 - 6. Arch: H-26.
+Verdict: PASS on the Mac, criteria 1 - 6. Arch: PASS (below, 0119).
 
 Findings:
 - One kind of work per step lowers the block from 0.11 - 0.13 s to 0.07 - 0.08 s in
@@ -630,3 +630,38 @@ Findings:
   against 0.33 - 0.38 s), D-168's cost.
 - One revert step ran to 61.7 ms (run 1, `c`, the first step, 58 reverts): a single
   revert of about 12 ms at a load of 7.8.
+
+## Mode `shipped` after the rewrite, Arch runs 1 - 3 (session, 2026-11-04; D-168, H-26)
+H-26's steps 3 - 6 run by the session on Arch at 4bf8f6d: `make test` 151 of 151 as
+expected (44.1 s). Logs: `arch-shipped-chunked-run1.log` .. `run3.log`,
+`fswatch-chunked` after `shipped` in each as contrast. Load 2.24 - 2.50 at the start
+(`make test` 20 s before, this session running).
+
+| criterion | `shipped`, runs 1 - 3 | limit | pass |
+|---|---|---|---|
+| 1 buffers current after `git` | 0.21 - 0.30 s, no Overflow | 1.0 s | yes |
+| 2 edits kept | edit kept; 0 unchanged files' buffers reverted; the deleted file's buffer live, not reverted on `c`, no filter error | - | yes |
+| 3 Emacs blocked | 0.07 - 0.09 s (filter's longest call 10.8 - 11.0 ms; revert steps 3 - 4 per checkout, longest 50.3 - 65.1 ms) | 0.25 s | yes |
+| 3 shown buffers | queue done 0.45 - 0.54 s after `git`; VC names the branch 3 of 3; 1 diff-hl update each; steps 0.040 - 0.047 s | 15 s | yes |
+| 3 showing a hidden buffer | 0.033 - 0.046 s; VC names the branch | 0.25 s | yes |
+| 4 idle fswatch | 6 descriptors, 5.2 MB RSS | 16, 12 MB | yes |
+| 5 ready, shutdown | 0.01 s; gone | 5 s | yes |
+| 6 messages | the edited buffer named on `c` and `a`, the deleted file on `c`, once the queue was empty | - | yes |
+
+Contrast `fswatch-chunked`, the same three runs: Emacs blocked 0.08 - 0.11 s, buffers
+current 0.21 - 0.32 s, shown buffers' queue done 0.24 - 0.33 s after `git`.
+
+Verdict: PASS on Arch, criteria 1 - 6; with the Mac's (above) the rewritten module
+passes on both machines.
+
+Findings:
+- One kind of work per step (D-168) lowers Arch's block from the spike's 0.08 - 0.11 s
+  to 0.07 - 0.09 s; the shown buffers' refresh comes about 0.2 s later, as on the Mac.
+- On checkout `a` one revert step ran 63.1 - 65.1 ms in each run (on `c` at most
+  50.6 ms; the spike's `a` at most 50.5 ms): one revert of 13 - 15 ms that the budget
+  cannot split. Which buffer, and whether it is the deleted file's buffer coming back
+  to a readable file, is UNVERIFIED.
+- The module's filter takes 10.8 - 11.0 ms against the spike's 3.9 - 4.6 ms for the
+  same 761 - 763 records; UNVERIFIED where the module spends it (its root and
+  opt-out checks per path are the likely part).
+
