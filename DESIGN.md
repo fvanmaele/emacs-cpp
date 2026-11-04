@@ -2546,6 +2546,24 @@ presets, GoogleTest runner.
   Against: buffers become current later than 0.13 s; another measurement round on
   both machines. Not taken: (b) keep runs 1 - 3's PASS (choosing runs), (c) three more
   idle runs first (more samples, same 0.30 s).
+- DECIDED D-171 (owner 2026-11-04: "O-68 (c)"): clangd gets a third match tier for
+  letters in order with gaps inside a word (`eto` -> `Vector`), found through gap
+  trigrams, a second trigram kind holding every jump inside a word and to the next
+  segment's first letter, intersected in place of the ordinary trigrams only when a
+  request field that `workspace/symbol` alone sets asks for it; tier 3 in
+  `tieredMatch` ranks below every tier-2 match (RESEARCH_go_to_anything 20). A 14th
+  clangd patch (D-069), tier 3: spike S19 passes first; its criteria are proposed in
+  T-132 and confirmed by the owner before it runs. Against: the largest clangd patch;
+  about 8 - 12 MB more per deal.II-sized index and four times `Dex::build`'s trigram
+  work on every rebuild (both UNVERIFIED, S19 measures them); short queries may crowd
+  `M-o`'s 10000 with weak gap matches (`get`: 6025 in deal.II). Not taken: (a) full
+  scan (up to 52 ms per key with two indexes), (b) a letter mask (up to 17 ms for
+  common letters), (d) none.
+- DECIDED D-170 (owner 2026-11-04: "O-76 (a)"): no Julia support; D-145's scope stands
+  (C++ and Python). Against: Julia files open in fundamental-mode, no highlighting or
+  indentation (Emacs has no Julia mode built in). Not taken: (b) julia-mode only,
+  (c) LanguageServer.jl, (d) JETLS, (e) julia-snail and eat. `RESEARCH_julia.md`
+  keeps the findings.
 - DECIDED D-169 (owner 2026-11-04: "(b)"; O-82 (b)): the module's step refreshes a
   queued shown buffer's VC state and marks before the remaining reverts; one timer,
   one kind of work per step (D-168's bound kept), 0.01 s between steps while either
@@ -2705,7 +2723,8 @@ presets, GoogleTest runner.
   (e) (d) through rassumfrassum (`rass -- clangd -- ast-grep lsp`, Emacs 31's eglot
   manual). Against: rass is AUR / pip only, outside pacman and MacPorts (D-053); a
   0.3.x relay in front of the patched clangd's navigation path.
-- O-76 (OPEN, owner request 2026-10-25: "Research julia language server interfacing
+- O-76 (RESOLVED 2026-11-04 with D-170: (a); owner: "O-76 (a)"; was OPEN, owner
+  request 2026-10-25: "Research julia language server interfacing
   and other functionality"): findings in `RESEARCH_julia.md`. Julia 1.13 is packaged
   on both machines (pacman `julia`, MacPorts `julia`, not installed on the Mac);
   both servers, the debugger and julia-snail's Julia side come from Julia's own
@@ -3176,7 +3195,8 @@ presets, GoogleTest runner.
   fixes as Lisp in the config (about 100 lines on eglot's internals, against D-069);
   (e) keep the fork on ELPA's 1.24 release instead of devel, dropping 0003.
   Recommendation (a); (e) meanwhile if the release commit is easy to pin.
-- O-68 (owner 2026-10-20, after `eto` found no `Vector`: "Go with LSP 3.18 as far as
+- O-68 (RESOLVED 2026-11-04 with D-171: (c), behind spike S19; owner: "O-68 (c)";
+  owner 2026-10-20, after `eto` found no `Vector`: "Go with LSP 3.18 as far as
   possible--in particular the consistent config--but leave changing the three-letter
   pre-filter for a later stage"): clangd's index keeps only symbols containing the
   query's three-letter fragments, and its matcher wants the first letter at a word
@@ -4031,6 +4051,8 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-167 | 2026-11-04 | O-81 (b): S20 mode `fswatch-chunked` first, a time budget per revert step | 12 | O-81 |
 | D-168 | 2026-11-04 | the reverter's steps: one timer, reverts first, never a revert and a refresh in one step | 12 | D-167 |
 | D-169 | 2026-11-04 | O-82 (b): a shown buffer's refresh before the remaining reverts | 12 | D-168, O-82 |
+| D-170 | 2026-11-04 | O-76 (a): no Julia support; D-145's scope stands | 2 | O-76 |
+| D-171 | 2026-11-04 | O-68 (c): gap trigrams and a third match tier in clangd, behind spike S19 | 10 | O-68 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |
