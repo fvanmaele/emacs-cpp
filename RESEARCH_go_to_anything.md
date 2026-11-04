@@ -1240,6 +1240,19 @@ machines, `-x` with every event's flags, all paths under the root but `.git/`
 in its records. Its roots are those with version control or a `.projectile` file; it
 stops when the root's last file buffer goes.
 
+**Without any watcher** (owner 2026-11-05: "Some way to not tie the projectile setup to
+the reverter?"): a directory's modification time changes when an entry in it is
+created, removed or renamed (a new directory changes its parent's), so a cached list
+stays valid while every directory of the project keeps its time. Reading them all
+(`file-attributes` per directory, batch Emacs): emacs-cpp 357 directories 5.3 ms,
+RMO-drafts 66 in 1.0 ms, deal.II 1805 in 31.6 ms (max 48.9), against listings of
+444 - 493, 25 - 50 and 68 - 75 ms. Times read before the listing, so a change during it
+is caught on the next use. Not caught: a `.gitignore` edit that moves no file (until
+the next change of structure). A single `git ls-files -zco --exclude-standard` takes 55
+ms for deal.II (projectile's own git path 400 ms, its post-processing); git refuses
+`--recurse-submodules` together with `-o` (exit 128), so one command would drop the
+submodules' untracked files.
+
 ## Sources
 - JetBrains, CLion help "Search everywhere":
   https://www.jetbrains.com/help/clion/searching-everywhere.html

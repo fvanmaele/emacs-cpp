@@ -2225,8 +2225,21 @@ presets, GoogleTest runner.
   or needs its own listing code; the progress message still flashes on each call.
   (e) (a) with `projectile-files-cache-expire` (e.g. 30 s). Against: stale for up to
   that long and a full listing every time it expires.
+  (f) (a) checked by directory times instead of a watcher (owner 2026-11-05: "Some way
+  to not tie the projectile setup to the reverter?"): with each root's list kept the
+  modification times of its directories, read before listing; a use reads them again
+  and lists anew only if one changed (5.3 ms for emacs-cpp, 1.0 ms RMO-drafts, 31.6 ms
+  deal.II, against 444 - 493, 25 - 50, 68 - 75). Catches files created, removed or
+  renamed outside Emacs, on both machines and every root. Against: around
+  `projectile-project-files` (advice, or a patch file, D-069); the check grows with
+  the directories (deal.II only halves); a `.gitignore` edit that moves no file is
+  seen at the next change of structure.
+  (g) The reverter runs a hook with each root's created and removed paths, the
+  projectile setup subscribes. Against: the dependency turned round, not removed;
+  freshness still needs the reverter watching that root.
   Combined: (c) holds (a)'s speed with fresh lists where the reverter already
-  watches. Recommendation: (c).
+  watches; (f) does without it. Recommendation: (f) (was (c) on 2026-11-04): no
+  coupling, every root, both machines.
 - O-84 (RESOLVED 2026-11-04 with D-175: (a); owner: "O-84 (a)"; from S19's FAIL,
   0125): what follows for O-68's gapped
   in-word queries (`eto` -> `Vector`). S19 (D-171 .. D-174): the index side fits
