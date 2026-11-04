@@ -2642,7 +2642,8 @@ presets, GoogleTest runner.
   listings of 25 - 493 ms. Against: wraps `projectile-project-files`; the check grows
   with the directories (deal.II 68 -> 32 ms); a `.gitignore` edit that moves no file
   waits for the next change of structure. Not taken: (a) - (e), (g) of O-85. Build:
-  T-133 (done when proposed there).
+  T-133, tier 3 (owner 2026-11-05: "Tier 3 with short spike"): spike S21 first; found
+  before it, Emacs's lock files change directory times on every edit (RESEARCH 22).
 - DECIDED D-176 (owner 2026-11-04: "leave reverter filter"): the reverter's filter
   keeps looking each record's buffer up (761 records, about four per file, for a
   190-file checkout: 10 - 11 ms on Arch, 0120); no merge of a call's records per

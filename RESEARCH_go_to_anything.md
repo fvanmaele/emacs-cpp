@@ -1253,6 +1253,14 @@ ms for deal.II (projectile's own git path 400 ms, its post-processing); git refu
 `--recurse-submodules` together with `-o` (exit 128), so one command would drop the
 submodules' untracked files.
 
+**Editing changes directory times** (2026-11-05, batch Emacs, the config's defaults:
+`create-lockfiles` t, nothing moved out of project directories): a buffer's first
+modification creates its lock file `.#a.py` in the file's directory and saving
+removes it, so the directory's time changes at every edit and save cycle (checked:
+first edit, first save, a second edit and save, each changed it; batch made no backup
+or auto-save file). A check by directory times alone would list anew after every
+edit; S21 compares remedies.
+
 ## Sources
 - JetBrains, CLion help "Search everywhere":
   https://www.jetbrains.com/help/clion/searching-everywhere.html
