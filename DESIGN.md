@@ -2198,7 +2198,8 @@ presets, GoogleTest runner.
   measured across 63 files. Findings in; O-43.
 
 ## Open questions ledger (LIVING)
-- O-83 (OPEN 2026-11-04, from S19, 0124): what S19's criterion 6 ("`M-o` on RMO in
+- O-83 (RESOLVED 2026-11-04 with D-174: (b); owner: "RMO-drafts with RMO; O-83 (b)";
+  from S19, 0124): what S19's criterion 6 ("`M-o` on RMO in
   S11's harness: keys within S11's 2 - 30 ms") times. S11's 2 - 30 ms came from run
   1's `measure.el`, a plain `workspace/symbol` (no limit, no `middleMatch`); the
   shipped `M-o` asks limit 10000 with `middleMatch` and `looseScope` (D-083, D-113),
@@ -2569,6 +2570,19 @@ presets, GoogleTest runner.
   Against: buffers become current later than 0.13 s; another measurement round on
   both machines. Not taken: (b) keep runs 1 - 3's PASS (choosing runs), (c) three more
   idle runs first (more samples, same 0.30 s).
+- DECIDED D-174 (owner 2026-11-04: "RMO-drafts with RMO; O-83 (b)"): S19's criterion
+  6 runs on hp-elitedesk with `~/source/repos/RMO-drafts` as RMO. It times each key
+  `M-o` sends a symbol request for (every prefix of three or more letters) of S11's
+  words (main, vec, Tri, assemble, Sol) and the 12 queries, as the shipped `M-o`
+  sends it (limit 10000, `middleMatch` 3, `looseScope`), RMO-drafts' background
+  index and deal.II's library index in one clangd; judged: with `gapMatch` each key
+  at most twice pkgrel 1's time for the same request and at most 30 ms. RMO-drafts is
+  used as a copy in the session's scratch directory with the installed fmt 12.2.0
+  (`find_package`) in place of its uninitialised `fmt` submodule: no network, nothing
+  written into RMO-drafts. Against: a copy is not the owner's tree in place; "twice"
+  is the owner's new number; RMO-drafts' sources stand for RMO (56 files, no
+  `class_multilevel_experiment`). Not taken: (a) 30 ms alone, (c) S11's terminal
+  prompt. Resolves O-83; amends D-172.
 - DECIDED D-173 (owner 2026-11-04: "D-120's rule"): S19's tier 3 is D-120's: the
   query's letters in order, the first anywhere, gaps only over letters and digits
   (across camel-case boundaries, never a separator, D-141), one tier below tier 2.
@@ -4112,6 +4126,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-171 | 2026-11-04 | O-68 (c): gap trigrams and a third match tier in clangd, behind spike S19 | 10 | O-68 |
 | D-172 | 2026-11-04 | S19 on hp-elitedesk: deal.II cloned, criteria 4 - 5 as ratios, RMO's half later | 10 | D-171, T-132 |
 | D-173 | 2026-11-04 | S19's tier 3 is D-120's: gap trigrams within letter-digit runs; `cml` struck | 10 | D-120, D-171, D-172 |
+| D-174 | 2026-11-04 | O-83 (b): S19 criterion 6 on RMO-drafts, each key at most twice pkgrel 1's and 30 ms | 10 | O-83, D-172 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |
