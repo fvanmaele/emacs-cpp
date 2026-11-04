@@ -2127,7 +2127,7 @@ presets, GoogleTest runner.
 | match function ranks unlike the regexps or is slower | S16 | owner | D-124 |
 | compiled `lisp/` slows startup or stays bytecode | S17 | owner | D-125 |
 | fswatch backend loses changes or costs Emacs too much | S18 (PASS 2026-10-21 on Arch; the Mac's cost misread, O-80) | LLM / owner | D-127 |
-| per-project fswatch reverter loses changes or blocks Emacs | S20 (FAIL 2026-11-02: Mac criterion 3, VC steps; PASS on Arch; mode `fswatch-shown` for (e), D-153: PASS on the Mac 2026-11-03, 0103; FAIL on Arch 2026-11-04, criterion 3, D-166, 0115; `fswatch-chunked` D-167 PASS on Arch 0116, the Mac H-25) | LLM / owner | O-78 |
+| per-project fswatch reverter loses changes or blocks Emacs | S20 (FAIL 2026-11-02: Mac criterion 3, VC steps; PASS on Arch; mode `fswatch-shown` for (e), D-153: PASS on the Mac 2026-11-03, 0103; FAIL on Arch 2026-11-04, criterion 3, D-166, 0115; `fswatch-chunked` D-167 PASS on Arch 0116 and the Mac 0117) | LLM / owner | O-78 |
 | own package build glue mis-orders compilation | none (tests) | - | v0.1 |
 | config fails on macOS (paths, tools, tests) | none (`make test`) | owner | D-050 |
 | clangd too slow / too large on deal.II scale | S1 numbers | owner | v0.1 |
