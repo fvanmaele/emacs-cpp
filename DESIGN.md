@@ -2200,7 +2200,8 @@ presets, GoogleTest runner.
   measured across 63 files. Findings in; O-43.
 
 ## Open questions ledger (LIVING)
-- O-85 (OPEN 2026-11-04, T-133, RESEARCH_go_to_anything 22): projectile lists the
+- O-85 (RESOLVED 2026-11-05 with D-177: (f); owner: "O-85 (f)"; T-133,
+  RESEARCH_go_to_anything 22): projectile lists the
   project on every `C-c p f` and `M-o` (no cache by default with `alien` indexing):
   444 - 493 ms for emacs-cpp (31 submodules), 68 ms for deal.II's 34556 files, 25 - 50
   ms for RMO-drafts. Options:
@@ -2633,6 +2634,15 @@ presets, GoogleTest runner.
   Against: buffers become current later than 0.13 s; another measurement round on
   both machines. Not taken: (b) keep runs 1 - 3's PASS (choosing runs), (c) three more
   idle runs first (more samples, same 0.30 s).
+- DECIDED D-177 (owner 2026-11-05: "O-85 (f)"): the projectile setup keeps each
+  root's file list and the modification times of its directories (read before the
+  listing) and serves the list while every time is unchanged; one changed time and
+  the root is listed anew. No watcher, no tie to the reverter; every root, both
+  machines. Measured (RESEARCH_go_to_anything 22): the check 1.0 - 31.6 ms against
+  listings of 25 - 493 ms. Against: wraps `projectile-project-files`; the check grows
+  with the directories (deal.II 68 -> 32 ms); a `.gitignore` edit that moves no file
+  waits for the next change of structure. Not taken: (a) - (e), (g) of O-85. Build:
+  T-133 (done when proposed there).
 - DECIDED D-176 (owner 2026-11-04: "leave reverter filter"): the reverter's filter
   keeps looking each record's buffer up (761 records, about four per file, for a
   190-file checkout: 10 - 11 ms on Arch, 0120); no merge of a call's records per
@@ -4212,6 +4222,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-174 | 2026-11-04 | O-83 (b): S19 criterion 6 on RMO-drafts, each key at most twice pkgrel 1's and 30 ms | 10 | O-83, D-172 |
 | D-175 | 2026-11-04 | O-84 (a): no clangd patch 0014; gapped in-word symbol queries stay unfound | 10 | O-84, D-171 |
 | D-176 | 2026-11-04 | the reverter's filter keeps one lookup per record (0120's dedupe not taken) | 12 | D-168 |
+| D-177 | 2026-11-05 | O-85 (f): projectile's lists cached per root, checked by directory times | 12 | O-85, T-133 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |

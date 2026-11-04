@@ -138,7 +138,7 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
 | T-130 | dropped (D-161) | M | clangd's includer lookup off its main thread (premise refuted 2026-11-03: it runs on the worker thread, `TUScheduler.cpp:871`; O-79 (h) - (j)) | D-156, O-79, 0106 | patch to `packaging/clangd-index-nav`: the `--header-flags-from-index` lookup (D-028) runs where clangd fetches compile commands for its workers, not while the main thread reads a didOpen; tier 2 proposed; done when: S20's eglot run with the patched flags shows no stalled write in the back-to-back pair on the Mac, the Arch package builds and `make test` passes on both |
 | T-131 | done 0123 | S | the reverter refreshes a shown buffer before the remaining reverts | D-169, O-82 | tier 2; done when: D-169; built (0122): `make test` and S20 `shipped` PASS on Arch; the Mac PASS (0123) |
 | T-132 | done 0125 (S19 FAIL) | L | spike S19: gap trigrams and a third match tier in clangd (O-68 (c)) | D-171, D-172, D-173, O-68 | tier 3, spike first, on a branch from a tag, by a session on Arch; criteria confirmed 2026-11-04 (owner: "Confirm S19, run on Arch"), `spikes/s19-gap-trigrams/RUN.md`: on Arch (D-057), deal.II's library index and RMO's background index, the patched clangd with the new patch against pkgrel 10 (1) found: with the field, `eto` returns deal.II's `Vector` and `cml` RMO's `class_multilevel_experiment`, gap matches ranked below every tier 1 - 2 match for the 12 queries of RESEARCH_go_to_anything 20; (2) unchanged: without the field, code completion and `workspace/symbol` return the same lists as pkgrel 10 for those queries; (3) memory: deal.II's Dex grows at most 20 MB (estimate 8 - 12); (4) build: `Dex::build` for deal.II at most 2.5 s (today 1.08 s); (5) query: each of the 12 queries at most 5 ms per index (today 0.02 - 1.84 ms); (6) `M-o` on RMO in S11's harness: keys within S11's 2 - 30 ms run 2026-11-04 on hp-elitedesk (0124): criteria 1 (deal.II), 2 - 5 PASS, 4 with gap trigrams cached per name, `cml` struck (D-173); criterion 6 waits for O-83 criterion 6 on RMO-drafts (D-174, 0125): FAIL, 16 of 26 keys over twice pkgrel 1 with the field; S19 FAIL; no patch 0014 (D-175) |
-| T-133 | open | S | "Projectile is indexing" on every `C-c p f` / `M-o`: caching or incremental updates | owner 2026-11-04 | research first; found: `lisp/` sets no projectile caching, and projectile caches only for `native` indexing by default (`alien` on Linux and macOS, `lib/projectile/projectile.el:130`, `:196`), so each call re-lists the project; researched (RESEARCH_go_to_anything 22): emacs-cpp 444 - 493 ms per listing (31 submodules), deal.II 68 ms; options O-85, session recommends (f) (directory times, no watcher) |
+| T-133 | open | S | "Projectile is indexing" on every `C-c p f` / `M-o`: caching or incremental updates | owner 2026-11-04 | research first; found: `lisp/` sets no projectile caching, and projectile caches only for `native` indexing by default (`alien` on Linux and macOS, `lib/projectile/projectile.el:130`, `:196`), so each call re-lists the project; researched (RESEARCH_go_to_anything 22): emacs-cpp 444 - 493 ms per listing (31 submodules), deal.II 68 ms; O-85 ruled (f), D-177; tier 2 proposed, done when proposed (below) |
 | T-129 | done 0106 | S | why clangd stops reading its input during a reparse | D-155, O-79 | S20's eglot run, back-to-back pair: stock clangd flags against `--navigation-from-index --header-flags-from-index`, clangd's `--log=verbose` timestamps around didOpen against Emacs's stalled writes; done when: the stall is placed (a flag, a clangd lock, Emacs's send loop) or ruled out on the Mac, recorded in S20 RESULTS and O-79 |
 
 - T-005: done when: preset build errors jump to source. Code and tests: 0021 (C-c p c
@@ -341,6 +341,21 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
   4. MANUAL and CHEATSHEET name the switch and that it applies after `M-x
      eglot-reconnect`; `make test` on Arch; startup within 10 ms of today.
   Built 2026-10-21 (0097): items 1 - 4 met on Arch; 150 tests; startup 0.183 s. Done.
+- T-133 (opened 2026-11-04, D-177): projectile's lists cached, checked by directory
+  times. Tier 2 proposed. Proposed done when:
+  1. `emacs-cpp-project-files` (NEW, `lisp/init-project.el`): `:around` advice on
+     `projectile-project-files` (config code, no patch to `lib/projectile`): per
+     root, the list and the modification times of the directories holding its
+     files, the times read before the listing; served while all are unchanged,
+     listed anew (projectile's own cache off) when one changed or is gone.
+     `projectile-invalidate-cache` (`C-c p i`) drops it as well.
+  2. ERT tests in a temporary git repository: a second call lists nothing (the
+     listing counted); a file created, removed or renamed outside Emacs, a new
+     directory with a file, each seen by the next call; `C-c p i` empties it.
+  3. Measured in batch Emacs on Arch, medians of 7: a call with the list current at
+     most 10 ms on emacs-cpp (today 444 - 493) and at most 50 ms on deal.II's
+     checkout (today 68 - 75); the first call as today.
+  4. `make test` passes on Arch; the Mac's `make test` an H-n.
 - T-124 (opened 2026-10-21, D-143): ruff for Python without its server. Tier: 2.
   DEFERRED by the owner 2026-10-21: "Defer T-124 until performance with ty alone
   becomes an actual problem, due to additional maintenance overhead from ignore
