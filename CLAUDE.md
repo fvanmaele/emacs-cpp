@@ -11,8 +11,10 @@ An Emacs 31 configuration giving the owner a CLion-like C++ environment (navigat
 refactoring, diagnostics, CMake presets, debugger, git, jump-to-anything) on an Arch
 Linux workstation and a macOS machine (D-050). It will never be an Emacs distribution, a
 Windows config or a CLion keymap emulation (DESIGN 2).
-**Status (2026-10-10):** v0.4.1 tagged (navigation, build, debug, polish), design ruled
-through D-073. clangd stays (T-004); a locally patched clangd
+**Status:** v1.0.0 tagged 2026-11-04 on fc74a31 (owner), design ruled through D-176;
+the repository's first tag (v0.4.1, journal 0033, was recorded but never created).
+At 2026-10-10: v0.4.1 (navigation, build, debug, polish), design ruled through D-073.
+clangd stays (T-004); a locally patched clangd
 (`packaging/clangd-index-nav`, pkgrel 7 with patches 0008, 0009, selected by
 `emacs-cpp-clangd-program`) answers navigation from its index and gives headers an
 includer's flags, also when opened first (D-026 .. D-028, D-046, D-047, D-059), and
