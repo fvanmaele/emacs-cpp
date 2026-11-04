@@ -1,5 +1,7 @@
 # 0110 - S20 `fswatch-shown`: PASS on Arch, S20 passes on both machines
 
+> Superseded 2026-11-04 by D-166 (0115): the session's runs 4 - 6 fail criterion 3.
+
 - **Date:** 2026-11-04
 - **Commits:** see `git log -- spikes/s20-fswatch-reverter` (this entry's commit);
   runs by the owner on H-22, 2026-11-03 23:05 - 23:07Z

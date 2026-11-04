@@ -1,7 +1,9 @@
 # S20 results
 
-Verdict for `fswatch-shown` (D-153): PASS on the Mac (runs 1 - 3, 2026-11-03) and on
-Arch (runs 1 - 3, the owner's, 2026-11-03, H-22); eglot's share E1 - E3 PASS on the
+Verdict for `fswatch-shown` (D-153): PASS on the Mac (runs 1 - 3, 2026-11-03); FAIL on
+Arch on criterion 3 (D-166, 2026-11-04: the session's run 6 blocked 0.30 s; the
+owner's runs 1 - 3 passed, kept as evidence); mode `shipped` FAIL on Arch too (run 3,
+0.25 s); the queue's shape is O-81; eglot's share E1 - E3 PASS on the
 Mac (2026-11-03), a checkout during clangd's reparse blocks 0.36 - 0.98 s (O-79);
 sections at the end. Earlier verdict
 for `fswatch-queued`:
@@ -191,8 +193,8 @@ diff-hl from `lib/diff-hl`. Logs: `arch-shown-run1.log` .. `arch-shown-run3.log`
 Contrast `fswatch-diffhl`: buffers current 1.55 - 2.43 s after `git`, Emacs blocked
 1.55 - 2.40 s, one filter call per checkout of the same length.
 
-Verdict: PASS on Arch, criteria 1 - 6; with the Mac's runs, S20 `fswatch-shown`
-passes on both machines.
+Verdict (2026-11-04, superseded by D-166): PASS on Arch, criteria 1 - 6; runs 4 - 6
+below fail criterion 3.
 
 Findings:
 - Arch's block is the one filter call (761 - 763 inotify records, 124 - 141 ms), up
@@ -203,6 +205,29 @@ Findings:
   of 2026-11-02.
 - The queue steps (0.037 - 0.051 s) match the Mac's (0.040 - 0.085 s); the
   contrast's diff-hl cost is lower than the Mac's (1.6 - 2.4 s against 2.2 - 2.5 s).
+
+## Mode `fswatch-shown`, Arch runs 4 - 6 (session, 2026-11-04; D-166)
+The same commands as runs 1 - 3, on `main` at a077521 (the spike's mode unchanged).
+Logs: `arch-shown-run4.log` .. `arch-shown-run6.log`. Load 1.32 - 1.87 at the start,
+runs 18:04 - 18:06Z; this session's Claude Code process was running.
+
+| criterion | `fswatch-shown`, runs 4 - 6 | limit | pass |
+|---|---|---|---|
+| 1 buffers current after `git` | 0.12 - 0.31 s, no Overflow | 1.0 s | yes |
+| 2 edits kept | as in runs 1 - 3 | - | yes |
+| 3 Emacs blocked (`c`, `a`) | run 4: 0.23, 0.14 s; run 5: 0.11, 0.15 s; run 6: 0.30, 0.25 s (filter's longest call 232, 145, 302 ms) | 0.25 s | no (run 6) |
+| 3 shown buffers | queue done 0.31 - 0.50 s; VC names the branch 3 of 3; steps 0.018 - 0.051 s | 15 s | yes |
+| 3 showing a hidden buffer | 0.018 - 0.047 s; VC names the branch | 0.25 s | yes |
+| 4 idle fswatch | 6 descriptors, 5.2 MB RSS | 16, 12 MB | yes |
+| 5 ready, shutdown | 0.54 - 0.55 s; gone | 5 s | yes |
+| 6 messages | as in runs 1 - 3 | - | yes |
+
+Contrast `fswatch-diffhl`: Emacs blocked 1.56 - 2.81 s.
+
+Verdict (owner, D-166): FAIL on Arch, criterion 3. `git` itself took 0.11 - 0.13 s in
+run 6 (0.05 - 0.07 s in runs 1 - 3): something else used the disk or CPU, at a
+desktop's ordinary load. The block is the one filter call (761 - 763 records); its
+spread over six runs, 124 - 302 ms, leaves no margin at 190 files.
 
 ## eglot's share, Mac runs 1 - 3 (session, 2026-11-03; D-153)
 A clone of `~/source/repos/RMO-drafts` at aad752e (39 files, deal.II from
@@ -475,6 +500,28 @@ The config's `lisp/emacs-cpp-reverter.el` at 5316f49 in place of the spike's rev
 | 5 ready, shutdown | 0.01 - 0.02 s; gone after the buffers were killed (the module stops it) | 5 s | yes |
 | 6 messages | the edited buffer named on `c` and `a`, the deleted file on `c` | - | yes |
 
-Verdict: PASS on the Mac, criteria 1 - 6; Arch on H-23. Against `fswatch-shown`'s Mac
-runs (0103: blocked 0.07 - 0.13 s, filter 87 - 95 ms) the shipped module blocks less;
+Verdict: PASS on the Mac, criteria 1 - 6; FAIL on Arch (below). Against `fswatch-shown`'s
+Mac runs (0103: blocked 0.07 - 0.13 s, filter 87 - 95 ms) the shipped module blocks less;
 the scan's absence accounts for part of it (UNVERIFIED how much).
+
+## Mode `shipped`, Arch runs 1 - 3 (session, 2026-11-04; T-128, D-166)
+H-23's steps 3 - 6, run by the session on Arch at a077521: `make test` 151 of 151 as
+expected (46.9 s); logs `arch-shipped-run1.log` .. `arch-shipped-run3.log`. Load 3.10 -
+3.37 at the start (`make test` had just run; H-23 asked for an idle machine).
+
+| criterion | `shipped`, runs 1 - 3 | limit | pass |
+|---|---|---|---|
+| 1 buffers current after `git` | 0.13 - 0.26 s, no Overflow | 1.0 s | yes |
+| 2 edits kept | edit kept; 0 unchanged files' buffers reverted; the deleted file's buffer live, not reverted on `c`, no filter error | - | yes |
+| 3 Emacs blocked | 0.13 - 0.25 s (the filter's longest call 194, 148, 250.6 ms) | 0.25 s | no (run 3) |
+| 3 shown buffers | queue done 0.33 - 0.47 s; VC names the branch 3 of 3; steps 0.020 - 0.055 s | 15 s | yes |
+| 3 showing a hidden buffer | 0.020 - 0.054 s; VC names the branch | 0.25 s | yes |
+| 4 idle fswatch | 6 descriptors, 5.2 MB RSS | 16, 12 MB | yes |
+| 5 ready, shutdown | 0.01 s; gone | 5 s | yes |
+| 6 messages | the edited buffer named on `c` and `a`, the deleted file on `c` | - | yes |
+
+Verdict: FAIL on Arch, criterion 3 (run 3, 250.6 ms), at a load above H-23's idle
+condition; by D-166 the shipped module's reverts at once are what changes (O-81).
+Ready 0.01 s against the spike's 0.54 s: the module does not wait for fswatch's
+watches the way the spike's `ready` does (UNVERIFIED which part of the 0.54 s that
+is).
