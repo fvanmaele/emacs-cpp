@@ -104,7 +104,8 @@ checkout on the Mac (O-78), reverted (D-149); one fswatch per project root, tier
 (T-128) if S20 passes (D-148). 2026-11-02: S20 PASS on Arch (0101), FAIL on the Mac
 (0102): the VC queue stacks steps (0.20 - 0.35 s), diff-hl adds 19 ms per revert
 outside `-Q`; O-78 reopened, resolved 2026-11-03 with (e) (D-153; edge cases D-151,
-D-152): S20 mode `fswatch-shown` PASS on the Mac (0103) and on Arch (0110); eglot's
+D-152): S20 mode `fswatch-shown` PASS on the Mac (0103), FAIL on Arch criterion 3 (D-166,
+0115; `shipped` too: reverts from a queue, O-81); eglot's
 share on RMO-drafts PASS on the Mac (0104). A checkout during clangd's reparse froze
 Emacs up to 1.1 s (O-79, 0105 - 0109, 0111): Emacs's own timers, mainly the reverter's
 queue step, ran inside a write to clangd that met a full pipe (not clangd's includer

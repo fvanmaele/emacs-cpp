@@ -2127,7 +2127,7 @@ presets, GoogleTest runner.
 | match function ranks unlike the regexps or is slower | S16 | owner | D-124 |
 | compiled `lisp/` slows startup or stays bytecode | S17 | owner | D-125 |
 | fswatch backend loses changes or costs Emacs too much | S18 (PASS 2026-10-21 on Arch; the Mac's cost misread, O-80) | LLM / owner | D-127 |
-| per-project fswatch reverter loses changes or blocks Emacs | S20 (FAIL 2026-11-02: Mac criterion 3, VC steps; PASS on Arch; mode `fswatch-shown` for (e), D-153: PASS on the Mac and on Arch 2026-11-03, 0103, 0110) | LLM / owner | O-78 |
+| per-project fswatch reverter loses changes or blocks Emacs | S20 (FAIL 2026-11-02: Mac criterion 3, VC steps; PASS on Arch; mode `fswatch-shown` for (e), D-153: PASS on the Mac 2026-11-03, 0103; FAIL on Arch 2026-11-04, criterion 3, D-166, 0115; queue shape O-81) | LLM / owner | O-78 |
 | own package build glue mis-orders compilation | none (tests) | - | v0.1 |
 | config fails on macOS (paths, tools, tests) | none (`make test`) | owner | D-050 |
 | clangd too slow / too large on deal.II scale | S1 numbers | owner | v0.1 |
@@ -2190,6 +2190,24 @@ presets, GoogleTest runner.
   measured across 63 files. Findings in; O-43.
 
 ## Open questions ledger (LIVING)
+- O-81 (OPEN 2026-11-04, from D-166): how the shipped reverter
+  (`lisp/emacs-cpp-reverter.el`, 5316f49) reverts from a queue. Evidence: on Arch one
+  filter call reverts 189 buffers in 124 - 302 ms (0110, 0115); about 0.7 - 1.6 ms per
+  buffer. Options:
+  (a) Change the module directly: the filter queues the call's buffers, a timer step
+  reverts shown buffers first, then the rest, stopping after a time budget; judged by
+  S20's `shipped` mode on both machines. Against: tier 3 code before its shape passes
+  a spike (the hard rule); the spike's modes stay at the old shape.
+  (b) A new S20 mode `fswatch-chunked` in `s20-run.el` first (the same queue, budget
+  per step a variable), three runs per machine against `fswatch-shown`'s criteria 1 -
+  6; then the module written fresh from its numbers, then `shipped` again on both
+  machines. Against: two measurement rounds, the Mac's runs the owner's while this
+  session is on Arch; about 1 h of the session's work.
+  (c) Keep reverts at once and move the work out of them (eglot's didClose / didOpen
+  and the major mode's hooks per revert). Against: unmeasured which part of the 0.7 -
+  1.6 ms is whose (UNVERIFIED); still grows with the checkout.
+  Recommendation: (b): the rule's order, and the budget per step is the number the
+  module needs.
 - O-80 (RESOLVED 2026-11-04 with D-165: (a), (c) drafted; owner: "(a), draft (c)
   report"; was OPEN 2026-11-03, found in D-160's research, 0111): Emacs 31.1's
   `process-attributes` gives CPU times 41.7 times too small on Apple silicon: its
@@ -2487,6 +2505,19 @@ presets, GoogleTest runner.
   a project's `.dir-locals.el` change reaches its buffers when they are visited
   again. Not taken: nothing in projects when off; a global switch only. Amends
   D-162 (c).
+- DECIDED D-166 (owner 2026-11-04: "S20 (a)"): S20 mode `fswatch-shown` FAILS on
+  Arch on criterion 3: the session's runs 4 - 6 (load 1.3 - 1.9) blocked Emacs 0.23,
+  0.15 and 0.30 s, the one filter call that reverts all 189 buffers 145 - 302 ms; the
+  owner's runs 1 - 3 (0110) blocked at most 0.14 s and are kept as evidence, not as a
+  verdict. The reverter reverts from a queue, not all in one filter call, and that is
+  measured before its code changes. Supersedes 0110's verdict; amends D-153 (reverts
+  "at once") and D-162 (d). Premise corrected the same day: (a) was offered as "before
+  any T-128 code", but T-128's module had shipped that morning (5316f49), unseen by the
+  session; its `shipped` mode on Arch then also blocked 0.25 s (filter 250.6 ms, run 3
+  of 3, load 3.1 - 3.4, 0115). How the queue lands in the shipped module: O-81.
+  Against: buffers become current later than 0.13 s; another measurement round on
+  both machines. Not taken: (b) keep runs 1 - 3's PASS (choosing runs), (c) three more
+  idle runs first (more samples, same 0.30 s).
 - DECIDED D-154 (owner 2026-11-03: "O-79 (c)"): before T-128's code, S20's eglot run
   times each revert under clangd's reparse, split into eglot's didClose, didOpen (its
   `process-send-string` calls to clangd, their bytes) and the rest of the revert;
@@ -3935,6 +3966,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-163 | 2026-11-04 | the reverter: VC or `.projectile` roots only; opt-out, globally or per project | 12 | D-162 |
 | D-164 | 2026-11-04 | O-80 (b): rerun S18 on the Mac with `current-cpu-time` | 7 | O-80 |
 | D-165 | 2026-11-04 | O-80 closed: the Mac's S18 cost recorded, not judged; report to Emacs drafted | 7 | O-80 |
+| D-166 | 2026-11-04 | S20 `fswatch-shown` FAIL on Arch, criterion 3; the reverter reverts from a queue | 12 | D-153, O-81 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |
