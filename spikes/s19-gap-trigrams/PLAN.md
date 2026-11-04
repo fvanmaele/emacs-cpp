@@ -12,11 +12,11 @@ marked NEW do not exist yet; everything else was checked to exist on 2026-11-04.
 - [x] 3. `make library-index LIBRARY=dealii`, memory watched (~25 min)
   Uses `/opt/clangd-index-nav/bin/clangd-indexer` (installed, pkgrel 1); writes
   `indexes/dealii.dex` and `indexes/dealii.stamp` (ignored by git).
-- [ ] 4. Baseline benchmark against the unpatched libraries (~60 min)
+- [x] 4. Baseline benchmark against the unpatched libraries (~60 min)
   `bench.cpp`, `build.sh` (NEW): medians of 21 for `Dex::build`,
   `estimateMemoryUsage` and the 12 queries; f for criterion 5. Built before any
   patch, so the baseline binary stays as it is.
-- [ ] 5. Clients and baseline lists for criterion 2 (~45 min)
+- [x] 5. Clients and baseline lists for criterion 2 (~45 min)
   `client.py` (NEW, from `spikes/s15-mid-word-rank`'s client): `workspace/symbol`
   with and without the request field, and a code completion probe; `compare.py`
   (NEW).
@@ -45,4 +45,4 @@ marked NEW do not exist yet; everything else was checked to exist on 2026-11-04.
 Session work about 7.5 h, about 2 h of it waiting on builds.
 
 ## Checkpoint
-done 0 of 13, now: approval
+done 5 of 13, now: step 6 (patch part 1); approved 2026-11-04
