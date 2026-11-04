@@ -877,10 +877,11 @@ Known defects: none yet (nothing built).
   Corrected 2026-11-03 (O-80, 0111): the Mac's figures in this entry (7 - 9 ms, 2 ms)
   are 41.7 times too small (`process-attributes` on Apple silicon), about 290 - 375
   and 83 ms per 1000 records, over S18's 50; Arch's stand. The PASS holds on Arch.
+  Measured 2026-11-04 (D-164, 0114): the Mac's shipped backend 61 - 64 ms.
 **The backend as built (T-119, 2026-10-21; supersedes the design below for the built-in
 eglot).** `lisp/emacs-cpp-eglot-fswatch.el`, written fresh in the shape S18's `dedup`
 mode measured (37 - 39 ms of Emacs's CPU per 1000 records on Arch; the Mac's 2 ms
-read 41.7 times too small, about 83 ms, O-80):
+read 41.7 times too small, measured 61 - 64 ms, O-80):
 - **Where it hooks.** An `:around` method on `eglot-register-capability` and on
   `eglot-unregister-capability` for `workspace/didChangeWatchedFiles` takes the
   registration over (eglot's own method is not called, so `file-notify` holds no
@@ -2210,6 +2211,25 @@ presets, GoogleTest runner.
   Combined: (b), then (a) or a Mac cost task by its result; (c) beside it.
   Against: two steps before the Mac's verdict is restated.
   Recommendation: the combination: a verdict should rest on a measured number.
+  Rerun (D-164, 0114): the Mac costs 61 - 64 ms per 1000 records (S18 run 8, five
+  runs, the tree full in the last two), over the limit of 50; criteria 1, 2, 4, 5
+  hold. Per created file it costs less than Arch, where criterion 3 passes: Arch
+  reads three inotify records per file (2.87 - 3.15 s per 20000-file burst, 144 - 158
+  ms per 1000 files), the Mac one (1.22 - 1.28 s, 61 - 64 ms per 1000 files); 46 filter
+  calls of about 27 ms each, no freeze. Options:
+  (a) record the Mac's cost, judge Arch only (D-057); D-127 stands. Against: the Mac
+  misses criterion 3 as written by about a quarter.
+  (e) a task to cut the Mac's cost under 50 ms per 1000 records (profile the
+  backend's filter there). Against: session time for a cost already below Arch's per
+  change, with no freeze measured.
+  (f) restate criterion 3 per created file on both machines. Against: a confirmed
+  criterion changed after its numbers are known.
+  (c) as before (the owner's report to Emacs). Against: as before.
+  Recommendation: (a), with (c) beside it if the owner wants Emacs fixed: budgets bind
+  on Arch, and per change the Mac costs less than Arch's passing figure.
+- DECIDED D-164 (owner 2026-11-04: "rerun S18"): O-80 (b): S18's `shipped` mode
+  rerun on the Mac with Emacs's CPU from `current-cpu-time`. Result above (0114); the
+  verdict's Mac half now rests on a measured number. Not taken yet: (a), (c), (e), (f).
 - O-79 (RESOLVED 2026-11-04 with D-161: (l) with (p); (s) measured; owner: "O-79 (l),
   ship T-128 with (e). [...] Add (p); (s) realtime protection is disabled for now";
   was REOPENED 2026-11-03 for (f): its premise refuted when T-130 started, see the
@@ -3906,6 +3926,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-161 | 2026-11-04 | O-79 closed: T-128 ships with (e) and a filter that never runs inside itself; T-130 dropped | 12 | O-79 |
 | D-162 | 2026-11-04 | T-128's shape: auto-revert outside roots, any frame shows, project.el's root, done when | 12 | D-149, D-151 |
 | D-163 | 2026-11-04 | the reverter: VC or `.projectile` roots only; opt-out, globally or per project | 12 | D-162 |
+| D-164 | 2026-11-04 | O-80 (b): rerun S18 on the Mac with `current-cpu-time` | 7 | O-80 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |
