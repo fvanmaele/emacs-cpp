@@ -15,7 +15,8 @@
 //          workspace/symbol sets it (3), and with -DS19_GAP the gap field (3)
 // LISTS.tsv: configuration, query, rank, qualified name, class: `fuzzy`
 // (FuzzyMatcher matches), `sub` (the query inside the name, case ignored), or
-// `gap` (neither: only tier 3 can have admitted it). Logging: errors only.
+// `gap` (neither: only tier 3 can have admitted it), and Dex's final score,
+// recomputed after the timed runs (the callback only collects the results). Logging: errors only.
 
 #include "FuzzyMatch.h"
 #include "index/Index.h"
@@ -29,6 +30,8 @@
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>
+#include <limits>
+#include <optional>
 #include <memory>
 #include <string>
 #include <vector>
@@ -67,6 +70,35 @@ const char *classify(llvm::StringRef Name, llvm::StringRef Query) {
   if (Id.find_insensitive(Query) != llvm::StringRef::npos)
     return "sub";
   return "gap";
+}
+
+// Dex's final score of a result (Dex::fuzzyFind): its match score times its
+// quality (boosts are 1 for these requests: AnyScope without scopes, no
+// proximity paths or types), second and third tiers transformed as there.
+float finalScore(const Symbol &S, llvm::StringRef Query,
+                 const FuzzyFindRequest &Req) {
+  FuzzyMatcher M(Query);
+  std::optional<float> Score = M.match(S.Name);
+  bool Second = false, Third = false;
+  if (Req.MiddleMatch && Query.size() >= Req.MiddleMatch) {
+    auto Tiered = tieredMatch(S.Name, Query, Score);
+    Score = Tiered ? std::optional<float>(Tiered->Score) : std::nullopt;
+    Second = Tiered && !Tiered->FirstTier;
+  }
+#ifdef S19_GAP
+  if (!Score && Req.GapMatch && Query.size() >= Req.GapMatch) {
+    Score = gapMatch(S.Name, Query);
+    Third = Score.has_value();
+  }
+#endif
+  if (!Score)
+    return std::numeric_limits<float>::quiet_NaN();
+  float Final = *Score * quality(S);
+  if (Second)
+    Final = secondTierScore(Final);
+  else if (Third)
+    Final = thirdTierScore(Final);
+  return Final;
 }
 
 } // namespace
@@ -136,25 +168,28 @@ int main(int Argc, char **Argv) {
       Req.GapMatch = C.Gap;
 #endif
       std::vector<double> Ms;
-      std::vector<std::string> Names, Classes;
+      std::vector<const Symbol *> Found;
       for (int R = 0; R < Runs; ++R) {
-        Names.clear();
-        Classes.clear();
+        Found.clear();
         double T0 = nowMs();
-        Index->fuzzyFind(Req, [&](const Symbol &S) {
-          Names.push_back((S.Scope + S.Name).str());
-          Classes.push_back(classify(S.Name, Q));
-        });
+        Index->fuzzyFind(Req, [&](const Symbol &S) { Found.push_back(&S); });
         Ms.push_back(nowMs() - T0);
       }
       double Med = median(Ms);
       Sum += Med;
-      size_t Gaps = std::count(Classes.begin(), Classes.end(), "gap");
+      // After timing: class and Dex's final score of each result (the index
+      // owns the symbols while it lives).
+      size_t Gaps = 0;
+      for (size_t I = 0; I < Found.size(); ++I) {
+        const Symbol &S = *Found[I];
+        const char *Class = classify(S.Name, Q);
+        Gaps += llvm::StringRef(Class) == "gap";
+        std::fprintf(Lists, "%s\t%s\t%zu\t%s\t%s\t%.9g\n", C.Name, Q, I + 1,
+                     (S.Scope + S.Name).str().c_str(), Class,
+                     finalScore(S, Q, Req));
+      }
       std::printf("query %-12s %-7s %8.3f ms  %5zu results, %5zu gap\n", C.Name,
-                  Q, Med, Names.size(), Gaps);
-      for (size_t I = 0; I < Names.size(); ++I)
-        std::fprintf(Lists, "%s\t%s\t%zu\t%s\t%s\n", C.Name, Q, I + 1,
-                     Names[I].c_str(), Classes[I].c_str());
+                  Q, Med, Found.size(), Gaps);
     }
     std::printf("query %-12s sum of medians %.3f ms\n", C.Name, Sum);
   }

@@ -7,28 +7,45 @@ Spike code, never promoted.
       scores, except the last run when the limit cut the list (its members may
       differ, its length not); a list shorter than its limit is compared whole. Two runs of one clangd differ in exactly that (vec, vector at
       limit 100: equal scores across the cut). Prints each difference; exit 1 if any.
-  python3 -I compare.py prefix BASE.jsonl GAP.jsonl
-      Criterion 1 at the server: for each workspace/symbol request, GAP's items
-      start with BASE's items in order (tiers 1 - 2 keep their places and order),
-      the rest are added after; prints how many were added and whether `eto` at
-      limit 10000 added a `dealii::...::Vector`. Exit 1 if a prefix breaks.
+  python3 -I compare.py tiers BASE.jsonl GAP.jsonl CLASSIFY
+      Criterion 1 at the server: CLASSIFY (classify.cpp) classes each item of each
+      workspace/symbol reply in GAP on its full name and on its identifier; an
+      item `gap` on the full name is certainly tier 3, one `fuzzy` or `sub` on the
+      identifier certainly tier 1 - 2 (clangd matches the symbol's name, between
+      the two), and no certain tier 1 - 2 item may follow a certain tier 3 one. Counts tier 1 - 2
+      items lost and added against BASE (the reply without the field) and where
+      `eto` at limit 10000 places deal.II's Vectors. (The exposed score is not the
+      one replies rank by, so order is checked by class, not score.)
   python3 -I compare.py lists LISTS.tsv
-      Criterion 1 in the index (bench.cpp's lists): in each gap-* configuration,
-      no `fuzzy` or `sub` result after a `gap` one; each gap-N list starts with
-      middle-N's list of the same file. Exit 1 otherwise.
+      Criterion 1 in the index (bench.cpp's lists, with Dex's final scores): in
+      each gap-* configuration no `fuzzy` or `sub` result after a `gap` one; in
+      every list the scores never rise (so lists order results of different
+      scores alike, only equal ones may swap); tier 1 - 2 results lost and added
+      against middle-N are counted (the
+      gap pass also admits fuzzy matches today's trigrams never offer). Exit 1 on
+      a broken rule.
 """
 import collections
 import json
+import re
+import subprocess
 import sys
 
 
+RESOURCE = re.compile(r"file://\S*/lib/clang/[0-9]+/include/")
+
+
 def load(path, with_scores=False):
+    """Items with clangd's resource directory as `<resource>/`: the build tree's
+    clangd finds its compiler headers under build/lib/clang, the installed one
+    under /usr/lib/clang, the same files."""
     out = collections.OrderedDict()
     with open(path) as f:
         for line in f:
             d = json.loads(line)
             key = (d["kind"], d["query"], d["limit"])
-            out[key] = (d["items"], d.get("scores")) if with_scores else d["items"]
+            items = [RESOURCE.sub("<resource>/", x) for x in d["items"]]
+            out[key] = (items, d.get("scores")) if with_scores else items
     return out
 
 
@@ -72,31 +89,54 @@ def same(a, b):
     return 1 if bad else 0
 
 
-def prefix(base, gap):
+def unqualified(qualified):
+    """The symbol's name in "scope::Name<args>": after the last `::` outside
+    angle brackets (containers carry template arguments too)."""
+    depth, cut = 0, 0
+    for i, c in enumerate(qualified):
+        if c == "<":
+            depth += 1
+        elif c == ">":
+            depth -= 1
+        elif c == ":" and depth == 0 and qualified[i + 1:i + 2] == ":":
+            cut = i + 2
+    return qualified[cut:]
+
+
+def tiers(base, gap, classifier):
     rb, rg = load(base), load(gap)
     bad = 0
-    for key, items in rb.items():
+    for key, items in rg.items():
         if key[0] != "symbol":
             continue
-        g = rg.get(key)
-        if g is None:
-            print("missing in GAP:", key)
+        query = key[1]
+        names = [unqualified(x.split(" ", 1)[1]) for x in items]
+        pairs = subprocess.run([classifier], input="".join(
+            "%s\t%s\n" % (query, n) for n in names), capture_output=True, text=True,
+            check=True).stdout.splitlines()
+        full = [p.split()[0] for p in pairs]
+        ident = [p.split()[1] for p in pairs]
+        out = ["gap" if f == "gap" else "tier12" for f in full]
+        first_gap = next((i for i, c in enumerate(full) if c == "gap"), len(full))
+        late = [i for i in range(first_gap, len(full)) if ident[i] != "gap"]
+        if late:
+            print("%s limit %s: %s (%s) at %d after the first gap match at %d" % (
+                query, key[2], names[late[0]], ident[late[0]], late[0] + 1,
+                first_gap + 1))
             bad += 1
-            continue
-        if g[:len(items)] != items:
-            first = next((i for i, (x, y) in enumerate(zip(items, g)) if x != y), len(items))
-            print("prefix broken: %s limit %s at %d" % (key[1], key[2], first))
-            bad += 1
-            continue
-        added = g[len(items):]
+        nongap = collections.Counter(x for x, c in zip(items, out) if c != "gap")
+        before = collections.Counter(rb.get(key, []))
+        lost = sum((before - nongap).values())
+        added = sum((nongap - before).values())
         note = ""
-        if key[1] == "eto" and key[2] == 10000:
-            vectors = [x for x in added if x.endswith("::Vector") and "dealii::" in x]
-            note = "; dealii Vectors added: %d (e.g. %s)" % (
-                len(vectors), vectors[0].split(" ", 1)[1] if vectors else "-")
-        print("%-7s limit %5s: base %5d, added %5d%s" % (key[1], key[2], len(items),
-                                                          len(added), note))
-    print("prefix: %d broken" % bad)
+        if query == "eto" and key[2] == 10000:
+            ranks = [i + 1 for i, (x, c) in enumerate(zip(items, out))
+                     if c == "gap" and x.endswith("::Vector") and "dealii::" in x]
+            note = "; dealii Vectors in tier 3: %d, first at rank %s" % (
+                len(ranks), ranks[0] if ranks else "-")
+        print("%-7s limit %5s: %5d items, %5d gap; tier 1 - 2 lost %d, added %d%s" % (
+            query, key[2], len(items), out.count("gap"), lost, added, note))
+    print("tiers: %d broken" % bad)
     return 1 if bad else 0
 
 
@@ -104,35 +144,47 @@ def lists(path):
     rows = collections.defaultdict(list)
     with open(path) as f:
         for line in f:
-            config, query, rank, name, cls = line.rstrip("\n").split("\t")
-            rows[(config, query)].append((name, cls))
+            config, query, rank, name, cls, score = line.rstrip("\n").split("\t")
+            rows[(config, query)].append((name, cls, float(score)))
     bad = 0
     for (config, query), items in rows.items():
+        # Scores never rise in any list, so two results of different scores
+        # keep their order between lists; only equal scores may swap.
+        rising = [i for i in range(len(items) - 1) if items[i + 1][2] > items[i][2]]
+        if rising:
+            print("%s %s: score rises at rank %d" % (config, query, rising[0] + 2))
+            bad += 1
         if not config.startswith("gap-"):
             continue
+        # Tiers: no tier 1 - 2 result after a gap one, scores never rising.
         seen_gap = False
-        for name, cls in items:
+        for name, cls, _ in items:
             if cls == "gap":
                 seen_gap = True
             elif seen_gap:
                 print("%s %s: %s (%s) after a gap match" % (config, query, name, cls))
                 bad += 1
                 break
+        # Against the list without the field: lost and added tier 1 - 2 results.
         base = rows.get(("middle-" + config[4:], query), [])
-        if [n for n, _ in items[:len(base)]] != [n for n, _ in base]:
-            print("%s %s: does not start with middle-%s's list" % (config, query, config[4:]))
-            bad += 1
-        gaps = sum(1 for _, c in items if c == "gap")
-        vec = any(c == "gap" and n.endswith("::Vector") and n.startswith("dealii::")
-                  for n, c in items)
-        print("%-10s %-7s %5d results, %5d gap%s" % (
-            config, query, len(items), gaps,
-            ", dealii Vector among them" if query == "eto" and vec else ""))
+        non = [(n, s) for n, c, s in items if c != "gap"]
+        count = collections.Counter(n for n, _ in non)
+        lost = sum((collections.Counter(n for n, _, _ in base) - count).values())
+        added = sum((count - collections.Counter(n for n, _, _ in base)).values())
+        gaps = sum(1 for _, c, _ in items if c == "gap")
+        vec = [i + 1 for i, (n, c, _) in enumerate(items)
+               if c == "gap" and n.endswith("::Vector") and n.startswith("dealii::")]
+        print("%-10s %-7s %5d results, %5d gap; tier 1 - 2 lost %d, added %d%s" % (
+            config, query, len(items), gaps, lost, added,
+            "; dealii Vector at rank %d" % vec[0] if query == "eto" and vec else ""))
     print("lists: %d broken" % bad)
     return 1 if bad else 0
 
 
 if __name__ == "__main__":
     mode = sys.argv[1]
-    sys.exit({"same": same, "prefix": prefix}[mode](*sys.argv[2:4]) if mode != "lists"
-             else lists(sys.argv[2]))
+    if mode == "same":
+        sys.exit(same(*sys.argv[2:4]))
+    if mode == "tiers":
+        sys.exit(tiers(*sys.argv[2:5]))
+    sys.exit(lists(sys.argv[2]))

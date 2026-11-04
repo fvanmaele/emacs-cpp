@@ -1,0 +1,68 @@
+S19 patched 2026-11-04T21:06:13Z, hp-elitedesk, s19.patch on the pkgrel 1 tree, load 0.59 1.81 1.78; bench with classification outside the timing
+build median 2012.8 ms (min 1964.7, max 2390.5, 21 runs)
+memory 270.7 MB (estimateMemoryUsage)
+query plain-100    eto        1.720 ms    100 results,     0 gap
+query plain-100    ptr        1.080 ms    100 results,     0 gap
+query plain-100    get        2.379 ms    100 results,     0 gap
+query plain-100    tria       1.246 ms    100 results,     0 gap
+query plain-100    nac        0.484 ms    100 results,     0 gap
+query plain-100    rnm        0.030 ms      1 results,     0 gap
+query plain-100    cml        0.015 ms     24 results,     0 gap
+query plain-100    vec        1.720 ms    100 results,     0 gap
+query plain-100    vector     2.120 ms    100 results,     0 gap
+query plain-100    dfh        0.032 ms     49 results,     0 gap
+query plain-100    fev        0.138 ms    100 results,     0 gap
+query plain-100    qgau       0.023 ms     51 results,     0 gap
+query plain-100    sum of medians 10.987 ms
+query middle-100   eto        1.635 ms    100 results,     0 gap
+query middle-100   ptr        1.164 ms    100 results,     0 gap
+query middle-100   get        2.908 ms    100 results,     0 gap
+query middle-100   tria       1.410 ms    100 results,     0 gap
+query middle-100   nac        0.618 ms    100 results,     0 gap
+query middle-100   rnm        0.038 ms      1 results,     0 gap
+query middle-100   cml        0.018 ms     24 results,     0 gap
+query middle-100   vec        2.163 ms    100 results,     0 gap
+query middle-100   vector     2.382 ms    100 results,     0 gap
+query middle-100   dfh        0.041 ms     49 results,     0 gap
+query middle-100   fev        0.177 ms    100 results,     0 gap
+query middle-100   qgau       0.026 ms     51 results,     0 gap
+query middle-100   sum of medians 12.579 ms
+query middle-10000 eto        1.642 ms    430 results,     0 gap
+query middle-10000 ptr        1.209 ms   1250 results,     0 gap
+query middle-10000 get        3.177 ms   5732 results,     0 gap
+query middle-10000 tria       1.451 ms   1185 results,     0 gap
+query middle-10000 nac        0.618 ms    184 results,     0 gap
+query middle-10000 rnm        0.038 ms      1 results,     0 gap
+query middle-10000 cml        0.018 ms     24 results,     0 gap
+query middle-10000 vec        2.261 ms   2444 results,     0 gap
+query middle-10000 vector     2.468 ms   2111 results,     0 gap
+query middle-10000 dfh        0.041 ms     49 results,     0 gap
+query middle-10000 fev        0.178 ms    182 results,     0 gap
+query middle-10000 qgau       0.026 ms     51 results,     0 gap
+query middle-10000 sum of medians 13.126 ms
+query gap-100      eto        7.862 ms    100 results,     0 gap
+query gap-100      ptr        5.727 ms    100 results,     0 gap
+query gap-100      get        7.124 ms    100 results,     0 gap
+query gap-100      tria       3.776 ms    100 results,     0 gap
+query gap-100      nac        2.222 ms    100 results,     0 gap
+query gap-100      rnm        1.816 ms    100 results,    95 gap
+query gap-100      cml        1.196 ms    100 results,    71 gap
+query gap-100      vec        3.343 ms    100 results,     0 gap
+query gap-100      vector     3.811 ms    100 results,     0 gap
+query gap-100      dfh        0.114 ms    100 results,    50 gap
+query gap-100      fev        0.391 ms    100 results,     0 gap
+query gap-100      qgau       0.040 ms     51 results,     0 gap
+query gap-100      sum of medians 37.422 ms
+query gap-10000    eto       22.964 ms  10000 results,  9543 gap
+query gap-10000    ptr       11.633 ms  10000 results,  8718 gap
+query gap-10000    get        6.761 ms   9047 results,  3277 gap
+query gap-10000    tria       3.872 ms   2482 results,  1251 gap
+query gap-10000    nac        2.309 ms   1808 results,  1619 gap
+query gap-10000    rnm        1.901 ms   1937 results,  1932 gap
+query gap-10000    cml        1.251 ms   1271 results,  1242 gap
+query gap-10000    vec        3.508 ms   3476 results,   986 gap
+query gap-10000    vector     3.910 ms   2188 results,    77 gap
+query gap-10000    dfh        0.114 ms    119 results,    69 gap
+query gap-10000    fev        0.401 ms    371 results,   137 gap
+query gap-10000    qgau       0.040 ms     51 results,     0 gap
+query gap-10000    sum of medians 58.665 ms
