@@ -16,6 +16,9 @@
 ;; for shown buffers from a queue, one per step of a one-shot 0.05 s timer armed
 ;; again after each step, and for other buffers when a window shows them.
 ;; fswatch-diffhl: no VC refresh, diff-hl's revert hook live.
+;; shipped (D-162 (d)): the config's lisp/emacs-cpp-reverter.el (T-128) with its
+;; program S20_FSWATCH and projectile from lib/, counted by advice; it starts its own
+;; fswatch when the files are visited and stops it when their buffers are killed.
 ;; Opens every file branch b (c for the diff-hl modes: b plus one deleted file)
 ;; changes plus 10 it does not, edits one changed file's buffer, then checks out b
 ;; (c) and a again, each time waiting up to 15 s for every unedited changed buffer to
@@ -27,6 +30,7 @@
 (defun s20--env (name)
   (or (getenv name) (error "s20: %s is not set" name)))
 
+(defvar s20-here (file-name-directory load-file-name))
 (defvar s20-root (file-name-as-directory (expand-file-name (s20--env "S20_ROOT"))))
 (defvar s20-real-root (file-name-as-directory (file-truename s20-root)))
 (defvar s20-mode (s20--env "S20_MODE"))
@@ -38,7 +42,8 @@
 (defvar s20-filter-max 0.0)
 (defvar s20-probe-seen nil)
 (defvar s20-stall 0.0 "Longest single wait step of `s20--wait': Emacs blocked.")
-(defvar s20-diff-hl (member s20-mode '("fswatch-shown" "fswatch-diffhl")))
+(defvar s20-diff-hl (member s20-mode '("fswatch-shown" "fswatch-diffhl" "shipped")))
+(defvar s20-shipped (equal s20-mode "shipped"))
 (defvar s20-skipped nil "(BUFFER . WHY) the current filter call did not revert.")
 (defvar s20-messages nil "Texts of the filter's messages, newest first.")
 (defvar s20-filter-errors nil)
@@ -209,6 +214,43 @@
    :connection-type 'pipe :noquery t :coding 'utf-8-unix
    :filter (s20--filter)))
 
+;;;; shipped: the config's reverter (D-162 (d))
+
+(defvar emacs-cpp-default-fswatch-program)
+(defvar emacs-cpp-reverter--timer)
+(defvar emacs-cpp-reverter--queue)
+(declare-function emacs-cpp-reverter-processes "emacs-cpp-reverter" ())
+(declare-function emacs-cpp-reverter--on-show "emacs-cpp-reverter" (frame))
+
+(defun s20--load-shipped ()
+  "Load lisp/emacs-cpp-reverter.el (T-128) with S20_FSWATCH and count for it.
+A filter call's records are counted where they enter `emacs-cpp-reverter--handle',
+its messages where `emacs-cpp-reverter--message' returns them, the queue's steps
+where `emacs-cpp-reverter--refresh' runs; the module itself carries no counters."
+  (add-to-list 'load-path (expand-file-name "../../lib/projectile" s20-here))
+  (setq emacs-cpp-default-fswatch-program (s20--env "S20_FSWATCH"))
+  (load (expand-file-name "../../lisp/emacs-cpp-reverter.el" s20-here) nil t)
+  (advice-add 'emacs-cpp-reverter--handle :around
+              (lambda (fn root real-root records overflowed)
+                (let ((start (float-time)))
+                  (dolist (record records)
+                    (cl-incf s20-records)
+                    (when (string-search "/.s20-probe " record) (setq s20-probe-seen t)))
+                  (when overflowed (cl-incf s20-overflows))
+                  (prog1 (funcall fn root real-root records overflowed)
+                    (let ((spent (- (float-time) start)))
+                      (cl-incf s20-calls)
+                      (cl-incf s20-filter-total spent)
+                      (setq s20-filter-max (max s20-filter-max spent)))))))
+  (advice-add 'emacs-cpp-reverter--message :filter-return
+              (lambda (text) (when text (push text s20-messages)) text))
+  (advice-add 'emacs-cpp-reverter--refresh :around
+              (lambda (fn buffer)
+                (let ((start (float-time)))
+                  (prog1 (funcall fn buffer)
+                    (setq s20-shown-last (float-time))
+                    (push (- s20-shown-last start) s20-shown-steps))))))
+
 (defun s20--descriptors (pid)
   "Open descriptors of PID: /proc on Linux, lsof elsewhere."
   (if (file-directory-p (format "/proc/%d/fd" pid))
@@ -237,13 +279,18 @@
 
 (defun s20--shown-report (branch t1 shown)
   "Emit fswatch-shown's queue, then show one hidden reverted buffer and emit."
-  (s20--wait (lambda () (and (null s20-shown-timer) (null s20-shown-queue))) 30)
+  (s20--wait (lambda ()
+               (if s20-shipped
+                   (and (null emacs-cpp-reverter--timer) (null emacs-cpp-reverter--queue))
+                 (and (null s20-shown-timer) (null s20-shown-queue))))
+             30)
   (s20--emit "  shown buffers: queue done %.2f s after git; %d steps, median %.3f s, longest %.3f s; VC names %s: %d of %d; diff-hl updates %s; Emacs blocked at most %.2f s"
              (- s20-shown-last t1) (length s20-shown-steps) (s20--median s20-shown-steps)
              (apply #'max 0.0 s20-shown-steps) branch
              (cl-count-if (lambda (b) (s20--names-branch-p b branch)) shown) (length shown)
              (mapcar (lambda (b) (gethash b s20-diff-hl-calls 0)) shown) s20-stall)
-  (let* ((stale (cl-remove-if-not (lambda (b) (buffer-local-value 's20--stale b))
+  (let* ((stale-var (if s20-shipped 'emacs-cpp-reverter--stale 's20--stale))
+         (stale (cl-remove-if-not (lambda (b) (buffer-local-value stale-var b))
                                   (buffer-list)))
          (hidden (car stale))
          (window (selected-window))
@@ -253,7 +300,9 @@
       (let ((start (float-time)))
         (set-window-buffer window hidden)
         ;; Batch runs no window change functions (2026-11-03); call the handler.
-        (s20--on-show (selected-frame))
+        (if s20-shipped
+            (emacs-cpp-reverter--on-show (selected-frame))
+          (s20--on-show (selected-frame)))
         (s20--emit "  hidden: %d stale; showing one took %.3f s; VC names %s: %s; diff-hl updates %d"
                    (length stale) (- (float-time) start) branch
                    (if (s20--names-branch-p hidden branch) "yes" "NO")
@@ -297,7 +346,7 @@ DELETED is the buffer whose file BRANCH deletes, SHOWN the buffers in windows."
       (s20--wait (lambda () (null s20-vc-timer)) 30)
       (s20--emit "  VC states all refreshed %.2f s after git; Emacs blocked at most %.2f s"
                  (- s20-vc-last t1) s20-stall))
-    (when (equal s20-mode "fswatch-shown")
+    (when (member s20-mode '("fswatch-shown" "shipped"))
       (s20--shown-report branch t1 shown))
     (when s20-diff-hl
       (when deleted
@@ -307,7 +356,7 @@ DELETED is the buffer whose file BRANCH deletes, SHOWN the buffers in windows."
                    (if (file-exists-p (buffer-file-name deleted)) "yes" "no")))
       (s20--emit "  messages: %S; filter errors: %S" (reverse s20-messages)
                  s20-filter-errors))
-    (when (string-prefix-p "fswatch" s20-mode)
+    (when (or s20-shipped (string-prefix-p "fswatch" s20-mode))
       (s20--emit "  filter: %d calls, %d records, %.1f ms total"
                  (- s20-calls calls) (- s20-records records)
                  (* 1000 (- s20-filter-total total))))))
@@ -322,7 +371,11 @@ DELETED is the buffer whose file BRANCH deletes, SHOWN the buffers in windows."
     (add-hook 'find-file-hook #'turn-on-diff-hl-mode 90)
     (advice-add 'diff-hl-update :before
                 (lambda () (cl-incf (gethash (current-buffer) s20-diff-hl-calls 0))))
-    (add-hook 'window-buffer-change-functions #'s20--on-show))
+    ;; shipped: the module adds its own handler.
+    (unless s20-shipped
+      (add-hook 'window-buffer-change-functions #'s20--on-show)))
+  ;; Before the visits below: the module adopts buffers in `find-file-hook'.
+  (when s20-shipped (s20--load-shipped))
   (s20--git "checkout" "-q" "a")
   (let* ((branch (if s20-diff-hl "c" "b"))
          (names (split-string (s20--git "diff" "--name-only" "a" branch) "\n" t))
@@ -333,7 +386,7 @@ DELETED is the buffer whose file BRANCH deletes, SHOWN the buffers in windows."
          (changed (mapcar (lambda (n) (find-file-noselect (concat s20-root n))) names))
          (edited (car changed))
          (deleted (and s20-diff-hl (get-file-buffer (concat s20-root "t000/l01/f000001.cc"))))
-         (shown (and (equal s20-mode "fswatch-shown")
+         (shown (and (member s20-mode '("fswatch-shown" "shipped"))
                      (seq-take (cl-remove deleted (cdr changed)) 3)))
          process ready)
     (mapc (lambda (n) (find-file-noselect (concat s20-root n))) others)
@@ -350,8 +403,15 @@ DELETED is the buffer whose file BRANCH deletes, SHOWN the buffers in windows."
                branch (if deleted ", 1 deleted" "") (length others)
                (if shown (format "; %d shown in windows" (length shown)) ""))
     (pcase s20-mode
-      ((or "fswatch" "fswatch-novc" "fswatch-queued" "fswatch-shown" "fswatch-diffhl")
-       (setq process (s20--start-fswatch))
+      ((or "fswatch" "fswatch-novc" "fswatch-queued" "fswatch-shown" "fswatch-diffhl"
+           "shipped")
+       (setq process (if s20-shipped
+                         (let ((processes (emacs-cpp-reverter-processes)))
+                           (unless (= 1 (length processes))
+                             (error "s20: the reverter runs %d fswatch processes, not 1"
+                                    (length processes)))
+                           (car processes))
+                       (s20--start-fswatch)))
        (let ((t0 (float-time)) (probe (concat s20-root ".s20-probe")))
          (setq ready
                (s20--wait (lambda ()
@@ -374,12 +434,19 @@ DELETED is the buffer whose file BRANCH deletes, SHOWN the buffers in windows."
       (s20--emit "filter: longest call %.1f ms; overflows %d"
                  (* 1000 s20-filter-max) s20-overflows)
       (let ((pid (process-id process)))
-        (delete-process process)
+        (if s20-shipped
+            ;; The module's own way: its fswatch stops with the root's last buffer.
+            (progn
+              (with-current-buffer edited (set-buffer-modified-p nil))
+              (dolist (buffer (buffer-list))
+                (when (buffer-file-name buffer) (kill-buffer buffer))))
+          (delete-process process))
         (s20--wait #'ignore 1)
         (s20--emit "shutdown: fswatch pid %d %s" pid
                    (if (eql 0 (call-process "ps" nil nil nil "-p" (number-to-string pid)))
                        "STILL RUNNING" "gone"))))
-    (with-current-buffer edited (set-buffer-modified-p nil))))
+    (when (buffer-live-p edited)
+      (with-current-buffer edited (set-buffer-modified-p nil)))))
 
 (s20-main)
 

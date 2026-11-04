@@ -59,6 +59,24 @@ service's plan) is not an item.
      collapsed block).
   Report back: the comment's link.
 
+- **H-23** (2026-11-04, T-128, D-162 (d)) The Arch half of T-128's done when: `make test`
+  and three runs of S20's mode `shipped` (the Mac passed, S20 RESULTS). Needs the
+  session's commits on Arch.
+  1. On the Mac: `cd ~/source/repos/emacs-cpp && git push` (the session does not push).
+  2. On Arch: `git -C ~/source/repos/emacs-cpp pull --ff-only`
+  3. On Arch: `cd ~/source/repos/emacs-cpp && make test </dev/null`
+  4. On Arch, machine idle: `cd ~/source/repos/emacs-cpp && S20_MODES=shipped sh
+     spikes/s20-fswatch-reverter/run.sh </dev/null && cp
+     spikes/s20-fswatch-reverter/s20.log spikes/s20-fswatch-reverter/arch-shipped-run1.log`
+  5. On Arch: `cd ~/source/repos/emacs-cpp && S20_MODES=shipped sh
+     spikes/s20-fswatch-reverter/run.sh </dev/null && cp
+     spikes/s20-fswatch-reverter/s20.log spikes/s20-fswatch-reverter/arch-shipped-run2.log`
+  6. On Arch: `cd ~/source/repos/emacs-cpp && S20_MODES=shipped sh
+     spikes/s20-fswatch-reverter/run.sh </dev/null && cp
+     spikes/s20-fswatch-reverter/s20.log spikes/s20-fswatch-reverter/arch-shipped-run3.log`
+  Report back: step 3's `Ran ...` line; `arch-shipped-run1.log` .. `arch-shipped-run3.log`
+  (commit them on a branch, or paste).
+
 ## Parked
 - **H-8** (2026-10-20, 0084 review:B-3 to review:B-5, deferred; T-114) The upstream
   reports and patches in the review's order: treemacs and clang-change-namespace first,
