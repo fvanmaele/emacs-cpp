@@ -2166,7 +2166,9 @@ presets, GoogleTest runner.
   Combined: (b), then (a) or a Mac cost task by its result; (c) beside it.
   Against: two steps before the Mac's verdict is restated.
   Recommendation: the combination: a verdict should rest on a measured number.
-- O-79 (REOPENED 2026-11-03 for (f): its premise refuted when T-130 started, see the
+- O-79 (RESOLVED 2026-11-04 with D-161: (l) with (p); (s) measured; owner: "O-79 (l),
+  ship T-128 with (e). [...] Add (p); (s) realtime protection is disabled for now";
+  was REOPENED 2026-11-03 for (f): its premise refuted when T-130 started, see the
   correction below; (e) stands, D-156; was RESOLVED 2026-11-03 with D-156: (e) in
   T-128, (f) as a task; owner: "O-79 combined (e) in T-128, (f) as task"; was
   REOPENED 2026-11-03 by T-129, 0106, as D-155 set; was RESOLVED 2026-11-03 with
@@ -2357,6 +2359,19 @@ presets, GoogleTest runner.
   block stays on the Mac until the owner acts on (n).
   Recommendation: the combination: what remains is outside Emacs and clangd on this
   Mac; (p) is small and bounds the reverter's own share.
+- DECIDED D-161 (owner 2026-11-04: "O-79 (l), ship T-128 with (e). [...] Add (p); (s)
+  realtime protection is disabled for now"): O-79 closes with (l). T-128 ships with
+  D-156 (e) and with (p): its filter never runs inside itself; a call that finds it
+  running leaves its records to a timer. T-130 is dropped. (s) ran with G DATA's
+  real-time protection off (the owner, 2026-11-04; 0112): the open test's first
+  opens take 0.02 - 0.08 ms in all three places, idle and under CPU burners (with it
+  on 0.2 - 5.8 ms idle, up to 0.7 s under load); S20's back-to-back 2 blocks 0.116
+  and 0.075 s (on: 0.21 - 0.29 s, once 0.59 s), the reverts' 39 reads 21.7 - 23.6 ms
+  (on: 161 - 241 ms) while clangd runs 3 - 8 cores. The scan was the residual. With
+  it off clangd published for about 33 s after back-to-back 1, so its pair's second
+  checkout landed later in the reparse than with it on (about 5 s). Not taken: (n)
+  (moot while protection is off; with it on the measured freeze returns), (o), (g).
+  Amends D-153 and D-156.
 - DECIDED D-154 (owner 2026-11-03: "O-79 (c)"): before T-128's code, S20's eglot run
   times each revert under clangd's reparse, split into eglot's didClose, didOpen (its
   `process-send-string` calls to clangd, their bytes) and the rest of the revert;
@@ -3800,6 +3815,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-158 | 2026-11-03 | O-79 (k): sample clangd's threads during the stall first | 12 | O-79 |
 | D-159 | 2026-11-03 | O-79 (m): sample clangd during the residual write stall, (e) on | 12 | O-79 |
 | D-160 | 2026-11-03 | O-79: trace Emacs's side of clangd's input pipe during the residual stall | 12 | O-79 |
+| D-161 | 2026-11-04 | O-79 closed: T-128 ships with (e) and a filter that never runs inside itself; T-130 dropped | 12 | O-79 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |
