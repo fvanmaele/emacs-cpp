@@ -2198,7 +2198,8 @@ presets, GoogleTest runner.
   measured across 63 files. Findings in; O-43.
 
 ## Open questions ledger (LIVING)
-- O-84 (OPEN 2026-11-04, from S19's FAIL, 0125): what follows for O-68's gapped
+- O-84 (RESOLVED 2026-11-04 with D-175: (a); owner: "O-84 (a)"; from S19's FAIL,
+  0125): what follows for O-68's gapped
   in-word queries (`eto` -> `Vector`). S19 (D-171 .. D-174): the index side fits
   (memory +15.5 MB, build 2.21 times with names cached, queries at limit 100 under
   8 ms), but at `M-o`'s limit 10000 the field fills replies with up to 10000 gap
@@ -2590,6 +2591,15 @@ presets, GoogleTest runner.
   Against: buffers become current later than 0.13 s; another measurement round on
   both machines. Not taken: (b) keep runs 1 - 3's PASS (choosing runs), (c) three more
   idle runs first (more samples, same 0.30 s).
+- DECIDED D-175 (owner 2026-11-04: "O-84 (a)"): no clangd patch 0014; gapped in-word
+  symbol queries (`eto` -> `Vector`) stay unfound, O-68's later stage unscheduled.
+  S19 failed on its criterion 6 (0125): the gap tier fills `M-o`'s replies and 16 of
+  26 keys on RMO-drafts take more than twice pkgrel 1's time. Supersedes D-171 (not
+  built). Against: the case that started O-68 keeps finding nothing in `M-o` and
+  `C-c l s`; files and buffers keep D-120's tier 3. Not taken: (b) a capped second
+  round, (c) four letters and more. Revisit if clangd's ranking of a third tier at
+  the server changes; S19's patch, harness and numbers stay in
+  `spikes/s19-gap-trigrams/`.
 - DECIDED D-174 (owner 2026-11-04: "RMO-drafts with RMO; O-83 (b)"): S19's criterion
   6 runs on hp-elitedesk with `~/source/repos/RMO-drafts` as RMO. It times each key
   `M-o` sends a symbol request for (every prefix of three or more letters) of S11's
@@ -2637,7 +2647,8 @@ presets, GoogleTest runner.
   changes owner-confirmed criteria; this machine is not the one D-057's budgets were
   set on; deal.II's index build peaks at about 10 GB on 16 cores (fewer jobs here).
   Not taken: the split (Xeon runs 3 - 6), a session on the Xeon. Amends D-171.
-- DECIDED D-171 (owner 2026-11-04: "O-68 (c)"): clangd gets a third match tier for
+- SUPERSEDED by D-175 (2026-11-04; S19 FAIL, not built): DECIDED D-171 (owner 2026-11-04:
+  "O-68 (c)"): clangd gets a third match tier for
   letters in order with gaps inside a word (`eto` -> `Vector`), found through gap
   trigrams, a second trigram kind holding every jump inside a word and to the next
   segment's first letter, intersected in place of the ordinary trigrams only when a
@@ -4145,10 +4156,11 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-168 | 2026-11-04 | the reverter's steps: one timer, reverts first, never a revert and a refresh in one step | 12 | D-167 |
 | D-169 | 2026-11-04 | O-82 (b): a shown buffer's refresh before the remaining reverts | 12 | D-168, O-82 |
 | D-170 | 2026-11-04 | O-76 (a): no Julia support; D-145's scope stands | 2 | O-76 |
-| D-171 | 2026-11-04 | O-68 (c): gap trigrams and a third match tier in clangd, behind spike S19 | 10 | O-68 |
+| D-171 | 2026-11-04 | O-68 (c): gap trigrams and a third match tier in clangd, behind spike S19 (superseded by D-175) | 10 | O-68 |
 | D-172 | 2026-11-04 | S19 on hp-elitedesk: deal.II cloned, criteria 4 - 5 as ratios, RMO's half later | 10 | D-171, T-132 |
 | D-173 | 2026-11-04 | S19's tier 3 is D-120's: gap trigrams within letter-digit runs; `cml` struck | 10 | D-120, D-171, D-172 |
 | D-174 | 2026-11-04 | O-83 (b): S19 criterion 6 on RMO-drafts, each key at most twice pkgrel 1's and 30 ms | 10 | O-83, D-172 |
+| D-175 | 2026-11-04 | O-84 (a): no clangd patch 0014; gapped in-word symbol queries stay unfound | 10 | O-84, D-171 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |
