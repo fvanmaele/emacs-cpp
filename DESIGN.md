@@ -2198,6 +2198,26 @@ presets, GoogleTest runner.
   measured across 63 files. Findings in; O-43.
 
 ## Open questions ledger (LIVING)
+- O-84 (OPEN 2026-11-04, from S19's FAIL, 0125): what follows for O-68's gapped
+  in-word queries (`eto` -> `Vector`). S19 (D-171 .. D-174): the index side fits
+  (memory +15.5 MB, build 2.21 times with names cached, queries at limit 100 under
+  8 ms), but at `M-o`'s limit 10000 the field fills replies with up to 10000 gap
+  matches and 16 of 26 keys on RMO-drafts take more than twice pkgrel 1's time
+  (`eto` 15.9 -> 411.9 ms). Options:
+  (a) Stop: no patch 0014; O-68's gap stays unfound, its later stage unscheduled.
+  Against: `eto` -> `Vector` keeps finding nothing, the case O-68 started from.
+  (b) A second S19 round with the tier 3 capped at the server (at most K gap
+  matches per request after tiers 1 - 2, K a variable), criterion 6 rerun for K in
+  {100, 500, 1000}. Against: about 1.5 h of the session's work; `dealii::Vector` came
+  about 966th among `eto`'s gap matches at the server, so a K that keeps it may keep
+  most of the cost (UNVERIFIED); a cap hides gap matches beyond it.
+  (c) Gap matches only for queries of four or more letters (`gapMatch` 4), where the
+  gap tier is small (`assemb` .. `qgau`: at most 1.7 times). Against: `eto`, `ptr`,
+  `cml`, the three-letter cases O-68 named, lose the gap tier; untested at four
+  letters except the long keys above.
+  Combined: (b) with (c) caps both; Recommendation: (a), recorded with S19's numbers:
+  neither cap restores the motivating case at an affordable cost (the 966th rank in
+  (b), three letters in (c)); revisit if clangd's server ranking of tier 3 changes.
 - O-83 (RESOLVED 2026-11-04 with D-174: (b); owner: "RMO-drafts with RMO; O-83 (b)";
   from S19, 0124): what S19's criterion 6 ("`M-o` on RMO in
   S11's harness: keys within S11's 2 - 30 ms") times. S11's 2 - 30 ms came from run
@@ -2582,7 +2602,8 @@ presets, GoogleTest runner.
   written into RMO-drafts. Against: a copy is not the owner's tree in place; "twice"
   is the owner's new number; RMO-drafts' sources stand for RMO (56 files, no
   `class_multilevel_experiment`). Not taken: (a) 30 ms alone, (c) S11's terminal
-  prompt. Resolves O-83; amends D-172.
+  prompt. Resolves O-83; amends D-172. Run 2026-11-04 (0125): criterion 6 FAILS (16
+  of 26 keys over twice pkgrel 1 with the field), S19 FAIL; next step O-84.
 - DECIDED D-173 (owner 2026-11-04: "D-120's rule"): S19's tier 3 is D-120's: the
   query's letters in order, the first anywhere, gaps only over letters and digits
   (across camel-case boundaries, never a separator, D-141), one tier below tier 2.
@@ -2629,7 +2650,8 @@ presets, GoogleTest runner.
   work on every rebuild (both UNVERIFIED, S19 measures them); short queries may crowd
   `M-o`'s 10000 with weak gap matches (`get`: 6025 in deal.II). Not taken: (a) full
   scan (up to 52 ms per key with two indexes), (b) a letter mask (up to 17 ms for
-  common letters), (d) none.
+  common letters), (d) none. S19 FAIL 2026-11-04 (0124, 0125): criterion 6, the field's
+  replies at `M-o`'s limit; O-84.
 - DECIDED D-170 (owner 2026-11-04: "O-76 (a)"): no Julia support; D-145's scope stands
   (C++ and Python). Against: Julia files open in fundamental-mode, no highlighting or
   indentation (Emacs has no Julia mode built in). Not taken: (b) julia-mode only,

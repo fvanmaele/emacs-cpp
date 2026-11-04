@@ -50,17 +50,17 @@ marked NEW do not exist yet; everything else was checked to exist on 2026-11-04.
 Session work about 7.5 h, about 2 h of it waiting on builds.
 
 Criterion 6 (D-174, added 2026-11-04 after the owner's "RMO-drafts with RMO; O-83 (b)"):
-- [ ] 14. D-174 recorded, O-83 resolved (~5 min)
-- [ ] 15. RMO-drafts copied to scratch, fmt from the system, configured (~10 min)
+- [x] 14. D-174 recorded, O-83 resolved (~5 min)
+- [x] 15. RMO-drafts copied to scratch, fmt from the system, configured (~10 min)
   The copy in the session's scratch directory; `cmake --preset linux-debug` in it,
   `compile_commands.json` checked.
-- [ ] 16. `client.py`'s key mode and `compare.py keys` (NEW) (~30 min)
+- [x] 16. `client.py`'s key mode and `compare.py keys` (NEW) (~30 min)
   Each prefix of three or more letters of S11's words and the 12 queries, the
   shipped `M-o` request, two sends, the second timed.
-- [ ] 17. `s19.patch` applied in place, `ninja clangd dexp` (~10 min)
-- [ ] 18. Key runs: pkgrel 1, patched without and with the field, three each (~20 min)
-- [ ] 19. Tree restored and rebuilt, checked against pkgrel 1 (~10 min)
-- [ ] 20. RESULTS, journal, verdict, commit (~20 min)
+- [x] 17. `s19.patch` applied in place, `ninja clangd dexp` (~10 min)
+- [x] 18. Key runs: pkgrel 1, patched without and with the field, three each (~20 min)
+- [x] 19. Tree restored and rebuilt, checked against pkgrel 1 (~10 min)
+- [x] 20. RESULTS, journal, verdict, commit (~20 min)
 
 ## Checkpoint
-done 14 of 21; now: approval of steps 14 - 20
+done 21 of 21; S19 FAIL (0125); steps 14 - 20 approved 2026-11-04
