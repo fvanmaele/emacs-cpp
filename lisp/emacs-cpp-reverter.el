@@ -13,8 +13,8 @@
 ;; `fswatch-chunked' PASS on both machines).
 ;;
 ;; Reverting holds diff-hl's revert hook back; VC state and diff-hl's marks follow
-;; once the reverts are done, one shown buffer per timer step, and for a hidden
-;; buffer when a window shows it: per-buffer VC refreshes after a large checkout
+;; for a shown buffer in the next step, ahead of the remaining reverts (D-169), one
+;; buffer per step, and for a hidden buffer when a window shows it: per-buffer VC refreshes after a large checkout
 ;; froze Emacs for seconds on the Mac (O-78).  A step never runs inside another
 ;; (D-156 (e), D-161 (p)): Emacs runs filters and timers while a revert's send to a
 ;; busy server waits (O-79).  Edited and deleted files'
@@ -44,10 +44,11 @@
 S20 `fswatch-chunked': 0.5 - 3.6 ms per revert, Emacs blocked at most 0.18 s.")
 
 (defconst emacs-cpp-reverter-pause 0.01
-  "Seconds between two revert steps (D-167).")
+  "Seconds between two steps while either queue holds a buffer (D-167, D-169).")
 
 (defconst emacs-cpp-reverter-step 0.05
-  "Seconds between two steps of the VC and marks queue (D-153).")
+  "Seconds to the first step when a shown buffer is queued with no step due, and
+before a step that met a running one tries again (D-153).")
 
 (defvar emacs-cpp-reverter--roots (make-hash-table :test #'equal)
   "Root, as buffers visit it, with its slash -> its fswatch process.")
@@ -366,10 +367,12 @@ With the queue empty, one message names the buffers kept since it last was."
       (emacs-cpp-reverter--message kept))))
 
 (defun emacs-cpp-reverter--step ()
-  "Revert from the queue for one budget or, none left, refresh one shown buffer.
-Never both: both in one pass of Emacs's timers blocked it up to 0.18 s (S20,
-0116, 0117).  Reached inside a running step (a revert's send to a busy server
-waits and Emacs runs timers), it only arms again (D-156 (e), D-161 (p))."
+  "Refresh one shown reverted buffer or, none waiting, revert for one budget.
+One kind of work per step: both in one pass of Emacs's timers blocked it up to
+0.18 s (S20, 0116, 0117, D-168).  The refresh goes first, so the buffers on screen
+have their branch and marks before the hidden ones their text (D-169, 0121).
+Reached inside a running step (a revert's send to a busy server waits and Emacs
+runs timers), it only arms again (D-156 (e), D-161 (p))."
   (setq emacs-cpp-reverter--timer nil)
   (if emacs-cpp-reverter--busy
       ;; Not armed by this module while busy; a timer from before the step.
@@ -377,15 +380,16 @@ waits and Emacs runs timers), it only arms again (D-156 (e), D-161 (p))."
             (run-with-timer emacs-cpp-reverter-step nil #'emacs-cpp-reverter--step))
     (unwind-protect
         (let ((emacs-cpp-reverter--busy t))
-          (if emacs-cpp-reverter--reverts
-              (emacs-cpp-reverter--revert-step)
-            (when-let* ((next (car (last emacs-cpp-reverter--queue))))
-              (setq emacs-cpp-reverter--queue (butlast emacs-cpp-reverter--queue))
-              (when (buffer-live-p next)
-                (emacs-cpp-reverter--refresh next)))))
+          (if-let* ((next (car (last emacs-cpp-reverter--queue))))
+              (progn
+                (setq emacs-cpp-reverter--queue (butlast emacs-cpp-reverter--queue))
+                (when (buffer-live-p next)
+                  (emacs-cpp-reverter--refresh next)))
+            (when emacs-cpp-reverter--reverts
+              (emacs-cpp-reverter--revert-step))))
       ;; Also after an error, so the rest of the queues is not stranded.
-      (cond (emacs-cpp-reverter--reverts (emacs-cpp-reverter--arm emacs-cpp-reverter-pause))
-            (emacs-cpp-reverter--queue (emacs-cpp-reverter--arm emacs-cpp-reverter-step))))))
+      (when (or emacs-cpp-reverter--queue emacs-cpp-reverter--reverts)
+        (emacs-cpp-reverter--arm emacs-cpp-reverter-pause)))))
 
 (defun emacs-cpp-reverter--on-show (frame)
   "Refresh each stale buffer FRAME's windows show (`window-buffer-change-functions')."

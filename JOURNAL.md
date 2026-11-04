@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0122 | 2026-11-04 | T-131: shown buffers refreshed before the remaining reverts; Arch PASS | T-131 | D-169 |
 | 0121 | 2026-11-04 | D-168 revisited: refresh first keeps the bound, shown buffers current sooner | S20 | D-168, O-82 |
 | 0120 | 2026-11-04 | S20 probes: the slow revert is GC, the filter's lookups per record, steps leave gaps | S20 | D-168 |
 | 0119 | 2026-11-04 | The rewritten reverter: S20 `shipped` PASS on Arch; T-128 done | T-128, S20 | D-168 |

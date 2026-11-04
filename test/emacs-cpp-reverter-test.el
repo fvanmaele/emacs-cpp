@@ -193,6 +193,7 @@ shown."
 (ert-deftest emacs-cpp-reverter-steps ()
   "D-167: the filter only queues, a shown buffer first; a step reverts until the
 budget is spent, one buffer at least, and never refreshes in the same step; the
+next step refreshes the shown buffer before the remaining reverts (D-169); the
 kept buffers are named once the revert queue is empty; a step inside a running
 step reverts nothing (D-161 (p))."
   (init-test--load)
@@ -239,7 +240,15 @@ step reverts nothing (D-161 (p))."
                 (should (= 3 (length emacs-cpp-reverter--reverts)))
                 (should-not refreshed)
                 (should-not messages)
-                ;; The rest from the timer: reverts, one message, then the refresh.
+                ;; D-169: the next step refreshes the shown buffer and reverts
+                ;; nothing, though reverts are queued.
+                (emacs-cpp-reverter--step)
+                (should (equal refreshed (list shown)))
+                (should-not emacs-cpp-reverter--queue)
+                (should (= 3 (length emacs-cpp-reverter--reverts)))
+                (should (equal (emacs-cpp-reverter-test--text a) "// 1\n"))
+                (should emacs-cpp-reverter--timer)
+                ;; The rest from the timer: reverts, then one message.
                 (should (emacs-cpp-reverter-test--wait
                          (lambda () (and (null emacs-cpp-reverter--reverts)
                                          (null emacs-cpp-reverter--queue)))))

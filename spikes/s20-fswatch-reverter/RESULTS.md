@@ -709,3 +709,30 @@ collection each (0120). Refresh first keeps the shipped bound and gives the show
 buffers their state earlier than either; the hidden buffers' text comes 0.15 - 0.2 s
 later.
 
+## Mode `shipped` with D-169, Arch runs 1 - 3 (session, 2026-11-04; T-131)
+`lisp/emacs-cpp-reverter.el` with D-169 (a shown buffer's refresh before the
+remaining reverts), uncommitted on 683e566, `fswatch-chunked` after it in each run as
+contrast; `make test` 151 of 151 (`emacs-cpp-reverter-steps` fails on the module
+before the change). Logs: `arch-d169-shipped-run1.log` .. `run3.log`. Load 2.02 -
+2.55 at the start.
+
+| criterion | `shipped`, runs 1 - 3 | limit | pass |
+|---|---|---|---|
+| 1 buffers current after `git` | 0.40 - 0.56 s, no Overflow | 1.0 s | yes |
+| 2 edits kept | edit kept; 0 unchanged files' buffers reverted; the deleted file's buffer live, not reverted on `c`, no filter error | - | yes |
+| 3 Emacs blocked | 0.07 - 0.09 s (filter's longest call 10.8 - 21.8 ms; longest revert step 50.5 - 69.2 ms) | 0.25 s | yes |
+| 3 shown buffers | queue done 0.20 - 0.25 s after `git`; VC names the branch 3 of 3; 1 diff-hl update each | 15 s | yes |
+| 3 showing a hidden buffer | 0.014 - 0.046 s; VC names the branch | 0.25 s | yes |
+| 4 idle fswatch | 6 descriptors, 5.2 MB RSS | 16, 12 MB | yes |
+| 5 ready, shutdown | 0.01 s; gone | 5 s | yes |
+| 6 messages | the edited buffer named on `c` and `a`, the deleted file on `c` | - | yes |
+
+Contrast `fswatch-chunked`: Emacs blocked 0.08 - 0.09 s, buffers current 0.21 -
+0.32 s, shown 0.24 - 0.28 s.
+
+Verdict: PASS on Arch, criteria 1 - 6. The Mac: H-27. As the probe measured (0121):
+the shown buffers complete 0.20 - 0.25 s after `git` (D-168: 0.45 - 0.55 s) at the
+same block; the hidden buffers' text 0.40 - 0.56 s. The 21.8 ms filter call (run 1)
+and the steps over 60 ms (one garbage collection each, 0120) stay far under the
+limit.
+

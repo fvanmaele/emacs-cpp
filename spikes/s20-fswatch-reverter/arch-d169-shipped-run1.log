@@ -1,0 +1,48 @@
+S20 run 2026-11-04T19:27:24Z, Linux x86_64, GNU Emacs 31.1
+load: 2.55 1.77 1.51
+
+S20 shipped, gnu/linux GNU Emacs 31.1 (build 2, x86_64-pc-linux-gnu, GTK+ Version 3.24.52, cairo version 1.18.4), 2026-11-04T19:27:30Z
+buffers: 191 changed on c (1 edited, 1 deleted), 10 unchanged; 3 shown in windows
+ready: yes after 0.01 s
+idle fswatch: pid 455669, 6 descriptors, 5.2 MB RSS
+checkout c: git 0.06 s; all 189 unedited buffers current: yes, 0.42 s after git; Emacs blocked at most 0.07 s
+  reverts 189, first 0.03 s, last 0.40 s after git (unchanged files' buffers: 0); edited buffer kept: yes
+  shown buffers: queue done 0.20 s after git; 3 steps, median 0.021 s, longest 0.027 s; VC names c: 3 of 3; diff-hl updates (1 1 1); Emacs blocked at most 0.07 s
+  hidden: 186 stale; showing one took 0.019 s; VC names c: yes; diff-hl updates 1
+  revert queue: 4 steps, reverts per step (57 50 58 26), longest step 50.8 ms, budget 50 ms
+  deleted file's buffer: live yes, reverted no, file exists no
+  messages: ("1 buffer with unsaved edits changed on disk: f000000.h; 1 buffer's file deleted on disk: f000001.cc"); filter errors: nil
+  filter: 1 calls, 761 records, 13.8 ms total
+checkout a: git 0.10 s; all 189 unedited buffers current: yes, 0.56 s after git; Emacs blocked at most 0.09 s
+  reverts 190, first 0.04 s, last 0.54 s after git (unchanged files' buffers: 0); edited buffer kept: yes
+  shown buffers: queue done 0.25 s after git; 3 steps, median 0.035 s, longest 0.040 s; VC names a: 3 of 3; diff-hl updates (1 1 1); Emacs blocked at most 0.09 s
+  hidden: 187 stale; showing one took 0.018 s; VC names a: yes; diff-hl updates 1
+  revert queue: 5 steps, reverts per step (38 14 54 55 30), longest step 69.2 ms, budget 50 ms
+  deleted file's buffer: live yes, reverted yes, file exists yes
+  messages: ("1 buffer with unsaved edits changed on disk: f000000.h"); filter errors: nil
+  filter: 1 calls, 763 records, 21.8 ms total
+filter: longest call 21.8 ms; overflows 0
+shutdown: fswatch pid 455669 gone
+
+S20 fswatch-chunked, gnu/linux GNU Emacs 31.1 (build 2, x86_64-pc-linux-gnu, GTK+ Version 3.24.52, cairo version 1.18.4), 2026-11-04T19:27:38Z
+buffers: 191 changed on c (1 edited, 1 deleted), 10 unchanged; 3 shown in windows
+ready: yes after 0.55 s
+idle fswatch: pid 465665, 6 descriptors, 5.2 MB RSS
+checkout c: git 0.05 s; all 189 unedited buffers current: yes, 0.32 s after git; Emacs blocked at most 0.09 s
+  reverts 189, first 0.01 s, last 0.27 s after git (unchanged files' buffers: 0); edited buffer kept: yes
+  shown buffers: queue done 0.26 s after git; 3 steps, median 0.016 s, longest 0.016 s; VC names c: 3 of 3; diff-hl updates (1 1 1); Emacs blocked at most 0.09 s
+  hidden: 186 stale; showing one took 0.015 s; VC names c: yes; diff-hl updates 1
+  revert queue: 4 steps, reverts per step (55 55 71 10), longest step 50.4 ms, budget 50 ms
+  deleted file's buffer: live yes, reverted no, file exists no
+  messages: ("1 buffer with unsaved edits changed on disk: f000000.h; 1 buffer's file deleted on disk: f000001.cc"); filter errors: nil
+  filter: 1 calls, 761 records, 4.1 ms total
+checkout a: git 0.05 s; all 189 unedited buffers current: yes, 0.24 s after git; Emacs blocked at most 0.09 s
+  reverts 190, first 0.01 s, last 0.21 s after git (unchanged files' buffers: 0); edited buffer kept: yes
+  shown buffers: queue done 0.28 s after git; 3 steps, median 0.017 s, longest 0.039 s; VC names a: 3 of 3; diff-hl updates (1 1 1); Emacs blocked at most 0.09 s
+  hidden: 187 stale; showing one took 0.027 s; VC names a: yes; diff-hl updates 1
+  revert queue: 3 steps, reverts per step (84 79 28), longest step 50.2 ms, budget 50 ms
+  deleted file's buffer: live yes, reverted yes, file exists yes
+  messages: ("1 buffer with unsaved edits changed on disk: f000000.h"); filter errors: nil
+  filter: 1 calls, 763 records, 4.0 ms total
+filter: longest call 4.1 ms; overflows 0
+shutdown: fswatch pid 465665 gone
