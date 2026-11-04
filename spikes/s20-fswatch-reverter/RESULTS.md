@@ -426,3 +426,35 @@ So:
   `PreambleThrottler`, so preambles build unthrottled.
 - The Emacs sample (io 1) missed the checkout: its window began after the reverts,
   cause UNVERIFIED (self-sampling a small batch Emacs works).
+
+## D-161: O-79 (s), G DATA's real-time protection off (session, 2026-11-04)
+The owner turned G DATA's real-time protection off ("for now"); its service processes
+kept running. Logs: `mac-d161-rtp-off1.log`, `mac-d161-rtp-off2.log` (patched flags,
+D-156 (e), the D-160 lines, the strict settle test). Load 5.2 and 9.7 at the start.
+
+Open test (`opentest.py`), first open of 39 just-written files:
+| where | idle: median, total | 11 CPU burners: median, max, total |
+|---|---|---|
+| scratch, `/private/tmp` | 0.03 - 0.05 ms, 1.3 - 2.6 ms | 0.02 - 0.03 ms, 0.15 ms, 1.1 - 1.2 ms |
+| beside the clone, `$TMPDIR` | 0.02 - 0.03 ms, 0.9 - 1.5 ms | 0.03 ms, 0.15 ms, 1.1 - 1.2 ms |
+| this repository's tree | 0.02 - 0.08 ms, 0.9 - 2.8 ms | 0.01 - 0.02 ms, 0.59 ms, 0.5 - 1.5 ms |
+A second open takes 0.01 - 0.04 ms: first and second opens no longer differ.
+
+Back-to-back 2:
+| run | blocked | filter calls: wall / Emacs CPU (reverts); clangd | reverts' 39 reads: wall / CPU | sends |
+|---|---|---|---|---|
+| off 1 | 0.116 s | 19.9 / 17.1 ms (16), 36.3 / 18.4 ms (23); 5.3, 7.9 cores | 23.6 / 11.8 ms | none blocked |
+| off 2 | 0.075 s | 23.8 / 19.0 ms (16), 50.1 / 22.3 ms (23); 3.0, 6.4 cores | 21.7 / 13.1 ms | one blocked, 20.6 ms |
+With protection on (D-160): blocked 0.21 - 0.29 s (once 0.59 s), the reads 161 - 241
+ms at 14 - 17 ms of CPU, filter calls at 3 - 7 times their CPU.
+
+So the scan was the residual: without it the back-to-back block is in the range of
+the other checkouts, under E2's 0.25 s. Differences besides the scan:
+- clangd published for 32.7 - 33.3 s after back-to-back 1 (on: 5.1 s quiet), so the
+  pair's second checkout landed later in the reparse; clangd still ran 3 - 8 cores
+  during its filter calls.
+- The reparse is shorter: settled 35.1 - 41.3 s after back-to-back 2's `git` (on:
+  60.9 - 77.8 s), 37.0 - 40.7 s after the first checkouts (on: 41.2 - 51.6 s).
+- The first checkouts block a little more, 0.100 - 0.125 s (on: 0.067 - 0.090 s):
+  clangd starts its reparse sooner and runs up to 7.2 cores during them (on: 2.6 -
+  3.6); one 16 ms blocked send in run 1's first checkout.
