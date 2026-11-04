@@ -2546,6 +2546,22 @@ presets, GoogleTest runner.
   Against: buffers become current later than 0.13 s; another measurement round on
   both machines. Not taken: (b) keep runs 1 - 3's PASS (choosing runs), (c) three more
   idle runs first (more samples, same 0.30 s).
+- DECIDED D-172 (owner 2026-11-04: "All here"): S19 runs on hp-elitedesk (Intel Core
+  i5-6500, 4 cores, 15 GB, Arch), the session's machine, not the Xeon W-2145
+  workstation section 20 measured on. Network and a file outside the repo: deal.II's
+  repository is cloned once from https://github.com/dealii/dealii at tag v9.8.0
+  (shallow) into `~/source/repos/dealii`, where `scripts/build-library-index.sh`
+  expects it, and `indexes/dealii.dex` built from it. Criteria 4 and 5 become ratios
+  of this machine's own pkgrel-1 numbers (the baseline measured first, medians of
+  21): 4. `Dex::build` at most 2.31 times the baseline (2.5 / 1.08 s); 5. each of the
+  12 queries at most 5 ms times f, f = this machine's sum of the 12 baseline medians /
+  6.68 ms (section 20's sum). Criteria 1 (deal.II half), 2 and 3 as confirmed. RMO is
+  not on this machine (`RMO-drafts` holds no `class_multilevel_experiment` and no
+  compile database), so criterion 1's `cml` half and criterion 6 wait for a machine
+  with RMO (an H-n once the patch builds); S19's verdict waits for them. Against:
+  changes owner-confirmed criteria; this machine is not the one D-057's budgets were
+  set on; deal.II's index build peaks at about 10 GB on 16 cores (fewer jobs here).
+  Not taken: the split (Xeon runs 3 - 6), a session on the Xeon. Amends D-171.
 - DECIDED D-171 (owner 2026-11-04: "O-68 (c)"): clangd gets a third match tier for
   letters in order with gaps inside a word (`eto` -> `Vector`), found through gap
   trigrams, a second trigram kind holding every jump inside a word and to the next
@@ -4054,6 +4070,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-169 | 2026-11-04 | O-82 (b): a shown buffer's refresh before the remaining reverts | 12 | D-168, O-82 |
 | D-170 | 2026-11-04 | O-76 (a): no Julia support; D-145's scope stands | 2 | O-76 |
 | D-171 | 2026-11-04 | O-68 (c): gap trigrams and a third match tier in clangd, behind spike S19 | 10 | O-68 |
+| D-172 | 2026-11-04 | S19 on hp-elitedesk: deal.II cloned, criteria 4 - 5 as ratios, RMO's half later | 10 | D-171, T-132 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |

@@ -45,10 +45,22 @@ background index, the patched clangd with the spike's patch against pkgrel 10:
 5. Query: each of the 12 queries at most 5 ms per index (today 0.02 - 1.84 ms).
 6. `M-o` on RMO in S11's harness: keys within S11's 2 - 30 ms.
 
+## Machine and amended criteria (D-172, owner 2026-11-04: "All here")
+S19 runs on hp-elitedesk (i5-6500, 4 cores, 15 GB, Arch). Criteria 4 and 5 are
+ratios of this machine's own baseline (pkgrel 1, the unpatched tree, medians of 21),
+measured before the patch is built:
+4. Build: `Dex::build` for deal.II at most 2.31 times the baseline (2.5 / 1.08 s).
+5. Query: each of the 12 queries at most 5 ms times f per index, f = the baseline's
+   sum of the 12 medians / 6.68 ms (section 20's sum on the Xeon).
+Criteria 1 (`eto` on deal.II), 2 and 3 as above. RMO is not on this machine, so
+criterion 1's `cml` half and criterion 6 run where RMO is (an H-n once the patch
+builds); the verdict waits for them.
+
 ## Prerequisites
-- Arch: the tree `makepkg` left in `packaging/clangd-index-nav/src` (pkgrel 10),
-  `indexes/dealii.dex` (`make library-index LIBRARY=dealii`), RMO with its build
-  directory.
+- Arch: the tree `makepkg` left in `packaging/clangd-index-nav/src` (pkgrel 10;
+  LLVM 23.1.4 pkgrel 1 since the LLVM update), `indexes/dealii.dex` (`make
+  library-index LIBRARY=dealii`, from a deal.II clone at `~/source/repos/dealii`,
+  D-172), RMO with its build directory (not on hp-elitedesk).
 
 ## Commands
 Not written yet: the session on Arch writes the patch, `build.sh`, the benchmark,
