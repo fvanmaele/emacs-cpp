@@ -2015,6 +2015,44 @@ the form that loads magit is found (S17 run 2, T-113).
   current 0.36 s after `git`. eglot's share on RMO-drafts (0104): E1 - E3 PASS on the
   Mac (blocked at most 0.183 s with 39 eglot buffers); a checkout during clangd's
   reparse blocks 0.36 - 0.98 s, O-79.
+**The reverter as built (T-128, 2026-11-04; D-153, D-156, D-161 - D-163).**
+`lisp/emacs-cpp-reverter.el`, written fresh from S20's `fswatch-shown` and the eglot
+backend's process handling (7.1); loaded by init-project.
+- **Which buffers.** A file buffer whose directory has a root by D-070's rule
+  (`projectile-root-local`, else `projectile-root-bottom-up`: version control or a
+  `.projectile` file) and where `emacs-cpp-revert-project-buffers` is non-nil (t by
+  default; a safe local variable, so `.dir-locals.el` can turn a project off).
+  `emacs-cpp-reverter-covers-p` answers that for auto-revert, which asks once, when
+  it adds a buffer (`auto-revert--global-add-current-buffer`), so it says "would
+  cover", not "has adopted". Nested roots (a submodule) get their own fswatch; a
+  change under both is reverted once (the second call finds the file verified).
+- **Processes.** `find-file-hook` adopts a covered buffer and starts its root's
+  fswatch if none runs; `kill-buffer-hook` releases it, stopping the fswatch with the
+  root's last buffer; `after-set-visited-file-name-hook` adopts again. The command is
+  the backend's (`-0 -r -x --event-flag-separator=, -l 0.1 --allow-overflow -e
+  /\.git/` on the root's true name); a sentinel warns when an fswatch ends unasked and
+  names `M-x emacs-cpp-reverter-restart`, which starts every adopted root's fswatch
+  again.
+- **Reverting.** A filter call merges its records per path; a path's buffer is
+  reverted when unedited, readable and newer on disk, with diff-hl's buffer-local
+  `diff-hl-after-revert` held back (bound in the buffer); edited and deleted files'
+  buffers are kept and named in one message per call (D-151 (2b), D-152). An Overflow
+  record warns at most once a minute and checks every buffer of the root, since
+  changes were lost. (p): a filter call that finds the filter running keeps its
+  output for a 0 s timer, so a filter never runs inside itself (D-161).
+- **VC state and marks.** A reverted buffer in a live window of any frame (D-162 (b))
+  joins a queue drained one buffer per one-shot 0.05 s timer step (`vc-refresh-state`,
+  then `diff-hl-update` where `diff-hl-mode` is on); the step arms itself again while
+  the filter runs ((e), D-156). A hidden one is marked stale and refreshed when a
+  window shows it (`window-buffer-change-functions`).
+- **Elsewhere.** `global-auto-revert-mode` (`autorevert`, at `after-init`) covers the
+  buffers the reverter does not: its `global-auto-revert-ignore-buffer` defaults to
+  `emacs-cpp-reverter-covers-p`; notified on Arch, polled every 5 s on the Mac
+  (`emacs-cpp-default-auto-revert-use-notify`, D-162 (a)). The option's `:set` applies
+  at once: off releases every buffer and stops every fswatch, on adopts every covered
+  file buffer; then auto-revert re-adds every buffer through the predicate
+  (`global-auto-revert-mode` off and on). magit's auto-revert stays off (`:init`,
+  D-153). diff-hl's hook name is checked when diff-hl loads (an error naming D-153).
 - REJECTED: borg (the tool this layout imitates). It assumes the package repository is
   the Emacs directory itself, which contradicts D-003; reconsider if own glue grows past
   about 100 lines. Measured after T-002: `scripts/build-packages.el` has 183 lines of
@@ -2385,7 +2423,10 @@ presets, GoogleTest runner.
   (about 60 ms each on the Mac).
   (c) The root: project.el's `project-current`, as eglot and its fswatch backend use
   (D-127). Against: a projectile-only project (no VC, a `.projectile` file) counts as
-  outside any root, so (a) covers it.
+  outside any root, so (a) covers it. Corrected 2026-11-04 (D-163): with
+  `projectile-mode` on, `project-current` asks projectile first (`project-projectile`
+  in `project-find-functions`, `projectile.el:16955`), so such a project has a root;
+  narrowed by D-163 (a).
   (d) Done when: `lisp/emacs-cpp-reverter.el` (NEW, written fresh from S20's
   `fswatch-shown`) runs one patched fswatch per project root while the root has file
   buffers; reverts unedited buffers at once with diff-hl's revert hook held back;
@@ -2397,6 +2438,22 @@ presets, GoogleTest runner.
   Against: one more owner item; about 15 min more of the session's time.
   Not taken: nothing outside project roots; visible frames only; projectile's root;
   tests without the shipped run.
+- DECIDED D-163 (owner 2026-11-04, two plan-mode questions, each its recommended
+  option): (a) the reverter watches only roots under version control or with a
+  `.projectile` file, D-070's rule (`projectile-root-local` or
+  `projectile-root-bottom-up`); a directory projectile takes for a project by another
+  marker (deal.II's install has a `Makefile`) is outside any root and left to
+  auto-revert. Against: a project with neither (a plain CMake directory) is polled
+  every 5 s on the Mac instead. Not taken: every root `project-current` returns.
+  Against it: one fswatch per library tree reached with `M-.`. (b) The reverter is
+  opt-out (owner: "Make the reverter configurable (opt-out)"): the user option
+  `emacs-cpp-revert-project-buffers`, t by default; nil hands project buffers to
+  auto-revert (D-162 (a)'s mechanism); turned off globally from Customize, applied
+  at once, or per project in `.dir-locals.el` (a safe local variable). Against:
+  O-78's cost returns where it is off (on the Mac a VC refresh per reverted buffer);
+  a project's `.dir-locals.el` change reaches its buffers when they are visited
+  again. Not taken: nothing in projects when off; a global switch only. Amends
+  D-162 (c).
 - DECIDED D-154 (owner 2026-11-03: "O-79 (c)"): before T-128's code, S20's eglot run
   times each revert under clangd's reparse, split into eglot's didClose, didOpen (its
   `process-send-string` calls to clangd, their bytes) and the rest of the revert;
@@ -3842,6 +3899,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-160 | 2026-11-03 | O-79: trace Emacs's side of clangd's input pipe during the residual stall | 12 | O-79 |
 | D-161 | 2026-11-04 | O-79 closed: T-128 ships with (e) and a filter that never runs inside itself; T-130 dropped | 12 | O-79 |
 | D-162 | 2026-11-04 | T-128's shape: auto-revert outside roots, any frame shows, project.el's root, done when | 12 | D-149, D-151 |
+| D-163 | 2026-11-04 | the reverter: VC or `.projectile` roots only; opt-out, globally or per project | 12 | D-162 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |
