@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0116 | 2026-11-04 | S20 `fswatch-chunked`: PASS on Arch, the Mac on H-25 | S20 | D-167 |
 | 0115 | 2026-11-04 | S20 on Arch: `fswatch-shown` runs 4 - 6 and `shipped` fail criterion 3 | S20, T-128 | D-166 |
 | 0114 | 2026-11-04 | D-164: S18 rerun on the Mac with a correct CPU clock | S18 | D-164 |
 | 0113 | 2026-11-04 | T-128: project buffers follow their files through one fswatch per root | T-128 | D-153, D-161 - D-163 |

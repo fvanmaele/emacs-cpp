@@ -3,9 +3,9 @@
 Verdict for `fswatch-shown` (D-153): PASS on the Mac (runs 1 - 3, 2026-11-03); FAIL on
 Arch on criterion 3 (D-166, 2026-11-04: the session's run 6 blocked 0.30 s; the
 owner's runs 1 - 3 passed, kept as evidence); mode `shipped` FAIL on Arch too (run 3,
-0.25 s); the queue's shape is O-81; eglot's share E1 - E3 PASS on the
-Mac (2026-11-03), a checkout during clangd's reparse blocks 0.36 - 0.98 s (O-79);
-sections at the end. Earlier verdict
+0.25 s); mode `fswatch-chunked` (D-167) PASS on Arch (0116), the Mac on H-25;
+eglot's share E1 - E3 PASS on the Mac (2026-11-03), a checkout during clangd's
+reparse blocks 0.36 - 0.98 s (O-79); sections at the end. Earlier verdict
 for `fswatch-queued`:
 
 Verdict: FAIL (2026-11-02). PASS on Arch (runs 1 - 3); FAIL on the Mac on criterion
@@ -525,3 +525,39 @@ condition; by D-166 the shipped module's reverts at once are what changes (O-81)
 Ready 0.01 s against the spike's 0.54 s: the module does not wait for fswatch's
 watches the way the spike's `ready` does (UNVERIFIED which part of the 0.54 s that
 is).
+
+## Mode `fswatch-chunked`, Arch runs 1 - 3 (session, 2026-11-04; D-167)
+The new mode at the default budget (0.05 s), `fswatch-shown` after it in each run as
+contrast. Logs: `arch-chunked-run1.log` .. `arch-chunked-run3.log`; a dry run before
+them passed the same checks (not kept). Load 1.91 - 2.27 at the start, this session
+running.
+
+| criterion | `fswatch-chunked`, runs 1 - 3 | limit | pass |
+|---|---|---|---|
+| 1 buffers current after `git` | 0.23 - 0.51 s, no Overflow | 1.0 s | yes |
+| 2 edits kept | edit kept; 0 unchanged files' buffers reverted; the deleted file's buffer live, not reverted on `c`, no filter error | - | yes |
+| 3 Emacs blocked | 0.09 - 0.14 s (filter's longest call 5.1 - 7.7 ms; revert steps 3 - 5 per checkout, longest 50.3 - 52.6 ms) | 0.25 s | yes |
+| 3 shown buffers | queue done 0.25 - 0.37 s after `git`; VC names the branch 3 of 3; 1 diff-hl update each; steps 0.015 - 0.063 s | 15 s | yes |
+| 3 showing a hidden buffer | 0.016 - 0.045 s; VC names the branch | 0.25 s | yes |
+| 4 idle fswatch | 6 descriptors, 5.2 MB RSS | 16, 12 MB | yes |
+| 5 ready, shutdown | 0.55 s; gone | 5 s | yes |
+| 6 messages | the edited buffer named on `c` and `a`, the deleted file on `c`, once the queue was empty | - | yes |
+
+Contrast `fswatch-shown`, the same three runs: Emacs blocked 0.13 - 0.21 s, the
+filter's longest call 169 - 215 ms, buffers current 0.14 - 0.22 s after `git`.
+
+Verdict: PASS on Arch, criteria 1 - 6. The Mac: H-25.
+
+Findings:
+- The block no longer grows with the checkout: the filter only queues (at most
+  7.7 ms for 763 records), and each revert step stops within 2.6 ms of its budget
+  (14 - 82 reverts per step, 0.6 - 3.6 ms each). Buffers become current 0.1 - 0.3 s
+  later than at once, well inside criterion 1.
+- Emacs's largest block (0.14 s) is more than one step (52.6 ms): `s20-stall` counts
+  one `accept-process-output` call, in which the revert step and a shown buffer's
+  refresh step (up to 63 ms) can both fall due, plus its 0.02 s wait. The module
+  should keep the two from running in one pass (the refresh step waits while reverts
+  are queued, or both share one budget); UNVERIFIED which costs less.
+- Shown buffers are current first (their queue done 0.25 - 0.37 s, before the last
+  revert in 4 of 6 checkouts).
+
