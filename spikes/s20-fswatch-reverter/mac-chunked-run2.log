@@ -1,0 +1,46 @@
+S20 run 2026-11-04T18:43:34Z, Darwin arm64, GNU Emacs 31.1
+load:  4.55 4.62 5.25 
+
+S20 fswatch-chunked, darwin GNU Emacs 31.1 (build 2, aarch64-apple-darwin27.0.0, NS appkit-2775.10 Version 27.0.1 (Build 26A434)), 2026-11-04T18:43:44Z
+buffers: 191 changed on c (1 edited, 1 deleted), 10 unchanged; 3 shown in windows
+ready: yes after 0.02 s
+idle fswatch: pid 79646, 6 descriptors, 6.1 MB RSS
+checkout c: git 0.10 s; all 189 unedited buffers current: yes, 0.47 s after git; Emacs blocked at most 0.13 s
+  reverts 189, first 0.01 s, last 0.44 s after git (unchanged files' buffers: 0); edited buffer kept: yes
+  shown buffers: queue done 0.39 s after git; 3 steps, median 0.058 s, longest 0.068 s; VC names c: 3 of 3; diff-hl updates (1 1 1); Emacs blocked at most 0.13 s
+  hidden: 186 stale; showing one took 0.074 s; VC names c: yes; diff-hl updates 1
+  revert queue: 4 steps, reverts per step (32 54 55 50), longest step 51.1 ms, budget 50 ms
+  deleted file's buffer: live yes, reverted no, file exists no
+  messages: ("1 buffer with unsaved edits changed on disk: f000000.h; 1 buffer's file deleted on disk: f000001.cc"); filter errors: nil
+  filter: 3 calls, 381 records, 1.7 ms total
+checkout a: git 0.22 s; all 189 unedited buffers current: yes, 0.48 s after git; Emacs blocked at most 0.14 s
+  reverts 190, first 0.01 s, last 0.45 s after git (unchanged files' buffers: 0); edited buffer kept: yes
+  shown buffers: queue done 0.42 s after git; 3 steps, median 0.072 s, longest 0.073 s; VC names a: 3 of 3; diff-hl updates (1 1 1); Emacs blocked at most 0.14 s
+  hidden: 187 stale; showing one took 0.073 s; VC names a: yes; diff-hl updates 1
+  revert queue: 4 steps, reverts per step (62 48 48 33), longest step 50.9 ms, budget 50 ms
+  deleted file's buffer: live yes, reverted yes, file exists yes
+  messages: ("1 buffer with unsaved edits changed on disk: f000000.h"); filter errors: nil
+  filter: 3 calls, 381 records, 1.8 ms total
+filter: longest call 1.0 ms; overflows 0
+shutdown: fswatch pid 79646 gone
+
+S20 fswatch-shown, darwin GNU Emacs 31.1 (build 2, aarch64-apple-darwin27.0.0, NS appkit-2775.10 Version 27.0.1 (Build 26A434)), 2026-11-04T18:43:59Z
+buffers: 191 changed on c (1 edited, 1 deleted), 10 unchanged; 3 shown in windows
+ready: yes after 0.02 s
+idle fswatch: pid 80512, 6 descriptors, 6.1 MB RSS
+checkout c: git 0.11 s; all 189 unedited buffers current: yes, 0.27 s after git; Emacs blocked at most 0.14 s
+  reverts 189, first 0.00 s, last 0.26 s after git (unchanged files' buffers: 0); edited buffer kept: yes
+  shown buffers: queue done 0.46 s after git; 3 steps, median 0.061 s, longest 0.075 s; VC names c: 3 of 3; diff-hl updates (1 1 1); Emacs blocked at most 0.14 s
+  hidden: 186 stale; showing one took 0.073 s; VC names c: yes; diff-hl updates 1
+  deleted file's buffer: live yes, reverted no, file exists no
+  messages: ("1 buffer with unsaved edits changed on disk: f000000.h; 1 buffer's file deleted on disk: f000001.cc"); filter errors: nil
+  filter: 2 calls, 381 records, 203.7 ms total
+checkout a: git 0.15 s; all 189 unedited buffers current: yes, 0.21 s after git; Emacs blocked at most 0.12 s
+  reverts 190, first 0.00 s, last 0.21 s after git (unchanged files' buffers: 0); edited buffer kept: yes
+  shown buffers: queue done 0.37 s after git; 3 steps, median 0.053 s, longest 0.060 s; VC names a: 3 of 3; diff-hl updates (1 1 1); Emacs blocked at most 0.12 s
+  hidden: 187 stale; showing one took 0.064 s; VC names a: yes; diff-hl updates 1
+  deleted file's buffer: live yes, reverted yes, file exists yes
+  messages: ("1 buffer with unsaved edits changed on disk: f000000.h"); filter errors: nil
+  filter: 2 calls, 381 records, 154.7 ms total
+filter: longest call 125.0 ms; overflows 0
+shutdown: fswatch pid 80512 gone

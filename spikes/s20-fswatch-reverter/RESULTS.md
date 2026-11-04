@@ -546,7 +546,7 @@ running.
 Contrast `fswatch-shown`, the same three runs: Emacs blocked 0.13 - 0.21 s, the
 filter's longest call 169 - 215 ms, buffers current 0.14 - 0.22 s after `git`.
 
-Verdict: PASS on Arch, criteria 1 - 6. The Mac: H-25.
+Verdict: PASS on Arch, criteria 1 - 6. The Mac: PASS (below, 0117).
 
 Findings:
 - The block no longer grows with the checkout: the filter only queues (at most
@@ -561,3 +561,39 @@ Findings:
 - Shown buffers are current first (their queue done 0.25 - 0.37 s, before the last
   revert in 4 of 6 checkouts).
 
+
+## Mode `fswatch-chunked`, Mac runs 1 - 3 (session, 2026-11-04; D-167, H-25)
+H-25's steps 3 - 5, run by the session on the Mac at a4304ce, `fswatch-shown` after
+the new mode in each run as contrast. Logs: `mac-chunked-run1.log` ..
+`mac-chunked-run3.log`. Load 4.40 - 4.55 at the start, not idle: `mediaanalysisd`
+(macOS, about 120 % CPU) ran through all three; the judged `fswatch-shown` Mac runs
+(0103) were at 2.54 - 4.32.
+
+| criterion | `fswatch-chunked`, runs 1 - 3 | limit | pass |
+|---|---|---|---|
+| 1 buffers current after `git` | 0.32 - 0.60 s, no Overflow | 1.0 s | yes |
+| 2 edits kept | edit kept; 0 unchanged files' buffers reverted; the deleted file's buffer live, not reverted on `c`, no filter error | - | yes |
+| 3 Emacs blocked | 0.12 - 0.18 s (filter's longest call 1.0 - 1.1 ms; revert steps 3 - 5 per checkout, longest 50.2 - 51.1 ms) | 0.25 s | yes |
+| 3 shown buffers | queue done 0.36 - 0.49 s after `git`; VC names the branch 3 of 3; 1 diff-hl update each; steps 0.051 - 0.127 s | 15 s | yes |
+| 3 showing a hidden buffer | 0.046 - 0.083 s; VC names the branch | 0.25 s | yes |
+| 4 idle fswatch | 6 descriptors, 6.1 MB RSS | 16, 12 MB | yes |
+| 5 ready, shutdown | 0.02 - 0.56 s; gone | 5 s | yes |
+| 6 messages | the edited buffer named on `c` and `a`, the deleted file on `c`, once the queue was empty | - | yes |
+
+Contrast `fswatch-shown`, the same three runs: Emacs blocked 0.11 - 0.16 s, the
+filter's longest call 115 - 126 ms, buffers current 0.21 - 0.29 s after `git`.
+
+Verdict: PASS on the Mac, criteria 1 - 6; with Arch (above) `fswatch-chunked` passes
+on both machines. Next, per D-167: `lisp/emacs-cpp-reverter.el` written fresh from
+these numbers, then `shipped` on both machines.
+
+Findings:
+- FSEvents delivers the checkout in 2 - 3 filter calls (Arch: one), so `fswatch-shown`'s
+  block on the Mac stays below the limit; the chunked filter cuts the call from
+  115 - 126 ms to about 1 ms.
+- The block did not shrink on the Mac (0.12 - 0.18 s against 0.11 - 0.16 s): the
+  largest block is a revert step plus a shown buffer's refresh step in one
+  `accept-process-output` call, as on Arch (0116). The largest (0.18 s, run 3, `a`)
+  is the call with the longest refresh step (0.127 s). The module's rule that only
+  one of the two runs per pass (0116) is what lowers it; UNVERIFIED by a run.
+- Reverts cost 0.5 - 1.6 ms each here (2 - 95 per 50 ms step); 0.05 s fits the Mac.
