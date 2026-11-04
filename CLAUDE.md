@@ -108,7 +108,8 @@ D-152): S20 mode `fswatch-shown` PASS on the Mac (0103), FAIL on Arch criterion 
 0115; `shipped` too: reverts from a queue; S20 `fswatch-chunked` first, D-167:
 PASS on Arch, 0116, and the Mac, 0117; the module rewritten from it, D-168: `shipped`
 PASS on the Mac, 0118, and on Arch, 0119: T-128 done; shown buffers refreshed before
-the remaining reverts, D-169, T-131: Arch PASS, 0122, the Mac H-27); eglot's
+the remaining reverts, D-169, T-131: PASS on Arch, 0122, and the Mac, 0123: T-131
+done); eglot's
 share on RMO-drafts PASS on the Mac (0104). A checkout during clangd's reparse froze
 Emacs up to 1.1 s (O-79, 0105 - 0109, 0111): Emacs's own timers, mainly the reverter's
 queue step, ran inside a write to clangd that met a full pipe (not clangd's includer

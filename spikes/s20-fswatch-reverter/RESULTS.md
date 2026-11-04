@@ -730,9 +730,40 @@ before the change). Logs: `arch-d169-shipped-run1.log` .. `run3.log`. Load 2.02 
 Contrast `fswatch-chunked`: Emacs blocked 0.08 - 0.09 s, buffers current 0.21 -
 0.32 s, shown 0.24 - 0.28 s.
 
-Verdict: PASS on Arch, criteria 1 - 6. The Mac: H-27. As the probe measured (0121):
+Verdict: PASS on Arch, criteria 1 - 6. The Mac: PASS (below, 0123). As the probe
+measured (0121):
 the shown buffers complete 0.20 - 0.25 s after `git` (D-168: 0.45 - 0.55 s) at the
 same block; the hidden buffers' text 0.40 - 0.56 s. The 21.8 ms filter call (run 1)
 and the steps over 60 ms (one garbage collection each, 0120) stay far under the
 limit.
 
+
+## Mode `shipped` with D-169, Mac runs 1 - 3 (session, 2026-11-04; T-131, H-27)
+H-27's steps 3 - 6, run by the session on the Mac at 8ea712d: `make test` 151 run,
+0 unexpected, 3 skipped (gdb, ty: as before); `fswatch-chunked` after `shipped` in
+each run as contrast. Logs: `mac-d169-shipped-run1.log` .. `mac-d169-shipped-run3.log`.
+Load 2.64 - 3.08 at the start.
+
+| criterion | `shipped` (D-169), runs 1 - 3 | limit | pass |
+|---|---|---|---|
+| 1 buffers current after `git` | 0.40 - 0.53 s, no Overflow | 1.0 s | yes |
+| 2 edits kept | edit kept; 0 unchanged files' buffers reverted; the deleted file's buffer live, not reverted on `c`, no filter error | - | yes |
+| 3 Emacs blocked | 0.08 - 0.11 s (filter's longest call 1.3 - 1.8 ms; revert steps 3 - 4 per checkout, longest 50.4 - 52.6 ms) | 0.25 s | yes |
+| 3 shown buffers | queue done 0.23 - 0.31 s after `git`; VC names the branch 3 of 3; 1 diff-hl update each; steps 0.042 - 0.104 s | 15 s | yes |
+| 3 showing a hidden buffer | 0.059 - 0.076 s; VC names the branch | 0.25 s | yes |
+| 4 idle fswatch | 6 descriptors, 6.1 MB RSS | 16, 12 MB | yes |
+| 5 ready, shutdown | 0.11 s; gone | 5 s | yes |
+| 6 messages | the edited buffer named on `c` and `a`, the deleted file on `c`, once the queue was empty | - | yes |
+
+Contrast `fswatch-chunked`, the same three runs: Emacs blocked 0.11 - 0.13 s, buffers
+current 0.28 - 0.44 s, shown buffers' queue done 0.34 - 0.39 s after `git`.
+
+Verdict: PASS on the Mac, criteria 1 - 6; with Arch (0122) D-169's done when is met,
+T-131 done.
+
+Findings:
+- Against D-168 on the Mac (0118, a load of 7.8 - 8.2): shown buffers complete at
+  0.23 - 0.31 s instead of 0.49 - 0.58 s; hidden buffers' text at 0.40 - 0.53 s
+  instead of 0.22 - 0.29 s, as the probe predicted (0121), far inside 1.0 s.
+- The block (0.08 - 0.11 s) stays where D-168 put it; the 0.11 s is the call holding
+  the one long refresh step (0.104 s, run 2, `a`), as in 0118.
