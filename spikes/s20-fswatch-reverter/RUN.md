@@ -96,6 +96,19 @@ repository, each of the Mac and Arch, three runs of `fswatch-shown`:
 7. Wiring (the Mac, terminal Emacs): `window-buffer-change-functions` runs after each
    of the four actions above.
 
+## Mode `fswatch-chunked` (D-167, 2026-11-04)
+`fswatch-shown` with the reverts taken out of the filter: a filter call only maps its
+paths to visited buffers and queues them, a buffer a window shows at the front; a
+one-shot timer (0.01 s) reverts queued buffers, with the same checks and the same
+held-back diff-hl hook, until `S20_BUDGET` seconds (default 0.05) are spent, then arms
+itself again while any is left. A reverted buffer's VC state and marks go to
+`fswatch-shown`'s queue if shown, else wait until shown. The skipped buffers' message
+is sent when the revert queue is empty. Added per checkout: the revert queue's steps,
+reverts per step, longest step, the budget. Criteria: `fswatch-shown`'s 1 - 6, three
+runs on each machine at the default budget (7 unchanged). Command:
+`S20_MODES="fswatch-chunked fswatch-shown" sh spikes/s20-fswatch-reverter/run.sh
+</dev/null` (`fswatch-shown` as contrast, recorded).
+
 ## Mode `shipped` (T-128, D-162 (d), 2026-11-04)
 The config's reverter, `lisp/emacs-cpp-reverter.el`, in place of the spike's: the run
 loads it with projectile from `lib/projectile` and its fswatch program from

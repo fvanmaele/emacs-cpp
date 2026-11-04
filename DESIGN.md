@@ -2190,7 +2190,8 @@ presets, GoogleTest runner.
   measured across 63 files. Findings in; O-43.
 
 ## Open questions ledger (LIVING)
-- O-81 (OPEN 2026-11-04, from D-166): how the shipped reverter
+- O-81 (RESOLVED 2026-11-04 with D-167: (b); owner: "O-81 (b)"; from D-166): how the
+  shipped reverter
   (`lisp/emacs-cpp-reverter.el`, 5316f49) reverts from a queue. Evidence: on Arch one
   filter call reverts 189 buffers in 124 - 302 ms (0110, 0115); about 0.7 - 1.6 ms per
   buffer. Options:
@@ -2518,6 +2519,16 @@ presets, GoogleTest runner.
   Against: buffers become current later than 0.13 s; another measurement round on
   both machines. Not taken: (b) keep runs 1 - 3's PASS (choosing runs), (c) three more
   idle runs first (more samples, same 0.30 s).
+- DECIDED D-167 (owner 2026-11-04: "O-81 (b)"): a new S20 mode `fswatch-chunked`
+  first: the filter only queues the call's buffers, shown ones first; a timer step
+  reverts until a budget per step is spent (`S20_BUDGET`, default 0.05 s) and arms
+  itself again; VC and diff-hl for shown buffers as in `fswatch-shown`; the skipped
+  buffers' message once the queue is empty. Three runs per machine against
+  `fswatch-shown`'s criteria 1 - 6; then `lisp/emacs-cpp-reverter.el` written fresh
+  from its numbers, then `shipped` again on both machines. Against: two measurement
+  rounds; the Mac's runs the owner's while this session is on Arch; about 1 h of the
+  session's work. Not taken: (a) the module changed first, (c) work moved out of
+  each revert.
 - DECIDED D-154 (owner 2026-11-03: "O-79 (c)"): before T-128's code, S20's eglot run
   times each revert under clangd's reparse, split into eglot's didClose, didOpen (its
   `process-send-string` calls to clangd, their bytes) and the rest of the revert;
@@ -3967,6 +3978,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-164 | 2026-11-04 | O-80 (b): rerun S18 on the Mac with `current-cpu-time` | 7 | O-80 |
 | D-165 | 2026-11-04 | O-80 closed: the Mac's S18 cost recorded, not judged; report to Emacs drafted | 7 | O-80 |
 | D-166 | 2026-11-04 | S20 `fswatch-shown` FAIL on Arch, criterion 3; the reverter reverts from a queue | 12 | D-153, O-81 |
+| D-167 | 2026-11-04 | O-81 (b): S20 mode `fswatch-chunked` first, a time budget per revert step | 12 | O-81 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |
