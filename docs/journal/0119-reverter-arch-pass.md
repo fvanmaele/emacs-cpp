@@ -5,6 +5,8 @@
   4bf8f6d (the rewrite)
 - **Tier:** 3 (T-128's done when, D-162 (d))
 - **Decisions:** D-168 (the module's steps; owner to confirm), D-167
+- **Host:** hp-elitedesk (i5-6500, 4 cores, 15 GB), not the Xeon W-2145 workstation
+  (recorded 2026-11-04)
 - **Done when:** D-162 (d): `make test` and three runs of S20 `shipped` passing
   `fswatch-shown`'s criteria 1 - 6 on both machines; the Mac in 0118, Arch here. Met.
 

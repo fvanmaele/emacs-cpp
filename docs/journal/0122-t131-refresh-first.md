@@ -4,6 +4,8 @@
 - **Commits:** see `git log -- lisp/emacs-cpp-reverter.el` (this entry's commit)
 - **Tier:** 2 (owner's ruling O-82 (b), D-169)
 - **Decisions:** D-169 (amends D-168)
+- **Host:** hp-elitedesk (i5-6500, 4 cores, 15 GB), not the Xeon W-2145 workstation
+  (recorded 2026-11-04)
 - **Done when:** D-169: `emacs-cpp-reverter-steps` checks the order, `make test`
   passes, S20 `shipped` passes criteria 1 - 6 three times on each machine. Arch met
   here; the Mac on H-27.

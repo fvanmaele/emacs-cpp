@@ -4,6 +4,8 @@
 - **Commits:** see `git log -- spikes/s20-fswatch-reverter` (this entry's commit)
 - **Tier:** 3 (spike S20, measurement only)
 - **Decisions:** D-168 (revisited); opens O-82
+- **Host:** hp-elitedesk (i5-6500, 4 cores, 15 GB), not the Xeon W-2145 workstation
+  (recorded 2026-11-04)
 - **Done when:** three runs each of the shipped order and one alternative on Arch,
   with the choice put to the owner with its case against each.
 

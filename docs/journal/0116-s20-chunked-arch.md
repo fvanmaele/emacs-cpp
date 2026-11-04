@@ -5,6 +5,8 @@
   5854382 (D-167)
 - **Tier:** 3 (spike S20)
 - **Decisions:** D-167 (O-81 (b))
+- **Host:** hp-elitedesk (i5-6500, 4 cores, 15 GB), not the Xeon W-2145 workstation
+  (recorded 2026-11-04)
 - **Done when:** three runs of `fswatch-chunked` on each machine pass `fswatch-shown`'s
   criteria 1 - 6 in `spikes/s20-fswatch-reverter/RUN.md`; this entry covers Arch.
 
