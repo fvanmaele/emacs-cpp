@@ -20,22 +20,27 @@ marked NEW do not exist yet; everything else was checked to exist on 2026-11-04.
   `client.py` (NEW, from `spikes/s15-mid-word-rank`'s client): `workspace/symbol`
   with and without the request field, and a code completion probe; `compare.py`
   (NEW).
-- [ ] 6. Patch, part 1: gap trigrams and their token kind (~40 min)
+- [x] 6. Patch, part 1: gap trigrams and their token kind (~40 min)
   `index/dex/Trigram.cpp`, `index/dex/Token.h`.
-- [ ] 7. Patch, part 2: the gap kind's posting lists and query path (~40 min)
+- [x] 7. Patch, part 2: the gap kind's posting lists and query path (~40 min)
   `index/dex/Dex.cpp`: built with the ordinary lists, intersected in their place
   when the field is set.
-- [ ] 8. Patch, part 3: tier 3 and the request field (~45 min)
+- [x] 8. Patch, part 3: tier 3 and the request field (~45 min)
   `tieredMatch` in `FuzzyMatch.cpp` (patch 0012's code); the field in
   `index/Index.h` / `Index.cpp`, `Protocol.h` / `.cpp`, `FindSymbols.cpp`, as
   `middleMatch`.
-- [ ] 9. Build the patched clangd (~60 min)
+- [x] 9. Build the patched clangd (~60 min)
   The patch applied in place to `packaging/clangd-index-nav/src/llvm-project-23.1.4.src`,
   `ninja clangd` in `src/build`, saved as `s19.patch` (NEW). Mostly wait (4 cores).
-- [ ] 10. Patched benchmark: criteria 3, 4, 5 (~15 min)
-- [ ] 11. Patched clients: criteria 1 (deal.II half) and 2 (~30 min)
+- [x] 10. Patched benchmark: criteria 3, 4, 5 (~15 min)
+  The baseline reruns with the fixed bench (classification outside the timing)
+  after step 12 restores the tree.
+- [x] 11. Patched clients: criteria 1 (deal.II half) and 2 (~30 min)
   `eto` -> deal.II's `Vector`, gap matches below tiers 1 - 2 for the 12 queries; the
   lists without the field unchanged.
+- [ ] 11a. Build time: gap trigrams cached per distinct name, rebuild, rerun (~30 min)
+  Added 2026-11-04 after step 10: `Dex::build` 2012.8 ms against criterion 4's
+  1797 ms; 60207 distinct names among 186162 symbols. Both numbers reported.
 - [ ] 12. Restore the tree and rebuild (~40 min)
   `patch -R`, `ninja clangd`, the binary compared with pkgrel 1's. Mostly wait.
 - [ ] 13. Results, journal, the RMO half as an H-n, commit (~30 min)
@@ -45,4 +50,4 @@ marked NEW do not exist yet; everything else was checked to exist on 2026-11-04.
 Session work about 7.5 h, about 2 h of it waiting on builds.
 
 ## Checkpoint
-done 5 of 13, now: step 6 (patch part 1); approved 2026-11-04
+done 11 of 14, now: step 11a (build time); approved 2026-11-04

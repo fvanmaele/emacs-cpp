@@ -1,0 +1,537 @@
+--- a/clang-tools-extra/clangd/ClangdLSPServer.cpp
++++ b/clang-tools-extra/clangd/ClangdLSPServer.cpp
+@@ -637,7 +637,8 @@
+       {"workspaceSymbolProvider", true},
+       // emacs-cpp extension: workspace/symbol fields a client may send.
+       {"workspaceSymbolMatchesProvider",
+-       llvm::json::Object{{"looseScope", true}, {"middleMatch", true}}},
++       llvm::json::Object{
++           {"looseScope", true}, {"middleMatch", true}, {"gapMatch", true}}},
+       {"referencesProvider", true},
+       {"astProvider", true}, // clangd extension
+       {"typeHierarchyProvider", true},
+@@ -880,6 +881,8 @@
+   Matches.LooseScope = Params.looseScope;
+   if (Params.middleMatch > 0)
+     Matches.MiddleMatch = std::max(3, Params.middleMatch);
++  if (Params.gapMatch > 0)
++    Matches.GapMatch = std::max(3, Params.gapMatch);
+   Server->workspaceSymbols(
+       Params.query, Params.limit.value_or(Opts.CodeComplete.Limit), Matches,
+       [Reply = std::move(Reply),
+--- a/clang-tools-extra/clangd/FindSymbols.cpp
++++ b/clang-tools-extra/clangd/FindSymbols.cpp
+@@ -312,6 +312,7 @@
+   FuzzyFindRequest Req;
+   Req.Query = std::string(Names.second);
+   Req.MiddleMatch = Opts.MiddleMatch;
++  Req.GapMatch = Opts.GapMatch;
+ 
+   // FuzzyFind doesn't want leading :: qualifier.
+   auto HasLeadingColons = Names.first.consume_front("::");
+@@ -363,6 +364,12 @@
+       NameMatch = Tiered ? std::optional<float>(Tiered->Score) : std::nullopt;
+       SecondTier = Tiered && !Tiered->FirstTier;
+     }
++    // With gap matches, a third tier after every second-tier match.
++    bool ThirdTier = false;
++    if (!NameMatch && Req.GapMatch && Req.Query.size() >= Req.GapMatch) {
++      NameMatch = gapMatch(Sym.Name, Req.Query);
++      ThirdTier = NameMatch.has_value();
++    }
+     if (NameMatch)
+       Relevance.NameMatch = *NameMatch;
+     else {
+@@ -391,6 +398,8 @@
+     // Below every first-tier match and first to go at the limit, in order.
+     if (SecondTier)
+       Score = secondTierScore(Score);
++    else if (ThirdTier)
++      Score = thirdTierScore(Score);
+     Top.push({Score, std::move(Info)});
+   });
+   for (auto &R : std::move(Top).items())
+--- a/clang-tools-extra/clangd/FindSymbols.h
++++ b/clang-tools-extra/clangd/FindSymbols.h
+@@ -59,6 +59,10 @@
+   /// matches, ranked after every fuzzy match: "ector" finds "TangentVector".
+   /// 0 means off.
+   unsigned MiddleMatch = 0;
++  /// A name holding a query of at least this many characters (3 or more) in
++  /// order, with gaps only over letters and digits, matches, ranked after every
++  /// other match: "eto" finds "Vector" (S19). 0 means off.
++  unsigned GapMatch = 0;
+ };
+ 
+ llvm::Expected<std::vector<SymbolInformation>>
+--- a/clang-tools-extra/clangd/FuzzyMatch.cpp
++++ b/clang-tools-extra/clangd/FuzzyMatch.cpp
+@@ -56,6 +56,7 @@
+ //===----------------------------------------------------------------------===//
+ 
+ #include "FuzzyMatch.h"
++#include "llvm/ADT/StringExtras.h"
+ #include "llvm/Support/Format.h"
+ #include <optional>
+ 
+@@ -118,6 +119,40 @@
+   return std::nullopt;
+ }
+ 
++std::optional<float> gapMatch(llvm::StringRef Word, llvm::StringRef Query) {
++  llvm::StringRef Identifier =
++      Word.take_until([](char C) { return C == '<'; });
++  Identifier.consume_front("~");
++  if (Query.empty() || Query.size() > Identifier.size())
++    return std::nullopt;
++  auto IsWordChar = [](char C) {
++    return llvm::isAlnum(C) || static_cast<unsigned char>(C) >= 128;
++  };
++  size_t Best = 0;
++  for (size_t Start = 0; Start + Query.size() <= Identifier.size(); ++Start) {
++    if (lower(Identifier[Start]) != lower(Query[0]))
++      continue;
++    // From this start the leftmost fit of the rest is the shortest.
++    size_t At = Start;
++    bool Fits = true;
++    for (size_t Q = 1; Q < Query.size() && Fits; ++Q) {
++      size_t Next = At + 1;
++      while (Next < Identifier.size() &&
++             lower(Identifier[Next]) != lower(Query[Q]) &&
++             IsWordChar(Identifier[Next]))
++        ++Next;
++      Fits = Next < Identifier.size() &&
++             lower(Identifier[Next]) == lower(Query[Q]);
++      At = Next;
++    }
++    if (Fits && (!Best || At - Start + 1 < Best))
++      Best = At - Start + 1;
++  }
++  if (!Best)
++    return std::nullopt;
++  return float(Query.size()) / Best;
++}
++
+ std::optional<float> FuzzyMatcher::match(llvm::StringRef Word) {
+   if (!(WordContainsPattern = init(Word)))
+     return std::nullopt;
+--- a/clang-tools-extra/clangd/FuzzyMatch.h
++++ b/clang-tools-extra/clangd/FuzzyMatch.h
+@@ -88,6 +88,19 @@
+ // [-1, 0), larger scores still ranking higher.
+ inline float secondTierScore(float Score) { return -1.0f / (1.0f + Score); }
+ 
++// Workspace symbols with gap matches (FuzzyFindRequest::GapMatch, S19) rank in
++// a third tier the matches neither tier holds: the query's characters in order,
++// case ignored, the first anywhere, and between two of them only letters and
++// digits skipped, never a separator ("eto" in "Vector", "ett" in
++// "VectorTools"; not "cml" in "class_multilevel_experiment"), in the
++// identifier as tieredMatch cuts it. Scored by the query's length over the
++// shortest span it fits in (1 when contiguous). None when it does not fit.
++std::optional<float> gapMatch(llvm::StringRef Word, llvm::StringRef Query);
++
++// A third-tier score below every second-tier one: in [-2, -1), larger scores
++// still ranking higher.
++inline float thirdTierScore(float Score) { return -1.0f - 1.0f / (1.0f + Score); }
++
+ // A matcher capable of matching and scoring strings against a single pattern.
+ // It's optimized for matching against many strings - match() does not allocate.
+ class FuzzyMatcher {
+--- a/clang-tools-extra/clangd/index/dex/Dex.cpp
++++ b/clang-tools-extra/clangd/index/dex/Dex.cpp
+@@ -18,6 +18,7 @@
+ #include "support/Logger.h"
+ #include "support/Trace.h"
+ #include "llvm/ADT/DenseMap.h"
++#include "llvm/ADT/DenseSet.h"
+ #include "llvm/ADT/StringMap.h"
+ #include "llvm/ADT/StringSet.h"
+ #include "llvm/Support/Path.h"
+@@ -56,11 +57,13 @@
+ // and produce the Token keys once at the end.
+ class IndexBuilder {
+   llvm::DenseMap<Trigram, std::vector<DocID>> TrigramDocs;
++  llvm::DenseMap<Trigram, std::vector<DocID>> GapTrigramDocs;
+   std::vector<DocID> RestrictedCCDocs;
+   llvm::StringMap<std::vector<DocID>> TypeDocs;
+   llvm::StringMap<std::vector<DocID>> ScopeDocs;
+   llvm::StringMap<std::vector<DocID>> ProximityDocs;
+   std::vector<Trigram> TrigramScratch;
++  std::vector<Trigram> GapTrigramScratch;
+ 
+ public:
+   // Add the tokens which are given symbol's characteristics.
+@@ -71,6 +74,9 @@
+     generateIdentifierTrigrams(Sym.Name, TrigramScratch);
+     for (Trigram T : TrigramScratch)
+       TrigramDocs[T].push_back(D);
++    generateIdentifierGapTrigrams(Sym.Name, TrigramScratch, GapTrigramScratch);
++    for (Trigram T : GapTrigramScratch)
++      GapTrigramDocs[T].push_back(D);
+     ScopeDocs[Sym.Scope].push_back(D);
+     if (!llvm::StringRef(Sym.CanonicalDeclaration.FileURI).empty())
+       for (const auto &ProximityURI :
+@@ -86,6 +92,7 @@
+   llvm::DenseMap<Token, PostingList> build() && {
+     llvm::DenseMap<Token, PostingList> Result(/*InitialReserve=*/
+                                               TrigramDocs.size() +
++                                              GapTrigramDocs.size() +
+                                               RestrictedCCDocs.size() +
+                                               TypeDocs.size() +
+                                               ScopeDocs.size() +
+@@ -112,6 +119,12 @@
+       E.second = {};
+     }
+     TrigramDocs = llvm::DenseMap<Trigram, std::vector<DocID>>{};
++    for (auto &E : GapTrigramDocs) {
++      Result.try_emplace(Token(Token::Kind::GapTrigram, E.first.str()),
++                         E.second);
++      E.second = {};
++    }
++    GapTrigramDocs = llvm::DenseMap<Trigram, std::vector<DocID>>{};
+     if (!RestrictedCCDocs.empty())
+       Result.try_emplace(RestrictedForCodeCompletion,
+                          std::move(RestrictedCCDocs));
+@@ -233,46 +246,71 @@
+   // Prevent clients from postfiltering them for longer queries.
+   bool More = !Req.Query.empty() && Req.Query.size() < 3;
+ 
+-  std::vector<std::unique_ptr<Iterator>> Criteria;
+   const auto TrigramTokens = generateQueryTrigrams(Req.Query);
++  // With gap matches (workspace symbols, S19), a second pass whose query
++  // trigrams each match the symbol's trigram or its gap trigram, under its own
++  // limit, so the first pass keeps every candidate it has without the field.
++  bool Gap = Req.GapMatch && Req.Query.size() >= Req.GapMatch;
++  auto Candidates = [&](bool WithGaps) {
++    std::vector<std::unique_ptr<Iterator>> Criteria;
++
++    // Generate query trigrams and construct AND iterator over all query
++    // trigrams.
++    std::vector<std::unique_ptr<Iterator>> TrigramIterators;
++    for (const auto &Trigram : TrigramTokens) {
++      if (WithGaps && Trigram.data().size() == 3) {
++        std::vector<std::unique_ptr<Iterator>> Either;
++        Either.push_back(iterator(Trigram));
++        Either.push_back(
++            iterator(Token(Token::Kind::GapTrigram, Trigram.data())));
++        TrigramIterators.push_back(Corpus.unionOf(std::move(Either)));
++      } else {
++        TrigramIterators.push_back(iterator(Trigram));
++      }
++    }
++    Criteria.push_back(Corpus.intersect(std::move(TrigramIterators)));
+ 
+-  // Generate query trigrams and construct AND iterator over all query
+-  // trigrams.
+-  std::vector<std::unique_ptr<Iterator>> TrigramIterators;
+-  for (const auto &Trigram : TrigramTokens)
+-    TrigramIterators.push_back(iterator(Trigram));
+-  Criteria.push_back(Corpus.intersect(std::move(TrigramIterators)));
+-
+-  // Generate scope tokens for search query.
+-  std::vector<std::unique_ptr<Iterator>> ScopeIterators;
+-  for (const auto &Scope : Req.Scopes)
+-    ScopeIterators.push_back(iterator(Token(Token::Kind::Scope, Scope)));
+-  if (Req.AnyScope)
+-    ScopeIterators.push_back(
+-        Corpus.boost(Corpus.all(), ScopeIterators.empty() ? 1.0 : 0.2));
+-  Criteria.push_back(Corpus.unionOf(std::move(ScopeIterators)));
+-
+-  // Add proximity paths boosting (all symbols, some boosted).
+-  Criteria.push_back(createFileProximityIterator(Req.ProximityPaths));
+-  // Add boosting for preferred types.
+-  Criteria.push_back(createTypeBoostingIterator(Req.PreferredTypes));
+-
+-  if (Req.RestrictForCodeCompletion)
+-    Criteria.push_back(iterator(RestrictedForCodeCompletion));
+-
+-  // Use TRUE iterator if both trigrams and scopes from the query are not
+-  // present in the symbol index.
+-  auto Root = Corpus.intersect(std::move(Criteria));
+-  // Retrieve more items than it was requested: some of  the items with high
+-  // final score might not be retrieved otherwise.
+-  // FIXME(kbobyrev): Tune this ratio.
+-  if (Req.Limit)
+-    Root = Corpus.limit(std::move(Root), *Req.Limit * 100);
+-  SPAN_ATTACH(Tracer, "query", llvm::to_string(*Root));
+-  vlog("Dex query tree: {0}", *Root);
++    // Generate scope tokens for search query.
++    std::vector<std::unique_ptr<Iterator>> ScopeIterators;
++    for (const auto &Scope : Req.Scopes)
++      ScopeIterators.push_back(iterator(Token(Token::Kind::Scope, Scope)));
++    if (Req.AnyScope)
++      ScopeIterators.push_back(
++          Corpus.boost(Corpus.all(), ScopeIterators.empty() ? 1.0 : 0.2));
++    Criteria.push_back(Corpus.unionOf(std::move(ScopeIterators)));
++
++    // Add proximity paths boosting (all symbols, some boosted).
++    Criteria.push_back(createFileProximityIterator(Req.ProximityPaths));
++    // Add boosting for preferred types.
++    Criteria.push_back(createTypeBoostingIterator(Req.PreferredTypes));
++
++    if (Req.RestrictForCodeCompletion)
++      Criteria.push_back(iterator(RestrictedForCodeCompletion));
++
++    // Use TRUE iterator if both trigrams and scopes from the query are not
++    // present in the symbol index.
++    auto Root = Corpus.intersect(std::move(Criteria));
++    // Retrieve more items than it was requested: some of  the items with high
++    // final score might not be retrieved otherwise.
++    // FIXME(kbobyrev): Tune this ratio.
++    if (Req.Limit)
++      Root = Corpus.limit(std::move(Root), *Req.Limit * 100);
++    SPAN_ATTACH(Tracer, WithGaps ? "gap query" : "query",
++                llvm::to_string(*Root));
++    vlog("Dex query tree: {0}", *Root);
++    return consume(*Root);
++  };
+ 
+   using IDAndScore = std::pair<DocID, float>;
+-  std::vector<IDAndScore> IDAndScores = consume(*Root);
++  std::vector<IDAndScore> IDAndScores = Candidates(/*WithGaps=*/false);
++  if (Gap) {
++    llvm::DenseSet<DocID> Seen;
++    for (const auto &IS : IDAndScores)
++      Seen.insert(IS.first);
++    for (const auto &IS : Candidates(/*WithGaps=*/true))
++      if (Seen.insert(IS.first).second)
++        IDAndScores.push_back(IS);
++  }
+ 
+   auto Compare = [](const IDAndScore &LHS, const IDAndScore &RHS) {
+     return LHS.second > RHS.second;
+@@ -291,6 +329,12 @@
+       Score = Tiered ? std::optional<float>(Tiered->Score) : std::nullopt;
+       SecondTier = Tiered && !Tiered->FirstTier;
+     }
++    // With gap matches, a third tier after every second-tier match.
++    bool ThirdTier = false;
++    if (!Score && Gap) {
++      Score = gapMatch(Sym->Name, Req.Query);
++      ThirdTier = Score.has_value();
++    }
+     if (!Score)
+       continue;
+     // Combine Fuzzy Matching score, precomputed symbol quality and boosting
+@@ -299,6 +343,8 @@
+         (*Score) * SymbolQuality[SymbolDocID] * IDAndScore.second;
+     if (SecondTier)
+       FinalScore = secondTierScore(FinalScore);
++    else if (ThirdTier)
++      FinalScore = thirdTierScore(FinalScore);
+     // If Top.push(...) returns true, it means that it had to pop an item. In
+     // this case, it is possible to retrieve more symbols.
+     if (Top.push({SymbolDocID, FinalScore}))
+--- a/clang-tools-extra/clangd/index/dex/Token.h
++++ b/clang-tools-extra/clangd/index/dex/Token.h
+@@ -50,6 +50,11 @@
+     ///
+     /// Data contains 3 bytes with trigram contents.
+     Trigram,
++    /// Gap trigram (S19): three letters in order inside one run of letters and
++    /// digits of the unqualified name, with gaps, that the symbol's Trigram
++    /// tokens lack. Queried only for workspace symbols that ask for gap matches
++    /// (FuzzyFindRequest::GapMatch). Data as Trigram.
++    GapTrigram,
+     /// Scope primitives, e.g. "symbol belongs to namespace foo::bar".
+     ///
+     /// Data stroes full scope name, e.g. "foo::bar::baz::" or "" (for global
+@@ -71,6 +76,9 @@
+   Token(Kind TokenKind, llvm::StringRef Data)
+       : Data(Data), TokenKind(TokenKind) {}
+ 
++  llvm::StringRef data() const { return Data; }
++  Kind kind() const { return TokenKind; }
++
+   bool operator==(const Token &Other) const {
+     return TokenKind == Other.TokenKind && Data == Other.Data;
+   }
+@@ -80,6 +88,9 @@
+     case Kind::Trigram:
+       OS << "T=";
+       break;
++    case Kind::GapTrigram:
++      OS << "G=";
++      break;
+     case Kind::Scope:
+       OS << "S=";
+       break;
+--- a/clang-tools-extra/clangd/index/dex/Trigram.cpp
++++ b/clang-tools-extra/clangd/index/dex/Trigram.cpp
+@@ -15,6 +15,7 @@
+ #include "llvm/ADT/SmallVector.h"
+ #include "llvm/ADT/StringExtras.h"
+ #include "llvm/ADT/StringRef.h"
++#include <algorithm>
+ #include <cctype>
+ #include <limits>
+ #include <queue>
+@@ -120,6 +121,42 @@
+   }
+ }
+ 
++static bool isWordChar(char C) {
++  return llvm::isAlnum(C) || static_cast<unsigned char>(C) >= 128;
++}
++
++void generateIdentifierGapTrigrams(llvm::StringRef Identifier,
++                                   llvm::ArrayRef<Trigram> Ordinary,
++                                   std::vector<Trigram> &Out) {
++  Out.clear();
++  llvm::StringRef Id = Identifier.take_until([](char C) { return C == '<'; });
++  Id.consume_front("~");
++  std::string Low = Id.lower();
++  for (size_t Begin = 0; Begin < Low.size();) {
++    if (!isWordChar(Low[Begin])) {
++      ++Begin;
++      continue;
++    }
++    size_t End = Begin;
++    while (End < Low.size() && isWordChar(Low[End]))
++      ++End;
++    for (size_t I = Begin; I + 2 < End; ++I)
++      for (size_t J = I + 1; J + 1 < End; ++J)
++        for (size_t K = J + 1; K < End; ++K)
++          Out.push_back(Trigram(Low[I], Low[J], Low[K]));
++    Begin = End;
++  }
++  if (Out.empty())
++    return;
++  llvm::sort(Out);
++  Out.erase(llvm::unique(Out), Out.end());
++  llvm::SmallVector<Trigram, 64> Known(Ordinary.begin(), Ordinary.end());
++  llvm::sort(Known);
++  llvm::erase_if(Out, [&](Trigram T) {
++    return std::binary_search(Known.begin(), Known.end(), T);
++  });
++}
++
+ std::vector<Token> generateQueryTrigrams(llvm::StringRef Query) {
+   if (Query.empty())
+     return {};
+--- a/clang-tools-extra/clangd/index/dex/Trigram.h
++++ b/clang-tools-extra/clangd/index/dex/Trigram.h
+@@ -24,6 +24,7 @@
+ #define LLVM_CLANG_TOOLS_EXTRA_CLANGD_INDEX_DEX_TRIGRAM_H
+ 
+ #include "index/dex/Token.h"
++#include "llvm/ADT/ArrayRef.h"
+ #include "llvm/ADT/bit.h"
+ 
+ #include <array>
+@@ -69,6 +70,17 @@
+ void generateIdentifierTrigrams(llvm::StringRef Identifier,
+                                 std::vector<Trigram> &Out);
+ 
++/// Produces the gap trigrams of an unqualified symbol (S19): every three
++/// letters in order inside one run of letters and digits (no separator in
++/// between, camel-case boundaries crossed) of the identifier as tieredMatch
++/// cuts it (before any template arguments, without a destructor's `~`),
++/// lowercase, without those already in \p Ordinary (the symbol's trigrams from
++/// generateIdentifierTrigrams). For "Vector": its 20 in-order triples less
++/// vec, ect, cto and tor, 16 gap trigrams, "eto" among them.
++void generateIdentifierGapTrigrams(llvm::StringRef Identifier,
++                                   llvm::ArrayRef<Trigram> Ordinary,
++                                   std::vector<Trigram> &Out);
++
+ /// Returns list of unique fuzzy-search trigrams given a query.
+ ///
+ /// Query is segmented using FuzzyMatch API and downcasted to lowercase. Then,
+--- a/clang-tools-extra/clangd/index/Index.cpp
++++ b/clang-tools-extra/clangd/index/Index.cpp
+@@ -37,7 +37,8 @@
+       O.map("RestrictForCodeCompletion", Request.RestrictForCodeCompletion) &&
+       O.map("ProximityPaths", Request.ProximityPaths) &&
+       O.map("PreferredTypes", Request.PreferredTypes) &&
+-      O.mapOptional("MiddleMatch", Request.MiddleMatch);
++      O.mapOptional("MiddleMatch", Request.MiddleMatch) &&
++      O.mapOptional("GapMatch", Request.GapMatch);
+   if (OK && Limit <= std::numeric_limits<uint32_t>::max())
+     Request.Limit = Limit;
+   return OK;
+@@ -53,6 +54,7 @@
+       {"ProximityPaths", Request.ProximityPaths},
+       {"PreferredTypes", Request.PreferredTypes},
+       {"MiddleMatch", Request.MiddleMatch},
++      {"GapMatch", Request.GapMatch},
+   };
+ }
+ 
+--- a/clang-tools-extra/clangd/index/Index.h
++++ b/clang-tools-extra/clangd/index/Index.h
+@@ -47,6 +47,12 @@
+   /// queries use other trigrams); it scores below zero, after every fuzzy
+   /// match. Workspace symbols set it on request; code completion never does.
+   unsigned MiddleMatch = 0;
++  /// If nonzero, a symbol whose identifier holds Query's characters in order
++  /// with gaps only over letters and digits matches too (gapMatch in
++  /// FuzzyMatch.h), when Query has at least this many characters (3 or more);
++  /// it scores after every other match. Workspace symbols set it on request;
++  /// code completion never does (S19).
++  unsigned GapMatch = 0;
+   /// Contextually relevant files (e.g. the file we're code-completing in).
+   /// Paths should be absolute.
+   std::vector<std::string> ProximityPaths;
+@@ -55,10 +61,10 @@
+ 
+   bool operator==(const FuzzyFindRequest &Req) const {
+     return std::tie(Query, Scopes, Limit, RestrictForCodeCompletion,
+-                    MiddleMatch, ProximityPaths, PreferredTypes) ==
++                    MiddleMatch, GapMatch, ProximityPaths, PreferredTypes) ==
+            std::tie(Req.Query, Req.Scopes, Req.Limit,
+                     Req.RestrictForCodeCompletion, Req.MiddleMatch,
+-                    Req.ProximityPaths, Req.PreferredTypes);
++                    Req.GapMatch, Req.ProximityPaths, Req.PreferredTypes);
+   }
+   bool operator!=(const FuzzyFindRequest &Req) const { return !(*this == Req); }
+ };
+--- a/clang-tools-extra/clangd/index/MemIndex.cpp
++++ b/clang-tools-extra/clangd/index/MemIndex.cpp
+@@ -53,11 +53,19 @@
+       Score = Tiered ? std::optional<float>(Tiered->Score) : std::nullopt;
+       SecondTier = Tiered && !Tiered->FirstTier;
+     }
++    // With gap matches, a third tier, as in Dex.cpp.
++    bool ThirdTier = false;
++    if (!Score && Req.GapMatch && Req.Query.size() >= Req.GapMatch) {
++      Score = gapMatch(Sym->Name, Req.Query);
++      ThirdTier = Score.has_value();
++    }
+     if (!Score)
+       continue;
+     float FinalScore = *Score * quality(*Sym);
+     if (SecondTier)
+       FinalScore = secondTierScore(FinalScore);
++    else if (ThirdTier)
++      FinalScore = thirdTierScore(FinalScore);
+     if (Top.push({FinalScore, Sym}))
+       More = true; // An element with smallest score was discarded.
+   }
+--- a/clang-tools-extra/clangd/Protocol.cpp
++++ b/clang-tools-extra/clangd/Protocol.cpp
+@@ -939,7 +939,8 @@
+   return O && O.map("query", R.query) &&
+          mapOptOrNull(Params, "limit", R.limit, P) &&
+          O.mapOptional("looseScope", R.looseScope) &&
+-         O.mapOptional("middleMatch", R.middleMatch);
++         O.mapOptional("middleMatch", R.middleMatch) &&
++         O.mapOptional("gapMatch", R.gapMatch);
+ }
+ 
+ llvm::json::Value toJSON(const Command &C) {
+--- a/clang-tools-extra/clangd/Protocol.h
++++ b/clang-tools-extra/clangd/Protocol.h
+@@ -1261,6 +1261,13 @@
+   /// count as 3. Clangd extension (emacs-cpp), announced as
+   /// workspaceSymbolMatchesProvider.middleMatch.
+   int middleMatch = 0;
++
++  /// Gap matches: a symbol whose name holds the query's characters in order
++  /// with gaps only over letters and digits ("eto" finds "Vector"), for queries
++  /// of at least this many characters, ranked after every other match. 0 means
++  /// off; values below 3 count as 3. Clangd extension (emacs-cpp, S19),
++  /// announced as workspaceSymbolMatchesProvider.gapMatch.
++  int gapMatch = 0;
+ };
+ bool fromJSON(const llvm::json::Value &, WorkspaceSymbolParams &,
+               llvm::json::Path);
