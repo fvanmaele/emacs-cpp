@@ -107,6 +107,6 @@ Status words: `not started`, `ready` (RUN.md written, the owner runs it; no RESU
 | S16 | PASS compiled, FAIL interpreted; not built (D-134) | s16-match-function/RESULTS.md |
 | S17 | PASS run 3; run 4: little gain, `lisp/` stays interpreted (D-134) | s17-compiled-lisp/RESULTS.md |
 | S18 | PASS on Arch (`dedup`); the Mac's cost misread 41.7 times too small, measured 61 - 64 ms per 1000 records, over 50, recorded, not judged (D-165); next T-119 | s18-fswatch-backend/RESULTS.md |
-| S21 | ready (criteria proposed for the owner, D-177, T-133); lock files change directory times (RESEARCH_go_to_anything 22) | s21-projectile-cache/RUN.md |
+| S21 | PASS 2026-11-05 with `m2` (D-177, T-133): plain check FAIL on editing (lock files), names re-read PASS | s21-projectile-cache/RESULTS.md |
 | S19 | FAIL (2026-11-04, hp-elitedesk): criterion 6, 16 of 26 `M-o` keys on RMO-drafts over twice pkgrel 1 with the field (D-174); criteria 1 - 5 PASS (D-172, D-173); not built (D-175) | s19-gap-trigrams/RESULTS.md |
 | S20 | `fswatch-shown` (D-153): PASS on the Mac (0103), FAIL on Arch criterion 3 (D-166, 0115; `shipped` too), `fswatch-chunked` (D-167) PASS on Arch (0116) and the Mac (0117); `shipped` (T-128) after the rewrite (D-168) PASS on the Mac (0118) and on Arch (0119), with refresh first (D-169) on Arch (0122) and the Mac (0123); eglot's share PASS on the Mac, O-79 closed (D-161); was FAIL: Mac criterion 3, VC steps (runs 4 - 6); PASS on Arch (runs 1 - 3) | s20-fswatch-reverter/RESULTS.md |
