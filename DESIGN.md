@@ -2198,7 +2198,8 @@ presets, GoogleTest runner.
   measured across 63 files. Findings in; O-43.
 
 ## Open questions ledger (LIVING)
-- O-82 (OPEN 2026-11-04, the owner: "revisit D-168"): the order of the module's
+- O-82 (RESOLVED 2026-11-04 with D-169: (b); owner: "(b)"; the owner: "revisit
+  D-168"): the order of the module's
   steps. Evidence (0121, Arch, load 1.0 - 1.3, three runs each): as shipped
   (reverts, then refreshes) Emacs blocked 0.07 - 0.09 s, all buffers current 0.20 -
   0.30 s, the shown buffers' branch and marks 0.45 - 0.55 s after `git`;
@@ -2545,6 +2546,17 @@ presets, GoogleTest runner.
   Against: buffers become current later than 0.13 s; another measurement round on
   both machines. Not taken: (b) keep runs 1 - 3's PASS (choosing runs), (c) three more
   idle runs first (more samples, same 0.30 s).
+- DECIDED D-169 (owner 2026-11-04: "(b)"; O-82 (b)): the module's step refreshes a
+  queued shown buffer's VC state and marks before the remaining reverts; one timer,
+  one kind of work per step (D-168's bound kept), 0.01 s between steps while either
+  queue holds a buffer. Done when: `emacs-cpp-reverter-steps` checks the order, `make
+  test` passes, and S20 `shipped` passes `fswatch-shown`'s criteria 1 - 6 in three
+  runs on each machine (Arch the session's, the Mac an H-n). Measured with the probe
+  (0121): shown buffers complete 0.18 - 0.28 s after `git`, Emacs blocked 0.07 -
+  0.09 s. Against: hidden buffers' text 0.15 - 0.2 s later; refresh steps 0.01 s
+  apart where D-168 had 0.05 s. Amends D-168. Not taken: (a) D-168 unchanged, (c) two
+  timers. Built (T-131, 0122): Arch PASS (blocked 0.07 - 0.09 s, shown 0.20 - 0.25 s);
+  the Mac on H-27.
 - DECIDED D-168 (session 2026-11-04, within D-167's rewrite; owner to confirm): the
   module's steps from S20 `fswatch-chunked` (0116, 0117) with one change: one timer
   runs both queues and a step does one kind of work, reverts while any are queued,
@@ -4018,6 +4030,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-166 | 2026-11-04 | S20 `fswatch-shown` FAIL on Arch, criterion 3; the reverter reverts from a queue | 12 | D-153, O-81 |
 | D-167 | 2026-11-04 | O-81 (b): S20 mode `fswatch-chunked` first, a time budget per revert step | 12 | O-81 |
 | D-168 | 2026-11-04 | the reverter's steps: one timer, reverts first, never a revert and a refresh in one step | 12 | D-167 |
+| D-169 | 2026-11-04 | O-82 (b): a shown buffer's refresh before the remaining reverts | 12 | D-168, O-82 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |
