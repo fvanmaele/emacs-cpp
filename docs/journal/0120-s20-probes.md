@@ -4,6 +4,8 @@
 - **Commits:** see `git log -- spikes/s20-fswatch-reverter/probe` (this entry's commit)
 - **Tier:** 3 (spike S20, measurement only)
 - **Decisions:** D-168 (its evidence); none new
+- **Host:** hp-elitedesk (i5-6500, 4 cores, 15 GB), not the Xeon W-2145 workstation
+  (recorded 2026-11-04)
 - **Done when:** each UNVERIFIED mark of 0115 - 0119 that Arch can reach is measured or
   stated as out of reach.
 

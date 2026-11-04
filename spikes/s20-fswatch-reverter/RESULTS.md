@@ -5,8 +5,9 @@ Arch on criterion 3 (D-166, 2026-11-04: the session's run 6 blocked 0.30 s; the
 owner's runs 1 - 3 passed, kept as evidence); mode `shipped` FAIL on Arch too (run 3,
 0.25 s); mode `fswatch-chunked` (D-167) PASS on Arch (0116), the Mac on H-25;
 eglot's share E1 - E3 PASS on the Mac (2026-11-03), a checkout during clangd's
-reparse blocks 0.36 - 0.98 s (O-79); sections at the end. Earlier verdict
-for `fswatch-queued`:
+reparse blocks 0.36 - 0.98 s (O-79); sections at the end. The session's Arch runs
+of 2026-11-04 ran on hp-elitedesk (i5-6500, 4 cores), not the Xeon workstation;
+earlier Arch runs name no host. Earlier verdict for `fswatch-queued`:
 
 Verdict: FAIL (2026-11-02). PASS on Arch (runs 1 - 3); FAIL on the Mac on criterion
 3 (runs 4 - 6, idle): one VC refresh step blocks Emacs 0.30 - 0.35 s. Criteria 1, 2,
@@ -207,6 +208,8 @@ Findings:
   contrast's diff-hl cost is lower than the Mac's (1.6 - 2.4 s against 2.2 - 2.5 s).
 
 ## Mode `fswatch-shown`, Arch runs 4 - 6 (session, 2026-11-04; D-166)
+Host: hp-elitedesk (Intel Core i5-6500, 4 cores, 15 GB), not the Xeon W-2145
+workstation of RESEARCH_go_to_anything 20 (recorded 2026-11-04).
 The same commands as runs 1 - 3, on `main` at a077521 (the spike's mode unchanged).
 Logs: `arch-shown-run4.log` .. `arch-shown-run6.log`. Load 1.32 - 1.87 at the start,
 runs 18:04 - 18:06Z; this session's Claude Code process was running.
@@ -505,6 +508,8 @@ Mac runs (0103: blocked 0.07 - 0.13 s, filter 87 - 95 ms) the shipped module blo
 the scan's absence accounts for part of it (UNVERIFIED how much).
 
 ## Mode `shipped`, Arch runs 1 - 3 (session, 2026-11-04; T-128, D-166)
+Host: hp-elitedesk (Intel Core i5-6500, 4 cores, 15 GB), not the Xeon W-2145
+workstation of RESEARCH_go_to_anything 20 (recorded 2026-11-04).
 H-23's steps 3 - 6, run by the session on Arch at a077521: `make test` 151 of 151 as
 expected (46.9 s); logs `arch-shipped-run1.log` .. `arch-shipped-run3.log`. Load 3.10 -
 3.37 at the start (`make test` had just run; H-23 asked for an idle machine).
@@ -527,6 +532,8 @@ watches the way the spike's `ready` does. Verified (0120): the module starts fsw
 at the first visit, 3.6 s before the ready check, so its watches are set by then.
 
 ## Mode `fswatch-chunked`, Arch runs 1 - 3 (session, 2026-11-04; D-167)
+Host: hp-elitedesk (Intel Core i5-6500, 4 cores, 15 GB), not the Xeon W-2145
+workstation of RESEARCH_go_to_anything 20 (recorded 2026-11-04).
 The new mode at the default budget (0.05 s), `fswatch-shown` after it in each run as
 contrast. Logs: `arch-chunked-run1.log` .. `arch-chunked-run3.log`; a dry run before
 them passed the same checks (not kept). Load 1.91 - 2.27 at the start, this session
@@ -632,6 +639,8 @@ Findings:
   revert of about 12 ms at a load of 7.8.
 
 ## Mode `shipped` after the rewrite, Arch runs 1 - 3 (session, 2026-11-04; D-168, H-26)
+Host: hp-elitedesk (Intel Core i5-6500, 4 cores, 15 GB), not the Xeon W-2145
+workstation of RESEARCH_go_to_anything 20 (recorded 2026-11-04).
 H-26's steps 3 - 6 run by the session on Arch at 4bf8f6d: `make test` 151 of 151 as
 expected (44.1 s). Logs: `arch-shipped-chunked-run1.log` .. `run3.log`,
 `fswatch-chunked` after `shipped` in each as contrast. Load 2.24 - 2.50 at the start
@@ -665,6 +674,8 @@ Findings:
   spike does so once per path; one record per path brings it to 4.0 ms (0120).
 
 ## Probes: the UNVERIFIED of 0115 - 0119 (session, 2026-11-04; 0120)
+Host: hp-elitedesk (Intel Core i5-6500, 4 cores, 15 GB), not the Xeon W-2145
+workstation of RESEARCH_go_to_anything 20 (recorded 2026-11-04).
 Scripts in `probe/` (`run-probe.sh` loads one of `trace.el`, `dedupe.el`,
 `ready.el` before `s20-run.el` in mode `shipped`; `tstep.sh` runs `tstep.el` in a
 terminal Emacs). Arch, at f42abe1, load about 2.
@@ -690,6 +701,8 @@ Not verified here: the Mac-only marks above (G DATA, clangd's write stall, the
 scan's share), and why `git` took 0.11 - 0.13 s in 0115's run 6 (past, unrecorded).
 
 ## D-168 revisited: the steps' order, Arch runs 1 - 3 (session, 2026-11-04; O-82)
+Host: hp-elitedesk (Intel Core i5-6500, 4 cores, 15 GB), not the Xeon W-2145
+workstation of RESEARCH_go_to_anything 20 (recorded 2026-11-04).
 At 228d20d. Per round: `S20_MODES="shipped fswatch-chunked"` (logs
 `arch-d168-shipped-run1.log` .. `run3.log`), then mode `shipped` with
 `probe/refresh-first.el` (a queued shown buffer's refresh runs before the remaining
@@ -710,6 +723,8 @@ buffers their state earlier than either; the hidden buffers' text comes 0.15 - 0
 later.
 
 ## Mode `shipped` with D-169, Arch runs 1 - 3 (session, 2026-11-04; T-131)
+Host: hp-elitedesk (Intel Core i5-6500, 4 cores, 15 GB), not the Xeon W-2145
+workstation of RESEARCH_go_to_anything 20 (recorded 2026-11-04).
 `lisp/emacs-cpp-reverter.el` with D-169 (a shown buffer's refresh before the
 remaining reverts), uncommitted on 683e566, `fswatch-chunked` after it in each run as
 contrast; `make test` 151 of 151 (`emacs-cpp-reverter-steps` fails on the module

@@ -4,14 +4,17 @@
 - **Commits:** see `git log -- spikes/s20-fswatch-reverter` (this entry's commit)
 - **Tier:** 3 (spike S20; T-128's Arch done when)
 - **Decisions:** D-166 (owner: "S20 (a)"); opens O-81
+- **Host:** hp-elitedesk (i5-6500, 4 cores, 15 GB), not the Xeon W-2145 workstation
+  (recorded 2026-11-04)
 - **Done when:** D-162 (d)'s Arch half (H-23) run and judged; not met.
 
 > Plain English for someone who does not read Emacs Lisp fluently.
 
 ## What + why
 0110 called S20's `fswatch-shown` a PASS on Arch from the owner's three runs. The
-session ran the same commands three more times on the same machine at a normal desktop
-load (1.3 - 1.9). Run 6's first checkout blocked Emacs 0.30 s, over the 0.25 s limit.
+session ran the same commands three more times on Arch (hp-elitedesk; the owner's
+runs name no host) at a normal desktop load (1.3 - 1.9). Run 6's first checkout
+blocked Emacs 0.30 s, over the 0.25 s limit.
 The owner ruled (D-166) that this counts: S20 fails on Arch, and the reverter must
 revert from a queue instead of reverting all 189 buffers in one go.
 
