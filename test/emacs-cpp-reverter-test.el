@@ -5,9 +5,9 @@
 ;; The reverter (T-128, D-153, D-156, D-161 - D-163) in the shipped profile: which
 ;; roots it watches, the real patched fswatch reverting a checkout's buffers (edited
 ;; and deleted files' buffers kept and named), one fswatch per root gone with its
-;; last buffer, the queue waiting while the filter runs, no filter call inside
-;; another, an overflow checking every buffer, and the option, globally and per
-;; project.  Needs git and the patched fswatch.
+;; last buffer, the filter only queuing and timer steps reverting within a budget
+;; (D-167), no step inside another, an overflow checking every buffer, and the
+;; option, globally and per project.  Needs git and the patched fswatch.
 
 ;;; Code:
 
@@ -140,7 +140,8 @@ with its last buffer; auto-revert leaves the root's buffers to the reverter."
 
 (ert-deftest emacs-cpp-reverter-queue ()
   "D-153, D-156 (e): a reverted buffer shown in a window is refreshed from the
-queue, which waits while the filter runs; a hidden one stays stale until shown."
+queue, whose step waits while another step runs; a hidden one stays stale until
+shown."
   (init-test--load)
   (let* ((dir (emacs-cpp-reverter-test--dir))
          (shown-file (expand-file-name "shown.h" dir))
@@ -168,8 +169,8 @@ queue, which waits while the filter runs; a hidden one stays stale until shown."
               (should (eq (emacs-cpp-reverter--revert hidden) 'reverted))
               (should (memq shown emacs-cpp-reverter--queue))
               (should (buffer-local-value 'emacs-cpp-reverter--stale hidden))
-              ;; (e): a step while the filter runs refreshes nothing, arms again.
-              (let ((emacs-cpp-reverter--in-filter t))
+              ;; (e): a step inside a running step refreshes nothing, arms again.
+              (let ((emacs-cpp-reverter--busy t))
                 (emacs-cpp-reverter--step))
               (should (memq shown emacs-cpp-reverter--queue))
               (should emacs-cpp-reverter--timer)
@@ -189,27 +190,65 @@ queue, which waits while the filter runs; a hidden one stays stale until shown."
   (make-process :name "emacs-cpp-reverter-test carrier" :command '("sleep" "30")
                 :noquery t :filter (emacs-cpp-reverter--filter root real-root)))
 
-(ert-deftest emacs-cpp-reverter-no-nesting ()
-  "D-161 (p): a filter call made while one runs waits; its records are handled after
-the running call returns, from a timer."
+(ert-deftest emacs-cpp-reverter-steps ()
+  "D-167: the filter only queues, a shown buffer first; a step reverts until the
+budget is spent, one buffer at least, and never refreshes in the same step; the
+kept buffers are named once the revert queue is empty; a step inside a running
+step reverts nothing (D-161 (p))."
   (init-test--load)
   (let* ((dir (emacs-cpp-reverter-test--dir))
-         (file (expand-file-name "x.h" dir))
-         (carrier (emacs-cpp-reverter-test--carrier dir dir)))
+         (files (mapcar (lambda (name) (expand-file-name name dir))
+                        '("a.h" "b.h" "shown.h" "edited.h")))
+         (carrier (emacs-cpp-reverter-test--carrier dir dir))
+         refreshed messages)
     (emacs-cpp-reverter-test--cleanup (list dir)
       (unwind-protect
           (progn
-            (write-region "// 1\n" nil file)
-            (let ((buffer (find-file-noselect file)))
-              (with-current-buffer buffer (setq emacs-cpp-reverter--root dir))
-              (write-region "// 2\n" nil file)
-              (set-file-times file (time-add nil 10))
-              (let ((emacs-cpp-reverter--in-filter t))
-                (funcall (process-filter carrier) carrier (concat file " Updated,IsFile\0"))
-                (should (equal (emacs-cpp-reverter-test--text buffer) "// 1\n")))
-              (should (emacs-cpp-reverter-test--wait
-                       (lambda () (equal (emacs-cpp-reverter-test--text buffer) "// 2\n"))))
-              (should-not emacs-cpp-reverter--deferred)))
+            (dolist (file files) (write-region "// 1\n" nil file))
+            (pcase-let* ((buffers (mapcar #'find-file-noselect files))
+                         (`(,a ,b ,shown ,edited) buffers))
+              (dolist (buffer buffers)
+                (with-current-buffer buffer (setq emacs-cpp-reverter--root dir)))
+              (set-window-buffer (selected-window) shown)
+              (with-current-buffer edited (insert "// mine\n"))
+              (dolist (file files)
+                (write-region "// 2\n" nil file)
+                (set-file-times file (time-add nil 10)))
+              (cl-letf (((symbol-function 'emacs-cpp-reverter--refresh)
+                         (lambda (buffer) (push buffer refreshed)))
+                        ((symbol-function 'emacs-cpp-reverter--message)
+                         (lambda (kept) (push kept messages))))
+                (funcall (process-filter carrier) carrier
+                         (mapconcat (lambda (file) (concat file " Updated,IsFile\0"))
+                                    files ""))
+                ;; Queued, not reverted; the shown buffer first.
+                (should (equal (emacs-cpp-reverter-test--text a) "// 1\n"))
+                (should (eq (car emacs-cpp-reverter--reverts) shown))
+                (should (= 4 (length emacs-cpp-reverter--reverts)))
+                (should emacs-cpp-reverter--timer)
+                ;; Inside a running step: nothing reverted.
+                (let ((emacs-cpp-reverter--busy t))
+                  (emacs-cpp-reverter--step))
+                (should (= 4 (length emacs-cpp-reverter--reverts)))
+                ;; A spent budget still reverts one buffer per step, and the
+                ;; step refreshes nothing though the shown buffer is queued.
+                (let ((emacs-cpp-reverter-budget 0))
+                  (emacs-cpp-reverter--step))
+                (should (equal (emacs-cpp-reverter-test--text shown) "// 2\n"))
+                (should (equal emacs-cpp-reverter--queue (list shown)))
+                (should (= 3 (length emacs-cpp-reverter--reverts)))
+                (should-not refreshed)
+                (should-not messages)
+                ;; The rest from the timer: reverts, one message, then the refresh.
+                (should (emacs-cpp-reverter-test--wait
+                         (lambda () (and (null emacs-cpp-reverter--reverts)
+                                         (null emacs-cpp-reverter--queue)))))
+                (should (equal (emacs-cpp-reverter-test--text a) "// 2\n"))
+                (should (equal (emacs-cpp-reverter-test--text b) "// 2\n"))
+                (should (equal (emacs-cpp-reverter-test--text edited) "// mine\n// 1\n"))
+                (should (equal messages (list (list (cons edited 'edited)))))
+                (should (equal refreshed (list shown)))
+                (should-not emacs-cpp-reverter--kept))))
         (delete-process carrier)))))
 
 (ert-deftest emacs-cpp-reverter-overflow ()
@@ -232,7 +271,8 @@ changes were lost."
               (write-region "// 2\n" nil file)
               (set-file-times file (time-add nil 10))
               (funcall (process-filter carrier) carrier (concat dir " Overflow\0"))
-              (should (equal (emacs-cpp-reverter-test--text buffer) "// 2\n"))
+              (should (emacs-cpp-reverter-test--wait
+                       (lambda () (equal (emacs-cpp-reverter-test--text buffer) "// 2\n"))))
               (should (string-match-p "overflowed" (car warned)))))
         (delete-process carrier)))))
 
