@@ -119,7 +119,8 @@ shape and done when ruled (D-162), roots and opt-out (D-163); built 2026-11-04
 (0113): `lisp/emacs-cpp-reverter.el`; S20 `shipped` PASS on the Mac, Arch on H-23.
 Emacs's
 `process-attributes` CPU times are 41.7 times too small on Apple silicon: S18's Mac
-cost misread (O-80); rerun (D-164, 0114): 61 - 64 ms per 1000 records, (a) recommended.
+cost misread; rerun (D-164, 0114): 61 - 64 ms per 1000 records, recorded, not judged
+(D-165, O-80 closed); the report to Emacs drafted, H-24.
 
 ## Self-test (before the first edit of a session)
 Answer from the docs, not from memory; a miss means re-read, not edit.

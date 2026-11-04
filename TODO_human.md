@@ -77,6 +77,15 @@ service's plan) is not an item.
   Report back: step 3's `Ran ...` line; `arch-shipped-run1.log` .. `arch-shipped-run3.log`
   (commit them on a branch, or paste).
 
+- **H-24** (2026-11-04, O-80, D-165) Send the report on `process-attributes` CPU times
+  to the Emacs bug tracker (outward, so yours); the draft is
+  `docs/upstream/process-attributes-cpu-time-apple-silicon.md`.
+  1. In Emacs on the Mac: `M-x report-emacs-bug`, subject `31.1; process-attributes:
+     utime, stime and time about 42 times too small on Apple silicon (Mach ticks read as
+     nanoseconds)`, the draft's text below its `---` line as the body; attach
+     `docs/upstream/process_attributes_cpu_repro.el`; send.
+  Report back: the bug number.
+
 ## Parked
 - **H-8** (2026-10-20, 0084 review:B-3 to review:B-5, deferred; T-114) The upstream
   reports and patches in the review's order: treemacs and clang-change-namespace first,

@@ -106,5 +106,5 @@ Status words: `not started`, `ready` (RUN.md written, the owner runs it; no RESU
 | S12 | FAIL (runs 1, 2); owner rules O-43 (b) | s12-change-signature/RESULTS.md |
 | S16 | PASS compiled, FAIL interpreted; not built (D-134) | s16-match-function/RESULTS.md |
 | S17 | PASS run 3; run 4: little gain, `lisp/` stays interpreted (D-134) | s17-compiled-lisp/RESULTS.md |
-| S18 | PASS on Arch (`dedup`); the Mac's cost misread 41.7 times too small, measured 61 - 64 ms per 1000 records, over 50 (O-80); next T-119 | s18-fswatch-backend/RESULTS.md |
+| S18 | PASS on Arch (`dedup`); the Mac's cost misread 41.7 times too small, measured 61 - 64 ms per 1000 records, over 50, recorded, not judged (D-165); next T-119 | s18-fswatch-backend/RESULTS.md |
 | S20 | `fswatch-shown` (D-153): PASS on the Mac and on Arch (2026-11-03, 0103, 0110); `shipped` (T-128) PASS on the Mac, Arch on H-23; eglot's share PASS on the Mac, O-79 closed (D-161); was FAIL: Mac criterion 3, VC steps (runs 4 - 6); PASS on Arch (runs 1 - 3) | s20-fswatch-reverter/RESULTS.md |
