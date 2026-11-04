@@ -4,12 +4,12 @@ Session on hp-elitedesk, 2026-11-04. Spike code stays under `spikes/s19-gap-trig
 and is never promoted; a PASS leads to clangd patch 0014 written fresh (D-069). Names
 marked NEW do not exist yet; everything else was checked to exist on 2026-11-04.
 
-- [ ] 1. Branch `S19` from `main` after the D-172 commit (~2 min)
+- [x] 1. Branch `S19` from `main` after the D-172 commit (~2 min)
   No tag: tags need the owner.
-- [ ] 2. Clone deal.II at v9.8.0, shallow, into `~/source/repos/dealii` (~10 min)
+- [x] 2. Clone deal.II at v9.8.0, shallow, into `~/source/repos/dealii` (~10 min)
   Network (D-172): https://github.com/dealii/dealii; deal.II 9.8.0 is installed
   (`pacman -Q deal-ii`), so `scripts/build-library-index.sh` takes tag v9.8.0.
-- [ ] 3. `make library-index LIBRARY=dealii`, memory watched (~25 min)
+- [x] 3. `make library-index LIBRARY=dealii`, memory watched (~25 min)
   Uses `/opt/clangd-index-nav/bin/clangd-indexer` (installed, pkgrel 1); writes
   `indexes/dealii.dex` and `indexes/dealii.stamp` (ignored by git).
 - [ ] 4. Baseline benchmark against the unpatched libraries (~60 min)
