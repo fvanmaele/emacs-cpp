@@ -337,6 +337,29 @@ relay costs about 80 ms for 5628 references); rass itself 29 - 41 MB.
   no fix code actions from `C-c l a`.
 - (r3) none: ty's diagnostics only.
 
+**(r2) against (r1), feature by feature** (owner 2026-11-04: "Missing features compared
+to ruff server+ty server?"; checked 2026-11-04 on hp-elitedesk, pacman's ruff 0.17.3,
+Emacs 31.1's eglot; scripts in the session's scratch directory, not kept):
+| ruff's server gives (r1) | ruff without its server (r2) |
+|---|---|
+| lint diagnostics, pulled on change | `ruff check --output-format json --stdin-filename FILE -`: the same findings on the buffer's unsaved text; 13.8 ms per check of a 3866-line file (`typing.py`, process start included; the server measured 16 - 31 ms cold, 25 warm on a 3674-line file on the other machine, above) |
+| a fix per finding on `C-c l a` (`quickfix`) | **missing** from `C-c l a`: the findings are flymake's, not eglot's, so eglot's code actions ask ty only. The JSON carries each finding's `fix` (`applicability` `safe` or `unsafe`, edits as 1-based row / column ranges with the new text), enough for a command of the config's own |
+| `source.fixAll.ruff` | **missing**; `ruff check --fix-only --stdin-filename FILE -` prints the fixed text on stdout, a count on stderr, exit 0 (19.1 ms); `--fix` exits 1 while a finding remains; unsafe fixes only with `--unsafe-fixes` |
+| `source.organizeImports.ruff` | **missing**; `ruff check --select I --fix-only --stdin-filename FILE -` prints the sorted text (12.9 ms) |
+| "disable for this line" (`# noqa: CODE`, the diagnostics' `noqa_edit`) | **missing**; the JSON gives the line for it (`noqa_row`) |
+| hover on `# noqa: F401`: the rule's text | **missing**; `ruff rule F401` prints it (Markdown; `--output-format json` with `explanation`), 3.3 ms |
+| diagnostic tags: `unnecessary` on F401, which eglot shows in `shadow` (`eglot-diagnostic-tag-unnecessary-face`; deprecated: struck through) | **missing**: the JSON has no tags; a backend would need its own list of rules to shade |
+| a link to the rule's page (`codeDescription`) | the JSON's `url` |
+| formatting, whole file and range | `ruff format --stdin-filename FILE [--range ...] -` (13.3 ms for `typing.py`) |
+| settings from `pyproject.toml` / `ruff.toml` | the same through `--stdin-filename`: the nearest configuration above the path, from any working directory (checked with a nested `ruff.toml`), for `check` and `format` |
+| notebooks (`notebook.source.*`) | not needed: the config's cells are `# %%` in `.py` files (D-072) |
+
+So (r2) covers diagnostics, formatting and settings; it lacks every code action (per
+finding, whole file, imports, `# noqa`), the rule text on hover and the shading of
+unused code. The command line supplies the data for each, so each is config code to
+write and keep (D-143's case against (r2)); none needs ruff's server. Neither gives
+navigation, which ty answers in both.
+
 ## 6. Open
 - Configuration surface: ty asks for the `ty` section (`workspace/configuration`);
   which settings the config would send (`environment.python` for the Mac's user
