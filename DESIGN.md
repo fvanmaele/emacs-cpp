@@ -1482,6 +1482,11 @@ each, with a recommendation; the owner agreed to all of them (D-111):
   keep projectile's full rules, so `C-c t` still opens a Makefile-only project; the
   tree just does not follow into one from another project. Built as an advice on
   treemacs's `treemacs--do-follow-project` (internal, D-069's one-line allowance).
+  Corrected 2026-11-04 (T-128): the predicate asked `projectile-root-local` and
+  `projectile-root-bottom-up` only, whose markers are version control alone in this
+  projectile (`projectile-project-root-files-bottom-up`), so it never followed into a
+  `.projectile`-only project; it now asks `emacs-cpp-reverter-root`, which adds
+  `projectile-root-marked`, the reverter's rule too (D-163 (a)).
 - DECIDED D-049 (owner 2026-10-08): the tree opens only on `C-c t`, as before D-048;
   the automatic opening and its option `emacs-cpp-tree-open-automatically` are removed.
 - SUPERSEDED by D-049 (2026-10-08): D-048 (owner 2026-10-08): the tree opens by itself,
@@ -2019,8 +2024,9 @@ the form that loads magit is found (S17 run 2, T-113).
 `lisp/emacs-cpp-reverter.el`, written fresh from S20's `fswatch-shown` and the eglot
 backend's process handling (7.1); loaded by init-project.
 - **Which buffers.** A file buffer whose directory has a root by D-070's rule
-  (`projectile-root-local`, else `projectile-root-bottom-up`: version control or a
-  `.projectile` file) and where `emacs-cpp-revert-project-buffers` is non-nil (t by
+  (`emacs-cpp-reverter-root`: projectile's first three ways, `projectile-root-local`,
+  `projectile-root-marked` for a `.projectile` file, `projectile-root-bottom-up` for
+  version control) and where `emacs-cpp-revert-project-buffers` is non-nil (t by
   default; a safe local variable, so `.dir-locals.el` can turn a project off).
   `emacs-cpp-reverter-covers-p` answers that for auto-revert, which asks once, when
   it adds a buffer (`auto-revert--global-add-current-buffer`), so it says "would
@@ -2440,8 +2446,8 @@ presets, GoogleTest runner.
   tests without the shipped run.
 - DECIDED D-163 (owner 2026-11-04, two plan-mode questions, each its recommended
   option): (a) the reverter watches only roots under version control or with a
-  `.projectile` file, D-070's rule (`projectile-root-local` or
-  `projectile-root-bottom-up`); a directory projectile takes for a project by another
+  `.projectile` file, D-070's rule (`projectile-root-local`, `projectile-root-marked`
+  or `projectile-root-bottom-up`); a directory projectile takes for a project by another
   marker (deal.II's install has a `Makefile`) is outside any root and left to
   auto-revert. Against: a project with neither (a plain CMake directory) is polled
   every 5 s on the Mac instead. Not taken: every root `project-current` returns.

@@ -36,6 +36,10 @@ checked against (D-131): pacman installs deal.II's under /usr/include.")
 pacman's package from packaging/fswatch-no-loss installs it under /opt, apart
 from any stock fswatch.")
 
+(defconst emacs-cpp-default-auto-revert-use-notify t
+  "Non-nil: buffers outside project roots follow their files by notification
+(D-162 (a)): inotify, one watch per buffer's directory, polling off.")
+
 (defconst emacs-cpp-default-python-server '("ty" "server")
   "The Python language server eglot starts (D-140): Astral's ty, pacman `extra/ty'.
 Its first `M-.' and a large `M-?' answer several times sooner than pyright's

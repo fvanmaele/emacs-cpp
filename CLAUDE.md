@@ -115,7 +115,8 @@ stall" was the reverter's filter run inside a blocked send (the pipe held the wr
 file opens waiting for G DATA's on-access scan, starved by clangd's load (7 - 9 of 11
 cores, preambles unthrottled). O-79 closed (D-161, 0112): T-128 ships with (e) and
 (p); with the scan off (the owner, 2026-11-04) the pair blocks 0.075 - 0.116 s; its
-shape and done when ruled (D-162). Emacs's
+shape and done when ruled (D-162), roots and opt-out (D-163); built 2026-11-04
+(0113): `lisp/emacs-cpp-reverter.el`, S20 `shipped` next. Emacs's
 `process-attributes` CPU times are 41.7 times too small on Apple silicon: S18's Mac
 cost misread (O-80).
 
