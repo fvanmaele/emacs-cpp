@@ -1,0 +1,42 @@
+S19 baseline 2026-11-04T20:33:21Z, hp-elitedesk, pkgrel 1 tree, load 0.43 0.50 1.30
+build median 777.8 ms (min 755.6, max 837.2, 21 runs)
+memory 255.2 MB (estimateMemoryUsage)
+query plain-100    eto        1.734 ms    100 results,     0 gap
+query plain-100    ptr        1.083 ms    100 results,     0 gap
+query plain-100    get        2.414 ms    100 results,     0 gap
+query plain-100    tria       1.286 ms    100 results,     0 gap
+query plain-100    nac        0.557 ms    100 results,     0 gap
+query plain-100    rnm        0.031 ms      1 results,     0 gap
+query plain-100    cml        0.026 ms     24 results,     0 gap
+query plain-100    vec        1.776 ms    100 results,     0 gap
+query plain-100    vector     2.165 ms    100 results,     0 gap
+query plain-100    dfh        0.065 ms     49 results,     0 gap
+query plain-100    fev        0.216 ms    100 results,     0 gap
+query plain-100    qgau       0.049 ms     51 results,     0 gap
+query plain-100    sum of medians 11.403 ms
+query middle-100   eto        1.732 ms    100 results,     0 gap
+query middle-100   ptr        1.210 ms    100 results,     0 gap
+query middle-100   get        2.958 ms    100 results,     0 gap
+query middle-100   tria       1.490 ms    100 results,     0 gap
+query middle-100   nac        0.693 ms    100 results,     0 gap
+query middle-100   rnm        0.052 ms      1 results,     0 gap
+query middle-100   cml        0.045 ms     24 results,     0 gap
+query middle-100   vec        2.309 ms    100 results,     0 gap
+query middle-100   vector     2.426 ms    100 results,     0 gap
+query middle-100   dfh        0.074 ms     49 results,     0 gap
+query middle-100   fev        0.254 ms    100 results,     0 gap
+query middle-100   qgau       0.052 ms     51 results,     0 gap
+query middle-100   sum of medians 13.296 ms
+query middle-10000 eto        2.020 ms    430 results,     0 gap
+query middle-10000 ptr        2.039 ms   1250 results,     0 gap
+query middle-10000 get        6.154 ms   5732 results,     0 gap
+query middle-10000 tria       2.597 ms   1185 results,     0 gap
+query middle-10000 nac        0.767 ms    184 results,     0 gap
+query middle-10000 rnm        0.038 ms      1 results,     0 gap
+query middle-10000 cml        0.030 ms     24 results,     0 gap
+query middle-10000 vec        3.818 ms   2444 results,     0 gap
+query middle-10000 vector     4.509 ms   2111 results,     0 gap
+query middle-10000 dfh        0.074 ms     49 results,     0 gap
+query middle-10000 fev        0.307 ms    182 results,     0 gap
+query middle-10000 qgau       0.051 ms     51 results,     0 gap
+query middle-10000 sum of medians 22.403 ms
