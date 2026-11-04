@@ -2198,6 +2198,29 @@ presets, GoogleTest runner.
   measured across 63 files. Findings in; O-43.
 
 ## Open questions ledger (LIVING)
+- O-83 (OPEN 2026-11-04, from S19, 0124): what S19's criterion 6 ("`M-o` on RMO in
+  S11's harness: keys within S11's 2 - 30 ms") times. S11's 2 - 30 ms came from run
+  1's `measure.el`, a plain `workspace/symbol` (no limit, no `middleMatch`); the
+  shipped `M-o` asks limit 10000 with `middleMatch` and `looseScope` (D-083, D-113),
+  and with the field the patch costs up to 22.9 ms per index on deal.II alone at
+  that limit (`eto`; S19 RESULTS), two indexes per key. RMO and its machine are not
+  this session's. Options:
+  (a) S19's `client.py` on RMO, each key of S11's words and the 12 queries as the
+  shipped `M-o` sends it plus `gapMatch`, RMO's background index and deal.II's,
+  pkgrel 1 against the patch; judged: each key at most 30 ms. Against: the 30 ms
+  came from a cheaper request, so the baseline itself may exceed it; the patched
+  clangd must be built on that machine (about 10 min, no install) and the runs are
+  the owner's.
+  (b) As (a), judged against the same request without the field: each key at most
+  twice pkgrel 1's, or at most 30 ms. Against: "twice" is a new number for the owner
+  to set; the owner's runs as (a).
+  (c) S11's terminal prompt (`prompt.sh`, run 4 with the shipped `M-o`) with a
+  spike-only advice adding `gapMatch`; judged on S11 run 2's screens (each key's
+  first screen within 100 ms). Against: a load hook added to S11's `prompt.sh`;
+  times screens, not the replies criterion 6 names; the owner's runs as (a).
+  Combined: (b) reports what (a) does. Recommendation: (b): it judges the field's
+  own cost on the request `M-o` really sends, and keeps (a)'s 30 ms as an upper
+  bound (UNVERIFIED whether pkgrel 1 itself stays under it on RMO at limit 10000).
 - O-82 (RESOLVED 2026-11-04 with D-169: (b); owner: "(b)"; the owner: "revisit
   D-168"): the order of the module's
   steps. Evidence (0121, Arch, load 1.0 - 1.3, three runs each): as shipped
@@ -2573,7 +2596,9 @@ presets, GoogleTest runner.
   6.68 ms (section 20's sum). Criteria 1 (deal.II half), 2 and 3 as confirmed. RMO is
   not on this machine (`RMO-drafts` holds no `class_multilevel_experiment` and no
   compile database), so criterion 1's `cml` half and criterion 6 wait for a machine
-  with RMO (an H-n once the patch builds); S19's verdict waits for them. Against:
+  with RMO (an H-n once the patch builds); S19's verdict waits for them. Run
+  2026-11-04 (0124): criteria 1 (deal.II), 2 - 5 PASS, 4 only with names cached;
+  criterion 6's request is O-83. Against:
   changes owner-confirmed criteria; this machine is not the one D-057's budgets were
   set on; deal.II's index build peaks at about 10 GB on 16 cores (fewer jobs here).
   Not taken: the split (Xeon runs 3 - 6), a session on the Xeon. Amends D-171.

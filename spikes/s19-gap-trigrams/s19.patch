@@ -147,7 +147,7 @@
  #include "llvm/ADT/StringMap.h"
  #include "llvm/ADT/StringSet.h"
  #include "llvm/Support/Path.h"
-@@ -56,11 +57,13 @@
+@@ -56,11 +57,15 @@
  // and produce the Token keys once at the end.
  class IndexBuilder {
    llvm::DenseMap<Trigram, std::vector<DocID>> TrigramDocs;
@@ -157,21 +157,25 @@
    llvm::StringMap<std::vector<DocID>> ScopeDocs;
    llvm::StringMap<std::vector<DocID>> ProximityDocs;
    std::vector<Trigram> TrigramScratch;
-+  std::vector<Trigram> GapTrigramScratch;
++  // Gap trigrams per name: they depend on the name alone, and names repeat
++  // (overloads, specializations: 60207 names among deal.II's 186162 symbols).
++  llvm::StringMap<std::vector<Trigram>> GapTrigramsByName;
  
  public:
    // Add the tokens which are given symbol's characteristics.
-@@ -71,6 +74,9 @@
+@@ -71,6 +76,11 @@
      generateIdentifierTrigrams(Sym.Name, TrigramScratch);
      for (Trigram T : TrigramScratch)
        TrigramDocs[T].push_back(D);
-+    generateIdentifierGapTrigrams(Sym.Name, TrigramScratch, GapTrigramScratch);
-+    for (Trigram T : GapTrigramScratch)
++    auto [It, New] = GapTrigramsByName.try_emplace(Sym.Name);
++    if (New)
++      generateIdentifierGapTrigrams(Sym.Name, TrigramScratch, It->second);
++    for (Trigram T : It->second)
 +      GapTrigramDocs[T].push_back(D);
      ScopeDocs[Sym.Scope].push_back(D);
      if (!llvm::StringRef(Sym.CanonicalDeclaration.FileURI).empty())
        for (const auto &ProximityURI :
-@@ -86,6 +92,7 @@
+@@ -86,6 +96,7 @@
    llvm::DenseMap<Token, PostingList> build() && {
      llvm::DenseMap<Token, PostingList> Result(/*InitialReserve=*/
                                                TrigramDocs.size() +
@@ -179,7 +183,7 @@
                                                RestrictedCCDocs.size() +
                                                TypeDocs.size() +
                                                ScopeDocs.size() +
-@@ -112,6 +119,12 @@
+@@ -112,6 +123,13 @@
        E.second = {};
      }
      TrigramDocs = llvm::DenseMap<Trigram, std::vector<DocID>>{};
@@ -189,10 +193,11 @@
 +      E.second = {};
 +    }
 +    GapTrigramDocs = llvm::DenseMap<Trigram, std::vector<DocID>>{};
++    GapTrigramsByName = llvm::StringMap<std::vector<Trigram>>{};
      if (!RestrictedCCDocs.empty())
        Result.try_emplace(RestrictedForCodeCompletion,
                           std::move(RestrictedCCDocs));
-@@ -233,46 +246,71 @@
+@@ -233,46 +251,71 @@
    // Prevent clients from postfiltering them for longer queries.
    bool More = !Req.Query.empty() && Req.Query.size() < 3;
  
@@ -300,7 +305,7 @@
  
    auto Compare = [](const IDAndScore &LHS, const IDAndScore &RHS) {
      return LHS.second > RHS.second;
-@@ -291,6 +329,12 @@
+@@ -291,6 +334,12 @@
        Score = Tiered ? std::optional<float>(Tiered->Score) : std::nullopt;
        SecondTier = Tiered && !Tiered->FirstTier;
      }
@@ -313,7 +318,7 @@
      if (!Score)
        continue;
      // Combine Fuzzy Matching score, precomputed symbol quality and boosting
-@@ -299,6 +343,8 @@
+@@ -299,6 +348,8 @@
          (*Score) * SymbolQuality[SymbolDocID] * IDAndScore.second;
      if (SecondTier)
        FinalScore = secondTierScore(FinalScore);

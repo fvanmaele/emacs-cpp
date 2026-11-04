@@ -38,16 +38,16 @@ marked NEW do not exist yet; everything else was checked to exist on 2026-11-04.
 - [x] 11. Patched clients: criteria 1 (deal.II half) and 2 (~30 min)
   `eto` -> deal.II's `Vector`, gap matches below tiers 1 - 2 for the 12 queries; the
   lists without the field unchanged.
-- [ ] 11a. Build time: gap trigrams cached per distinct name, rebuild, rerun (~30 min)
+- [x] 11a. Build time: gap trigrams cached per distinct name, rebuild, rerun (~30 min)
   Added 2026-11-04 after step 10: `Dex::build` 2012.8 ms against criterion 4's
   1797 ms; 60207 distinct names among 186162 symbols. Both numbers reported.
-- [ ] 12. Restore the tree and rebuild (~40 min)
+- [x] 12. Restore the tree and rebuild (~40 min)
   `patch -R`, `ninja clangd`, the binary compared with pkgrel 1's. Mostly wait.
-- [ ] 13. Results, journal, the RMO half as an H-n, commit (~30 min)
-  RESULTS.md, a journal entry, an H-n for criterion 1's `cml` half and criterion 6
-  where RMO is, RUN.md's commands.
+- [x] 13. Results, journal, the RMO half as an H-n, commit (~30 min)
+  RESULTS.md, journal 0124, RUN.md's commands. `cml` struck (D-173); criterion 6's
+  H-n waits for O-83 (which request it times), not written.
 
 Session work about 7.5 h, about 2 h of it waiting on builds.
 
 ## Checkpoint
-done 11 of 14, now: step 11a (build time); approved 2026-11-04
+done 14 of 14; approved 2026-11-04

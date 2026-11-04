@@ -72,7 +72,22 @@ lists 11.56 M more.
   library-index LIBRARY=dealii`, from a deal.II clone at `~/source/repos/dealii`,
   D-172), RMO with its build directory (not on hp-elitedesk).
 
-## Commands
-Not written yet: the session on Arch writes the patch, `build.sh`, the benchmark,
-`run.sh` and `compare.py` here, dry-runs them, then adds the commands and the
-dry run's numbers.
+## Commands (hp-elitedesk, 2026-11-04; the session's)
+Index and harness:
+```
+make library-index LIBRARY=dealii
+(cd packaging/clangd-index-nav/src/build && ninja dexp)
+sh spikes/s19-gap-trigrams/build.sh /tmp/bench-base
+SRC=classify.cpp sh spikes/s19-gap-trigrams/build.sh /tmp/classify
+/tmp/bench-base indexes/dealii.dex 21 /tmp/lists-base.tsv \
+    > spikes/s19-gap-trigrams/baseline.txt
+python3 -I spikes/s19-gap-trigrams/client.py /opt/clangd-index-nav/bin/clangd \
+    indexes/dealii.dex indexes/dealii-9.8.0-build/compile_commands.json /tmp/base1.jsonl
+```
+Patched: the 14 files of `s19.patch` applied in
+`packaging/clangd-index-nav/src/llvm-project-23.1.4.src` (`patch -p1`), then
+`ninja clangd dexp` in `src/build`, `build.sh /tmp/bench-gap -DS19_GAP`, the same
+bench and `client.py` runs (`--gap` for the field). Compared with `compare.py same`
+(criterion 2), `tiers` (criterion 1 at the server) and `lists` (criterion 1 in the
+index). Restored: the saved originals copied back and touched (ninja reads mtimes),
+`ninja clangd dexp`. Criterion 6: O-83.

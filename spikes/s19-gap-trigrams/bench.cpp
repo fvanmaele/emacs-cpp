@@ -96,8 +96,12 @@ float finalScore(const Symbol &S, llvm::StringRef Query,
   float Final = *Score * quality(S);
   if (Second)
     Final = secondTierScore(Final);
+#ifdef S19_GAP
   else if (Third)
     Final = thirdTierScore(Final);
+#else
+  (void)Third;
+#endif
   return Final;
 }
 
