@@ -6,10 +6,13 @@
 ;; `C-c t' toggles the tree; it shows only the current buffer's project and follows
 ;; it to other projects (D-029), not into library files outside them (D-070).  It
 ;; opens only on `C-c t' (D-049).  Two options turn the following off (D-067).
+;; Unedited buffers follow their files: a project's through its fswatch
+;; (emacs-cpp-reverter, T-128), the others through auto-revert (D-162 (a)).
 
 ;;; Code:
 
 (require 'emacs-cpp-presets)
+(require 'emacs-cpp-reverter)
 
 (defun emacs-cpp-search-program-check (program)
   "Return PROGRAM, a key of `xref-search-program-alist', when its executable is found.
@@ -19,6 +22,19 @@ Signal an error naming the executable otherwise (D-081)."
       (error "emacs-cpp: %s is not on exec-path; textual search (C-c p ?) runs it (D-081)"
              executable))
     program))
+
+;; Built in: a buffer without unsaved edits follows its file when a program outside
+;; Emacs changes it; eglot gives the server a buffer's text in place of its file, so
+;; a stale buffer misleads clangd (D-147).  Here for the buffers the reverter does
+;; not cover (outside project roots, or with `emacs-cpp-revert-project-buffers' off):
+;; notified or polled by platform (D-055, D-162 (a)).  magit's own auto-revert stays
+;; off (init-git, D-153).
+(use-package autorevert
+  :hook (after-init . global-auto-revert-mode)
+  :init
+  (setq auto-revert-use-notify emacs-cpp-default-auto-revert-use-notify
+        auto-revert-avoid-polling emacs-cpp-default-auto-revert-use-notify)
+  (setq-default global-auto-revert-ignore-buffer #'emacs-cpp-reverter-covers-p))
 
 ;; Built in: textual searches run the platform's program (D-081, D-055), also
 ;; `C-c p ?', whose search goes through it with patches/projectile/0001 (D-069).
@@ -81,7 +97,8 @@ takes the library's directory for a project (deal.II's install has a Makefile).
   (let ((dir (if buffer-file-name
                  (file-name-directory buffer-file-name)
                default-directory)))
-    (and dir (or (projectile-root-local dir) (projectile-root-bottom-up dir)))))
+    ;; The reverter's roots: `projectile-root-bottom-up' alone finds no .projectile.
+    (and dir (emacs-cpp-reverter-root dir))))
 
 (defun emacs-cpp-treemacs-toggle ()
   "Close the tree if it is visible, else show the current project in it (D-029).

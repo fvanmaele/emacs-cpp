@@ -68,5 +68,46 @@ unbound."
               (kill-buffer buffer))))
       (delete-directory root t))))
 
+(ert-deftest init-project-auto-revert ()
+  "D-162 (a): outside project roots unedited buffers follow their files through
+auto-revert, notified or polled by platform; a buffer with unsaved edits keeps
+them; buffers the reverter covers are left to it.  Batch Emacs delivers no
+notifications, so the buffers are polled here, as on the Mac."
+  (init-test--load)
+  (should global-auto-revert-mode)
+  (should (eq auto-revert-use-notify emacs-cpp-default-auto-revert-use-notify))
+  (should (eq auto-revert-avoid-polling emacs-cpp-default-auto-revert-use-notify))
+  (should (eq (default-value 'global-auto-revert-ignore-buffer)
+              #'emacs-cpp-reverter-covers-p))
+  (let* ((dir (make-temp-file "emacs-cpp-revert" t))
+         (clean-file (expand-file-name "clean.h" dir))
+         (edited-file (expand-file-name "edited.h" dir))
+         (auto-revert-use-notify nil)
+         clean edited)
+    (unwind-protect
+        (progn
+          (write-region "enum class A {};\n" nil clean-file)
+          (write-region "enum class B {};\n" nil edited-file)
+          (setq clean (find-file-noselect clean-file)
+                edited (find-file-noselect edited-file))
+          ;; No version control, no .projectile: outside any root (D-163 (a)).
+          (should-not (emacs-cpp-reverter-covers-p clean))
+          (with-current-buffer edited (goto-char (point-max)) (insert "// mine\n"))
+          (write-region "// checkout\nenum class A {};\n" nil clean-file)
+          (write-region "// checkout\nenum class B {};\n" nil edited-file)
+          (let ((later (time-add nil 10)))
+            (set-file-times clean-file later)
+            (set-file-times edited-file later))
+          (auto-revert-buffers)
+          (should (equal (with-current-buffer clean (buffer-string))
+                         "// checkout\nenum class A {};\n"))
+          (should (equal (with-current-buffer edited (buffer-string))
+                         "enum class B {};\n// mine\n")))
+      (dolist (buffer (list clean edited))
+        (when (buffer-live-p buffer)
+          (with-current-buffer buffer (set-buffer-modified-p nil))
+          (kill-buffer buffer)))
+      (delete-directory dir t))))
+
 (provide 'init-project-test)
 ;;; init-project-test.el ends here

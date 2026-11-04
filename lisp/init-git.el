@@ -6,7 +6,13 @@
 
 ;;; Code:
 
-(use-package magit)
+(use-package magit
+  ;; The reverter and auto-revert follow files (init-project); magit's own
+  ;; auto-revert refreshes VC per buffer, which froze Emacs after large checkouts
+  ;; (O-78).  Set before magit loads: `:config (magit-auto-revert-mode -1)' would
+  ;; first turn it on in every open buffer (D-153).
+  :init
+  (setq magit-auto-revert-mode nil))
 
 ;; After magit stages, commits or checks out, the project tree's git colours update
 ;; (T-015).  Ships with the treemacs submodule; loaded once both packages are.
