@@ -2552,8 +2552,9 @@ presets, GoogleTest runner.
   segment's first letter, intersected in place of the ordinary trigrams only when a
   request field that `workspace/symbol` alone sets asks for it; tier 3 in
   `tieredMatch` ranks below every tier-2 match (RESEARCH_go_to_anything 20). A 14th
-  clangd patch (D-069), tier 3: spike S19 passes first; its criteria are proposed in
-  T-132 and confirmed by the owner before it runs. Against: the largest clangd patch;
+  clangd patch (D-069), tier 3: spike S19 passes first; its criteria, proposed in
+  T-132, confirmed by the owner 2026-11-04 ("Confirm S19, run on Arch"); it runs on
+  Arch (`spikes/s19-gap-trigrams/RUN.md`). Against: the largest clangd patch;
   about 8 - 12 MB more per deal.II-sized index and four times `Dex::build`'s trigram
   work on every rebuild (both UNVERIFIED, S19 measures them); short queries may crowd
   `M-o`'s 10000 with weak gap matches (`get`: 6025 in deal.II). Not taken: (a) full

@@ -47,7 +47,7 @@ own module (D-099).
 S12 change signature: FAIL, calls in templates (0066), O-43 (b) to the owner.
 Open: O-77 resolved: clangd stays, no ast-grep (D-146); O-76 resolved: no Julia
 (D-170); O-68 resolved: gap trigrams in clangd behind spike S19 (D-171, T-132, criteria
-to confirm); O-38, O-43, O-44, O-47, O-56 ruled 2026-10-21 (D-135 .. D-139);
+confirmed, Arch); O-38, O-43, O-44, O-47, O-56 ruled 2026-10-21 (D-135 .. D-139);
 O-50 resolved: patch 0010 with T-104 (D-114);
 O-64 resolved: limits kept (D-115); O-65 resolved: eglot patch 0003 (D-117, T-106,
 0079); O-66 resolved: "Project Symbol" heading (D-118); O-67 resolved: mid-word
