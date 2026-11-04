@@ -2198,6 +2198,22 @@ presets, GoogleTest runner.
   measured across 63 files. Findings in; O-43.
 
 ## Open questions ledger (LIVING)
+- O-82 (OPEN 2026-11-04, the owner: "revisit D-168"): the order of the module's
+  steps. Evidence (0121, Arch, load 1.0 - 1.3, three runs each): as shipped
+  (reverts, then refreshes) Emacs blocked 0.07 - 0.09 s, all buffers current 0.20 -
+  0.30 s, the shown buffers' branch and marks 0.45 - 0.55 s after `git`;
+  refresh-first (probe `refresh-first.el`) 0.07 - 0.09 s, 0.36 - 0.51 s, 0.18 -
+  0.28 s; the spike's two timers 0.08 - 0.12 s, 0.21 - 0.35 s, 0.24 - 0.31 s. Options:
+  (a) Keep D-168. Against: the buffers on screen get their branch and marks last,
+  about 0.25 s after every other buffer's text.
+  (b) Refresh first: one timer, one kind of work per step, a queued shown buffer's
+  refresh before the remaining reverts. Against: the hidden buffers' text 0.15 -
+  0.2 s later (still within 1.0 s, unseen until shown); a tier 2 change to the
+  shipped module with its test, and `shipped` again on both machines (the Mac's runs
+  the owner's while this session is on Arch).
+  (c) Two timers as the spike. Against: both falling due in one pass, the block D-168
+  removed (0.12 s here, 0.18 s on the Mac).
+  (b) combines (a)'s bound with (c)'s shown latency. Recommendation: (b).
 - O-81 (RESOLVED 2026-11-04 with D-167: (b); owner: "O-81 (b)"; from D-166): how the
   shipped reverter
   (`lisp/emacs-cpp-reverter.el`, 5316f49) reverts from a queue. Evidence: on Arch one
@@ -2539,8 +2555,8 @@ presets, GoogleTest runner.
   the Mac blocks 0.07 - 0.13 s (0118). Against: a shown buffer's VC state and marks
   wait for the last revert (0.49 - 0.58 s after `git`, against 0.33 - 0.38 s); not
   measured on Arch yet (H-26; measured 2026-11-04: Arch blocks 0.07 - 0.09 s, shown
-  buffers current 0.45 - 0.54 s, 0119). Not taken: two timers with a shared budget
-  (more state, same bound).
+  buffers current 0.45 - 0.54 s, 0119). Revisited 2026-11-04: O-82. Not taken: two
+  timers with a shared budget (more state, same bound).
 - DECIDED D-167 (owner 2026-11-04: "O-81 (b)"): a new S20 mode `fswatch-chunked`
   first: the filter only queues the call's buffers, shown ones first; a timer step
   reverts until a budget per step is spent (`S20_BUDGET`, default 0.05 s) and arms

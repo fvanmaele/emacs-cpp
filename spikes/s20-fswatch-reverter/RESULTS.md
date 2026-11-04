@@ -689,3 +689,23 @@ terminal Emacs). Arch, at f42abe1, load about 2.
 Not verified here: the Mac-only marks above (G DATA, clangd's write stall, the
 scan's share), and why `git` took 0.11 - 0.13 s in 0115's run 6 (past, unrecorded).
 
+## D-168 revisited: the steps' order, Arch runs 1 - 3 (session, 2026-11-04; O-82)
+At 228d20d. Per round: `S20_MODES="shipped fswatch-chunked"` (logs
+`arch-d168-shipped-run1.log` .. `run3.log`), then mode `shipped` with
+`probe/refresh-first.el` (a queued shown buffer's refresh runs before the remaining
+reverts; one timer, one kind of work per step; logs `arch-d168-refresh-first-run1.log`
+.. `run3.log`). Load 0.97 - 1.26 at the start.
+
+| order | Emacs blocked | all buffers current | shown buffers' queue done | longest revert step |
+|---|---|---|---|---|
+| shipped (D-168: reverts, then refreshes) | 0.07 - 0.09 s | 0.20 - 0.30 s | 0.45 - 0.55 s | 50.4 - 68.3 ms |
+| refresh first (probe) | 0.07 - 0.09 s | 0.36 - 0.51 s | 0.18 - 0.28 s | 50.2 - 66.5 ms |
+| `fswatch-chunked` (two timers) | 0.08 - 0.12 s | 0.21 - 0.35 s | 0.24 - 0.31 s | 50.1 - 50.5 ms |
+
+Criteria 1 - 6 hold in every run of each: VC names the branch 3 of 3, one diff-hl
+update each, showing a hidden buffer 0.014 - 0.046 s, edits kept, the messages as
+ruled, no filter error or overflow. The revert steps over 60 ms are one garbage
+collection each (0120). Refresh first keeps the shipped bound and gives the shown
+buffers their state earlier than either; the hidden buffers' text comes 0.15 - 0.2 s
+later.
+
