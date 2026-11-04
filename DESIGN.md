@@ -2372,6 +2372,31 @@ presets, GoogleTest runner.
   checkout landed later in the reparse than with it on (about 5 s). Not taken: (n)
   (moot while protection is off; with it on the measured freeze returns), (o), (g).
   Amends D-153 and D-156.
+- DECIDED D-162 (owner 2026-11-04, the session's four questions, each its recommended
+  option): T-128's shape.
+  (a) Files outside project roots (D-149): `global-auto-revert-mode` covers the file
+  buffers the reverter does not (`global-auto-revert-ignore-buffer` set in the
+  reverter's buffers), polling every 5 s on the Mac, notifications on Arch (D-147's
+  split, from the platform defaults files). Against: a second mechanism beside the
+  reverter; a VC refresh per such revert (O-78's cost, rare outside projects); the
+  Mac stats each such buffer every 5 s.
+  (b) Shown (D-151): `get-buffer-window` with `t`, a live window of any frame,
+  visible or not. Against: buffers in iconified or invisible frames pay their refresh
+  (about 60 ms each on the Mac).
+  (c) The root: project.el's `project-current`, as eglot and its fswatch backend use
+  (D-127). Against: a projectile-only project (no VC, a `.projectile` file) counts as
+  outside any root, so (a) covers it.
+  (d) Done when: `lisp/emacs-cpp-reverter.el` (NEW, written fresh from S20's
+  `fswatch-shown`) runs one patched fswatch per project root while the root has file
+  buffers; reverts unedited buffers at once with diff-hl's revert hook held back;
+  refreshes VC and diff-hl one shown buffer per timer step, a hidden one when shown
+  (D-153); with D-156 (e) and D-161 (p); D-151 (2b) and D-152's messages; magit's
+  auto-revert off (D-153); ERT tests in a temporary git repository for each; `make
+  test` passes on both machines; S20 gains a `shipped` mode that loads the module and
+  passes `fswatch-shown`'s criteria on the Mac (the session) and on Arch (an H-n).
+  Against: one more owner item; about 15 min more of the session's time.
+  Not taken: nothing outside project roots; visible frames only; projectile's root;
+  tests without the shipped run.
 - DECIDED D-154 (owner 2026-11-03: "O-79 (c)"): before T-128's code, S20's eglot run
   times each revert under clangd's reparse, split into eglot's didClose, didOpen (its
   `process-send-string` calls to clangd, their bytes) and the rest of the revert;
@@ -3816,6 +3841,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-159 | 2026-11-03 | O-79 (m): sample clangd during the residual write stall, (e) on | 12 | O-79 |
 | D-160 | 2026-11-03 | O-79: trace Emacs's side of clangd's input pipe during the residual stall | 12 | O-79 |
 | D-161 | 2026-11-04 | O-79 closed: T-128 ships with (e) and a filter that never runs inside itself; T-130 dropped | 12 | O-79 |
+| D-162 | 2026-11-04 | T-128's shape: auto-revert outside roots, any frame shows, project.el's root, done when | 12 | D-149, D-151 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |
