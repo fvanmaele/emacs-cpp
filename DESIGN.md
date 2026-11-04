@@ -1689,7 +1689,7 @@ function is slower than the regexps until compiled).
 interpreted and byte-compiled, each with the JIT native compiler on and off (the
 review's open question: its harness saw compiled 108 ms slower, then withdrew the
 harness for this configuration), and a probe of the form the modules' functions
-have after startup. Pass (proposed; owner to confirm): on Arch, idle, 10 runs x 2
+have after startup. Pass (owner confirmed 2026-10-21, 0091): on Arch, idle, 10 runs x 2
 rounds, compiled with JIT on starts within 10 ms of interpreted (median) and its
 functions run native; the compile has 0 failures. A PASS adopts D-125's shape and
 D-124's function; a FAIL keeps `lisp/` interpreted and the regexps.
@@ -2591,6 +2591,13 @@ presets, GoogleTest runner.
   Against: buffers become current later than 0.13 s; another measurement round on
   both machines. Not taken: (b) keep runs 1 - 3's PASS (choosing runs), (c) three more
   idle runs first (more samples, same 0.30 s).
+- DECIDED D-176 (owner 2026-11-04: "leave reverter filter"): the reverter's filter
+  keeps looking each record's buffer up (761 records, about four per file, for a
+  190-file checkout: 10 - 11 ms on Arch, 0120); no merge of a call's records per
+  path (4.0 ms). Against: the filter does about 2.5 times the lookups it needs, more
+  in larger projects (each lookup walks the buffer list). Not taken: the tier 1
+  change (a hash of the call's paths before `--handle`). Reason: far under the
+  0.25 s limit, and the module passed on both machines as it is (0122, 0123).
 - DECIDED D-175 (owner 2026-11-04: "O-84 (a)"): no clangd patch 0014; gapped in-word
   symbol queries (`eto` -> `Vector`) stay unfound, O-68's later stage unscheduled.
   S19 failed on its criterion 6 (0125): the gap tier fills `M-o`'s replies and 16 of
@@ -2679,7 +2686,8 @@ presets, GoogleTest runner.
   apart where D-168 had 0.05 s. Amends D-168. Not taken: (a) D-168 unchanged, (c) two
   timers. Built (T-131, 0122): Arch PASS (blocked 0.07 - 0.09 s, shown 0.20 - 0.25 s);
   the Mac PASS (blocked 0.08 - 0.11 s, shown 0.23 - 0.31 s; 0123).
-- DECIDED D-168 (session 2026-11-04, within D-167's rewrite; owner to confirm): the
+- DECIDED D-168 (session 2026-11-04, within D-167's rewrite; owner confirmed
+  2026-11-04 through D-169: "confirm D-168 through D-169"): the
   module's steps from S20 `fswatch-chunked` (0116, 0117) with one change: one timer
   runs both queues and a step does one kind of work, reverts while any are queued,
   else one shown buffer's refresh. The spike ran them on two timers, and both falling
@@ -4153,7 +4161,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-165 | 2026-11-04 | O-80 closed: the Mac's S18 cost recorded, not judged; report to Emacs drafted | 7 | O-80 |
 | D-166 | 2026-11-04 | S20 `fswatch-shown` FAIL on Arch, criterion 3; the reverter reverts from a queue | 12 | D-153, O-81 |
 | D-167 | 2026-11-04 | O-81 (b): S20 mode `fswatch-chunked` first, a time budget per revert step | 12 | O-81 |
-| D-168 | 2026-11-04 | the reverter's steps: one timer, reverts first, never a revert and a refresh in one step | 12 | D-167 |
+| D-168 | 2026-11-04 | (confirmed through D-169) the reverter's steps: one timer, reverts first, never a revert and a refresh in one step | 12 | D-167 |
 | D-169 | 2026-11-04 | O-82 (b): a shown buffer's refresh before the remaining reverts | 12 | D-168, O-82 |
 | D-170 | 2026-11-04 | O-76 (a): no Julia support; D-145's scope stands | 2 | O-76 |
 | D-171 | 2026-11-04 | O-68 (c): gap trigrams and a third match tier in clangd, behind spike S19 (superseded by D-175) | 10 | O-68 |
@@ -4161,6 +4169,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-173 | 2026-11-04 | S19's tier 3 is D-120's: gap trigrams within letter-digit runs; `cml` struck | 10 | D-120, D-171, D-172 |
 | D-174 | 2026-11-04 | O-83 (b): S19 criterion 6 on RMO-drafts, each key at most twice pkgrel 1's and 30 ms | 10 | O-83, D-172 |
 | D-175 | 2026-11-04 | O-84 (a): no clangd patch 0014; gapped in-word symbol queries stay unfound | 10 | O-84, D-171 |
+| D-176 | 2026-11-04 | the reverter's filter keeps one lookup per record (0120's dedupe not taken) | 12 | D-168 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |
