@@ -2021,9 +2021,11 @@ the form that loads magit is found (S17 run 2, T-113).
   current 0.36 s after `git`. eglot's share on RMO-drafts (0104): E1 - E3 PASS on the
   Mac (blocked at most 0.183 s with 39 eglot buffers); a checkout during clangd's
   reparse blocks 0.36 - 0.98 s, O-79.
-**The reverter as built (T-128, 2026-11-04; D-153, D-156, D-161 - D-163).**
+**The reverter as built (T-128, 2026-11-04; D-153, D-156, D-161 - D-163, D-167,
+D-168).**
 `lisp/emacs-cpp-reverter.el`, written fresh from S20's `fswatch-shown` and the eglot
-backend's process handling (7.1); loaded by init-project.
+backend's process handling (7.1), its reverting rewritten from S20's
+`fswatch-chunked` (D-167, D-168); loaded by init-project.
 - **Which buffers.** A file buffer whose directory has a root by D-070's rule
   (`emacs-cpp-reverter-root`: projectile's first three ways, `projectile-root-local`,
   `projectile-root-marked` for a `.projectile` file, `projectile-root-bottom-up` for
@@ -2040,18 +2042,24 @@ backend's process handling (7.1); loaded by init-project.
   /\.git/` on the root's true name); a sentinel warns when an fswatch ends unasked and
   names `M-x emacs-cpp-reverter-restart`, which starts every adopted root's fswatch
   again.
-- **Reverting.** A filter call merges its records per path; a path's buffer is
-  reverted when unedited, readable and newer on disk, with diff-hl's buffer-local
+- **Reverting.** A filter call only queues the buffers its records name, a buffer in
+  a live window first (D-167); an Overflow record warns at most once a minute and
+  queues every buffer of the root, since changes were lost. One one-shot timer runs
+  the steps (D-168): while reverts are queued a step reverts until
+  `emacs-cpp-reverter-budget` (0.05 s) is spent, one buffer at least, and the next
+  follows after `emacs-cpp-reverter-pause` (0.01 s). A buffer is reverted when
+  unedited, readable and newer on disk, with diff-hl's buffer-local
   `diff-hl-after-revert` held back (bound in the buffer); edited and deleted files'
-  buffers are kept and named in one message per call (D-151 (2b), D-152). An Overflow
-  record warns at most once a minute and checks every buffer of the root, since
-  changes were lost. (p): a filter call that finds the filter running keeps its
-  output for a 0 s timer, so a filter never runs inside itself (D-161).
+  buffers are kept and named in one message once the revert queue is empty (D-151
+  (2b), D-152).
 - **VC state and marks.** A reverted buffer in a live window of any frame (D-162 (b))
-  joins a queue drained one buffer per one-shot 0.05 s timer step (`vc-refresh-state`,
-  then `diff-hl-update` where `diff-hl-mode` is on); the step arms itself again while
-  the filter runs ((e), D-156). A hidden one is marked stale and refreshed when a
-  window shows it (`window-buffer-change-functions`).
+  joins a second queue; with no revert queued, a step refreshes its oldest buffer
+  (`vc-refresh-state`, then `diff-hl-update` where `diff-hl-mode` is on), the next
+  0.05 s later; never a revert and a refresh in one step (D-168). A step reached inside
+  a running step (a revert's send to a busy server waits, Emacs runs timers) only arms
+  again ((e) D-156, (p) D-161: the filter no longer reverts, so the step carries both).
+  A hidden one is marked stale and refreshed when a window shows it
+  (`window-buffer-change-functions`).
 - **Elsewhere.** `global-auto-revert-mode` (`autorevert`, at `after-init`) covers the
   buffers the reverter does not: its `global-auto-revert-ignore-buffer` defaults to
   `emacs-cpp-reverter-covers-p`; notified on Arch, polled every 5 s on the Mac
@@ -2127,7 +2135,7 @@ presets, GoogleTest runner.
 | match function ranks unlike the regexps or is slower | S16 | owner | D-124 |
 | compiled `lisp/` slows startup or stays bytecode | S17 | owner | D-125 |
 | fswatch backend loses changes or costs Emacs too much | S18 (PASS 2026-10-21 on Arch; the Mac's cost misread, O-80) | LLM / owner | D-127 |
-| per-project fswatch reverter loses changes or blocks Emacs | S20 (FAIL 2026-11-02: Mac criterion 3, VC steps; PASS on Arch; mode `fswatch-shown` for (e), D-153: PASS on the Mac 2026-11-03, 0103; FAIL on Arch 2026-11-04, criterion 3, D-166, 0115; `fswatch-chunked` D-167 PASS on Arch 0116 and the Mac 0117) | LLM / owner | O-78 |
+| per-project fswatch reverter loses changes or blocks Emacs | S20 (FAIL 2026-11-02: Mac criterion 3, VC steps; PASS on Arch; mode `fswatch-shown` for (e), D-153: PASS on the Mac 2026-11-03, 0103; FAIL on Arch 2026-11-04, criterion 3, D-166, 0115; `fswatch-chunked` D-167 PASS on Arch 0116 and the Mac 0117; module rewritten, D-168: `shipped` PASS on the Mac 0118, Arch H-26) | LLM / owner | O-78 |
 | own package build glue mis-orders compilation | none (tests) | - | v0.1 |
 | config fails on macOS (paths, tools, tests) | none (`make test`) | owner | D-050 |
 | clangd too slow / too large on deal.II scale | S1 numbers | owner | v0.1 |
@@ -2490,6 +2498,8 @@ presets, GoogleTest runner.
   Against: one more owner item; about 15 min more of the session's time.
   Not taken: nothing outside project roots; visible frames only; projectile's root;
   tests without the shipped run.
+  (d)'s "reverts unedited buffers at once" superseded by D-166 - D-168: from a queue,
+  in timer steps (0118).
 - DECIDED D-163 (owner 2026-11-04, two plan-mode questions, each its recommended
   option): (a) the reverter watches only roots under version control or with a
   `.projectile` file, D-070's rule (`projectile-root-local`, `projectile-root-marked`
@@ -2519,6 +2529,17 @@ presets, GoogleTest runner.
   Against: buffers become current later than 0.13 s; another measurement round on
   both machines. Not taken: (b) keep runs 1 - 3's PASS (choosing runs), (c) three more
   idle runs first (more samples, same 0.30 s).
+- DECIDED D-168 (session 2026-11-04, within D-167's rewrite; owner to confirm): the
+  module's steps from S20 `fswatch-chunked` (0116, 0117) with one change: one timer
+  runs both queues and a step does one kind of work, reverts while any are queued,
+  else one shown buffer's refresh. The spike ran them on two timers, and both falling
+  due in one pass blocked Emacs up to 0.18 s on the Mac. D-161 (p)'s deferred filter
+  output goes: the filter only queues (about 1 ms), so no blocking send runs inside
+  it; the step's own guard keeps a revert out of another. Measured: S20 `shipped` on
+  the Mac blocks 0.07 - 0.13 s (0118). Against: a shown buffer's VC state and marks
+  wait for the last revert (0.49 - 0.58 s after `git`, against 0.33 - 0.38 s); not
+  measured on Arch yet (H-26). Not taken: two timers with a shared budget (more state,
+  same bound).
 - DECIDED D-167 (owner 2026-11-04: "O-81 (b)"): a new S20 mode `fswatch-chunked`
   first: the filter only queues the call's buffers, shown ones first; a timer step
   reverts until a budget per step is spent (`S20_BUDGET`, default 0.05 s) and arms
@@ -3979,6 +4000,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-165 | 2026-11-04 | O-80 closed: the Mac's S18 cost recorded, not judged; report to Emacs drafted | 7 | O-80 |
 | D-166 | 2026-11-04 | S20 `fswatch-shown` FAIL on Arch, criterion 3; the reverter reverts from a queue | 12 | D-153, O-81 |
 | D-167 | 2026-11-04 | O-81 (b): S20 mode `fswatch-chunked` first, a time budget per revert step | 12 | O-81 |
+| D-168 | 2026-11-04 | the reverter's steps: one timer, reverts first, never a revert and a refresh in one step | 12 | D-167 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |
