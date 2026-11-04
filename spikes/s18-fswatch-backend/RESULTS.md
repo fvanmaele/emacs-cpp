@@ -14,7 +14,8 @@ for ns (`sysdep.c`; a child that burned 1.0 s of CPU read as 0.027 s). Times the
 factor, not rerun: the dry run's 7 - 9 ms is about 290 - 375 ms, run 3's 6 ms about
 250 ms, runs 4 and 6's 2 ms about 83 ms per 1000 records, all over the limit of 50.
 Arch's figures (Linux's `/proc`) stand. The verdict holds on Arch; on the Mac
-criterion 3 is not met: rerun 2026-11-04 (run 8), 61 - 64 ms per 1000 records, O-80.
+criterion 3 is not met: rerun 2026-11-04 (run 8), 61 - 64 ms per 1000 records,
+recorded, not judged (D-165, D-057).
 `s18-run.el` now reads `current-cpu-time`.
 
 ## Run 8 (session, Mac, 2026-11-04): shipped, CPU by `current-cpu-time` (D-164)
