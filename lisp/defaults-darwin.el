@@ -43,6 +43,12 @@ deal.II.app, path UNVERIFIED), so the check warns that it cannot read it.")
 packaging/fswatch-no-loss/build-macos.sh installs it under ~/opt; the home is
 found through the user database, so a test run's temporary HOME finds it too.")
 
+(defconst emacs-cpp-default-auto-revert-use-notify nil
+  "Non-nil: buffers outside project roots follow their files by notification
+(D-162 (a)).  nil: polled every `auto-revert-interval' (5 s); a kqueue watch is
+one descriptor per buffer, refused beyond 975 (D-127), and `M-.' into libraries
+opens many (D-019).")
+
 (defconst emacs-cpp-default-python-server '("pyright-langserver" "--stdio")
   "The Python language server eglot starts (D-140): pyright, from MacPorts.
 ty has no port; it waits until it is tested on the Mac (T-121).")

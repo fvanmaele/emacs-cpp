@@ -57,5 +57,12 @@
             (kill-buffer buffer))))
       (delete-directory root t))))
 
+(ert-deftest init-git-magit-auto-revert-off ()
+  "D-153: magit's own auto-revert stays off once magit loads; the reverter and
+auto-revert follow files (init-project)."
+  (init-test--load)
+  (require 'magit)
+  (should-not magit-auto-revert-mode))
+
 (provide 'init-git-test)
 ;;; init-git-test.el ends here
