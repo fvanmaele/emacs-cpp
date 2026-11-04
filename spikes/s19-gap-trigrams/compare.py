@@ -24,9 +24,14 @@ Spike code, never promoted.
       against middle-N are counted (the
       gap pass also admits fuzzy matches today's trigrams never offer). Exit 1 on
       a broken rule.
+  python3 -I compare.py keys BASE1.jsonl ... -- GAP1.jsonl ...
+      Criterion 6 (D-174, keys.py's runs): each key's time is the median of its
+      timed sends over the runs; with the field at most twice pkgrel 1's and at most
+      30 ms. Prints each key and the failures; exit 1 if any key fails.
 """
 import collections
 import json
+import statistics
 import re
 import subprocess
 import sys
@@ -181,10 +186,39 @@ def lists(path):
     return 1 if bad else 0
 
 
+def keys(args):
+    split = args.index("--")
+
+    def medians(files):
+        times = collections.defaultdict(list)
+        counts = {}
+        for path in files:
+            with open(path) as f:
+                for line in f:
+                    d = json.loads(line)
+                    times[d["key"]] += d["ms"]
+                    counts[d["key"]] = d["items"]
+        return {k: statistics.median(v) for k, v in times.items()}, counts
+    base, bcount = medians(args[:split])
+    gap, gcount = medians(args[split + 1:])
+    bad = 0
+    for key in base:
+        b, g = base[key], gap[key]
+        ok = g <= 2 * b and g <= 30
+        bad += not ok
+        print("%-9s pkgrel 1 %6.2f ms (%5d)  field %6.2f ms (%5d)  x%.2f %s" % (
+            key, b, bcount[key], g, gcount[key], g / b if b else 0,
+            "" if ok else "FAIL"))
+    print("keys: %d of %d fail (field at most twice pkgrel 1 and 30 ms)" % (bad, len(base)))
+    return 1 if bad else 0
+
+
 if __name__ == "__main__":
     mode = sys.argv[1]
     if mode == "same":
         sys.exit(same(*sys.argv[2:4]))
     if mode == "tiers":
         sys.exit(tiers(*sys.argv[2:5]))
+    if mode == "keys":
+        sys.exit(keys(sys.argv[2:]))
     sys.exit(lists(sys.argv[2]))

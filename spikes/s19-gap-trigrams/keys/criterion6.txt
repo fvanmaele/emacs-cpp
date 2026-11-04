@@ -1,0 +1,27 @@
+mai       pkgrel 1  20.69 ms ( 1211)  field 149.89 ms ( 5844)  x7.24 FAIL
+main      pkgrel 1  14.40 ms (  741)  field  76.61 ms ( 3026)  x5.32 FAIL
+vec       pkgrel 1  81.12 ms ( 3351)  field 143.78 ms ( 4795)  x1.77 FAIL
+Tri       pkgrel 1 148.75 ms ( 5777)  field 388.95 ms (10000)  x2.61 FAIL
+ass       pkgrel 1  47.67 ms ( 2098)  field 149.72 ms ( 5333)  x3.14 FAIL
+asse      pkgrel 1   9.22 ms (  447)  field  36.61 ms ( 1991)  x3.97 FAIL
+assem     pkgrel 1   2.06 ms (   78)  field   7.21 ms (  260)  x3.50 FAIL
+assemb    pkgrel 1   1.59 ms (   69)  field   2.75 ms (   85)  x1.72 
+assembl   pkgrel 1   1.67 ms (   69)  field   2.31 ms (   77)  x1.39 
+assemble  pkgrel 1   1.26 ms (   55)  field   1.73 ms (   61)  x1.38 
+Sol       pkgrel 1  10.00 ms (  592)  field  54.97 ms ( 3083)  x5.50 FAIL
+eto       pkgrel 1  15.90 ms (  735)  field 411.88 ms (10000)  x25.90 FAIL
+ptr       pkgrel 1  27.78 ms ( 1700)  field 386.38 ms (10000)  x13.91 FAIL
+get       pkgrel 1 172.75 ms ( 7862)  field 237.15 ms (10000)  x1.37 FAIL
+tri       pkgrel 1 177.50 ms ( 5777)  field 374.37 ms (10000)  x2.11 FAIL
+tria      pkgrel 1  23.48 ms ( 1237)  field  73.89 ms ( 3410)  x3.15 FAIL
+nac       pkgrel 1   5.64 ms (  233)  field  63.75 ms ( 2767)  x11.30 FAIL
+rnm       pkgrel 1   0.67 ms (    8)  field  61.83 ms ( 2628)  x92.28 FAIL
+cml       pkgrel 1   0.76 ms (   29)  field  49.09 ms ( 2256)  x64.60 FAIL
+vect      pkgrel 1  55.93 ms ( 2598)  field  66.70 ms ( 3405)  x1.19 FAIL
+vecto     pkgrel 1  52.58 ms ( 2507)  field  62.33 ms ( 2860)  x1.19 FAIL
+vector    pkgrel 1  55.08 ms ( 2504)  field  51.26 ms ( 2665)  x0.93 FAIL
+dfh       pkgrel 1   1.16 ms (   56)  field   3.57 ms (  152)  x3.08 FAIL
+fev       pkgrel 1   3.60 ms (  193)  field  11.09 ms (  540)  x3.08 FAIL
+qga       pkgrel 1   1.15 ms (   51)  field   1.93 ms (   94)  x1.68 
+qgau      pkgrel 1   1.04 ms (   51)  field   1.06 ms (   53)  x1.02 
+keys: 21 of 26 fail (field at most twice pkgrel 1 and 30 ms)
