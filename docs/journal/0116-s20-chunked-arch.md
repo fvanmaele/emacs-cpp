@@ -54,7 +54,8 @@ run in `spikes/s20-fswatch-reverter/RESULTS.md`.
   the budget cannot split a revert. **DESIGN bet:** D-167.
 - **Assumed:** a 0.01 s timer between steps lets Emacs read input in a running Emacs,
   not only in batch (a timer armed inside a step should wait for the next pass of
-  `keyboard.c`'s `timer_check`; UNVERIFIED, the source not read this session).
+  `keyboard.c`'s `timer_check`). Verified 2026-11-04 in a terminal Emacs (0120): gaps
+  of 10 ms, output and typed keys handled in every one; GTK Emacs not run.
   **Would break if:** steps run back to back in a live
   Emacs. **DESIGN bet:** D-167.
 

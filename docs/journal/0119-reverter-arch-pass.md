@@ -40,10 +40,12 @@ D-167's rewrite, still waits for the owner's confirmation.
   D-168.
 - **Assumed:** the 13 - 15 ms revert on `a` is the generated repository's, not a cost
   that grows. **Would break if:** it is the deleted file's buffer returning and such
-  buffers cost more in real checkouts (UNVERIFIED which buffer). **DESIGN bet:** D-168.
+  buffers cost more in real checkouts. Verified 2026-11-04 (0120): a garbage
+  collection, a different file each run. **DESIGN bet:** D-168.
 - **Assumed:** the module's 11 ms filter (the spike's: 4 - 5 ms) stays small. **Would
-  break if:** its per-path checks grow with the project's size (UNVERIFIED where it
-  spends the time). **DESIGN bet:** D-168.
+  break if:** its per-path checks grow with the project's size. Verified 2026-11-04
+  (0120): `get-file-buffer` once per record, not per path; 4.0 ms with one record per
+  path. **DESIGN bet:** D-168.
 
 ## How to verify
 On Arch: `make test </dev/null` and `S20_MODES="shipped fswatch-chunked" sh
