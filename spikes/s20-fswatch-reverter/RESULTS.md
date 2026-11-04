@@ -458,3 +458,23 @@ the other checkouts, under E2's 0.25 s. Differences besides the scan:
 - The first checkouts block a little more, 0.100 - 0.125 s (on: 0.067 - 0.090 s):
   clangd starts its reparse sooner and runs up to 7.2 cores during them (on: 2.6 -
   3.6); one 16 ms blocked send in run 1's first checkout.
+
+## Mode `shipped`, Mac runs 1 - 3 (session, 2026-11-04; T-128, D-162 (d))
+The config's `lisp/emacs-cpp-reverter.el` at 5316f49 in place of the spike's reverter
+(RUN.md, mode `shipped`). Logs: `mac-shipped-run1.log` .. `mac-shipped-run3.log`. Load
+4.0 - 5.2 at the start; G DATA's real-time protection off (D-161; on during 0103).
+
+| criterion | `shipped`, runs 1 - 3 | limit | pass |
+|---|---|---|---|
+| 1 buffers current after `git` | 0.11 - 0.12 s, no Overflow | 1.0 s | yes |
+| 2 edits kept | edit kept; 0 unchanged files' buffers reverted; the deleted file's buffer live, not reverted on `c`, no filter error | - | yes |
+| 3 Emacs blocked | 0.03 - 0.06 s (the filter's longest call 50 - 55 ms) | 0.25 s | yes |
+| 3 shown buffers | queue done 0.24 - 0.26 s after `git`; VC names the branch in 3 of 3; 1 diff-hl update each; steps 0.028 - 0.036 s | 15 s | yes |
+| 3 showing a hidden buffer | 0.029 - 0.034 s; VC names the branch | 0.25 s | yes |
+| 4 idle fswatch | 6 descriptors, 6.1 MB RSS | 16, 12 MB | yes |
+| 5 ready, shutdown | 0.01 - 0.02 s; gone after the buffers were killed (the module stops it) | 5 s | yes |
+| 6 messages | the edited buffer named on `c` and `a`, the deleted file on `c` | - | yes |
+
+Verdict: PASS on the Mac, criteria 1 - 6; Arch on H-23. Against `fswatch-shown`'s Mac
+runs (0103: blocked 0.07 - 0.13 s, filter 87 - 95 ms) the shipped module blocks less;
+the scan's absence accounts for part of it (UNVERIFIED how much).

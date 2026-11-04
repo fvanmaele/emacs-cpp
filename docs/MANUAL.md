@@ -165,6 +165,18 @@ After `C-x u` (undo), plain `u` undoes again.
 | `C-x r m` / `C-x r b` | set / jump to a bookmark |
 | `C-c p m` | menu of all project commands |
 
+A file changed outside Emacs (`git checkout` in a shell) is reloaded into its buffer
+when the buffer has no unsaved edits. In a project (a git repository or a directory
+with a `.projectile` file) this happens within about a second after the change, on
+both machines; the mode line's branch and the change marks follow when a window shows
+the buffer. Elsewhere it happens at once on Arch and within 5 s on the Mac. A buffer
+with unsaved edits is left alone and named in a message, as is a buffer whose file was
+deleted; Emacs asks when you next edit or save it. To turn the project behaviour off,
+set `emacs-cpp-revert-project-buffers` to nil (`M-x customize-variable`), or for one
+project in its `.dir-locals.el`: `((nil . ((emacs-cpp-revert-project-buffers . nil))))`;
+its buffers then reload as outside a project. If the warning "fswatch for ... ended"
+appears, `M-x emacs-cpp-reverter-restart` starts it again.
+
 ## 7. Searching
 | Key | Does |
 |---|---|

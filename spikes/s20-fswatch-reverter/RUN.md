@@ -96,6 +96,18 @@ repository, each of the Mac and Arch, three runs of `fswatch-shown`:
 7. Wiring (the Mac, terminal Emacs): `window-buffer-change-functions` runs after each
    of the four actions above.
 
+## Mode `shipped` (T-128, D-162 (d), 2026-11-04)
+The config's reverter, `lisp/emacs-cpp-reverter.el`, in place of the spike's: the run
+loads it with projectile from `lib/projectile` and its fswatch program from
+`S20_FSWATCH`, then visits the files as above, so the module adopts the buffers and
+starts its own fswatch; at the end it kills the buffers, so the module stops it.
+Counted by advice on the module (`s20--load-shipped`): records and filter time where
+a call's records enter `emacs-cpp-reverter--handle`, messages where
+`emacs-cpp-reverter--message` returns them, queue steps where
+`emacs-cpp-reverter--refresh` runs. Criteria: `fswatch-shown`'s 1 - 6, three runs on
+each machine (7 is Emacs's wiring, unchanged). Command:
+`S20_MODES=shipped sh spikes/s20-fswatch-reverter/run.sh </dev/null`.
+
 ## eglot's share (D-153, 2026-11-03; the Mac)
 eglot sends didClose and didOpen on every revert (Emacs 31.1 `eglot.el`), inside the
 reverter's filter, and clangd reparses; the generated repository's two-line files
