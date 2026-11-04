@@ -8,8 +8,8 @@ git through magit, and jump-to-anything through vertico and consult (one prompt 
 
 It is not an Emacs distribution, not a Windows configuration and not a CLion keymap
 emulation (DESIGN 2). This file never claims more than `DESIGN.md` backs; the feature
-list with its gaps against CLion is DESIGN 1. Everyday use is `docs/MANUAL.md`, every
-key is in `docs/CHEATSHEET.md`.
+list with its gaps against CLion is DESIGN 1; how it is put together, `ARCHITECTURE.md`.
+Everyday use is `docs/MANUAL.md`, every key is in `docs/CHEATSHEET.md`.
 
 ## Install on Arch Linux
 

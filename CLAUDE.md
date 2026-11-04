@@ -261,7 +261,8 @@ exploration and dead ends. After a compaction, re-read the plan file first, then
 DESIGN sections the current step names.
 
 ## Layout
-- `DESIGN.md`, `POSTMORTEM.md`, `JOURNAL.md` + `docs/journal/`, `TASKS.md`,
+- `ARCHITECTURE.md` (overview for any reader, 2026-11-04), `DESIGN.md`, `POSTMORTEM.md`,
+  `JOURNAL.md` + `docs/journal/`, `TASKS.md`,
   `TODO_human.md`, `spikes/`,
   `HANDOFF.md` (summary for outside reviewers, 2026-10-20; cites ids, not a source),
   `RESEARCH_*.md`, `standard.mk` + `scripts/check-standard.sh` + `scripts/commit-msg.sh`,

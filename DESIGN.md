@@ -300,6 +300,8 @@ Observed on the owner's Mac, 2026-10-09 (D-050):
   window, so scrolling from line 99 to 100 widened it and shifted the text sideways.
 
 ## 6. Architecture
+Current overview for any reader: `ARCHITECTURE.md` (2026-11-04). The table below is the
+block list as built through T-046 and partly stale (Python's server: D-140).
 | block | location | tag | notes |
 |---|---|---|---|
 | early init | `early-init.el` | KEEP | T-002, owner-confirmed |
