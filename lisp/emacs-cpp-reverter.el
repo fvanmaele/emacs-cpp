@@ -6,15 +6,18 @@
 ;; changes it (`git checkout' in a shell): eglot gives the server a buffer's text in
 ;; place of its file, so a stale buffer misleads clangd (D-147).  In a project root
 ;; (version control or a .projectile file, D-163) one patched fswatch (D-109) per
-;; root reports the changes and its filter reverts the root's unedited buffers at
-;; once (T-128, D-153; DESIGN "The reverter as built"; S20 PASS on both machines).
+;; root reports the changes; its filter queues the root's buffers, shown ones first,
+;; and timer steps revert the unedited ones, 0.05 s of reverting per step, so Emacs
+;; reads input between them: reverting a checkout in one filter call blocked Emacs
+;; 0.30 s on Arch (T-128, D-153, D-166, D-167; DESIGN "The reverter as built"; S20
+;; `fswatch-chunked' PASS on both machines).
 ;;
 ;; Reverting holds diff-hl's revert hook back; VC state and diff-hl's marks follow
-;; from a queue, one shown buffer per timer step, and for a hidden buffer when a
-;; window shows it: per-buffer VC refreshes after a large checkout froze Emacs for
-;; seconds on the Mac (O-78).  The queue step waits while the filter runs (D-156
-;; (e)), and a filter never runs inside itself (D-161 (p)): Emacs runs filters and
-;; timers while a send to a busy server waits (O-79).  Edited and deleted files'
+;; once the reverts are done, one shown buffer per timer step, and for a hidden
+;; buffer when a window shows it: per-buffer VC refreshes after a large checkout
+;; froze Emacs for seconds on the Mac (O-78).  A step never runs inside another
+;; (D-156 (e), D-161 (p)): Emacs runs filters and timers while a revert's send to a
+;; busy server waits (O-79).  Edited and deleted files'
 ;; buffers are kept and named in a message (D-151, D-152); an overflow or an fswatch
 ;; that dies is warned about, never hidden.  Buffers it does not cover are left to
 ;; auto-revert (init-project), which asks `emacs-cpp-reverter-covers-p'.
@@ -36,6 +39,13 @@
 (defconst emacs-cpp-reverter-exclude '("/\\.git/")
   "Regexps of paths fswatch does not report (its -e): git's own churn.")
 
+(defconst emacs-cpp-reverter-budget 0.05
+  "Seconds of reverting per step before Emacs reads input again (D-167).
+S20 `fswatch-chunked': 0.5 - 3.6 ms per revert, Emacs blocked at most 0.18 s.")
+
+(defconst emacs-cpp-reverter-pause 0.01
+  "Seconds between two revert steps (D-167).")
+
 (defconst emacs-cpp-reverter-step 0.05
   "Seconds between two steps of the VC and marks queue (D-153).")
 
@@ -48,17 +58,20 @@
 (defvar-local emacs-cpp-reverter--stale nil
   "Non-nil: reverted while hidden; VC state and marks wait until a window shows it.")
 
+(defvar emacs-cpp-reverter--reverts nil
+  "Buffers waiting for a revert step, next first; shown ones in front (D-167).")
+
+(defvar emacs-cpp-reverter--kept nil
+  "(BUFFER . WHY) not reverted since the revert queue was last empty, newest first.")
+
 (defvar emacs-cpp-reverter--queue nil
-  "Shown buffers waiting for VC state and marks, oldest last.")
+  "Shown reverted buffers waiting for VC state and marks, oldest last.")
 
 (defvar emacs-cpp-reverter--timer nil
-  "The queue's one-shot timer, or nil.")
+  "The one-shot timer of the next step, or nil.")
 
-(defvar emacs-cpp-reverter--in-filter nil
-  "Non-nil while a filter call reverts (D-156 (e), D-161 (p)).")
-
-(defvar emacs-cpp-reverter--deferred nil
-  "(PROCESS . OUTPUT) of filter calls made while one ran, oldest first.")
+(defvar emacs-cpp-reverter--busy nil
+  "Non-nil while a step runs (D-156 (e), D-161 (p)).")
 
 ;;;; Which buffers
 
@@ -129,7 +142,9 @@ On `kill-buffer-hook'."
   (when-let* ((root emacs-cpp-reverter--root))
     (setq emacs-cpp-reverter--root nil
           emacs-cpp-reverter--stale nil
-          emacs-cpp-reverter--queue (delq (current-buffer) emacs-cpp-reverter--queue))
+          emacs-cpp-reverter--queue (delq (current-buffer) emacs-cpp-reverter--queue)
+          emacs-cpp-reverter--reverts (delq (current-buffer) emacs-cpp-reverter--reverts)
+          emacs-cpp-reverter--kept (assq-delete-all (current-buffer) emacs-cpp-reverter--kept))
     (unless (emacs-cpp-reverter--buffers root (current-buffer))
       (emacs-cpp-reverter--stop root))))
 
@@ -237,7 +252,7 @@ newer."
       'reverted))))
 
 (defun emacs-cpp-reverter--message (kept)
-  "One message naming KEPT, (BUFFER . WHY) the filter call did not revert."
+  "One message naming KEPT, (BUFFER . WHY) not reverted, newest first."
   (let* ((names (lambda (why)
                   (cl-loop for (buffer . reason) in (reverse kept)
                            when (eq reason why) collect (buffer-name buffer))))
@@ -264,12 +279,20 @@ newer."
 project was checked against its file" root)
    :warning))
 
+(defun emacs-cpp-reverter--enqueue-revert (buffer)
+  "Queue BUFFER for a revert step; a buffer a window shows goes first (D-167)."
+  (unless (memq buffer emacs-cpp-reverter--reverts)
+    (if (get-buffer-window buffer t)
+        (push buffer emacs-cpp-reverter--reverts)
+      (setq emacs-cpp-reverter--reverts
+            (nconc emacs-cpp-reverter--reverts (list buffer)))))
+  (emacs-cpp-reverter--arm emacs-cpp-reverter-pause))
+
 (defun emacs-cpp-reverter--handle (root real-root records overflowed)
-  "Revert ROOT's buffers whose files RECORDS name (REAL-ROOT's paths).
-OVERFLOWED: changes were lost, so every buffer of ROOT is checked."
-  (let ((buffers (if overflowed
-                     (emacs-cpp-reverter--buffers root)
-                   (delete-dups
+  "Queue ROOT's buffers whose files RECORDS name (REAL-ROOT's paths) for reverting.
+OVERFLOWED: changes were lost, so every buffer of ROOT is queued."
+  (dolist (buffer (if overflowed
+                      (emacs-cpp-reverter--buffers root)
                     (cl-loop for record in records
                              for path = (emacs-cpp-reverter--path record)
                              for buffer = (and (string-prefix-p real-root path)
@@ -277,55 +300,31 @@ OVERFLOWED: changes were lost, so every buffer of ROOT is checked."
                                                 (concat root (substring path (length real-root)))))
                              when (and buffer
                                        (buffer-local-value 'emacs-cpp-reverter--root buffer))
-                             collect buffer))))
-        kept)
-    (dolist (buffer buffers)
-      (pcase (emacs-cpp-reverter--revert buffer)
-        ((and why (or 'edited 'deleted)) (push (cons buffer why) kept))))
-    (emacs-cpp-reverter--message kept)))
+                             collect buffer)))
+    (emacs-cpp-reverter--enqueue-revert buffer)))
 
 (defun emacs-cpp-reverter--filter (root real-root)
-  "Return the process filter of ROOT's fswatch, which reports REAL-ROOT's paths."
+  "Return the process filter of ROOT's fswatch, which reports REAL-ROOT's paths.
+It only queues buffers (about 1 ms for a 190-file checkout, S20); the timer's
+steps revert them (D-167)."
   (let ((pending "")
         (overflow-warned 0))
-    (lambda (process output)
-      (if emacs-cpp-reverter--in-filter
-          ;; D-161 (p): while a revert's send to a busy server waits, Emacs runs
-          ;; filters; this output waits until the running call returns.
-          (emacs-cpp-reverter--defer process output)
-        (let ((emacs-cpp-reverter--in-filter t)
-              ;; Records end in NUL; the last piece is the start of one still coming.
-              (pieces (split-string (concat pending output) "\0")))
-          (setq pending (car (last pieces)))
-          (let* ((records (butlast pieces))
-                 (overflowed (cl-some #'emacs-cpp-reverter--overflow-p records)))
-            (when overflowed
-              (when (> (- (float-time) overflow-warned) 60) ; at most once a minute
-                (setq overflow-warned (float-time))
-                (emacs-cpp-reverter--warn-overflow root)))
-            (emacs-cpp-reverter--handle
-             root real-root
-             (cl-remove-if #'emacs-cpp-reverter--overflow-p records)
-             overflowed)))))))
+    (lambda (_process output)
+      ;; Records end in NUL; the last piece is the start of one still coming.
+      (let* ((pieces (split-string (concat pending output) "\0"))
+             (records (butlast pieces))
+             (overflowed (cl-some #'emacs-cpp-reverter--overflow-p records)))
+        (setq pending (car (last pieces)))
+        (when overflowed
+          (when (> (- (float-time) overflow-warned) 60) ; at most once a minute
+            (setq overflow-warned (float-time))
+            (emacs-cpp-reverter--warn-overflow root)))
+        (emacs-cpp-reverter--handle
+         root real-root
+         (cl-remove-if #'emacs-cpp-reverter--overflow-p records)
+         overflowed)))))
 
-(defun emacs-cpp-reverter--defer (process output)
-  "Keep PROCESS's OUTPUT for its filter once the running filter call returns."
-  (setq emacs-cpp-reverter--deferred
-        (nconc emacs-cpp-reverter--deferred (list (cons process output))))
-  (run-at-time 0 nil #'emacs-cpp-reverter--replay))
-
-(defun emacs-cpp-reverter--replay ()
-  "Hand the deferred outputs to their filters, oldest first (D-161 (p))."
-  (if emacs-cpp-reverter--in-filter
-      ;; A timer run inside the filter's wait: later.
-      (run-at-time emacs-cpp-reverter-step nil #'emacs-cpp-reverter--replay)
-    (let ((calls emacs-cpp-reverter--deferred))
-      (setq emacs-cpp-reverter--deferred nil)
-      (pcase-dolist (`(,process . ,output) calls)
-        (when (process-live-p process)
-          (funcall (process-filter process) process output))))))
-
-;;;; VC state and marks (D-153)
+;;;; Steps: reverts, then VC state and marks (D-153, D-167)
 
 (defun emacs-cpp-reverter--refresh (buffer)
   "VC state, then diff-hl's marks, of BUFFER."
@@ -335,27 +334,58 @@ OVERFLOWED: changes were lost, so every buffer of ROOT is checked."
     (when (bound-and-true-p diff-hl-mode)
       (diff-hl-update))))
 
-(defun emacs-cpp-reverter--arm ()
-  (setq emacs-cpp-reverter--timer
-        (run-with-timer emacs-cpp-reverter-step nil #'emacs-cpp-reverter--step)))
+(defun emacs-cpp-reverter--arm (delay)
+  "Run the next step after DELAY seconds, unless one is due or runs.
+A running step arms the next itself, at the delay its queues call for."
+  (unless (or emacs-cpp-reverter--timer emacs-cpp-reverter--busy)
+    (setq emacs-cpp-reverter--timer
+          (run-with-timer delay nil #'emacs-cpp-reverter--step))))
 
 (defun emacs-cpp-reverter--enqueue (buffer)
+  "Queue the shown reverted BUFFER for its VC state and marks."
   (unless (memq buffer emacs-cpp-reverter--queue)
     (push buffer emacs-cpp-reverter--queue))
-  (unless emacs-cpp-reverter--timer
-    (emacs-cpp-reverter--arm)))
+  (emacs-cpp-reverter--arm emacs-cpp-reverter-step))
+
+(defun emacs-cpp-reverter--revert-step ()
+  "Revert queued buffers until `emacs-cpp-reverter-budget' is spent, one at least.
+With the queue empty, one message names the buffers kept since it last was."
+  (let ((start (float-time)))
+    (while (and emacs-cpp-reverter--reverts
+                (progn
+                  (let ((buffer (pop emacs-cpp-reverter--reverts)))
+                    (when (buffer-live-p buffer)
+                      (pcase (emacs-cpp-reverter--revert buffer)
+                        ((and why (or 'edited 'deleted))
+                         (unless (assq buffer emacs-cpp-reverter--kept)
+                           (push (cons buffer why) emacs-cpp-reverter--kept))))))
+                  (< (- (float-time) start) emacs-cpp-reverter-budget)))))
+  (unless emacs-cpp-reverter--reverts
+    (let ((kept emacs-cpp-reverter--kept))
+      (setq emacs-cpp-reverter--kept nil)
+      (emacs-cpp-reverter--message kept))))
 
 (defun emacs-cpp-reverter--step ()
-  "Refresh the oldest queued buffer; arm the timer again while any is left.
-While a filter call reverts, the step waits (D-156 (e))."
+  "Revert from the queue for one budget or, none left, refresh one shown buffer.
+Never both: both in one pass of Emacs's timers blocked it up to 0.18 s (S20,
+0116, 0117).  Reached inside a running step (a revert's send to a busy server
+waits and Emacs runs timers), it only arms again (D-156 (e), D-161 (p))."
   (setq emacs-cpp-reverter--timer nil)
-  (unless emacs-cpp-reverter--in-filter
-    (when-let* ((next (car (last emacs-cpp-reverter--queue))))
-      (setq emacs-cpp-reverter--queue (butlast emacs-cpp-reverter--queue))
-      (when (buffer-live-p next)
-        (emacs-cpp-reverter--refresh next))))
-  (when emacs-cpp-reverter--queue
-    (emacs-cpp-reverter--arm)))
+  (if emacs-cpp-reverter--busy
+      ;; Not armed by this module while busy; a timer from before the step.
+      (setq emacs-cpp-reverter--timer
+            (run-with-timer emacs-cpp-reverter-step nil #'emacs-cpp-reverter--step))
+    (unwind-protect
+        (let ((emacs-cpp-reverter--busy t))
+          (if emacs-cpp-reverter--reverts
+              (emacs-cpp-reverter--revert-step)
+            (when-let* ((next (car (last emacs-cpp-reverter--queue))))
+              (setq emacs-cpp-reverter--queue (butlast emacs-cpp-reverter--queue))
+              (when (buffer-live-p next)
+                (emacs-cpp-reverter--refresh next)))))
+      ;; Also after an error, so the rest of the queues is not stranded.
+      (cond (emacs-cpp-reverter--reverts (emacs-cpp-reverter--arm emacs-cpp-reverter-pause))
+            (emacs-cpp-reverter--queue (emacs-cpp-reverter--arm emacs-cpp-reverter-step))))))
 
 (defun emacs-cpp-reverter--on-show (frame)
   "Refresh each stale buffer FRAME's windows show (`window-buffer-change-functions')."

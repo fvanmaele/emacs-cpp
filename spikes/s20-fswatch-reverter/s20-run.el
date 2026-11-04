@@ -263,6 +263,8 @@
 (defvar emacs-cpp-default-fswatch-program)
 (defvar emacs-cpp-reverter--timer)
 (defvar emacs-cpp-reverter--queue)
+(defvar emacs-cpp-reverter--reverts)
+(defvar emacs-cpp-reverter-budget)
 (declare-function emacs-cpp-reverter-processes "emacs-cpp-reverter" ())
 (declare-function emacs-cpp-reverter--on-show "emacs-cpp-reverter" (frame))
 
@@ -270,7 +272,8 @@
   "Load lisp/emacs-cpp-reverter.el (T-128) with S20_FSWATCH and count for it.
 A filter call's records are counted where they enter `emacs-cpp-reverter--handle',
 its messages where `emacs-cpp-reverter--message' returns them, the queue's steps
-where `emacs-cpp-reverter--refresh' runs; the module itself carries no counters."
+where `emacs-cpp-reverter--refresh' runs, the revert steps (D-167) around
+`emacs-cpp-reverter--revert-step'; the module itself carries no counters."
   (add-to-list 'load-path (expand-file-name "../../lib/projectile" s20-here))
   (setq emacs-cpp-default-fswatch-program (s20--env "S20_FSWATCH"))
   (load (expand-file-name "../../lisp/emacs-cpp-reverter.el" s20-here) nil t)
@@ -288,6 +291,14 @@ where `emacs-cpp-reverter--refresh' runs; the module itself carries no counters.
                       (setq s20-filter-max (max s20-filter-max spent)))))))
   (advice-add 'emacs-cpp-reverter--message :filter-return
               (lambda (text) (when text (push text s20-messages)) text))
+  (advice-add 'emacs-cpp-reverter--revert-step :around
+              (lambda (fn)
+                (let ((start (float-time))
+                      (before (length emacs-cpp-reverter--reverts)))
+                  (prog1 (funcall fn)
+                    (push (cons (- (float-time) start)
+                                (- before (length emacs-cpp-reverter--reverts)))
+                          s20-revert-steps)))))
   (advice-add 'emacs-cpp-reverter--refresh :around
               (lambda (fn buffer)
                 (let ((start (float-time)))
@@ -325,7 +336,8 @@ where `emacs-cpp-reverter--refresh' runs; the module itself carries no counters.
   "Emit fswatch-shown's queue, then show one hidden reverted buffer and emit."
   (s20--wait (lambda ()
                (if s20-shipped
-                   (and (null emacs-cpp-reverter--timer) (null emacs-cpp-reverter--queue))
+                   (and (null emacs-cpp-reverter--timer) (null emacs-cpp-reverter--queue)
+                        (null emacs-cpp-reverter--reverts))
                  (and (null s20-shown-timer) (null s20-shown-queue)
                       (null s20-revert-timer) (null s20-revert-queue))))
              30)
@@ -394,11 +406,11 @@ DELETED is the buffer whose file BRANCH deletes, SHOWN the buffers in windows."
                  (- s20-vc-last t1) s20-stall))
     (when (member s20-mode '("fswatch-shown" "fswatch-chunked" "shipped"))
       (s20--shown-report branch t1 shown))
-    (when s20-chunked
+    (when (or s20-chunked s20-shipped)
       (s20--emit "  revert queue: %d steps, reverts per step %s, longest step %.1f ms, budget %.0f ms"
                  (length s20-revert-steps) (mapcar #'cdr (reverse s20-revert-steps))
                  (* 1000 (apply #'max 0.0 (mapcar #'car s20-revert-steps)))
-                 (* 1000 s20-budget)))
+                 (* 1000 (if s20-shipped emacs-cpp-reverter-budget s20-budget))))
     (when s20-diff-hl
       (when deleted
         (s20--emit "  deleted file's buffer: live %s, reverted %s, file exists %s"

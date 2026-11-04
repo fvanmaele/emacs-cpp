@@ -597,3 +597,36 @@ Findings:
   is the call with the longest refresh step (0.127 s). The module's rule that only
   one of the two runs per pass (0116) is what lowers it; UNVERIFIED by a run.
 - Reverts cost 0.5 - 1.6 ms each here (2 - 95 per 50 ms step); 0.05 s fits the Mac.
+
+## Mode `shipped` after the rewrite, Mac runs 1 - 3 (session, 2026-11-04; D-167, D-168)
+`lisp/emacs-cpp-reverter.el` rewritten from `fswatch-chunked` (D-168: one timer, a
+step reverts or refreshes, never both), `fswatch-chunked` after it in each run as
+contrast; `make test` 151 run, 0 unexpected, 3 skipped (gdb, ty: as before the
+rewrite). Logs: `mac-shipped-chunked-run1.log` .. `mac-shipped-chunked-run3.log`.
+Load 7.78 - 8.15 at the start (not the session's; not idle).
+
+| criterion | `shipped`, runs 1 - 3 | limit | pass |
+|---|---|---|---|
+| 1 buffers current after `git` | 0.22 - 0.29 s, no Overflow | 1.0 s | yes |
+| 2 edits kept | edit kept; 0 unchanged files' buffers reverted; the deleted file's buffer live, not reverted on `c`, no filter error | - | yes |
+| 3 Emacs blocked | 0.07 - 0.13 s (filter's longest call 1.4 ms; revert steps 3 - 4 per checkout, longest 50.3 - 61.7 ms) | 0.25 s | yes |
+| 3 shown buffers | queue done 0.49 - 0.58 s after `git`; VC names the branch 3 of 3; 1 diff-hl update each; steps 0.046 - 0.102 s | 15 s | yes |
+| 3 showing a hidden buffer | 0.047 - 0.056 s; VC names the branch | 0.25 s | yes |
+| 4 idle fswatch | 6 descriptors, 6.1 MB RSS | 16, 12 MB | yes |
+| 5 ready, shutdown | 0.10 - 0.11 s; gone | 5 s | yes |
+| 6 messages | the edited buffer named on `c` and `a`, the deleted file on `c`, once the queue was empty | - | yes |
+
+Contrast `fswatch-chunked`, the same three runs: Emacs blocked 0.11 - 0.13 s, buffers
+current 0.28 - 0.44 s, shown buffers' queue done 0.33 - 0.38 s after `git`.
+
+Verdict: PASS on the Mac, criteria 1 - 6. Arch: H-26.
+
+Findings:
+- One kind of work per step lowers the block from 0.11 - 0.13 s to 0.07 - 0.08 s in
+  5 of 6 checkouts; the sixth (0.13 s, run 3, `a`) is one refresh step alone
+  (0.102 s), which a budget cannot split.
+- Reverts finish sooner (0.22 - 0.29 s against 0.28 - 0.44 s): no refresh step runs
+  between them. The shown buffers' VC state and marks come later (0.49 - 0.58 s
+  against 0.33 - 0.38 s), D-168's cost.
+- One revert step ran to 61.7 ms (run 1, `c`, the first step, 58 reverts): a single
+  revert of about 12 ms at a load of 7.8.

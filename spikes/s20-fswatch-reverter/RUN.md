@@ -117,8 +117,10 @@ starts its own fswatch; at the end it kills the buffers, so the module stops it.
 Counted by advice on the module (`s20--load-shipped`): records and filter time where
 a call's records enter `emacs-cpp-reverter--handle`, messages where
 `emacs-cpp-reverter--message` returns them, queue steps where
-`emacs-cpp-reverter--refresh` runs. Criteria: `fswatch-shown`'s 1 - 6, three runs on
-each machine (7 is Emacs's wiring, unchanged). Command:
+`emacs-cpp-reverter--refresh` runs, revert steps (D-167, D-168) around
+`emacs-cpp-reverter--revert-step` (the `revert queue:` line, added 2026-11-04).
+Criteria: `fswatch-shown`'s 1 - 6, three runs on each machine (7 is Emacs's wiring,
+unchanged). Command:
 `S20_MODES=shipped sh spikes/s20-fswatch-reverter/run.sh </dev/null`.
 
 ## eglot's share (D-153, 2026-11-03; the Mac)
