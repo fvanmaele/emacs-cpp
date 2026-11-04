@@ -2546,6 +2546,21 @@ presets, GoogleTest runner.
   Against: buffers become current later than 0.13 s; another measurement round on
   both machines. Not taken: (b) keep runs 1 - 3's PASS (choosing runs), (c) three more
   idle runs first (more samples, same 0.30 s).
+- DECIDED D-173 (owner 2026-11-04: "D-120's rule"): S19's tier 3 is D-120's: the
+  query's letters in order, the first anywhere, gaps only over letters and digits
+  (across camel-case boundaries, never a separator, D-141), one tier below tier 2.
+  Gap trigrams: every in-order letter triple inside one run of letters and digits,
+  stored only where the symbol's ordinary trigrams lack it; with the request field a
+  query trigram's candidates are its ordinary list or its gap list, intersected over
+  the query's trigrams, so tier 1 - 2 matches across separators stay. Counted on
+  deal.II 9.8's index here (186162 symbols, `count_trigrams.py`): ordinary 4.53 M
+  posting entries, gap lists 11.56 M more (13.32 M as a whole set, x 2.94; section
+  20's generator x 3.51, both rules x 4.20, a segment start first x 1.17); `eto`
+  31017 candidates. Criterion 1's `cml` half is struck: D-120 does not match it
+  (`emacs-cpp-match-tier` gives tier 4). Against: `cml` -> `class_multilevel_experiment`
+  stays unfound, as in files; memory near criterion 3's 20 MB (UNVERIFIED until
+  built). Not taken: section 20's generator, both combined, a segment start first.
+  Amends D-171, D-172.
 - DECIDED D-172 (owner 2026-11-04: "All here"): S19 runs on hp-elitedesk (Intel Core
   i5-6500, 4 cores, 15 GB, Arch), the session's machine, not the Xeon W-2145
   workstation section 20 measured on. Network and a file outside the repo: deal.II's
@@ -4071,6 +4086,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-170 | 2026-11-04 | O-76 (a): no Julia support; D-145's scope stands | 2 | O-76 |
 | D-171 | 2026-11-04 | O-68 (c): gap trigrams and a third match tier in clangd, behind spike S19 | 10 | O-68 |
 | D-172 | 2026-11-04 | S19 on hp-elitedesk: deal.II cloned, criteria 4 - 5 as ratios, RMO's half later | 10 | D-171, T-132 |
+| D-173 | 2026-11-04 | S19's tier 3 is D-120's: gap trigrams within letter-digit runs; `cml` struck | 10 | D-120, D-171, D-172 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |

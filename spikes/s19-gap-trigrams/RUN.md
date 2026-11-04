@@ -53,8 +53,18 @@ measured before the patch is built:
 5. Query: each of the 12 queries at most 5 ms times f per index, f = the baseline's
    sum of the 12 medians / 6.68 ms (section 20's sum on the Xeon).
 Criteria 1 (`eto` on deal.II), 2 and 3 as above. RMO is not on this machine, so
-criterion 1's `cml` half and criterion 6 run where RMO is (an H-n once the patch
-builds); the verdict waits for them.
+criterion 6 runs where RMO is (an H-n once the patch builds); the verdict waits for
+it.
+
+## Tier 3's rule (D-173, owner 2026-11-04: "D-120's rule")
+Tier 3 is D-120's: the query's letters in order, the first anywhere, gaps only over
+letters and digits (D-141). Gap trigrams are every in-order triple inside one run of
+letters and digits, stored where the ordinary trigrams lack them; with the field a
+query trigram's candidates are its ordinary or its gap list. Criterion 1's `cml` half
+is struck (D-120 ranks it tier 4); `eto` -> `Vector` stays. The generator and the
+matcher in "What the spike builds" follow this rule, not "first letter starts a
+segment". Counts (`count_trigrams.py`, deal.II here): ordinary 4.53 M entries, gap
+lists 11.56 M more.
 
 ## Prerequisites
 - Arch: the tree `makepkg` left in `packaging/clangd-index-nav/src` (pkgrel 10;
