@@ -23,7 +23,8 @@ correct, fast, and cached through ordinary editing?
 Run against a temporary git repository and copies of emacs-cpp, RMO-drafts and the
 deal.II checkout (in the session's scratch directory).
 
-## Pass criteria (proposed 2026-11-05, for the owner)
+## Pass criteria (proposed 2026-11-05; owner confirmed 2026-11-05: "S21 criteria confirmed,
+run it")
 On Arch (hp-elitedesk), for the mode that passes:
 1. Correct: after each of a file created, removed and renamed outside Emacs, a new
    directory with a file, a file added to a directory that held no listed file, and

@@ -2644,6 +2644,9 @@ presets, GoogleTest runner.
   waits for the next change of structure. Not taken: (a) - (e), (g) of O-85. Build:
   T-133, tier 3 (owner 2026-11-05: "Tier 3 with short spike"): spike S21 first; found
   before it, Emacs's lock files change directory times on every edit (RESEARCH 22).
+  S21 PASS 2026-11-05 (0126) with `m2`: a changed directory's names read again, Emacs's
+  own lock, auto-save and backup names ignored; current call 4.1 ms (emacs-cpp), 27.7 ms
+  (deal.II); the plain check failed (60 listings in 60 editing calls).
 - DECIDED D-176 (owner 2026-11-04: "leave reverter filter"): the reverter's filter
   keeps looking each record's buffer up (761 records, about four per file, for a
   190-file checkout: 10 - 11 ms on Arch, 0120); no merge of a call's records per
