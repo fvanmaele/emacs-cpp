@@ -14,8 +14,27 @@ for ns (`sysdep.c`; a child that burned 1.0 s of CPU read as 0.027 s). Times the
 factor, not rerun: the dry run's 7 - 9 ms is about 290 - 375 ms, run 3's 6 ms about
 250 ms, runs 4 and 6's 2 ms about 83 ms per 1000 records, all over the limit of 50.
 Arch's figures (Linux's `/proc`) stand. The verdict holds on Arch; on the Mac
-criterion 3 is not met as corrected (UNVERIFIED by a rerun), O-80. `s18-run.el` now
-reads `current-cpu-time`.
+criterion 3 is not met: rerun 2026-11-04 (run 8), 61 - 64 ms per 1000 records, O-80.
+`s18-run.el` now reads `current-cpu-time`.
+
+## Run 8 (session, Mac, 2026-11-04): shipped, CPU by `current-cpu-time` (D-164)
+`S18_RUNS=shipped:fake,shipped:pyright` (run 5 fake only), Darwin arm64, GNU Emacs
+31.1, `s18-run.el` reading `current-cpu-time` (cee20d1's fix), the shipped backend at
+607ba69; load 1.9 - 3.3. Logs: `mac-run8-shipped1.log` .. `mac-run8-shipped5.log`
+(curly quotes made ASCII). Runs 1 - 3 found the tree emptied of its 187395 files
+(macOS removes TMPDIR files unused for 3 days; the directories stayed); runs 4 and 5
+ran on it regenerated. G DATA's real-time protection off (D-161).
+- Criteria 1, 2, 4, 5 hold in every run: registration ok, pyright alive after 30 s
+  with 1 fswatch; 20000 of 20000, overflow 0 (20002 - 20003 records); ready after
+  0.05 - 0.06 s; no process after shutdown.
+- Criterion 3: **61 - 62 ms** per 1000 records on the emptied tree, **63 - 64 ms** on
+  the full one (1.22 - 1.28 s of Emacs's CPU after the block, 46 filter calls, about
+  27 ms each), against the limit of 50: not met on the Mac. Run 6's 2 ms was 41.7 times
+  too small; the factor's estimate (about 83 ms) was high.
+- Per created file the Mac costs less than Arch, where criterion 3 passes: Arch's
+  shipped runs (run 5) read three inotify records per file and spent 2.87 - 3.15 s
+  for the burst (144 - 158 ms per 1000 files), the Mac 1.22 - 1.28 s (61 - 64 ms per
+  1000 files, one FSEvents record per file).
 
 ## Run 7 (session, Arch, 2026-10-21): pkgrel 3 (patch 0005, D-144)
 Owner: "verify if fswatch macos patch (0005) causes issues on Arch". 0005 changes

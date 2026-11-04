@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0114 | 2026-11-04 | D-164: S18 rerun on the Mac with a correct CPU clock | S18 | D-164 |
 | 0113 | 2026-11-04 | T-128: project buffers follow their files through one fswatch per root | T-128 | D-153, D-161 - D-163 |
 | 0112 | 2026-11-04 | D-161: O-79 closed; with the on-access scan off the freeze is gone | S20 | D-161 |
 | 0111 | 2026-11-03 | D-160: the residual stall traced; the Mac's on-access scan, not the pipe | S20 | D-160, O-80 |
