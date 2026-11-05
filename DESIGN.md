@@ -251,6 +251,8 @@ Observed on the owner's Mac, 2026-10-09 (D-050):
   (`eglot--workspace-configuration-plist`). Grounds: RESEARCH_python_ty 8 (on SymPy
   the first `M-?` 12 times as long, 7 times the memory). pyright (the Mac, D-140)
   always infers return types; the switch does nothing there. Built (T-123, 0097).
+  Feedback posted to ty 2026-11-05 (owner, H-16):
+  https://github.com/astral-sh/ty/issues/4739#issuecomment-6313904843.
 - DECIDED D-143 (owner 2026-10-21, O-75 (r2): "Draft the flymake backend + ruff
   format changes"): ruff without its language server: a flymake backend running
   `ruff check --output-format json --stdin-filename FILE -` beside eglot's, and
@@ -698,7 +700,8 @@ Known defects: none yet (nothing built).
   0: no limit). On the Mac all seven checks pass and it is installed to
   `~/opt/fswatch-no-loss`. Arch 2026-10-19: two fixes (pkgrel 2: exit under glibc,
   the cap with inotify's batches; 0074), all seven checks pass, installed; the Mac
-  re-check of pkgrel 2 is left. pkgrel 3 adds patch 0005 (D-144, 0098).
+  re-check of pkgrel 2 is left. pkgrel 3 adds patch 0005 (D-144, 0098); installed on
+  Arch 2026-11-05 (owner, H-17), all checks pass on the installed binary.
 - DECIDED D-108 (SUPERSEDED 2026-10-20 by D-121: Emacs's own eglot, no submodule;
   owner 2026-10-15, O-60 (b): "Vendor eglot"; tier and done when to agree): eglot
   comes from a submodule, `lib/eglot` from

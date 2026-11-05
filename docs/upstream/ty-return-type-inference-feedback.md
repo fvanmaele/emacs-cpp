@@ -1,7 +1,8 @@
 # ty feedback draft: return type inference, cost on a large unannotated project
 
 Draft comment for https://github.com/astral-sh/ty/issues/4739 ("Return type inference:
-your feedback"); not posted (the owner posts it). Reproduction script:
+your feedback"); posted 2026-11-05 by the owner (H-16):
+https://github.com/astral-sh/ty/issues/4739#issuecomment-6313904843. Reproduction script:
 `ty_return_type_inference_repro.py` in this directory. Findings behind it:
 `RESEARCH_python_ty.md` sections 8 and 9 (2026-10-21).
 
