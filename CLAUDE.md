@@ -95,8 +95,9 @@ T-118 built (0092): `--index-file` from `.dir-locals.el`, `make library-index`
 (clangd-indexer in pkgrel 10, D-133); hand check H-14. S17 run 4: O-74 pays via D-124.
 T-119 built (0094): eglot's watches through the patched fswatch on both machines,
 required at startup (D-127); S18 run 5 `shipped` PASS on Arch, Mac run H-15.
-Python: ty on Arch, pyright on the Mac (D-140, T-120, 0095); ty on the Mac deferred
-(T-121). Matches: gaps inside a word, `M-o` words match file names (D-141, 0096).
+Python: ty on Arch, pyright on the Mac (D-140, T-120, 0095); ty on the Mac from a
+local binary MacPorts port (D-180, T-121; install waits on the owner). Matches: gaps
+inside a word, `M-o` words match file names (D-141, 0096).
 ty's return type inference per project (D-142, 0097); ruff deferred (D-143, T-124).
 Mac run of H-15 by the session (0098): S18 run 6 `shipped` PASS; FSEvents kept
 `Created` on recent files, fswatch patch 0005 (pkgrel 3, D-144, T-125); Mac clangd

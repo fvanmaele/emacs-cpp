@@ -207,6 +207,13 @@ Portfile (master), ty's 0.0.90 release on GitHub. Nothing written or built on th
   MacPorts-maintained tools; the Mac's ty install still unchecked (round 1: user
   site-packages missed).
 
+Checked 2026-11-05 (D-180): ty 0.0.97's `ty-aarch64-apple-darwin.tar.gz` is 13198497
+bytes, its sha256 matches the published `.sha256`; it holds one file,
+`ty-aarch64-apple-darwin/ty` (27.4 MB), Developer ID signed with the hardened runtime,
+and `ty --version` runs on this Mac (`ty 0.0.97 (58e168c67 2026-11-04)`). Releases
+0.0.93 - 0.0.97 came out 2026-10-28 - 2026-11-04. The port as written passes `port
+lint --nitpick`.
+
 ## 8. Type inference without annotations: options, ty source read (owner 2026-10-21)
 Owner: "Research vendoring ty and patches such that type information can be inferred
 reliably, even without type annotations". Read in ty 0.0.90's release source
