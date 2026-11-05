@@ -3,7 +3,9 @@
 # Local port for emacs-cpp (D-180): Astral's prebuilt ty for Apple silicon, not built
 # from source (MacPorts has no ty port). A version bump: github.setup's version and
 # the three checksums of the new ty-aarch64-apple-darwin.tar.gz, checked against its
-# published .sha256; then `portindex` in packaging/macports.
+# published .sha256. MacPorts reads a root-owned copy of packaging/macports,
+# /opt/local/var/macports/sources/emacs-cpp/ports (D-181): copy it again after a
+# change, then `sudo portindex` in the copy.
 
 PortSystem          1.0
 PortGroup           github 1.0
