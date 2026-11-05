@@ -14,15 +14,6 @@ cannot read itself. An approval another session asks the owner for itself (a ben
 service's plan) is not an item.
 
 ## Run now
-- **H-7** (2026-10-20, unblocks T-032, T-036, T-037, T-039) Four reports to the Emacs bug
-  tracker, drafted 2026-10-09 / 10, outward so yours to send.
-  1. In Emacs, for each of `docs/upstream/eglot-watch-cap-partial-watches.md`,
-     `docs/upstream/c-ts-mode-namespace-class-braces.md`,
-     `docs/upstream/c-ts-mode-local-indent-style.md`,
-     `docs/upstream/c-ts-mode-member-after-blank-line.md`: `M-x report-emacs-bug`, the
-     file's title as the subject, its text as the body, the `.el` reproduction it names
-     attached; send.
-  Report back: the four bug numbers.
 - **H-14** (2026-10-21, unblocks T-118) Hand check: deal.II's own sources from RMO.
   The index is built (`indexes/dealii.dex`, deal.II 9.8.0).
   1. In Emacs on Arch, open `~/source/repos/RMO-gross-pitaevskii/.dir-locals.el` and
@@ -45,20 +36,16 @@ service's plan) is not an item.
      (its check 5 changed on Arch, 2026-10-21; the binary stays as built).
   Report back: whether step 2 went back and forward (if not, `C-h k` and the button:
   the event name shown); the last line of step 4.
-- **H-17** (2026-10-21, D-144, T-125) Install fswatch pkgrel 3 on Arch (a system
-  action). 0005 adds no code on Linux, so nothing changes in use; this keeps the
-  installed package at the repository's pkgrel. The session built and checked it.
-  1. `cd ~/source/repos/emacs-cpp/packaging/fswatch-no-loss && makepkg -si`
-  Report back: the last line of `makepkg`'s check ("check: all passed").
-
-- **H-16** (2026-10-21, O-75, D-142) Post the return type inference feedback to ty
-  (outward, so yours); the draft is `docs/upstream/ty-return-type-inference-feedback.md`.
-  1. In a browser, open https://github.com/astral-sh/ty/issues/4739 and add a comment
-     with the text below the `---` line of that file.
-  2. Attach `docs/upstream/ty_return_type_inference_repro.py` (or paste it in a
-     collapsed block).
-  Report back: the comment's link.
-
+## Parked
+- **H-7** (2026-10-20, unblocks T-032, T-036, T-037, T-039) Four reports to the Emacs bug
+  tracker, drafted 2026-10-09 / 10, outward so yours to send.
+  1. In Emacs, for each of `docs/upstream/eglot-watch-cap-partial-watches.md`,
+     `docs/upstream/c-ts-mode-namespace-class-braces.md`,
+     `docs/upstream/c-ts-mode-local-indent-style.md`,
+     `docs/upstream/c-ts-mode-member-after-blank-line.md`: `M-x report-emacs-bug`, the
+     file's title as the subject, its text as the body, the `.el` reproduction it names
+     attached; send.
+  Report back: the four bug numbers.
 - **H-24** (2026-11-04, O-80, D-165) Send the report on `process-attributes` CPU times
   to the Emacs bug tracker (outward, so yours); the draft is
   `docs/upstream/process-attributes-cpu-time-apple-silicon.md`.
@@ -67,8 +54,6 @@ service's plan) is not an item.
      nanoseconds)`, the draft's text below its `---` line as the body; attach
      `docs/upstream/process_attributes_cpu_repro.el`; send.
   Report back: the bug number.
-
-## Parked
 - **H-8** (2026-10-20, 0084 review:B-3 to review:B-5, deferred; T-114) The upstream
   reports and patches in the review's order: treemacs and clang-change-namespace first,
   then consult, projectile, yasnippet-snippets, consult-eglot's ordering half; clangd 0009,
