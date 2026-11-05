@@ -2666,7 +2666,10 @@ presets, GoogleTest runner.
   --rebase --autostash` on every `port selfupdate`. The repository's
   `packaging/macports` stays the source of record; the owner reviews it (`diff -r`),
   copies it with `sudo cp -R` (root-owned, no `-p`) and runs `sudo portindex` in the
-  copy (H-29). `sources.conf` names `file:///opt/local/var/macports/sources/emacs-cpp/ports`
+  copy, all by `make macos-ports` (`scripts/install-macos-ports.sh`: shows the diff or
+  the Portfiles, asks, copies, indexes, adds the `sources.conf` line once, installs
+  or upgrades each port; H-29). `sources.conf` names
+  `file:///opt/local/var/macports/sources/emacs-cpp/ports`
   above the `rsync` line. Against: a copy step per change that can be forgotten (the
   installed version then lags the repository's, `port info ty` shows it); MacPorts
   might one day clean unknown directories under `sources/` (UNVERIFIED; the install
