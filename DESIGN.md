@@ -2205,18 +2205,23 @@ presets, GoogleTest runner.
   pyright to ty (RESEARCH_python_ty 4c). Measured: ty's first `M-.` 6 - 13 times
   sooner on a small tree, no sooner on SymPy (0.4 - 0.5 s, Arch 65 - 72 ms, cause
   UNVERIFIED); `M-?` over 5600 references 4.2 - 5.3 s through eglot against 6.8 -
-  9.5 s, complete where pyright's first reply was not; half the memory. ty finds
-  packages in the user site-packages only through `environment.extra-paths`.
-  Options:
+  9.5 s, complete where pyright's first reply was not; half the memory. Updated
+  2026-11-05 (RESEARCH_python_ty 4d): the slow first answer is the Mac's on-access
+  scan (G DATA, about 3 ms per file opened; on again though D-161 had it off), not
+  ty; ty drops MacPorts' Python entirely (prefix taken from the symlink's location)
+  and never searches the user site-packages; both found with `environment.python` =
+  the interpreter's `sys.prefix` plus `environment.extra-paths` = its user
+  site-packages. Options:
   (a) ty on the Mac, `defaults-darwin.el` naming `("ty" "server")` and `make
-  macos-ports` as its install command, the config sending
-  `environment.extra-paths` = Python's user site-packages (`python3 -m site
-  --user-site`, read when ty starts) on the Mac only. Against: a 0.0.x beta the owner
-  bumps by hand (D-180); the Mac's first `M-.` on a SymPy-sized tree as slow as
-  pyright's; the extra path also adds packages a project's own virtual environment
-  would not have (a `.venv` takes precedence for its own packages, UNVERIFIED).
-  (b) as (a), without the extra path; user-installed packages unresolved. Against:
-  numpy, pandas and matplotlib unresolved in RMO's scripts.
+  macos-ports` as its install command; when ty starts without a project `.venv`, the
+  config sends `environment.python` = `python3`'s `sys.prefix` and
+  `environment.extra-paths` = its `site.getusersitepackages()` (one `python3 -c`
+  per server start), on the Mac only. Against: a 0.0.x beta the owner bumps by hand
+  (D-180); one more process per start (UNVERIFIED cost, about 20 - 50 ms); the
+  settings override a project's own ty configuration of the same keys; the user
+  site-packages also reach projects that meant to exclude them.
+  (b) as (a), `environment.python` only. Against: user-installed packages (numpy,
+  pandas, matplotlib in RMO's scripts) unresolved.
   (c) pyright stays (D-140 as is). Against: `M-?`'s incomplete first reply; 2 times
   the memory; the platforms keep two servers and two test paths.
   Recommendation: (a).
@@ -2620,6 +2625,8 @@ presets, GoogleTest runner.
   checkout landed later in the reparse than with it on (about 5 s). Not taken: (n)
   (moot while protection is off; with it on the measured freeze returns), (o), (g).
   Amends D-153 and D-156.
+  Found on again 2026-11-05 (RESEARCH_python_ty 4d: about 3 ms per file open,
+  G DATA's processes busy with each); "disabled for now" no longer holds.
 - DECIDED D-162 (owner 2026-11-04, the session's four questions, each its recommended
   option): T-128's shape.
   (a) Files outside project roots (D-149): `global-auto-revert-mode` covers the file

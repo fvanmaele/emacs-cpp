@@ -159,6 +159,58 @@ pandas, matplotlib and orgparse sit in `~/Library/Python/3.14/lib/python/site-pa
   into numpy's `__init__.pyi` (pyright: the same stub, 457 ms); `M-?` 20 in 6 files
   (pyright 21 in 7, not compared further); RSS 159 MB (pyright 409 MB).
 
+## 4d. Why ty starts slowly on the Mac, and which paths it misses (2026-11-05)
+Owner: "Do more research the problem", "Performance + missing paths research".
+
+**Performance.** ty's first `M-.` on SymPy (4c: 0.35 - 0.54 s, Arch 65 - 72 ms):
+- Not the version: ty 0.0.90 (Arch's in 4b, release binary, sha256 checked) takes
+  370 - 417 ms here too.
+- Startup work the first request waits for: sent 0.1 / 0.2 / 0.3 / 0.4 / 0.6 s after
+  `didOpen`, the first `M-.` takes 288 / 165 / 64 / 8 / 8 ms; 3 s after, 13 - 15 ms.
+  ty's CPU time 3 s after start: 0.11 s (SymPy), 0.02 s (staging); so it waits.
+- File opens: in Python, 1532 SymPy files cost 4 - 12 ms to `stat`, 3.7 - 4.6 s to
+  `open` and close (about 2.4 - 3 ms per open, 0.4 - 0.5 s of it CPU), reading adds
+  little; a fresh copy no slower; MacPorts' standard library (2813 files) 8.4 s.
+- G DATA: its `gdavserver` and `gdesclientd` (RTP Service) used 0.3 s of CPU in 5 s
+  idle and about 17 s during the open loops (the script ran about 25 s). The
+  on-access scan approves each open: it is on, though D-161 recorded it off
+  (2026-11-04). The system extensions present (Cisco Secure Client socket filter,
+  Little Snitch) filter network traffic only.
+- So the Mac's first answers of any server that opens many files at start (ty,
+  pyright, clangd) pay about 3 ms per file opened; Arch has no such scanner.
+
+**Missing paths.** ty 0.0.97, `ty check -vv` and ty's source
+(`crates/ty_site_packages/src/lib.rs`, ruff main at 7e35efbdd, 2026-11-04; 0.0.97
+UNVERIFIED to match):
+- With no `.venv` ty takes `python3` on PATH (docs.astral.sh/ty/modules: virtual
+  environment, Conda, `.venv`, base Conda, then `python3` / `python` on PATH) and
+  derives `sys.prefix` as the grandparent of the path as found
+  (`sys_prefix_from_executable_path`), resolving symlinks only afterwards, on that
+  prefix. MacPorts' `/opt/local/bin/python3` is a symlink into
+  `/opt/local/Library/Frameworks/Python.framework/Versions/3.14/bin/`; the prefix
+  becomes `/opt/local`, which has no `lib/python3.x`, so ty drops the environment
+  (log: "Failed to discover site-packages ... `/opt/local`") and assumes Python 3.15.
+  Lost: MacPorts' site-packages (the `py314-*` ports, e.g. `mako`) as well as the
+  user's. Only the `pyvenv.cfg` path resolves an interpreter's symlink (a comment
+  there names Homebrew).
+- The user site-packages (`site.getusersitepackages()`, here
+  `~/Library/Python/3.14/lib/python/site-packages`, where `pip install --user` put
+  numpy, pandas, matplotlib, six, orgparse) appear nowhere in the discovery code;
+  only `extra-paths` (or `PYTHONPATH`, searched just after it) reaches them.
+- Checked with `import mako` (MacPorts only) and `import numpy` (user only):
+
+| setting | `mako` | `numpy` |
+|---|---|---|
+| none | missing | missing |
+| `environment.python` = the framework prefix (`sys.prefix`) | found | missing |
+| `environment.extra-paths` = the user site-packages | missing | found |
+| both | found | found |
+
+  With the prefix ty reads Python 3.14. Both through the server: `M-.` on `np.abs`
+  into numpy's `__init__.pyi`, 561 ms cold (more files opened at start), RSS 159 MB.
+- No ty issue covers either case (GitHub search 2026-11-05: user site-packages,
+  symlinked interpreter, MacPorts, framework Python).
+
 ## 4a. Why the diagnostics differ on the same file
 The first count (pyright 15, ty 48, 2026-10-20) came from this research's client, which
 did not announce `tagSupport`; pyright then leaves out its "unnecessary" hints, ty
