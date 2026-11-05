@@ -2200,7 +2200,9 @@ presets, GoogleTest runner.
   measured across 63 files. Findings in; O-43.
 
 ## Open questions ledger (LIVING)
-- O-85 (RESOLVED 2026-11-05 with D-177: (f); owner: "O-85 (f)"; T-133,
+- O-85 (REOPENED 2026-11-05 by D-179: (f) built and reverted, its first call 4 times
+  today's listing on large trees; a remedy may not make any call slower than today's
+  listing; was RESOLVED 2026-11-05 with D-177: (f); owner: "O-85 (f)"; T-133,
   RESEARCH_go_to_anything 22): projectile lists the
   project on every `C-c p f` and `M-o` (no cache by default with `alien` indexing):
   444 - 493 ms for emacs-cpp (31 submodules), 68 ms for deal.II's 34556 files, 25 - 50
@@ -2634,7 +2636,17 @@ presets, GoogleTest runner.
   Against: buffers become current later than 0.13 s; another measurement round on
   both machines. Not taken: (b) keep runs 1 - 3's PASS (choosing runs), (c) three more
   idle runs first (more samples, same 0.30 s).
-- DECIDED D-178 (owner 2026-11-05: "Opt-out setting"): the kept project file lists
+- DECIDED D-179 (owner 2026-11-05: "Revert the feature and decision that the perf
+  impact (4x on large projects) is acceptable"): T-133's kept project file lists and
+  their option are reverted (code of d4276bf and 540a0aa); the slower first call
+  (deal.II 178 ms against 64, LLVM's sources 1366 ms against 336, RESEARCH 22) is not
+  acceptable, so a call may not cost more than today's listing on any tree. projectile
+  lists on every `C-c p f` and `M-o` again. O-85 reopened with that constraint.
+  Supersedes D-177 and D-178. Against: emacs-cpp's 411 - 493 ms per call and the
+  "Projectile is indexing" message stay. S21's harness and findings stay in
+  `spikes/s21-projectile-cache/`. POSTMORTEM 2026-11-05.
+- SUPERSEDED by D-179 (2026-11-05, reverted): DECIDED D-178 (owner 2026-11-05: "Opt-out
+  setting"): the kept project file lists
   (D-177) are opt-out: the user option `emacs-cpp-keep-project-files`, t by default;
   nil has projectile list on every call, as before T-133. Globally from Customize
   (applied at once, the kept lists forgotten) or for one project in its
@@ -2643,7 +2655,8 @@ presets, GoogleTest runner.
   the reverter. Cost: the current call 1.9 -> 2.1 ms (emacs-cpp), 10.2 -> 11.0 ms
   (deal.II). Against: one more option; reading the root's `.dir-locals.el` on every
   call.
-- DECIDED D-177 (owner 2026-11-05: "O-85 (f)"): the projectile setup keeps each
+- SUPERSEDED by D-179 (2026-11-05, reverted): DECIDED D-177 (owner 2026-11-05: "O-85
+  (f)"): the projectile setup keeps each
   root's file list and the modification times of its directories (read before the
   listing) and serves the list while every time is unchanged; one changed time and
   the root is listed anew. No watcher, no tie to the reverter; every root, both
@@ -2658,9 +2671,10 @@ presets, GoogleTest runner.
   (deal.II); the plain check failed (60 listings in 60 editing calls). Built (T-133,
   0127): current call 1.9 / 0.4 / 10.2 ms (emacs-cpp / RMO-drafts / deal.II); first
   call 420 / 29 / 190 ms against 444 - 493 / 25 - 50 / 68 - 75 today; remote roots
-  listed as before. deal.II's slower first call accepted (owner 2026-11-05); more
-  trees and `M-o` measured (RESEARCH_go_to_anything 22): at LLVM's size (16532
-  directories) a current call is 100 ms, D-178's option off for such trees.
+  listed as before. deal.II's slower first call accepted (owner 2026-11-05), then not
+  (D-179); more trees and `M-o` measured (RESEARCH_go_to_anything 22): at LLVM's size
+  (16532 directories) a current call is 100 ms, a first call 4 times the old listing.
+  Reverted 2026-11-05 (D-179).
 - DECIDED D-176 (owner 2026-11-04: "leave reverter filter"): the reverter's filter
   keeps looking each record's buffer up (761 records, about four per file, for a
   190-file checkout: 10 - 11 ms on Arch, 0120); no merge of a call's records per
@@ -4240,8 +4254,9 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-174 | 2026-11-04 | O-83 (b): S19 criterion 6 on RMO-drafts, each key at most twice pkgrel 1's and 30 ms | 10 | O-83, D-172 |
 | D-175 | 2026-11-04 | O-84 (a): no clangd patch 0014; gapped in-word symbol queries stay unfound | 10 | O-84, D-171 |
 | D-176 | 2026-11-04 | the reverter's filter keeps one lookup per record (0120's dedupe not taken) | 12 | D-168 |
-| D-177 | 2026-11-05 | O-85 (f): projectile's lists cached per root, checked by directory times | 12 | O-85, T-133 |
-| D-178 | 2026-11-05 | the kept project file lists are opt-out (`emacs-cpp-keep-project-files`) | 12 | D-177, D-163 |
+| D-177 | 2026-11-05 | O-85 (f): projectile's lists cached per root, checked by directory times (superseded by D-179) | 12 | O-85, T-133 |
+| D-178 | 2026-11-05 | the kept project file lists are opt-out (`emacs-cpp-keep-project-files`) (superseded by D-179) | 12 | D-177, D-163 |
+| D-179 | 2026-11-05 | T-133 reverted: no call slower than today's listing; supersedes D-177, D-178 | 12 | O-85 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |

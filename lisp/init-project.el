@@ -8,19 +8,11 @@
 ;; opens only on `C-c t' (D-049).  Two options turn the following off (D-067).
 ;; Unedited buffers follow their files: a project's through its fswatch
 ;; (emacs-cpp-reverter, T-128), the others through auto-revert (D-162 (a)).
-;; A project's file list (`C-c p f', `M-o') is kept while its directories keep their
-;; modification times (D-177, S21): projectile would list it again on every call.
 
 ;;; Code:
 
-(require 'cl-lib)
-(require 'subr-x)
 (require 'emacs-cpp-presets)
 (require 'emacs-cpp-reverter)
-
-(declare-function projectile-project-vcs "projectile" (&optional project-root))
-(declare-function projectile-get-all-sub-projects "projectile" (project))
-(defvar projectile-enable-caching)
 
 (defun emacs-cpp-search-program-check (program)
   "Return PROGRAM, a key of `xref-search-program-alist', when its executable is found.
@@ -51,187 +43,9 @@ Signal an error naming the executable otherwise (D-081)."
   (setq xref-search-program
         (emacs-cpp-search-program-check emacs-cpp-default-xref-search-program)))
 
-;;;; A project's file list, kept while its directories hold (D-177, T-133)
-
-;; projectile lists a project anew on every call with its `alien' indexing (its own
-;; cache only serves `native'): 444 - 493 ms for this repository's 31 submodules
-;; (RESEARCH_go_to_anything 22).  A directory's modification time changes when an
-;; entry in it is created, removed or renamed, so the list stands while every
-;; directory it depends on keeps its time.  Emacs's own lock and auto-save files
-;; change those times on every edit (S21): a changed directory's names are read
-;; again and the list kept when only such names moved.
-
-(defvar emacs-cpp-project-files--cache (make-hash-table :test #'equal)
-  "Project root -> (FILES . DIRS); DIRS maps a directory to (TIME . NAMES).")
-
-(defun emacs-cpp-project-files--set-option (symbol value)
-  "Set SYMBOL to VALUE and forget the kept lists (D-178)."
-  (set-default-toplevel-value symbol value)
-  (clrhash emacs-cpp-project-files--cache))
-
-(defcustom emacs-cpp-keep-project-files t
-  "Non-nil: `C-c p f' and `M-o' reuse a project's file list while its directories
-hold (D-177).  nil: projectile lists the project on every call, as before.  For
-one project, its .dir-locals.el, ((nil . ((emacs-cpp-keep-project-files . nil))));
-read for the project's root on each call.  Set from Customize it applies at once
-(D-178)."
-  :type 'boolean
-  :safe #'booleanp
-  :initialize #'custom-initialize-default
-  :set #'emacs-cpp-project-files--set-option
-  :group 'tools)
-
-(defun emacs-cpp-project-files--wanted-p (root)
-  "Non-nil when ROOT's lists are to be kept: the option as ROOT's directory sets it."
-  (and emacs-cpp-keep-project-files
-       (with-temp-buffer
-         (setq default-directory root)
-         (let ((enable-local-variables :safe))
-           (hack-dir-local-variables-non-file-buffer))
-         emacs-cpp-keep-project-files)))
-
-(defun emacs-cpp-project-files--time (dir)
-  "DIR's modification time, nil when DIR is gone (one `stat')."
-  (file-attribute-modification-time (file-attributes dir)))
-
-(defun emacs-cpp-project-files--names (dir)
-  "The names in DIR, unsorted, nil when DIR is gone."
-  (and (file-directory-p dir)
-       (directory-files dir nil directory-files-no-dot-files-regexp t)))
-
-(defun emacs-cpp-project-files--emacs-own-p (name)
-  "Non-nil for NAME of Emacs's own lock, auto-save or backup file."
-  (or (string-prefix-p ".#" name)
-      (auto-save-file-name-p name)
-      (backup-file-name-p name)))
-
-(defun emacs-cpp-project-files--git-ignored-in (repo dirs)
-  "Those of DIRS (absolute, without a trailing slash) the git repository REPO ignores."
-  (with-temp-buffer
-    (let ((default-directory repo))
-      (insert (string-join dirs "\n") "\n")
-      ;; Exit 0: some ignored, 1: none; anything else is an error.
-      (let ((status (call-process-region (point-min) (point-max) "git" t t nil
-                                         "check-ignore" "--stdin")))
-        (unless (memq status '(0 1))
-          (error "emacs-cpp: git check-ignore failed in %s: %s" repo (buffer-string)))
-        (split-string (buffer-string) "\n" t)))))
-
-(defun emacs-cpp-project-files--git-ignored (root dirs)
-  "Those of DIRS (absolute, without a trailing slash) git ignores under ROOT.
-Each asked of its innermost repository, ROOT or a submodule: git refuses a path
-inside a submodule from the repository above it."
-  (let ((repos (sort (cons (file-name-as-directory root)
-                           (projectile-get-all-sub-projects root))
-                     (lambda (a b) (> (length a) (length b)))))
-        (by-repo (make-hash-table :test #'equal)))
-    (dolist (dir dirs)
-      (let ((repo (seq-find (lambda (repo) (string-prefix-p repo (concat dir "/"))) repos)))
-        (push dir (gethash repo by-repo))))
-    (let (ignored)
-      (maphash (lambda (repo in-repo)
-                 (setq ignored (nconc (emacs-cpp-project-files--git-ignored-in repo in-repo)
-                                      ignored)))
-               by-repo)
-      ignored)))
-
-(defun emacs-cpp-project-files--directories (root files)
-  "The directories ROOT's list FILES depends on, each with its time and names.
-Those holding a file of FILES, their parents up to ROOT, and the subdirectories
-of those that hold none (a file may land in an empty directory), but not the
-ones git ignores: a build tree never counts.  Each directory is read once, and
-only names that are not listed files are tested for being directories.
-ROOT and the directories end in a slash, so paths are concatenated, not expanded."
-  (let ((root (file-name-as-directory root))
-        (listed (make-hash-table :test #'equal :size (length files)))
-        (dirs (make-hash-table :test #'equal))
-        empty)
-    ;; `concat', not `expand-file-name': the root ends in a slash and projectile's
-    ;; names are relative and clean; expanding 34556 of them took 400 ms (deal.II).
-    (dolist (file files)
-      (let ((path (concat root file)))
-        (puthash path t listed)
-        (let ((dir (file-name-directory path)))
-          (while (and dir (not (gethash dir dirs)) (string-prefix-p root dir))
-            (puthash dir t dirs)
-            (setq dir (file-name-directory (directory-file-name dir)))))))
-    (puthash root t dirs)
-    ;; Times before names: a change while they are read shows at the next call.
-    (maphash (lambda (dir _)
-               (let ((time (emacs-cpp-project-files--time dir))
-                     (names (emacs-cpp-project-files--names dir)))
-                 (puthash dir (cons time names) dirs)
-                 (dolist (name names)
-                   (let ((path (concat dir name)))
-                     (unless (or (gethash path listed) (equal name ".git")
-                                 (gethash (file-name-as-directory path) dirs)
-                                 (not (file-directory-p path)))
-                       (push (file-name-as-directory path) empty))))))
-             dirs)
-    (let ((ignored (and empty (eq (projectile-project-vcs root) 'git)
-                        (emacs-cpp-project-files--git-ignored
-                         root (mapcar #'directory-file-name empty)))))
-      (dolist (sub empty)
-        (unless (member (directory-file-name sub) ignored)
-          (puthash sub (cons (emacs-cpp-project-files--time sub)
-                             (emacs-cpp-project-files--names sub))
-                   dirs))))
-    dirs))
-
-(defun emacs-cpp-project-files--current-p (dirs)
-  "Non-nil while DIRS still describe the project's files.
-A directory whose time changed is read again: when its names differ from those
-recorded only by Emacs's own files, its new time is recorded and it stands."
-  (catch 'stale
-    (maphash
-     (lambda (dir entry)
-       (let ((time (emacs-cpp-project-files--time dir)))
-         (unless (equal time (car entry))
-           (if (and time
-                    (equal (cl-sort (cl-remove-if #'emacs-cpp-project-files--emacs-own-p
-                                                  (emacs-cpp-project-files--names dir))
-                                    #'string<)
-                           (cl-sort (cl-remove-if #'emacs-cpp-project-files--emacs-own-p
-                                                  (copy-sequence (cdr entry)))
-                                    #'string<)))
-               (setcar entry time)
-             (throw 'stale nil)))))
-     dirs)
-    t))
-
-(defun emacs-cpp-project-files (list-files root)
-  "Return ROOT's files as LIST-FILES (`projectile-project-files') does, kept.
-`:around' advice: the kept list while ROOT's directories hold, else LIST-FILES
-anew, with projectile's own cache off.  The times are read right after the
-listing; a change in those few milliseconds shows at that directory's next one,
-or after `projectile-invalidate-cache' (`C-c p i').  A remote ROOT is listed
-every time, as projectile does: one `stat' per directory would be a round trip
-each; so is a ROOT `emacs-cpp-keep-project-files' turns off (D-178)."
-  (if (or (file-remote-p root) (not (emacs-cpp-project-files--wanted-p root)))
-      (progn (remhash root emacs-cpp-project-files--cache)
-             (funcall list-files root))
-    (let ((entry (gethash root emacs-cpp-project-files--cache))
-          ;; Local paths only: the handlers' lookup was most of the cost
-          ;; (`file-name-directory', 150 ms over deal.II's 34556 files).
-          (file-name-handler-alist nil))
-      (if (and entry (emacs-cpp-project-files--current-p (cdr entry)))
-          (car entry)
-        (let* ((files (let ((projectile-enable-caching nil)
-                            (file-name-handler-alist (default-value 'file-name-handler-alist)))
-                        (funcall list-files root)))
-               (dirs (emacs-cpp-project-files--directories root files)))
-          (puthash root (cons files dirs) emacs-cpp-project-files--cache)
-          files)))))
-
-(defun emacs-cpp-project-files-forget (&rest _)
-  "Forget every kept project file list (after `projectile-invalidate-cache')."
-  (clrhash emacs-cpp-project-files--cache))
-
 (use-package projectile
   :hook (after-init . projectile-mode)
   :config
-  (advice-add 'projectile-project-files :around #'emacs-cpp-project-files)
-  (advice-add 'projectile-invalidate-cache :after #'emacs-cpp-project-files-forget)
   (keymap-set projectile-mode-map "C-c p" #'projectile-command-map)
   ;; `C-c p s r' and `C-c p s a' want rg.el / ag.el, which are not vendored (D-135):
   ;; ripgrep over the project through consult instead (as `M-s r'), ag not at all.

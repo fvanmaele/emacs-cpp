@@ -483,6 +483,53 @@ Fixed once, no decision reopened; listed so the pattern stays visible.
 - 0067: `init-debug-lldb-preset-builds-stops-and-steps` timed out once (121 s) in a full
   run, passed alone and in the next run; flaky, watched.
 
+## 2026-11-05 - Kept project file lists, built and reverted (T-133, D-177, D-178)
+
+### Trigger / symptom
+The owner reverted T-133 after its benchmarks: the first call, and the first after any
+change of structure, cost up to four times the old listing on large trees (LLVM's
+sources 1366 ms against 336; deal.II 178 against 64), which the owner ruled not
+acceptable (D-179), after first accepting deal.II's.
+
+### Timeline
+RESEARCH_go_to_anything 22 (T-133 researched) -> O-85 (f), D-177 -> owner: tier 3 ->
+S21 (criteria confirmed; PASS with `m2`, 0126) -> d4276bf (built, 0127; done when 3's
+"first call as today" not met on deal.II, put to the owner) -> 540a0aa (opt-out,
+D-178) -> 779ceb2 (benchmarks over 14 trees; deal.II accepted) -> this commit (reverted,
+D-179, 0128).
+
+### Root cause
+S21's criteria bounded the call with the list current (criterion 3) but not the first
+call, nor the call after a change of structure, which is a first call again: the
+feature's own cost (reading every directory and its names) sat on that path, and the
+spike never measured it. It surfaced only after building, in done when 3, and its
+scale (four times on the largest tree) only in the wider benchmarks afterwards.
+
+### Which assumptions broke
+- D-177, journal 0127: "190 ms for deal.II's first call after a change is acceptable
+  (68 ms today)" / "Would break if: the owner judges it slower than before in a
+  project that changes structure often".
+- D-177, journal 0126 (S21): "The first call per root costs a listing as today (444 -
+  493 ms on emacs-cpp) plus reading the directories" - recorded as a finding, never as
+  a criterion, and measured on emacs-cpp only, where the listing dominates.
+
+### Blast radius / recovery
+- Last known-good tag: v1.0.0 (before T-133). Discarded: the module code, its test,
+  the option, the manual paragraph, H-28. Kept: S21's harness and results, journal
+  0126 - 0128, RESEARCH 22's measurements.
+
+### DESIGN updates
+D-179 supersedes D-177 and D-178; O-85 reopened with the constraint that no call may
+be slower than today's listing.
+
+### Lessons
+- A spike's criteria bound every path the change makes slower, not only the one it
+  makes faster: here the first call and the call after a change.
+- Benchmark across tree sizes, the largest at hand included, in the spike, before
+  building: the cost that decided it showed only on deal.II and LLVM's sources.
+- An unmet done-when point is a FAIL to report as such before asking whether it is
+  acceptable.
+
 ## Template
 
 ## <YYYY-MM-DD> - <short title>

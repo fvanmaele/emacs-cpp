@@ -11,7 +11,6 @@
 ;;; Code:
 
 (require 'ert)
-(require 'cl-lib)
 (require 'init-test)
 
 (ert-deftest init-project-search-program ()
@@ -109,90 +108,6 @@ notifications, so the buffers are polled here, as on the Mac."
           (with-current-buffer buffer (set-buffer-modified-p nil))
           (kill-buffer buffer)))
       (delete-directory dir t))))
-
-;; D-177 / T-133: a project's file list kept while its directories hold.
-(ert-deftest init-project-files-kept ()
-  "D-177, S21: `projectile-project-files' lists a project once and serves the kept
-list until a directory it depends on changes: files created, removed or renamed
-outside Emacs, a new directory with a file, a file in a directory that held none
-are each seen by the next call; a file in a git-ignored directory, and Emacs's own
-lock and auto-save files during an edit, list nothing anew; `C-c p i' forgets.
-D-178: `emacs-cpp-keep-project-files' nil, in the project's .dir-locals.el or
-globally, lists on every call; set from Customize it forgets the kept lists."
-  (init-test--load)
-  (should (advice-member-p #'emacs-cpp-project-files 'projectile-project-files))
-  (let* ((root (file-name-as-directory
-                (file-truename (make-temp-file "emacs-cpp-files" t))))
-         (default-directory root)
-         (listings 0)
-         (count (lambda (&rest _) (cl-incf listings))))
-    (cl-flet ((write (rel)
-                (let ((file (expand-file-name rel root)))
-                  (make-directory (file-name-directory file) t)
-                  (write-region (concat rel "\n") nil file nil 'silent)))
-              (files () (sort (copy-sequence (projectile-project-files root)) #'string<))
-              (listed (thunk) (let ((before listings)) (funcall thunk) (- listings before))))
-      (advice-add 'projectile--dir-files-alien-maybe-async :before count)
-      (unwind-protect
-          (progn
-            (write ".gitignore") (write-region "build/\n" nil (expand-file-name ".gitignore" root))
-            (write "a.cc") (write "src/b.cc") (write "src/old.cc") (write "build/x.o")
-            (make-directory (expand-file-name "empty" root))
-            (should (eql 0 (call-process "git" nil nil nil "init" "-q")))
-            (clrhash emacs-cpp-project-files--cache)
-            (should (= 1 (listed #'files)))
-            (should (equal (files) '(".gitignore" "a.cc" "src/b.cc" "src/old.cc")))
-            (should (= 0 (listed #'files)))
-            (write "src/new.cc")
-            (should (= 1 (listed #'files)))
-            (should (member "src/new.cc" (files)))
-            (delete-file (expand-file-name "src/new.cc" root))
-            (should-not (member "src/new.cc" (files)))
-            (rename-file (expand-file-name "src/old.cc" root)
-                         (expand-file-name "src/renamed.cc" root))
-            (should (member "src/renamed.cc" (files)))
-            (should-not (member "src/old.cc" (files)))
-            (write "newdir/c.cc")
-            (should (member "newdir/c.cc" (files)))
-            (write "empty/d.cc")
-            (should (member "empty/d.cc" (files)))
-            ;; A git-ignored directory never counts.
-            (write "build/y.o")
-            (should (= 0 (listed #'files)))
-            ;; An edit: lock file, auto-save file, both removed at save.
-            (let ((buffer (find-file-noselect (expand-file-name "a.cc" root)))
-                  (create-lockfiles t))
-              (unwind-protect
-                  (with-current-buffer buffer
-                    (auto-save-mode 1)
-                    (insert "// edit\n")
-                    (should (file-symlink-p (expand-file-name ".#a.cc" root)))
-                    (should (= 0 (listed #'files)))
-                    (do-auto-save t)
-                    (should (file-exists-p buffer-auto-save-file-name))
-                    (should (= 0 (listed #'files)))
-                    (save-buffer)
-                    (should (= 0 (listed #'files))))
-                (kill-buffer buffer)))
-            (projectile-invalidate-cache nil)
-            (should (= 1 (listed #'files)))
-            ;; D-178: off for this project in its .dir-locals.el, then globally.
-            (write-region "((nil . ((emacs-cpp-keep-project-files . nil))))\n" nil
-                          (expand-file-name ".dir-locals.el" root))
-            (should (= 1 (listed #'files)))
-            (should (= 1 (listed #'files)))
-            (delete-file (expand-file-name ".dir-locals.el" root))
-            (should (= 1 (listed #'files)))
-            (should (= 0 (listed #'files)))
-            (let ((emacs-cpp-keep-project-files nil))
-              (should (= 1 (listed #'files)))
-              (should (= 1 (listed #'files))))
-            (customize-set-variable 'emacs-cpp-keep-project-files nil)
-            (should (= 0 (hash-table-count emacs-cpp-project-files--cache)))
-            (customize-set-variable 'emacs-cpp-keep-project-files t))
-        (advice-remove 'projectile--dir-files-alien-maybe-async count)
-        (clrhash emacs-cpp-project-files--cache)
-        (delete-directory root t)))))
 
 (provide 'init-project-test)
 ;;; init-project-test.el ends here
