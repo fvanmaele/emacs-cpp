@@ -2201,6 +2201,25 @@ presets, GoogleTest runner.
   measured across 63 files. Findings in; O-43.
 
 ## Open questions ledger (LIVING)
+- O-88 (OPEN 2026-11-05, from T-121; D-140 (c)): switch the Mac's Python server from
+  pyright to ty (RESEARCH_python_ty 4c). Measured: ty's first `M-.` 6 - 13 times
+  sooner on a small tree, no sooner on SymPy (0.4 - 0.5 s, Arch 65 - 72 ms, cause
+  UNVERIFIED); `M-?` over 5600 references 4.2 - 5.3 s through eglot against 6.8 -
+  9.5 s, complete where pyright's first reply was not; half the memory. ty finds
+  packages in the user site-packages only through `environment.extra-paths`.
+  Options:
+  (a) ty on the Mac, `defaults-darwin.el` naming `("ty" "server")` and `make
+  macos-ports` as its install command, the config sending
+  `environment.extra-paths` = Python's user site-packages (`python3 -m site
+  --user-site`, read when ty starts) on the Mac only. Against: a 0.0.x beta the owner
+  bumps by hand (D-180); the Mac's first `M-.` on a SymPy-sized tree as slow as
+  pyright's; the extra path also adds packages a project's own virtual environment
+  would not have (a `.venv` takes precedence for its own packages, UNVERIFIED).
+  (b) as (a), without the extra path; user-installed packages unresolved. Against:
+  numpy, pandas and matplotlib unresolved in RMO's scripts.
+  (c) pyright stays (D-140 as is). Against: `M-?`'s incomplete first reply; 2 times
+  the memory; the platforms keep two servers and two test paths.
+  Recommendation: (a).
 - O-87 (RESOLVED 2026-11-05 with D-181: (a); owner: "(a)"; owner 2026-11-05: "Explore
   some alternative file paths for the local ports, only writeable by root"): where
   MacPorts reads the local port tree. Found: for a `file://` source inside a git work

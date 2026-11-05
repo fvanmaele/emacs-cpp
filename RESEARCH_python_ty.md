@@ -112,6 +112,53 @@ eglot sends it. Two ways, two runs each, the servers alternating:
   each time.
 - The three references only pyright lists (5631 against 5628) were not looked at.
 
+## 4c. The same on the Mac (T-121, 2026-11-05)
+The Mac (Apple silicon, 11 cores, load 2.2 - 4.7), ty 0.0.97 from the local port
+(D-180), pyright 1.1.414 from MacPorts, Python 3.14 from MacPorts; 4b's two ways
+with a client and a harness written again (scratch directory, not kept). The theme
+tree is not on the Mac; RMO-drafts' `staging/` (29 `.py`, 6295 lines, a copy as a
+git repository) stands in: `M-.` from `explore_problems.py` to `format_text` in
+`md_table_align.py`, `M-?` on its definition. SymPy 1.14 from PyPI's wheel (sha256
+checked; 1532 `.py`, 753362 lines, the same tree as 4b's), `Symbol` as in 4b. Two
+runs each, servers alternating. Through eglot the shipped profile shows `M-?`
+through `consult-xref`; the "buffer" column binds Emacs's own
+`xref--show-xref-buffer`, as 4b's `*xref*`.
+
+| Tree, server | `M-.` cold / warm | `M-?` cold / warm, server alone | `M-?` through eglot, cold / warm / buffer | results | RSS |
+|---|---|---|---|---|---|
+| staging, pyright | 276 - 357 / 0.2 - 0.3 ms | 41 - 181 / 6.4 - 6.9 ms | 55 - 173 / 6 - 8 / 6 - 150 ms | 11 in 6 files | 144 MB |
+| staging, ty | 36 - 57 / 0.1 ms | 31 - 35 / 0.7 ms | 60 - 64 / 2 / 3 - 4 ms | 11 in 6 files | 64 MB |
+| SymPy, pyright | 403 - 433 / 0.2 - 0.3 ms | 11.4 - 12.0 s / 1.79 - 2.35 s | 6.8 - 6.9 s / 8.8 - 9.3 s / 9.1 - 9.5 s | 5631 in 408 files | 1715 - 1735 MB |
+| SymPy, ty | 403 - 539 / 0.1 ms | 0.91 - 1.08 s / 51 - 60 ms | 4.8 - 5.3 s / 4.2 - 4.5 s / 4.2 s | 5628 in 408 files | 866 - 868 MB |
+
+`M-.` through eglot: staging pyright 431 - 520 ms cold, ty 33 - 65 ms; SymPy pyright
+232 - 234 ms, ty 392 - 423 ms; warm under 1 ms for both.
+
+- **`M-.`:** on the small tree ty is 6 - 13 times sooner, as on Arch. On SymPy ty's
+  first jump takes 0.4 - 0.5 s here against 65 - 72 ms on Arch (4b), and is no
+  sooner than pyright's; pinning `python-version` did not change it (360 - 422 ms).
+  Why (ty 0.0.97 against 0.0.90, the machine): UNVERIFIED.
+- **`M-?`, 5600 references:** the server alone, ty 11 times faster cold and 30 - 40
+  times warm, at half the memory; through eglot ty 4.2 - 5.3 s, pyright 6.8 - 9.5 s,
+  most of it eglot reading the 408 files (as 4b).
+- **pyright's first `M-?` through eglot was incomplete again:** 353 references in 80
+  files in both runs (Arch: 358 in 81); the server alone gave 5631. ty's was complete.
+
+**Round 1's user site-packages case (RESEARCH_python_macos 2), ty 0.0.97.** numpy,
+pandas, matplotlib and orgparse sit in `~/Library/Python/3.14/lib/python/site-packages`
+(`pip install --user`). `M-.` on `np.abs` in `staging/plot_convergence.py`:
+- ty, no settings: no location; `ty check` reports `import-not-found` for all four.
+- `--python /opt/local/bin/python3` (round 1's way): rejected, ty takes `/opt/local`
+  as the environment and finds no `site-packages` there. `--python` with the
+  framework's prefix or its `bin/python3.14`: MacPorts' site-packages only, the four
+  still unresolved; as `environment.python` in the server: no location. Without a
+  Python, ty assumes Python 3.15.
+- `environment.extra-paths` = the user site-packages, sent as ty's inline
+  configuration (`{"configuration": {"environment": {"extra-paths": [...]}}}`, the
+  shape `lisp/init-python.el` sends for D-142): resolves all four; `M-.` 130 ms cold
+  into numpy's `__init__.pyi` (pyright: the same stub, 457 ms); `M-?` 20 in 6 files
+  (pyright 21 in 7, not compared further); RSS 159 MB (pyright 409 MB).
+
 ## 4a. Why the diagnostics differ on the same file
 The first count (pyright 15, ty 48, 2026-10-20) came from this research's client, which
 did not announce `tagSupport`; pyright then leaves out its "unnecessary" hints, ty
@@ -369,8 +416,8 @@ navigation, which ty answers in both.
 
 ## 6. Open
 - Configuration surface: ty asks for the `ty` section (`workspace/configuration`);
-  which settings the config would send (`environment.python` for the Mac's user
-  site-packages, round 1) is not researched.
+  for the Mac's user site-packages `environment.extra-paths` works and
+  `environment.python` does not (4c).
 - A real Python project of the owner's (round 1 used pip's source and RMO's
   `staging/*.py`): not repeated on Arch.
 - ty under load and over many sessions (round 1: 64 sessions, no failure; here about
