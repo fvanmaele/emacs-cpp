@@ -59,16 +59,6 @@ service's plan) is not an item.
      collapsed block).
   Report back: the comment's link.
 
-- **H-29** (2026-11-05, T-121, D-180, D-181) Install ty on the Mac from the local port.
-  System actions (agreed 2026-11-05 with (a)): a root-owned directory under
-  `/opt/local/var/macports/sources`, one line in `sources.conf` (the old file kept as
-  `sources.conf.emacs-cpp-orig`), `sudo port install ty`; all in
-  `scripts/install-macos-ports.sh`.
-  1. On the Mac: `cd ~/source/repos/emacs-cpp && make macos-ports`;
-     read the Portfile it prints, answer `y`, give the sudo password.
-  2. On the Mac: `/opt/local/bin/ty --version`
-  Report back: step 1's last lines and step 2's output.
-
 - **H-24** (2026-11-04, O-80, D-165) Send the report on `process-attributes` CPU times
   to the Emacs bug tracker (outward, so yours); the draft is
   `docs/upstream/process-attributes-cpu-time-apple-silicon.md`.
