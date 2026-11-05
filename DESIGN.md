@@ -2294,6 +2294,21 @@ presets, GoogleTest runner.
   (g) The reverter runs a hook with each root's created and removed paths, the
   projectile setup subscribes. Against: the dependency turned round, not removed;
   freshness still needs the reverter watching that root.
+  Options after D-179 (2026-11-05, RESEARCH_go_to_anything 22, no cache):
+  (h) `projectile-git-submodule-command` nil, with fd required for git listings
+  (`projectile-git-use-fd` t, fd on `exec-path` checked at startup, failing loudly
+  as D-081 does for rg). emacs-cpp 426 -> 15.9 ms, RMO-drafts 23.5 -> 11.0 ms, every
+  other tree as today (14 measured); the same files without the duplicate submodule
+  entries `M-o` shows today. Against: depends on fd entering submodules (without fd
+  their files would vanish, hence the check); a projectile update could change how
+  `alien` git listing treats submodules (tested by a new ERT test); trees without
+  submodules gain nothing (deal.II 64 ms, LLVM 340 ms per call stay).
+  (i) Drop the duplicates only (`delete-dups` on the list `M-o` and `C-c p f` get).
+  Against: no speed-up; the per-submodule pass still runs.
+  (j) Silence "Projectile is indexing" (the progress message), nothing else.
+  Against: cosmetic; a real wait loses its sign.
+  Combined: (h) removes the cost and the duplicates; (j) on top would hide what
+  remains (deal.II's 64 ms). Recommendation: (h).
   Combined: (c) holds (a)'s speed with fresh lists where the reverter already
   watches; (f) does without it. Recommendation: (f) (was (c) on 2026-11-04): no
   coupling, every root, both machines.
