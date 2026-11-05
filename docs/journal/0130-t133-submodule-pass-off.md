@@ -6,7 +6,7 @@
 - **Decisions:** D-183 (O-85 (h)); within D-179 (no call slower than today)
 - **Host:** hp-elitedesk (i5-6500, 4 cores, 15 GB, Arch)
 - **Done when:** T-133's seven points (TASKS.md, agreed 2026-11-05); 1 - 6 met on Arch
-  (5: see below), 7 the Mac's `make test` on H-30.
+  (5: see below), 7 on the Mac 2026-11-06 (below).
 
 > Plain English for someone who does not read Emacs Lisp fluently.
 
@@ -41,6 +41,11 @@ projectile returns before it reads the setting (`projectile--git-submodules`,
 `lib/projectile/projectile.el:3707`): both settings run the same code there, so the
 spread (8.5 - 12.2 ms for the same setting) is noise, not a cost.
 
+Point 7 (the Mac, H-30, the owner 2026-11-06): `command -v fd` gives
+`/opt/local/bin/fd` (MacPorts, 10.5.1); `make test` ran 156 tests, 154 as expected,
+0 unexpected, 2 skipped (`init-debug-gdb-arguments-follow-the-options`,
+`init-debug-gdb-preset-builds-stops-and-steps`: no gdb on Apple silicon, D-051).
+
 ## Concepts (Emacs Lisp) explained
 - `use-package`'s `:init` runs at startup, before the package loads; projectile is
   loaded later (`after-init`). A `setq` there sets a variable before projectile's
@@ -66,7 +71,8 @@ spread (8.5 - 12.2 ms for the same setting) is noise, not a cost.
   if:** it changes `projectile-git-use-fd`'s meaning; the submodule test fails.
   **DESIGN bet:** D-183.
 - **Assumed:** MacPorts' fd behaves as Arch's 10.5.0. **Would break if:** an older fd
-  skips submodules; the Mac's `make test` (H-30) shows it. **DESIGN bet:** D-057.
+  skips submodules; the Mac's `make test` (H-30) shows it. Held 2026-11-06: MacPorts'
+  fd 10.5.1 passes `init-project-files-once-with-submodules`. **DESIGN bet:** D-057.
 
 ## How to verify
 `make test` (`init-project-files-once-with-submodules`, `init-project-fd-check`); in
