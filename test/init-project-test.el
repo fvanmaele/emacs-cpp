@@ -116,7 +116,9 @@ notifications, so the buffers are polled here, as on the Mac."
 list until a directory it depends on changes: files created, removed or renamed
 outside Emacs, a new directory with a file, a file in a directory that held none
 are each seen by the next call; a file in a git-ignored directory, and Emacs's own
-lock and auto-save files during an edit, list nothing anew; `C-c p i' forgets."
+lock and auto-save files during an edit, list nothing anew; `C-c p i' forgets.
+D-178: `emacs-cpp-keep-project-files' nil, in the project's .dir-locals.el or
+globally, lists on every call; set from Customize it forgets the kept lists."
   (init-test--load)
   (should (advice-member-p #'emacs-cpp-project-files 'projectile-project-files))
   (let* ((root (file-name-as-directory
@@ -173,7 +175,21 @@ lock and auto-save files during an edit, list nothing anew; `C-c p i' forgets."
                     (should (= 0 (listed #'files))))
                 (kill-buffer buffer)))
             (projectile-invalidate-cache nil)
-            (should (= 1 (listed #'files))))
+            (should (= 1 (listed #'files)))
+            ;; D-178: off for this project in its .dir-locals.el, then globally.
+            (write-region "((nil . ((emacs-cpp-keep-project-files . nil))))\n" nil
+                          (expand-file-name ".dir-locals.el" root))
+            (should (= 1 (listed #'files)))
+            (should (= 1 (listed #'files)))
+            (delete-file (expand-file-name ".dir-locals.el" root))
+            (should (= 1 (listed #'files)))
+            (should (= 0 (listed #'files)))
+            (let ((emacs-cpp-keep-project-files nil))
+              (should (= 1 (listed #'files)))
+              (should (= 1 (listed #'files))))
+            (customize-set-variable 'emacs-cpp-keep-project-files nil)
+            (should (= 0 (hash-table-count emacs-cpp-project-files--cache)))
+            (customize-set-variable 'emacs-cpp-keep-project-files t))
         (advice-remove 'projectile--dir-files-alien-maybe-async count)
         (clrhash emacs-cpp-project-files--cache)
         (delete-directory root t)))))

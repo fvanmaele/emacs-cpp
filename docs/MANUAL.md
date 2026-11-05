@@ -167,7 +167,9 @@ After `C-x u` (undo), plain `u` undoes again.
 
 `C-c p f` and `M-o` list the project's files once and reuse the list until a file is
 created, removed or renamed in it, by Emacs or outside it; then the next one lists
-again. `C-c p i` forgets the list at once (D-177).
+again. `C-c p i` forgets the list at once (D-177). To list on every call instead:
+`M-x customize-variable RET emacs-cpp-keep-project-files`, or for one project its
+`.dir-locals.el`: `((nil . ((emacs-cpp-keep-project-files . nil))))` (D-178).
 
 A file changed outside Emacs (`git checkout` in a shell) is reloaded into its buffer
 when the buffer has no unsaved edits. In a project (a git repository or a directory
