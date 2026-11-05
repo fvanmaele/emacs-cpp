@@ -2201,6 +2201,20 @@ presets, GoogleTest runner.
   measured across 63 files. Findings in; O-43.
 
 ## Open questions ledger (LIVING)
+- O-87 (RESOLVED 2026-11-05 with D-181: (a); owner: "(a)"; owner 2026-11-05: "Explore
+  some alternative file paths for the local ports, only writeable by root"): where
+  MacPorts reads the local port tree. Found: for a `file://` source inside a git work
+  tree, `port sync` and `port selfupdate` run `git pull --rebase --autostash` there
+  (`macports.tcl` `GetVCSUpdateCmd`, `UpdateVCS`), so D-180's path in the repository
+  would pull and rebase the owner's checkout on every selfupdate; for any `file://`
+  source they re-run `portindex`. Options, all root:wheel 755 on the Mac: (a)
+  `/opt/local/var/macports/sources/emacs-cpp/ports` (MacPorts' data directory; it
+  might one day clean directories it does not know, UNVERIFIED); (b)
+  `/opt/local/share/emacs-cpp/macports` (inside the prefix, owned by no port); (c)
+  `/opt/emacs-cpp/macports` (survives MacPorts' removal); (d) `/Library/Application
+  Support/emacs-cpp/macports` (a space in the `file://` URL, UNVERIFIED; group
+  admin); (e) `/usr/local/share/emacs-cpp/macports` (other installers chown
+  `/usr/local`).
 - O-86 (RESOLVED 2026-11-05 with D-180: (d), a binary port; owner: "(d) binary port";
   owner 2026-11-05: "Can we vendor ty and ruff to make distribution easier on
   macos?"): ruff has a MacPorts port (0.17.3, D-143's source), so nothing to vendor;
@@ -2646,6 +2660,17 @@ presets, GoogleTest runner.
   Against: buffers become current later than 0.13 s; another measurement round on
   both machines. Not taken: (b) keep runs 1 - 3's PASS (choosing runs), (c) three more
   idle runs first (more samples, same 0.30 s).
+- DECIDED D-181 (owner 2026-11-05: "(a)"; O-87; amends D-180): MacPorts reads the
+  local ports from a root-owned copy, `/opt/local/var/macports/sources/emacs-cpp/ports`,
+  not from the repository: a `file://` source in a git work tree gets `git pull
+  --rebase --autostash` on every `port selfupdate`. The repository's
+  `packaging/macports` stays the source of record; the owner reviews it (`diff -r`),
+  copies it with `sudo cp -R` (root-owned, no `-p`) and runs `sudo portindex` in the
+  copy (H-29). `sources.conf` names `file:///opt/local/var/macports/sources/emacs-cpp/ports`
+  above the `rsync` line. Against: a copy step per change that can be forgotten (the
+  installed version then lags the repository's, `port info ty` shows it); MacPorts
+  might one day clean unknown directories under `sources/` (UNVERIFIED; the install
+  would then fail on the missing source). Not taken: (b) - (e).
 - DECIDED D-180 (owner 2026-11-05: "(d) binary port"; O-86): ty on the Mac comes
   from a local MacPorts port in this repository, `packaging/macports/devel/ty/Portfile`
   (NEW): Astral's release asset `ty-aarch64-apple-darwin.tar.gz` (Developer ID signed,
@@ -2653,7 +2678,8 @@ presets, GoogleTest runner.
   `/opt/local/bin/ty`; one distfile directory per version (the asset's name has no
   version). MacPorts finds it by a `file://` line above the `rsync` line in
   `/opt/local/etc/macports/sources.conf` and `portindex` run in `packaging/macports`
-  (the owner's, H-29). A network call (the asset from GitHub, at install) and a file
+  (the owner's, H-29). Where MacPorts reads it: amended by D-181 (a root-owned copy).
+  A network call (the asset from GitHub, at install) and a file
   outside the repository (`/opt/local/bin/ty`), both MacPorts'. ruff stays MacPorts'
   own port (D-143). The Mac's Python server stays pyright until T-121 tests ty there
   (D-140 (c)). Against: the owner bumps the version and checksums by hand (ty 0.0.93 -
@@ -4281,6 +4307,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-178 | 2026-11-05 | the kept project file lists are opt-out (`emacs-cpp-keep-project-files`) (superseded by D-179) | 12 | D-177, D-163 |
 | D-179 | 2026-11-05 | T-133 reverted: no call slower than today's listing; supersedes D-177, D-178 | 12 | O-85 |
 | D-180 | 2026-11-05 | ty on the Mac from a local binary MacPorts port in `packaging/macports` | 5 | O-86 |
+| D-181 | 2026-11-05 | local ports read from a root-owned copy under MacPorts' `sources/`, not the repository | 5 | O-87 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |
