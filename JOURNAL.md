@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0127 | 2026-11-05 | T-133: projectile's lists kept while their directories hold | T-133 | D-177 |
 | 0126 | 2026-11-05 | S21: projectile's lists checked by directory times, PASS with m2 | S21, T-133 | D-177 |
 | 0125 | 2026-11-04 | S19 criterion 6 on RMO-drafts: FAIL, S19 FAIL | S19, T-132 | D-174, O-84 |
 | 0124 | 2026-11-04 | S19 on hp-elitedesk: criteria 1 - 5 pass, criterion 6 open | S19, T-132 | D-171 .. D-173, O-83 |
