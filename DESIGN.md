@@ -2703,6 +2703,11 @@ presets, GoogleTest runner.
   sees the user packages where the project's interpreter would not); a project
   whose environment changes during the session keeps the first answer; one more
   case the Mac has and Arch does not.
+  Options (owner 2026-11-05: "(c2)"): (u) is a user option,
+  `emacs-cpp-ty-user-site-packages` (NEW, default t, a safe local variable, so a
+  project's `.dir-locals.el` turns it off), as D-142's switch; (p) stays fixed on the
+  Mac (it yields to every project-level environment). Not taken: (c1) both
+  configurable with platform defaults, (c3) neither.
 - DECIDED D-181 (owner 2026-11-05: "(a)"; O-87; amends D-180): MacPorts reads the
   local ports from a root-owned copy, `/opt/local/var/macports/sources/emacs-cpp/ports`,
   not from the repository: a `file://` source in a git work tree gets `git pull
