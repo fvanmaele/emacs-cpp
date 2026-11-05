@@ -1283,6 +1283,27 @@ opening), the listing inside it 1.1 ms (32.0 ms the first time); with the option
 27.9 ms and 15.1 ms. emacs-cpp, whose listing is 411 ms, has no CMake presets for
 S11's harness (not measured there).
 
+**Without a cache, after D-179** (owner 2026-11-05: no call slower than today's
+listing; hp-elitedesk, batch Emacs with the pinned projectile, medians of 7, load below
+0.6): projectile's list for emacs-cpp holds 7232 entries but 3900 files: with fd
+listing git roots (`projectile-git-use-fd`, its default when fd is installed) one fd
+over the root already walks into every submodule, honouring each one's ignore rules,
+and projectile's per-submodule pass (`projectile-get-sub-projects-files`) adds every
+submodule file a second time (`lib/embark/.gitignore`); RMO-drafts 973 entries, 845
+files (`fmt/`). `M-o` does not drop them (`init-go-to-anything.el:301`).
+`projectile-git-submodule-command` nil skips that pass:
+| tree | submodules | entries today | today | entries, pass off | pass off | files |
+|---|---|---|---|---|---|---|
+| 10 repositories without submodules | 0 | 10 - 853 | 8.4 - 14.0 ms | the same | 8.5 - 14.4 ms | same |
+| emacs-cpp | 31 | 7232 | 426.0 ms | 3900 | 15.9 ms | same |
+| RMO-drafts | 1 | 973 | 23.5 ms | 845 | 11.0 ms | same |
+| deal.II checkout | 0 | 34556 | 63.9 ms | 34556 | 64.3 ms | same |
+| LLVM 23.1.4 sources | 0 | 180522 | 360.1 ms | 180522 | 340.4 ms | same |
+"same": the pass-off list equals today's without its duplicates. Without fd the pass
+is what lists submodules (`git ls-files` does not enter them), so the setting needs fd
+for git roots. One fd over emacs-cpp directly: 12.7 ms, the same 3900 files; the
+per-repository git commands run in parallel: 187 ms for emacs-cpp, 1652 ms for deal.II.
+
 ## Sources
 - JetBrains, CLion help "Search everywhere":
   https://www.jetbrains.com/help/clion/searching-everywhere.html
