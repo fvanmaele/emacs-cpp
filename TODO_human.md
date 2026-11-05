@@ -61,20 +61,13 @@ service's plan) is not an item.
 
 - **H-29** (2026-11-05, T-121, D-180, D-181) Install ty on the Mac from the local port.
   System actions (agreed 2026-11-05 with (a)): a root-owned directory under
-  `/opt/local/var/macports/sources`, one line in `sources.conf`, `sudo port install ty`.
-  1. On the Mac, review what root will run:
-     `cat ~/source/repos/emacs-cpp/packaging/macports/devel/ty/Portfile`
-  2. On the Mac: `sudo mkdir -p /opt/local/var/macports/sources/emacs-cpp && sudo cp -R
-     ~/source/repos/emacs-cpp/packaging/macports
-     /opt/local/var/macports/sources/emacs-cpp/ports`
-  3. On the Mac: `cd /opt/local/var/macports/sources/emacs-cpp/ports && sudo portindex`
-  4. On the Mac: `sudo nano /opt/local/etc/macports/sources.conf`, add the line
-     `file:///opt/local/var/macports/sources/emacs-cpp/ports` directly above the line
-     `rsync://rsync.macports.org/macports/release/tarballs/ports.tar.gz [default]`, save.
-  5. On the Mac: `port info ty | head -1` (expected: `ty @0.0.97 (devel, python)`)
-  6. On the Mac: `sudo port install ty`
-  7. On the Mac: `/opt/local/bin/ty --version`
-  Report back: the output of steps 5 - 7 (step 6's last lines).
+  `/opt/local/var/macports/sources`, one line in `sources.conf` (the old file kept as
+  `sources.conf.emacs-cpp-orig`), `sudo port install ty`; all in
+  `scripts/install-macos-ports.sh`.
+  1. On the Mac: `cd ~/source/repos/emacs-cpp && make macos-ports`;
+     read the Portfile it prints, answer `y`, give the sudo password.
+  2. On the Mac: `/opt/local/bin/ty --version`
+  Report back: step 1's last lines and step 2's output.
 
 - **H-24** (2026-11-04, O-80, D-165) Send the report on `process-attributes` CPU times
   to the Emacs bug tracker (outward, so yours); the draft is
