@@ -240,6 +240,7 @@ Observed on the owner's Mac, 2026-10-09 (D-050):
   (pyright 370 errors, ty 298, both mostly `gi.repository` without stubs). Accepted:
   ty's weaker inference of unannotated code (4a). (c), ty on the Mac too, waits until
   ty is tested there (T-121; a local port, RESEARCH_python_ty 7; the port: D-180).
+  The Mac's pyright superseded by D-182 (ty on both, 2026-11-05).
   Built by T-120.
 - DECIDED D-142 (owner 2026-10-21, O-75: "make return-type inference opt-in with a
   per-project .dir-locals.el switch"): ty's `analysis.return-type-inference` stays
@@ -2688,26 +2689,27 @@ presets, GoogleTest runner.
   Against: buffers become current later than 0.13 s; another measurement round on
   both machines. Not taken: (b) keep runs 1 - 3's PASS (choosing runs), (c) three more
   idle runs first (more samples, same 0.30 s).
-- DECIDED D-182 (owner 2026-11-05: "O-88 (a)"; supersedes D-140 (c)'s wait): ty is
-  the Python server on the Mac too, with MacPorts' and the user's packages found
-  (RESEARCH_python_ty 4c - 4e). Shape PROPOSED 2026-11-05 from 4e, owner to agree
-  (T-134): not `environment.python` inline (it overrides a project's `.venv` and its
-  own setting, 4e); instead (p) ty's process gets the directory of `python3`'s true
-  name first on PATH (`file-truename`, no process), so ty's own discovery finds
-  MacPorts' Python only where nothing else is set; (u) `environment.extra-paths` =
-  the user site-packages, sent only when the project has no `.venv` in its root, no
+- DECIDED D-182 (owner 2026-11-05: "O-88 (a)"; supersedes D-140 (c)'s wait): ty is the
+  Python server on the Mac too, with MacPorts' and the user's packages found
+  (RESEARCH_python_ty 4c - 4e). Shape from 4e, agreed with T-134 (owner 2026-11-05: "T-134
+  agree"), built (0129): not `environment.python` inline (it overrides a project's `.venv`
+  and its own setting, 4e); instead (p) ty's process gets the directory of `python3`'s
+  true name first on PATH (`file-truename`, no process), so ty's own discovery finds
+  MacPorts' Python only where nothing else is set; (u) `environment.extra-paths` = the
+  user site-packages, sent only when the project has no `.venv` in its root, no
   `VIRTUAL_ENV` or `CONDA_PREFIX` is set, its `ty.toml` / `pyproject.toml` names no
-  `python` for ty's environment (a regexp check), and Python reports
-  `ENABLE_USER_SITE` (one `python3 -c`, about 21 ms, once per session). Against: (u)'s
-  regexp check misses a `python` key written in a form it does not expect (ty then
-  sees the user packages where the project's interpreter would not); a project
-  whose environment changes during the session keeps the first answer; one more
-  case the Mac has and Arch does not.
+  `python` for ty's environment (a regexp check), and Python reports `ENABLE_USER_SITE`
+  (one `python3 -c`, about 21 ms, once per session). Against: (u)'s regexp check misses a
+  `python` key written in a form it does not expect (ty then sees the user packages where
+  the project's interpreter would not); a project whose environment changes during the
+  session keeps the first answer; one more case the Mac has and Arch does not.
   Options (owner 2026-11-05: "(c2)"): (u) is a user option,
-  `emacs-cpp-ty-user-site-packages` (NEW, default t, a safe local variable, so a
-  project's `.dir-locals.el` turns it off), as D-142's switch; (p) stays fixed on the
-  Mac (it yields to every project-level environment). Not taken: (c1) both
-  configurable with platform defaults, (c3) neither.
+  `emacs-cpp-ty-user-site-packages` (NEW, default t, a safe local variable, so a project's
+  `.dir-locals.el` turns it off), as D-142's switch; (p) stays fixed on the Mac (it yields
+  to every project-level environment). Not taken: (c1) both configurable with platform
+  defaults, (c3) neither. Built as `emacs-cpp-python--server-contact` (ty through `env
+  PATH=...` on the Mac; `M-o`'s headings name the program after `env`'s assignments) and
+  `emacs-cpp-python--user-site-for-ty` in `lisp/init-python.el`.
 - DECIDED D-181 (owner 2026-11-05: "(a)"; O-87; amends D-180): MacPorts reads the
   local ports from a root-owned copy, `/opt/local/var/macports/sources/emacs-cpp/ports`,
   not from the repository: a `file://` source in a git work tree gets `git pull

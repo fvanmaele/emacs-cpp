@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0129 | 2026-11-05 | T-134: ty on the Mac, MacPorts' and the user's packages found | T-134, T-121 | D-180 - D-182 |
 | 0128 | 2026-11-05 | T-133 reverted: no call slower than today's listing | T-133 | D-179 |
 | 0127 | 2026-11-05 | T-133: projectile's lists kept while their directories hold | T-133 | D-177 |
 | 0126 | 2026-11-05 | S21: projectile's lists checked by directory times, PASS with m2 | S21, T-133 | D-177 |
