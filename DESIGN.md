@@ -2634,6 +2634,15 @@ presets, GoogleTest runner.
   Against: buffers become current later than 0.13 s; another measurement round on
   both machines. Not taken: (b) keep runs 1 - 3's PASS (choosing runs), (c) three more
   idle runs first (more samples, same 0.30 s).
+- DECIDED D-178 (owner 2026-11-05: "Opt-out setting"): the kept project file lists
+  (D-177) are opt-out: the user option `emacs-cpp-keep-project-files`, t by default;
+  nil has projectile list on every call, as before T-133. Globally from Customize
+  (applied at once, the kept lists forgotten) or for one project in its
+  `.dir-locals.el`, read for the project's root on each call (`C-c p p` lists
+  another project than the current buffer's), safe as a boolean; as D-163 (b) for
+  the reverter. Cost: the current call 1.9 -> 2.1 ms (emacs-cpp), 10.2 -> 11.0 ms
+  (deal.II). Against: one more option; reading the root's `.dir-locals.el` on every
+  call.
 - DECIDED D-177 (owner 2026-11-05: "O-85 (f)"): the projectile setup keeps each
   root's file list and the modification times of its directories (read before the
   listing) and serves the list while every time is unchanged; one changed time and
@@ -4230,6 +4239,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-175 | 2026-11-04 | O-84 (a): no clangd patch 0014; gapped in-word symbol queries stay unfound | 10 | O-84, D-171 |
 | D-176 | 2026-11-04 | the reverter's filter keeps one lookup per record (0120's dedupe not taken) | 12 | D-168 |
 | D-177 | 2026-11-05 | O-85 (f): projectile's lists cached per root, checked by directory times | 12 | O-85, T-133 |
+| D-178 | 2026-11-05 | the kept project file lists are opt-out (`emacs-cpp-keep-project-files`) | 12 | D-177, D-163 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |

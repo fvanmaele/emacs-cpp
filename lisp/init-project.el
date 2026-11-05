@@ -64,6 +64,32 @@ Signal an error naming the executable otherwise (D-081)."
 (defvar emacs-cpp-project-files--cache (make-hash-table :test #'equal)
   "Project root -> (FILES . DIRS); DIRS maps a directory to (TIME . NAMES).")
 
+(defun emacs-cpp-project-files--set-option (symbol value)
+  "Set SYMBOL to VALUE and forget the kept lists (D-178)."
+  (set-default-toplevel-value symbol value)
+  (clrhash emacs-cpp-project-files--cache))
+
+(defcustom emacs-cpp-keep-project-files t
+  "Non-nil: `C-c p f' and `M-o' reuse a project's file list while its directories
+hold (D-177).  nil: projectile lists the project on every call, as before.  For
+one project, its .dir-locals.el, ((nil . ((emacs-cpp-keep-project-files . nil))));
+read for the project's root on each call.  Set from Customize it applies at once
+(D-178)."
+  :type 'boolean
+  :safe #'booleanp
+  :initialize #'custom-initialize-default
+  :set #'emacs-cpp-project-files--set-option
+  :group 'tools)
+
+(defun emacs-cpp-project-files--wanted-p (root)
+  "Non-nil when ROOT's lists are to be kept: the option as ROOT's directory sets it."
+  (and emacs-cpp-keep-project-files
+       (with-temp-buffer
+         (setq default-directory root)
+         (let ((enable-local-variables :safe))
+           (hack-dir-local-variables-non-file-buffer))
+         emacs-cpp-keep-project-files)))
+
 (defun emacs-cpp-project-files--time (dir)
   "DIR's modification time, nil when DIR is gone (one `stat')."
   (file-attribute-modification-time (file-attributes dir)))
@@ -180,9 +206,10 @@ anew, with projectile's own cache off.  The times are read right after the
 listing; a change in those few milliseconds shows at that directory's next one,
 or after `projectile-invalidate-cache' (`C-c p i').  A remote ROOT is listed
 every time, as projectile does: one `stat' per directory would be a round trip
-each."
-  (if (file-remote-p root)
-      (funcall list-files root)
+each; so is a ROOT `emacs-cpp-keep-project-files' turns off (D-178)."
+  (if (or (file-remote-p root) (not (emacs-cpp-project-files--wanted-p root)))
+      (progn (remhash root emacs-cpp-project-files--cache)
+             (funcall list-files root))
     (let ((entry (gethash root emacs-cpp-project-files--cache))
           ;; Local paths only: the handlers' lookup was most of the cost
           ;; (`file-name-directory', 150 ms over deal.II's 34556 files).
