@@ -239,7 +239,7 @@ macOS is supported since 2026-10-09 (D-050), with system tools from MacPorts onl
 ```sh
 sudo port install emacs-app +nativecomp +treesitter
 sudo port install cmake ninja clang-23 tree-sitter-cpp tree-sitter-python \
-    texinfo ripgrep fd pyright py314-debugpy
+    texinfo ripgrep fd py314-debugpy
 sudo port select --set clang mp-clang-23   # /opt/local/bin/clangd -> clangd 23
 xcode-select --install                     # git, make and the compiler
 ```
@@ -253,6 +253,14 @@ As steps 2 and 3 for Arch above. The MacPorts Emacs lives in
 ```sh
 make packages EMACS=/Applications/MacPorts/Emacs.app/Contents/MacOS/Emacs
 ```
+ty, the Python server, has no MacPorts port; the repository carries a local one
+(D-180), which MacPorts reads from a root-owned copy (D-181). The target shows the
+Portfile, asks, then copies it, adds the copy to MacPorts' `sources.conf` once and
+installs ty (sudo asks for the password); after a change to `packaging/macports`
+run it again:
+```sh
+make macos-ports
+```
 An Emacs started from the Dock does not read the shell profile; the config puts
 `/opt/local/bin`, `/opt/local/sbin` and `/usr/local/bin` on its `PATH` (D-089).
 
@@ -265,8 +273,11 @@ An Emacs started from the Dock does not read the shell profile; the config puts
   On both platforms eglot's watches cover only project files, through fswatch
   whatever the tree's size; changes to installed Python packages reach the Python
   server when it restarts (D-121).
-- **pyright instead of ty** for Python (D-140): ty has no MacPorts port and waits
-  until it is tested on the Mac (T-121).
+- **ty from a local port** (D-180, D-182): it starts with MacPorts' Python
+  framework first on its PATH, so it finds MacPorts' packages, and it gets the user
+  site-packages (`pip install --user`) where the project uses that interpreter (no
+  `.venv`, no `python` of its own for ty). A project turns the latter off in its
+  `.dir-locals.el`: `((nil . ((emacs-cpp-ty-user-site-packages . nil))))`.
 - **lldb instead of gdb.** Apple silicon has no gdb; debug with `C-x C-a d lldb-preset
   RET` (D-051). It starts `lldb-dap` from the PATH, which the lldb-23 port provides
   once selected; no codesigning was needed on the owner's Mac.
@@ -307,7 +318,7 @@ Load order is the contract: a module may only use modules loaded before it (DESI
 | `lisp/emacs-cpp-presets.el` | presets: active preset, clangd command, build commands |
 | `lisp/init-cmake.el` | `cmake-mode` from the system cmake package |
 | `lisp/init-debug.el` | dape, `gdb-preset`, `lldb-preset`, breakpoints in the fringe |
-| `lisp/init-python.el` | `python-ts-mode`, ty (Arch) / pyright (Mac), debugpy |
+| `lisp/init-python.el` | `python-ts-mode`, ty (both; the Mac's package paths, D-182), debugpy |
 | `lisp/init-cells.el` | `# %%` cells in Python scripts (code-cells) |
 | `lisp/init-git.el` | magit, treemacs-magit, diff-hl |
 | `lisp/init-writing.el` | markdown-mode, org-journal |

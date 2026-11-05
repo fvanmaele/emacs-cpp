@@ -38,7 +38,8 @@ divergence from upstream below exists to keep the editor interactive in front of
 - `early-init.el`, `init.el`, then `lisp/init-*.el` in a fixed order; each module
   loads alone (test `init-modules-load-alone`, D-098). One `use-package` form per
   package (DESIGN 4).
-- Language server: Emacs 31.1's own eglot (D-121) with clangd; ty or pyright for Python
+- Language server: Emacs 31.1's own eglot (D-121) with clangd; ty for Python (pyright on
+  the Mac until D-182, 2026-11-05)
   (D-140).
   clangd is started only for a project with `CMakePresets.json`, pointed at the active
   preset's `binaryDir` with `--compile-commands-dir` (D-005, D-016). eglot is refused

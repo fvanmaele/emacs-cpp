@@ -96,7 +96,7 @@ T-118 built (0092): `--index-file` from `.dir-locals.el`, `make library-index`
 T-119 built (0094): eglot's watches through the patched fswatch on both machines,
 required at startup (D-127); S18 run 5 `shipped` PASS on Arch, Mac run H-15.
 Python: ty on Arch, pyright on the Mac (D-140, T-120, 0095); ty on the Mac from a
-local binary MacPorts port (D-180, D-181, T-121; installed, measurements next).
+local binary MacPorts port (D-180, D-181), the Mac's server since D-182 (T-134, 0129).
 Matches: gaps inside a word, `M-o` words match file names (D-141, 0096).
 ty's return type inference per project (D-142, 0097); ruff deferred (D-143, T-124).
 Mac run of H-15 by the session (0098): S18 run 6 `shipped` PASS; FSEvents kept

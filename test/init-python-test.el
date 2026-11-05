@@ -3,11 +3,12 @@
 ;;; Commentary:
 
 ;; Integration tests in the shipped profile (T-018, D-045): `.py' files open in
-;; `python-ts-mode'; eglot starts the platform's server (D-140: ty on Arch, pyright
-;; on the Mac) in a project (git, or pyproject.toml), not for a loose file; `M-.'
-;; crosses files and rename changes both; dape's `debugpy' stops at a breakpoint and
-;; listens on localhost only.  Needs tree-sitter-python, that server, python-debugpy
-;; and git.
+;; `python-ts-mode'; eglot starts ty (D-140, D-182) in a project (git, or
+;; pyproject.toml), not for a loose file; `M-.' crosses files and rename changes
+;; both; on the Mac ty finds MacPorts' and the user's packages only where the
+;; project sets no environment of its own (D-182); dape's `debugpy' stops at a
+;; breakpoint and listens on localhost only.  Needs tree-sitter-python, ty,
+;; python-debugpy and git.
 
 ;;; Code:
 
@@ -49,18 +50,25 @@ run BODY, then shut down eglot servers and kill the buffers it visited."
   "Two modules: a definition and a use in another file.")
 
 (ert-deftest init-python-server-per-platform ()
-  "D-140: ty on Arch, pyright on the Mac, each with the command that installs it."
+  "D-140, D-182: ty on both machines, each with the command that installs it; on
+the Mac it starts with `python3''s true directory first on PATH (D-182 (p))."
   (init-test--load)
-  (pcase-exhaustive system-type
-    ('gnu/linux
-     (should (equal emacs-cpp-default-python-server '("ty" "server")))
-     (should (equal emacs-cpp-default-python-server-install "sudo pacman -S ty")))
-    ('darwin
-     (should (equal emacs-cpp-default-python-server '("pyright-langserver" "--stdio")))
-     (should (equal emacs-cpp-default-python-server-install "sudo port install pyright"))))
+  (should (equal emacs-cpp-default-python-server '("ty" "server")))
   (require 'eglot)
-  (should (equal (cdr (assoc '(python-ts-mode python-mode) eglot-server-programs))
-                 emacs-cpp-default-python-server)))
+  (let ((contact (cdr (assoc '(python-ts-mode python-mode) eglot-server-programs))))
+    (pcase-exhaustive system-type
+      ('gnu/linux
+       (should (equal emacs-cpp-default-python-server-install "sudo pacman -S ty"))
+       (should (equal contact emacs-cpp-default-python-server)))
+      ('darwin
+       (should (equal emacs-cpp-default-python-server-install
+                      "make macos-ports (in the emacs-cpp repository)"))
+       (should (functionp contact))
+       (let ((dir (file-name-directory (file-truename (executable-find "python3")))))
+         (should (equal (funcall contact)
+                        `("env" ,(concat "PATH=" (directory-file-name dir) ":"
+                                         (getenv "PATH"))
+                          "ty" "server"))))))))
 
 (ert-deftest init-python-server-navigates-and-renames ()
   "D-045, D-140: the platform's server crosses files with `M-.' and renames in both."
@@ -73,7 +81,7 @@ run BODY, then shut down eglot servers and kill the buffers it visited."
         (with-current-buffer use
           (should (eq major-mode 'python-ts-mode))
           (should (init-test--wait-managed))
-          (should (equal (car (process-command (jsonrpc--process (eglot-current-server))))
+          (should (equal (emacs-cpp-go--server-name (eglot-current-server))
                          (car emacs-cpp-default-python-server)))
           ;; pyright answers a rename with null until its first analysis is done,
           ;; which it reports with the file's first diagnostics; ty pulls its
@@ -113,9 +121,8 @@ run BODY, then shut down eglot servers and kill the buffers it visited."
 (ert-deftest init-python-ty-return-type-inference ()
   "D-142: ty infers unannotated return types only in a project whose .dir-locals.el
 sets `emacs-cpp-ty-return-type-inference'; the setting reaches ty as its inline
-configuration.  ty runs on Arch only (D-140)."
+configuration."
   (init-test--load)
-  (skip-unless (equal (car emacs-cpp-default-python-server) "ty"))
   (require 'eglot)
   (let ((source "from typing import reveal_type\n\n\ndef ret():\n    return 1\n\n\nreveal_type(ret())\n"))
     (pcase-dolist (`(,locals ,revealed)
@@ -128,6 +135,118 @@ configuration.  ty runs on Arch only (D-140)."
         (with-current-buffer (init-python-test--visit (expand-file-name "main.py" root))
           (should (init-test--wait-managed 20))
           (should (equal (init-python-test--revealed 20) revealed)))))))
+
+(defun init-python-test--unresolved (seconds)
+  "Return the modules ty cannot resolve in this buffer, sorted, once it reported the
+control import `nosuchmodule_control'; `timeout' if it did not within SECONDS."
+  (flymake-start)
+  (let ((deadline (+ (float-time) seconds)) texts)
+    (while (and (not (seq-some (lambda (text) (string-search "nosuchmodule_control" text))
+                               texts))
+                (< (float-time) deadline))
+      (accept-process-output nil 0.2)
+      (setq texts (mapcar #'flymake-diagnostic-text (flymake-diagnostics))))
+    (if (not (seq-some (lambda (text) (string-search "nosuchmodule_control" text)) texts))
+        'timeout
+      (sort (delete-dups
+             (delq nil (mapcar (lambda (text)
+                                 (and (string-match "imported module `\\([^`]+\\)`" text)
+                                      (match-string 1 text)))
+                               texts)))
+            #'string<))))
+
+(defun init-python-test--package (dir name)
+  "Make an empty package NAME in DIR."
+  (make-directory (expand-file-name name dir) t)
+  (write-region "" nil (expand-file-name (concat name "/__init__.py") dir)))
+
+(defun init-python-test--system-package ()
+  "Return a package of `python3''s own site-packages (MacPorts' on the Mac)."
+  (let ((purelib (car (process-lines "python3" "-c"
+                                     "import sysconfig; print(sysconfig.get_paths()['purelib'])"))))
+    (seq-find (lambda (name)
+                (and (string-match-p "\\`[a-z][a-z0-9]*\\'" name)
+                     (file-exists-p (expand-file-name (concat name "/__init__.py") purelib))))
+              (directory-files purelib))))
+
+(ert-deftest init-python-ty-package-directories ()
+  "D-182: on the Mac ty finds MacPorts' packages (`python3''s true directory first
+on its PATH) and the user site-packages, the latter only where the project uses
+the base interpreter: not with a .venv, not with its own `python' for ty, not with
+`emacs-cpp-ty-user-site-packages' nil in its .dir-locals.el."
+  (init-test--load)
+  (skip-unless (eq system-type 'darwin))
+  ;; It writes a package into the user site-packages: only in a temporary HOME (D-104).
+  (skip-unless (not (file-equal-p "~" (concat "~" (user-login-name)))))
+  (require 'eglot)
+  (let* ((user-site (car (last (process-lines "python3" "-c" "import site; \
+print(site.getusersitepackages())"))))
+         (system (init-python-test--system-package))
+         (source (format "import %s\nimport usersiteonly\nimport nosuchmodule_control\n"
+                         system))
+         (pinned-cfg (format "home = %s\nversion = %s\ninclude-system-site-packages = false\n"
+                             (directory-file-name (emacs-cpp-python--interpreter-dir))
+                             (car (process-lines "python3" "-c" "import platform; \
+print(platform.python_version())")))))
+    (should system)
+    (should (string-prefix-p (file-truename (expand-file-name "~")) (file-truename user-site)))
+    (init-python-test--package user-site "usersiteonly")
+    (setq emacs-cpp-python--user-site 'unknown)
+    (unwind-protect
+        (pcase-dolist (`(,label ,files ,setup ,expected)
+                       `((plain nil nil ("nosuchmodule_control"))
+                         (locals ((".dir-locals.el" . "((nil . ((emacs-cpp-ty-user-site-packages . nil))))\n"))
+                                 nil ("nosuchmodule_control" "usersiteonly"))
+                         (pinned (("pyproject.toml" . "[tool.ty.environment]\npython = \"altenv\"\n"))
+                                 (lambda (root)
+                                   (let ((site (expand-file-name "altenv/lib/python3.14/site-packages" root)))
+                                     (init-python-test--package site "altonly")
+                                     (write-region ,pinned-cfg nil (expand-file-name "altenv/pyvenv.cfg" root))))
+                                 ,(sort (list system "nosuchmodule_control" "usersiteonly") #'string<))
+                         (venv nil
+                               (lambda (root)
+                                 (should (eql 0 (call-process "python3" nil nil nil "-m" "venv"
+                                                              "--without-pip"
+                                                              (expand-file-name ".venv" root))))
+                                 (init-python-test--package
+                                  (car (file-expand-wildcards
+                                        (expand-file-name ".venv/lib/python3*/site-packages" root)))
+                                  "venvonly"))
+                               ,(sort (list system "nosuchmodule_control" "usersiteonly") #'string<))))
+          (init-python-test--with-dir (cons `("main.py" . ,(if (memq label '(pinned venv))
+                                                              (concat source (format "import %sonly\n"
+                                                                                     (if (eq label 'pinned) "alt" "venv")))
+                                                            source))
+                                            files)
+              t
+            (when setup (funcall setup root))
+            (with-current-buffer (init-python-test--visit (expand-file-name "main.py" root))
+              (should (init-test--wait-managed 20))
+              (should (equal (cons label (init-python-test--unresolved 30))
+                             (cons label expected))))))
+      (setq emacs-cpp-python--user-site 'unknown)
+      (delete-directory (expand-file-name "usersiteonly" user-site) t))))
+
+(ert-deftest init-python-ty-toml-names-python ()
+  "D-182: the line-wise check finds ty's `python' in the forms it knows."
+  (init-test--load)
+  (let ((file (make-temp-file "emacs-cpp-toml" nil ".toml")))
+    (unwind-protect
+        (pcase-dolist (`(,section ,text ,expected)
+                       '(("environment" "[environment]\npython = \".venv2\"\n" t)
+                         ("environment" "environment.python = \"x\"\n" t)
+                         ("environment" "environment = { python = \"x\" }\n" t)
+                         ("environment" "[environment]\nextra-paths = [\"a\"]\n" nil)
+                         ("environment" "[src]\npython = \"x\"\n" nil)
+                         ("tool.ty.environment" "[tool.ty.environment]\npython = \"x\"\n" t)
+                         ("tool.ty.environment" "[tool.ty]\nenvironment.python = \"x\"\n" t)
+                         ("tool.ty.environment" "[project]\nname = \"p\"\n[tool.ty.environment]\nextra-paths = []\n" nil)
+                         ("tool.ty.environment" "[tool.other.environment]\npython = \"x\"\n" nil)))
+          (write-region text nil file)
+          (should (equal (list section text
+                               (and (emacs-cpp-python--toml-names-python-p file section) t))
+                         (list section text expected))))
+      (delete-file file))))
 
 (ert-deftest init-python-eglot-only-in-projects ()
   (init-test--load)
