@@ -59,6 +59,13 @@ service's plan) is not an item.
      collapsed block).
   Report back: the comment's link.
 
+- **H-28** (2026-11-05, T-133, D-177) The Mac half of T-133's done when: `make test`
+  with the projectile list cache. Needs the session's commits on the Mac.
+  1. On Arch: `cd ~/source/repos/emacs-cpp && git push` (the session does not push).
+  2. On the Mac: `git -C ~/source/repos/emacs-cpp pull --ff-only`
+  3. On the Mac: `cd ~/source/repos/emacs-cpp && make test </dev/null 2>&1 | tail -3`
+  Report back: step 3's last line.
+
 - **H-24** (2026-11-04, O-80, D-165) Send the report on `process-attributes` CPU times
   to the Emacs bug tracker (outward, so yours); the draft is
   `docs/upstream/process-attributes-cpu-time-apple-silicon.md`.
