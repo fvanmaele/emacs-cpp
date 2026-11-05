@@ -68,6 +68,59 @@ unbound."
               (kill-buffer buffer))))
       (delete-directory root t))))
 
+(defun init-project-test--git (dir &rest args)
+  "Run git with ARGS in DIR; fail the test on a non-zero exit."
+  (let ((default-directory dir))
+    (should (eql 0 (apply #'call-process "git" nil nil nil
+                          "-c" "user.name=test" "-c" "user.email=test@invalid"
+                          "-c" "protocol.file.allow=always" args)))))
+
+(ert-deftest init-project-files-once-with-submodules ()
+  "D-183: one fd over the root lists a git project, its submodules included, each
+file once; projectile's per-submodule pass is off.  Untracked files are listed,
+ignored ones (the root's rules and the submodule's own) are not."
+  (init-test--load)
+  (should (equal projectile-fd-executable "fd"))
+  (should projectile-git-use-fd)
+  (should-not projectile-git-submodule-command)
+  (let* ((top (file-name-as-directory
+               (file-truename (make-temp-file "emacs-cpp-subs" t))))
+         (upstream (expand-file-name "upstream/" top))
+         (root (expand-file-name "root/" top))
+         (projectile-enable-caching nil))
+    (unwind-protect
+        (cl-flet ((write (dir rel)
+                    (let ((file (expand-file-name rel dir)))
+                      (make-directory (file-name-directory file) t)
+                      (write-region (concat rel "\n") nil file))))
+          (write upstream "b.cc")
+          (write-region "*.tmp\n" nil (expand-file-name ".gitignore" upstream))
+          (init-project-test--git upstream "init" "-q")
+          (init-project-test--git upstream "add" ".")
+          (init-project-test--git upstream "commit" "-qm" "upstream")
+          (write root "a.cc")
+          (write-region "*.o\n" nil (expand-file-name ".gitignore" root))
+          (init-project-test--git root "init" "-q")
+          (init-project-test--git root "submodule" "add" "-q" upstream "lib/s")
+          (init-project-test--git root "add" ".")
+          (init-project-test--git root "commit" "-qm" "root")
+          (write root "untracked.cc")
+          (write root "lib/s/new.cc")
+          (write root "a.o")
+          (write root "lib/s/c.tmp")
+          (let ((files (projectile-project-files root)))
+            (should (equal (sort (copy-sequence files) #'string<)
+                           '(".gitignore" ".gitmodules" "a.cc" "lib/s/.gitignore"
+                             "lib/s/b.cc" "lib/s/new.cc" "untracked.cc")))))
+      (delete-directory top t))))
+
+(ert-deftest init-project-fd-check ()
+  "D-183: startup stops when fd is not on `exec-path'."
+  (init-test--load)
+  (should (equal (emacs-cpp-project-fd-check) "fd"))
+  (let ((exec-path nil))
+    (should-error (emacs-cpp-project-fd-check))))
+
 (ert-deftest init-project-auto-revert ()
   "D-162 (a): outside project roots unedited buffers follow their files through
 auto-revert, notified or polled by platform; a buffer with unsaved edits keeps

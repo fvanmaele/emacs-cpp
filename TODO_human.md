@@ -36,6 +36,13 @@ service's plan) is not an item.
      (its check 5 changed on Arch, 2026-10-21; the binary stays as built).
   Report back: whether step 2 went back and forward (if not, `C-h k` and the button:
   the event name shown); the last line of step 4.
+- **H-30** (2026-11-05, T-133, D-183) The Mac's `make test` with projectile's submodule
+  pass off (this session runs on Arch).
+  1. On Arch: `cd ~/source/repos/emacs-cpp && git push` (the session does not push).
+  2. On the Mac: `cd ~/source/repos/emacs-cpp && git pull --ff-only && command -v fd &&
+     make test </dev/null 2>&1 | tail -3`
+  Report back: the output of step 2 (the fd path and the `Ran ... tests` line).
+
 ## Parked
 - **H-7** (2026-10-20, unblocks T-032, T-036, T-037, T-039) Four reports to the Emacs bug
   tracker, drafted 2026-10-09 / 10, outward so yours to send.

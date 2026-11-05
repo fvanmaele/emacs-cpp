@@ -98,6 +98,8 @@ required at startup (D-127); S18 run 5 `shipped` PASS on Arch, Mac run H-15.
 Python: ty on Arch, pyright on the Mac (D-140, T-120, 0095); ty on the Mac from a
 local binary MacPorts port (D-180, D-181), the Mac's server since D-182 (T-134, 0129).
 Matches: gaps inside a word, `M-o` words match file names (D-141, 0096).
+Project file lists: no cache (D-179); one fd per listing, projectile's submodule pass
+off, fd required (D-183, T-133, 0130): emacs-cpp 434 -> 16 ms; the Mac on H-30.
 ty's return type inference per project (D-142, 0097); ruff deferred (D-143, T-124).
 Mac run of H-15 by the session (0098): S18 run 6 `shipped` PASS; FSEvents kept
 `Created` on recent files, fswatch patch 0005 (pkgrel 3, D-144, T-125); Mac clangd

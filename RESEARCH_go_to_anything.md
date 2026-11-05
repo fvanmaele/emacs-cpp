@@ -1303,6 +1303,12 @@ files (`fmt/`). `M-o` does not drop them (`init-go-to-anything.el:301`).
 is what lists submodules (`git ls-files` does not enter them), so the setting needs fd
 for git roots. One fd over emacs-cpp directly: 12.7 ms, the same 3900 files; the
 per-repository git commands run in parallel: 187 ms for emacs-cpp, 1652 ms for deal.II.
+Rerun with D-183 built (2026-11-05, same host and method): emacs-cpp 434.0 -> 15.5
+ms, RMO-drafts 22.2 -> 10.9 ms, deal.II 75.0 -> 62.0 ms, LLVM 350.4 -> 325.0 ms, the
+same files; the ten small trees 8.5 - 16.8 against 8.5 - 14.8 ms, with one setting
+alone spreading 8.5 - 12.2 ms over four runs (Multigrid_Astra_Python). Trees without
+`.gitmodules` run the same code under both settings (`projectile--git-submodules`
+returns before reading the command).
 
 ## Sources
 - JetBrains, CLion help "Search everywhere":

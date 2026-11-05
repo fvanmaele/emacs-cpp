@@ -165,6 +165,10 @@ After `C-x u` (undo), plain `u` undoes again.
 | `C-x r m` / `C-x r b` | set / jump to a bookmark |
 | `C-c p m` | menu of all project commands |
 
+`C-c p f` and `M-o` list the project's files on every call, with `fd` (installed with
+the system packages; Emacs does not start without it): a git project with its
+submodules, tracked and untracked files, not the ignored ones, each file once.
+
 A file changed outside Emacs (`git checkout` in a shell) is reloaded into its buffer
 when the buffer has no unsaved edits. In a project (a git repository or a directory
 with a `.projectile` file) this happens within about a second after the change, on
