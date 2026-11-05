@@ -6,7 +6,8 @@
 ;; `python-ts-mode' on the system grammar, ty through eglot in project files (D-140,
 ;; D-182), and dape's own `debugpy' configuration (`C-x C-a d debugpy RET' debugs
 ;; the current file).  On Arch all three come from the packages tree-sitter-python,
-;; ty and python-debugpy; on the Mac ty from the local port (D-180).
+;; ty and python-debugpy; on the Mac ty from the local port (D-180).  The C++ setup
+;; is not touched; the debugger's entry is in dape's form (lisp/init-debug.el).
 ;;
 ;; On the Mac ty misses two package directories (RESEARCH_python_ty 4d): it takes
 ;; MacPorts' `python3', a symlink into the framework, for an interpreter under
@@ -15,8 +16,6 @@
 ;; first on its PATH, where its own discovery finds it only when a project sets no
 ;; environment of its own, and gets the user site-packages as an extra path only
 ;; when it uses that interpreter (D-182).
-;; The C++ setup is not touched; the debugger's entry is in dape's form
-;; (lisp/init-debug.el).
 
 ;;; Code:
 
@@ -42,13 +41,13 @@ MacPorts: /opt/local/bin/python3 -> .../Python.framework/Versions/3.14/bin/."
     (file-name-directory (file-truename python))))
 
 (defun emacs-cpp-python--server-contact (&optional _interactive)
-  "The Python server's command; on the Mac with `python3''s true directory first on
-PATH, through `env' (D-182 (p)).  Called by eglot each time it starts the server."
-  (let ((dir (and (eq system-type 'darwin) (emacs-cpp-python--interpreter-dir))))
-    (if (and dir (not (equal (file-name-directory (executable-find "python3")) dir)))
-        `("env" ,(concat "PATH=" (directory-file-name dir) path-separator (getenv "PATH"))
-          ,@emacs-cpp-default-python-server)
-      emacs-cpp-default-python-server)))
+  "The Mac's Python server command: `python3''s true directory first on PATH,
+through `env' (D-182 (p)).  eglot calls it when it starts a server for a
+project; `M-x eglot-reconnect' reuses the command it returned then."
+  (if-let* ((dir (emacs-cpp-python--interpreter-dir)))
+      `("env" ,(concat "PATH=" (directory-file-name dir) path-separator (getenv "PATH"))
+        ,@emacs-cpp-default-python-server)
+    emacs-cpp-default-python-server))
 
 (emacs-cpp-lsp-server '(python-ts-mode python-mode)
                       (if (eq system-type 'darwin)
@@ -89,19 +88,18 @@ asked, once per session (one `python3' run, about 21 ms, RESEARCH_python_ty 4e).
           (when (executable-find "python3")
             (pcase (process-lines "python3" "-c" "import site; \
 print(site.ENABLE_USER_SITE); print(site.getusersitepackages())")
-              (`("True" ,dir) (and (file-directory-p dir) (file-name-as-directory dir)))))))
+              (`("True" ,dir) (and (file-directory-p dir) dir))))))
   emacs-cpp-python--user-site)
 
-(defun emacs-cpp-python--toml-names-python-p (file section)
-  "Non-nil if TOML FILE sets `python' in table SECTION (\"environment\" for ty.toml,
-\"tool.ty.environment\" for pyproject.toml).  A line-wise check: a `python' key
-under [SECTION], a dotted `environment.python' key under the parent table, or an
+(defun emacs-cpp-python--toml-names-python-p (file parent)
+  "Non-nil if TOML FILE sets ty's `environment.python' under table PARENT (\"\" for
+ty.toml, \"tool.ty\" for pyproject.toml).  A line-wise check: a `python' key under
+[PARENT.environment], a dotted `environment.python' key under [PARENT], or an
 inline table `environment = { ... python ... }' there.  Other forms are missed
 \(D-182)."
   (when (file-readable-p file)
-    (let* ((parent (string-remove-suffix "environment"
-                                         (string-remove-suffix ".environment" section)))
-           (table "") found)
+    (let ((section (if (string-empty-p parent) "environment" (concat parent ".environment")))
+          (table "") found)
       (with-temp-buffer
         (insert-file-contents file)
         (goto-char (point-min))
@@ -128,26 +126,24 @@ Called in a buffer of the project, its directory variables applied."
               ((not (getenv "VIRTUAL_ENV")))
               ((not (getenv "CONDA_PREFIX")))
               (project (project-current))
-              (root (expand-file-name (project-root project)))
+              (root (project-root project))
               ((not (file-directory-p (expand-file-name ".venv" root))))
               ((not (emacs-cpp-python--toml-names-python-p
-                     (expand-file-name "ty.toml" root) "environment")))
+                     (expand-file-name "ty.toml" root) "")))
               ((not (emacs-cpp-python--toml-names-python-p
-                     (expand-file-name "pyproject.toml" root) "tool.ty.environment"))))
+                     (expand-file-name "pyproject.toml" root) "tool.ty"))))
     (emacs-cpp-python--user-site)))
 
 ;; Sent as ty's inline configuration, which overrides its configuration files;
 ;; `extra-paths' adds to a project's own list (RESEARCH_python_ty 4e).
 (emacs-cpp-lsp-settings
  :ty (lambda ()
-       (let ((analysis (and emacs-cpp-ty-return-type-inference
-                            '(:return-type-inference "always")))
-             (user-site (emacs-cpp-python--user-site-for-ty)))
-         (when (or analysis user-site)
-           `(:configuration
-             (,@(and analysis `(:analysis ,analysis))
-              ,@(and user-site
-                     `(:environment (:extra-paths ,(vector (directory-file-name user-site)))))))))))
+       (let (conf)
+         (when emacs-cpp-ty-return-type-inference
+           (setq conf (plist-put conf :analysis '(:return-type-inference "always"))))
+         (when-let* ((dir (emacs-cpp-python--user-site-for-ty)))
+           (setq conf (plist-put conf :environment `(:extra-paths ,(vector dir)))))
+         (and conf `(:configuration ,conf)))))
 
 (defun emacs-cpp-python-eglot-ensure ()
   "Start eglot for a Python file of a project; not for a loose file.
