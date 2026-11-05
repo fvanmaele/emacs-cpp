@@ -1,0 +1,41 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
+# Local port for emacs-cpp (D-180): Astral's prebuilt ty for Apple silicon, not built
+# from source (MacPorts has no ty port). A version bump: github.setup's version and
+# the three checksums of the new ty-aarch64-apple-darwin.tar.gz, checked against its
+# published .sha256; then `portindex` in packaging/macports.
+
+PortSystem          1.0
+PortGroup           github 1.0
+
+github.setup        astral-sh ty 0.0.97
+github.tarball_from releases
+revision            0
+
+homepage            https://docs.astral.sh/ty/
+description         An extremely fast Python type checker and language server
+long_description    {*}${description}, written in Rust. Astral's release \
+                    binary for Apple silicon.
+
+categories          devel python
+installs_libs       no
+license             MIT
+platforms           {darwin >= 20}
+supported_archs     arm64
+maintainers         nomaintainer
+
+distname            ty-aarch64-apple-darwin
+# The distfile name carries no version: one cache directory per version.
+dist_subdir         ${name}/${version}
+worksrcdir          ${distname}
+
+checksums           rmd160  6682ba2ae71c4befb521f498636b76637e6a2cda \
+                    sha256  8e87ce8a9bff8086d1d789ce7d597cbb142e48c48e129639746178f091acfc63 \
+                    size    13198497
+
+use_configure       no
+build {}
+
+destroot {
+    xinstall -m 0755 ${worksrcpath}/ty ${destroot}${prefix}/bin/ty
+}

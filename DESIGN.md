@@ -239,7 +239,8 @@ Observed on the owner's Mac, 2026-10-09 (D-050):
   memory; pyright's first `M-?` through eglot incomplete) and the owner's project
   (pyright 370 errors, ty 298, both mostly `gi.repository` without stubs). Accepted:
   ty's weaker inference of unannotated code (4a). (c), ty on the Mac too, waits until
-  ty is tested there (T-121; a local port, RESEARCH_python_ty 7). Built by T-120.
+  ty is tested there (T-121; a local port, RESEARCH_python_ty 7; the port: D-180).
+  Built by T-120.
 - DECIDED D-142 (owner 2026-10-21, O-75: "make return-type inference opt-in with a
   per-project .dir-locals.el switch"): ty's `analysis.return-type-inference` stays
   off; a project turns it on with `emacs-cpp-ty-return-type-inference` (NEW,
@@ -2200,6 +2201,15 @@ presets, GoogleTest runner.
   measured across 63 files. Findings in; O-43.
 
 ## Open questions ledger (LIVING)
+- O-86 (RESOLVED 2026-11-05 with D-180: (d), a binary port; owner: "(d) binary port";
+  owner 2026-11-05: "Can we vendor ty and ruff to make distribution easier on
+  macos?"): ruff has a MacPorts port (0.17.3, D-143's source), so nothing to vendor;
+  ty has none (D-140 (c), T-121). Options for ty: (a) its prebuilt binary committed
+  (about 13 MB per release, six releases in a month, forever in git); (b) its source
+  as a submodule built with cargo (ruff's whole workspace, 553 crates); (c) a build
+  script into `~/opt` as clangd's (D-052; a second update path beside MacPorts);
+  (d) a local MacPorts port in `packaging/`, binary or source (RESEARCH_python_ty 7;
+  a `sources.conf` line, a system file, and bumps by hand).
 - O-85 (REOPENED 2026-11-05 by D-179: (f) built and reverted, its first call 4 times
   today's listing on large trees; a remedy may not make any call slower than today's
   listing; was RESOLVED 2026-11-05 with D-177: (f); owner: "O-85 (f)"; T-133,
@@ -2636,6 +2646,19 @@ presets, GoogleTest runner.
   Against: buffers become current later than 0.13 s; another measurement round on
   both machines. Not taken: (b) keep runs 1 - 3's PASS (choosing runs), (c) three more
   idle runs first (more samples, same 0.30 s).
+- DECIDED D-180 (owner 2026-11-05: "(d) binary port"; O-86): ty on the Mac comes
+  from a local MacPorts port in this repository, `packaging/macports/devel/ty/Portfile`
+  (NEW): Astral's release asset `ty-aarch64-apple-darwin.tar.gz` (Developer ID signed,
+  hardened runtime), checksums checked against its published `.sha256`, installed to
+  `/opt/local/bin/ty`; one distfile directory per version (the asset's name has no
+  version). MacPorts finds it by a `file://` line above the `rsync` line in
+  `/opt/local/etc/macports/sources.conf` and `portindex` run in `packaging/macports`
+  (the owner's, H-29). A network call (the asset from GitHub, at install) and a file
+  outside the repository (`/opt/local/bin/ty`), both MacPorts'. ruff stays MacPorts'
+  own port (D-143). The Mac's Python server stays pyright until T-121 tests ty there
+  (D-140 (c)). Against: the owner bumps the version and checksums by hand (ty 0.0.93 -
+  0.0.97 in eight days); a binary, not MacPorts' build-from-source convention; arm64
+  only. Not taken: (a) the binary in git, (b) a source submodule, (c) a build script.
 - DECIDED D-179 (owner 2026-11-05: "Revert the feature and decision that the perf
   impact (4x on large projects) is acceptable"): T-133's kept project file lists and
   their option are reverted (code of d4276bf and 540a0aa); the slower first call
@@ -4257,6 +4280,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-177 | 2026-11-05 | O-85 (f): projectile's lists cached per root, checked by directory times (superseded by D-179) | 12 | O-85, T-133 |
 | D-178 | 2026-11-05 | the kept project file lists are opt-out (`emacs-cpp-keep-project-files`) (superseded by D-179) | 12 | D-177, D-163 |
 | D-179 | 2026-11-05 | T-133 reverted: no call slower than today's listing; supersedes D-177, D-178 | 12 | O-85 |
+| D-180 | 2026-11-05 | ty on the Mac from a local binary MacPorts port in `packaging/macports` | 5 | O-86 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |
