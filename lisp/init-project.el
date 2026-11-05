@@ -43,8 +43,24 @@ Signal an error naming the executable otherwise (D-081)."
   (setq xref-search-program
         (emacs-cpp-search-program-check emacs-cpp-default-xref-search-program)))
 
+(defun emacs-cpp-project-fd-check ()
+  "Return \"fd\" when it is on `exec-path'; signal an error naming it otherwise (D-183).
+projectile lists a git project with one fd over its root, which enters submodules;
+its per-submodule pass is off, so without fd the submodules' files would vanish."
+  (unless (executable-find "fd")
+    (error "emacs-cpp: fd is not on exec-path; projectile lists projects with it (D-183)"))
+  "fd")
+
+;; One listing per `C-c p f' and `M-o', no cache (D-179): fd over the root already
+;; walks into every submodule, so projectile's own pass over each submodule only
+;; listed their files a second time (emacs-cpp 426 -> 16 ms; D-183).  Set before
+;; projectile loads, so its defcustoms keep these values.
 (use-package projectile
   :hook (after-init . projectile-mode)
+  :init
+  (setq projectile-fd-executable (emacs-cpp-project-fd-check)
+        projectile-git-use-fd t
+        projectile-git-submodule-command nil)
   :config
   (keymap-set projectile-mode-map "C-c p" #'projectile-command-map)
   ;; `C-c p s r' and `C-c p s a' want rg.el / ag.el, which are not vendored (D-135):
