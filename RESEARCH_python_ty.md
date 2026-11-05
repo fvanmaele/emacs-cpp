@@ -211,6 +211,50 @@ UNVERIFIED to match):
 - No ty issue covers either case (GitHub search 2026-11-05: user site-packages,
   symlinked interpreter, MacPorts, framework Python).
 
+## 4e. O-88 (a)'s cost and its cases against (2026-11-05)
+Owner: "O-88 (a), measure cost, research Against:". ty 0.0.97 through the server
+(pulled diagnostics, unresolved imports counted), three test projects in the scratch
+directory: `vendored` (`[tool.ty.environment] extra-paths = ["vendor"]`), `venvproj`
+(a real `python3 -m venv --without-pip .venv` holding a package `venvonly`),
+`pinned` (`[tool.ty.environment] python = "altenv"`, a venv layout holding
+`altonly`); each file imports its own package, `mako` (MacPorts only) and `numpy`
+(user site-packages only).
+
+**Cost of asking Python.** `python3 -c "import sys, site; ..."` printing
+`sys.prefix`, `site.getusersitepackages()` and `site.ENABLE_USER_SITE`, 21 runs:
+22.8 ms median (21.5 - 32.8) plain, 18.4 - 20.1 ms with `-I` / `-S`; from Emacs
+through `process-lines` 21.4 ms (19.4 - 32.9). Once per session if cached. The
+framework's `bin/` needs no process: `file-truename` of `/opt/local/bin/python3` is
+`.../Python.framework/Versions/3.14/bin/python3.14`, and that directory holds a
+`python3`.
+
+**Against 1, the inline settings override the project's.**
+| project | no inline | inline `python` (framework prefix) + `extra-paths` (user) |
+|---|---|---|
+| `vendored` | mako, numpy missing | all found; the project's `vendor` kept |
+| `venvproj` | mako, numpy missing (as its Python) | `venvonly` lost, mako and numpy wrongly found |
+| `pinned` | mako, numpy missing (as its Python) | `altonly` lost |
+- `environment.python` sent inline replaces the project's `.venv` and its own
+  `environment.python`: confirmed, so it must not be sent as is.
+- `extra-paths` sent inline adds to the project's (the `vendor` package still
+  resolves with only the user path inline): no override.
+- Without inline `python`, the framework's `bin/` first on ty's PATH: ty's own
+  discovery (PATH is its last step) finds MacPorts' Python where a project has no
+  environment (`mako` found, Python 3.14), and leaves `venvproj`'s `.venv` and
+  `pinned`'s `altenv` in charge (their packages found, mako and numpy missing, as
+  their interpreters see it).
+
+**Against 2, the user site-packages reach projects that exclude them.**
+- Python itself puts the user site-packages on `sys.path` for the base interpreter
+  (here `~/Library/Python/3.14/lib/python/site-packages`), not inside a venv
+  (`venvproj`'s interpreter: absent, numpy not importable), and not with
+  `PYTHONNOUSERSITE` set (`site.ENABLE_USER_SITE` false).
+- ty applies an inline `extra-paths` in every project: with PATH first plus the user
+  path, `venvproj` and `pinned` both resolve numpy, which their interpreters cannot
+  import. So the user path matches Python only when ty uses the base interpreter:
+  no `.venv` in the root, no `VIRTUAL_ENV` or Conda environment, no
+  `environment.python` in the project's ty configuration, and `ENABLE_USER_SITE`.
+
 ## 4a. Why the diagnostics differ on the same file
 The first count (pyright 15, ty 48, 2026-10-20) came from this research's client, which
 did not announce `tagSupport`; pyright then leaves out its "unnecessary" hints, ty
