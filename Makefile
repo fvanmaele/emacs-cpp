@@ -11,7 +11,7 @@ help: ## list targets (default; builds nothing)
 
 EMACS ?= emacs
 
-.PHONY: packages test clangd library-index
+.PHONY: packages test clangd library-index macos-ports
 packages: ## byte-compile lib/ submodules; write lib/load-path.el, lib/autoloads.el
 	$(EMACS) -Q --batch -l scripts/build-packages.el -f build-packages-batch
 
@@ -53,3 +53,8 @@ clangd: ## build packaging/clangd-index-nav against the installed LLVM; MAKEPKG_
 LIBRARY ?=
 library-index: ## build LIBRARY's (dealii) offline index for clangd into indexes/
 	sh scripts/build-library-index.sh $(LIBRARY)
+
+# The local MacPorts ports (ty, D-180) from a root-owned copy (D-181): shows the
+# Portfiles, asks, then copies, indexes, edits sources.conf once and installs.
+macos-ports: ## macOS: install or upgrade packaging/macports's ports through sudo (asks first)
+	sh scripts/install-macos-ports.sh
