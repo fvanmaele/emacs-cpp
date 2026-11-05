@@ -2254,7 +2254,8 @@ presets, GoogleTest runner.
   script into `~/opt` as clangd's (D-052; a second update path beside MacPorts);
   (d) a local MacPorts port in `packaging/`, binary or source (RESEARCH_python_ty 7;
   a `sources.conf` line, a system file, and bumps by hand).
-- O-85 (REOPENED 2026-11-05 by D-179: (f) built and reverted, its first call 4 times
+- O-85 (RESOLVED 2026-11-05 with D-183: (h); owner: "(h) as tier 2"; was REOPENED
+  2026-11-05 by D-179: (f) built and reverted, its first call 4 times
   today's listing on large trees; a remedy may not make any call slower than today's
   listing; was RESOLVED 2026-11-05 with D-177: (f); owner: "O-85 (f)"; T-133,
   RESEARCH_go_to_anything 22): projectile lists the
@@ -2713,6 +2714,15 @@ presets, GoogleTest runner.
   Against: buffers become current later than 0.13 s; another measurement round on
   both machines. Not taken: (b) keep runs 1 - 3's PASS (choosing runs), (c) three more
   idle runs first (more samples, same 0.30 s).
+- DECIDED D-183 (owner 2026-11-05: "(h) as tier 2"; O-85, T-133): no cache; projectile
+  lists git projects with one fd over the root (`projectile-git-use-fd` t), which
+  already enters submodules, and its per-submodule pass is off
+  (`projectile-git-submodule-command` nil): emacs-cpp 426 -> 15.9 ms, RMO-drafts 23.5
+  -> 11.0 ms, every other measured tree as today (RESEARCH_go_to_anything 22), each
+  file listed once. fd is required: without it the submodules' files would vanish, so
+  startup fails loudly when projectile found no fd (as D-081 for rg). Meets D-179: no
+  call slower than today. Not taken: (a) - (g) (caches; D-179), (i) (no speed-up),
+  (j) (cosmetic). Tier 2 (owner); done when: T-133.
 - DECIDED D-182 (owner 2026-11-05: "O-88 (a)"; supersedes D-140 (c)'s wait): ty is the
   Python server on the Mac too, with MacPorts' and the user's packages found
   (RESEARCH_python_ty 4c - 4e). Shape from 4e, agreed with T-134 (owner 2026-11-05: "T-134
@@ -4386,6 +4396,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-180 | 2026-11-05 | ty on the Mac from a local binary MacPorts port in `packaging/macports` | 5 | O-86 |
 | D-181 | 2026-11-05 | local ports read from a root-owned copy under MacPorts' `sources/`, not the repository | 5 | O-87 |
 | D-182 | 2026-11-05 | O-88 (a): ty on the Mac too; PATH first, user site-packages when the base interpreter is used | 5 | O-88 |
+| D-183 | 2026-11-05 | O-85 (h): projectile's per-submodule pass off, fd required for git listings | 12 | O-85, T-133 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |
