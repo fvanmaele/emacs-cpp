@@ -528,5 +528,21 @@ symbols keep their server's order."
         (should (equal (mapcar #'consult--tofu-strip (emacs-cpp-go--sort candidates))
                        '("eto.h" "veto.h" "Vector.cc" "TangentVector" "eto")))))))
 
+(ert-deftest init-go-to-anything-server-name-through-env ()
+  "D-106, D-182: a server started through `env' (ty on the Mac) is named by its
+program, not by env, in `M-o''s symbol headings."
+  (init-test--load)
+  (let ((plain (make-process :name "server-name-plain" :command '("sleep" "30")
+                             :noquery t))
+        (wrapped (make-process :name "server-name-env"
+                               :command '("env" "PATH=/usr/bin:/bin" "A_B=1" "sleep" "30")
+                               :noquery t)))
+    (unwind-protect
+        (cl-letf (((symbol-function 'jsonrpc--process) #'identity))
+          (should (equal (emacs-cpp-go--server-name plain) "sleep"))
+          (should (equal (emacs-cpp-go--server-name wrapped) "sleep")))
+      (delete-process plain)
+      (delete-process wrapped))))
+
 (provide 'init-go-to-anything-test)
 ;;; init-go-to-anything-test.el ends here

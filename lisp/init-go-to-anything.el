@@ -233,8 +233,15 @@ project's out.  Symbols keep the order each server sent them in (D-105)."
         (funcall sink action)))))
 
 (defun emacs-cpp-go--server-name (server)
-  "Return the file name of SERVER's program: clangd, ty, pyright-langserver."
-  (file-name-nondirectory (car (process-command (jsonrpc--process server)))))
+  "Return the file name of SERVER's program: clangd, ty, pyright-langserver.
+A command started through `env' (ty on the Mac, D-182) names the program after
+env's VAR=VALUE arguments."
+  (let ((command (process-command (jsonrpc--process server))))
+    (when (equal (file-name-nondirectory (car command)) "env")
+      (setq command (cdr command))
+      (while (and command (string-match-p "\\`[A-Za-z_][A-Za-z0-9_]*=" (car command)))
+        (setq command (cdr command))))
+    (file-name-nondirectory (car command))))
 
 (defun emacs-cpp-go--servers ()
   "Return the project's servers with workspace symbols, the current buffer's first.

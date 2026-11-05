@@ -17,7 +17,7 @@ Apple silicon has no gdb (D-051, D-055).")
   "Directories put in front of `exec-path' and PATH at startup when missing (D-089).
 Emacs started from the Dock or Finder gets launchd's PATH, /usr/bin:/bin:/usr/sbin:
 /sbin, whatever Emacs.app's Info.plist asks for: then rg, cmake, ninja, pyright
-(MacPorts, D-053) were not found.")
+(MacPorts, D-053; ty since D-182) were not found.")
 
 (defconst emacs-cpp-default-llvm-tools-dir "/opt/local/libexec/llvm-23/bin"
   "Directory of clang's command-line tools (clang-move, run-clang-tidy ...), or
@@ -49,12 +49,15 @@ found through the user database, so a test run's temporary HOME finds it too.")
 one descriptor per buffer, refused beyond 975 (D-127), and `M-.' into libraries
 opens many (D-019).")
 
-(defconst emacs-cpp-default-python-server '("pyright-langserver" "--stdio")
-  "The Python language server eglot starts (D-140): pyright, from MacPorts.
-ty has no port; it waits until it is tested on the Mac (T-121).")
+(defconst emacs-cpp-default-python-server '("ty" "server")
+  "The Python language server eglot starts (D-140, D-182): Astral's ty, from the
+local MacPorts port in packaging/macports (D-180, D-181).  Its first `M-.' and a
+large `M-?' answer sooner than pyright's, its first `M-?' complete
+\(RESEARCH_python_ty 4c).")
 
-(defconst emacs-cpp-default-python-server-install "sudo port install pyright"
-  "The command that installs `emacs-cpp-default-python-server' (D-140).")
+(defconst emacs-cpp-default-python-server-install
+  "make macos-ports (in the emacs-cpp repository)"
+  "The command that installs `emacs-cpp-default-python-server' (D-180, D-181).")
 
 (provide 'defaults-darwin)
 ;;; defaults-darwin.el ends here
