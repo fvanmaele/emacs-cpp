@@ -1,0 +1,234 @@
+# S11 run 3 2026-11-05T10:49:38+01:00
+project: /tmp/claude-1000/-home-user-source-repos-emacs-cpp/0b224016-8b9a-4cd8-82c6-b6759b0d6c9b/scratchpad/rmo (src/main.cc), tree: /tmp/claude-1000/-home-user-source-repos-emacs-cpp/0b224016-8b9a-4cd8-82c6-b6759b0d6c9b/scratchpad/rmo
+clangd: /opt/clangd-index-nav/bin/clangd, clangd version 23.1.4
+load: 0.56 0.57 0.36
+# files from /tmp/claude-1000/-home-user-source-repos-emacs-cpp/0b224016-8b9a-4cd8-82c6-b6759b0d6c9b/scratchpad/rmo/; managed t; /opt/clangd-index-nav/bin/clangd; gc-cons-threshold 800000
+# ready, shipped command
+key M-o
+  listed 750 files in 18.1 ms
+  screen   35.6 ms after key (update   3.8 ms): "" 806 candidates, 0 GCs 0 ms
+  screen   86.3 ms after key (update   5.9 ms): "" 806 candidates, 0 GCs 0 ms
+key m
+  screen   16.4 ms after key (update  16.1 ms): "m" 524 candidates, 0 GCs 0 ms
+  screen   60.0 ms after key (update   7.9 ms): "m" 524 candidates, 0 GCs 0 ms
+key a
+  screen   18.9 ms after key (update  18.0 ms): "ma" 347 candidates, 0 GCs 0 ms
+  screen   59.8 ms after key (update   4.3 ms): "ma" 347 candidates, 0 GCs 0 ms
+key i
+  screen   14.1 ms after key (update  13.8 ms): "mai" 29 candidates, 0 GCs 0 ms
+  screen   55.8 ms after key (update   3.4 ms): "mai" 29 candidates, 0 GCs 0 ms
+  request "mai" 210.9 ms after key
+  reply "mai": 760, 255.9 ms after key
+key n
+  screen   16.3 ms after key (update  15.7 ms): "main" 35 candidates, 0 GCs 0 ms
+  screen   58.9 ms after key (update   2.1 ms): "main" 35 candidates, 0 GCs 0 ms
+  request "main" 403.8 ms after key
+  reply "main": 425, 429.9 ms after key
+  screen  486.7 ms after key (update   5.6 ms): "main" 28 candidates, 0 GCs 0 ms
+key C-g
+key M-o
+  listed 750 files in 15.2 ms
+  screen   27.8 ms after key (update   3.6 ms): "" 806 candidates, 0 GCs 0 ms
+  screen   77.3 ms after key (update   4.4 ms): "" 806 candidates, 0 GCs 0 ms
+key v
+  screen   35.7 ms after key (update  34.9 ms): "v" 135 candidates, 0 GCs 0 ms
+  screen   57.5 ms after key (update   2.0 ms): "v" 135 candidates, 0 GCs 0 ms
+key e
+  screen   10.9 ms after key (update  10.6 ms): "ve" 55 candidates, 0 GCs 0 ms
+  screen   54.3 ms after key (update   2.1 ms): "ve" 55 candidates, 0 GCs 0 ms
+key c
+  screen   10.6 ms after key (update  10.3 ms): "vec" 5 candidates, 0 GCs 0 ms
+  screen   54.4 ms after key (update   2.2 ms): "vec" 5 candidates, 0 GCs 0 ms
+  request "vec" 208.0 ms after key
+  reply "vec": 1876, 282.7 ms after key
+  screen  341.5 ms after key (update   2.3 ms): "vec" 61 candidates, 0 GCs 0 ms
+key C-g
+key M-o
+  listed 750 files in 15.3 ms
+  screen   30.2 ms after key (update   4.4 ms): "" 807 candidates, 0 GCs 0 ms
+  screen   80.6 ms after key (update   6.6 ms): "" 807 candidates, 0 GCs 0 ms
+key T
+  screen   16.4 ms after key (update  16.0 ms): "T" 606 candidates, 0 GCs 0 ms
+  screen   59.3 ms after key (update   7.0 ms): "T" 606 candidates, 0 GCs 0 ms
+key r
+  screen   14.2 ms after key (update  13.8 ms): "Tr" 77 candidates, 0 GCs 0 ms
+  screen   57.2 ms after key (update   4.7 ms): "Tr" 77 candidates, 0 GCs 0 ms
+key i
+  screen   14.3 ms after key (update  13.4 ms): "Tri" 15 candidates, 0 GCs 0 ms
+  screen   57.3 ms after key (update   0.9 ms): "Tri" 15 candidates, 0 GCs 0 ms
+  request "Tri" 211.2 ms after key
+  reply "Tri": 3110, 340.3 ms after key
+  screen  413.2 ms after key (update   7.1 ms): "Tri" 187 candidates, 0 GCs 0 ms
+key C-g
+key M-o
+  listed 750 files in 14.5 ms
+  screen   23.7 ms after key (update   2.2 ms): "" 807 candidates, 0 GCs 0 ms
+  screen   77.3 ms after key (update   6.6 ms): "" 807 candidates, 0 GCs 0 ms
+key a
+  screen   16.5 ms after key (update  16.2 ms): "a" 598 candidates, 0 GCs 0 ms
+  screen   61.3 ms after key (update   8.9 ms): "a" 598 candidates, 0 GCs 0 ms
+key s
+  screen   17.1 ms after key (update  16.8 ms): "as" 386 candidates, 0 GCs 0 ms
+  screen   57.6 ms after key (update   5.2 ms): "as" 386 candidates, 0 GCs 0 ms
+key s
+  screen   42.6 ms after key (update  41.7 ms): "ass" 296 candidates, 0 GCs 0 ms
+  screen   59.1 ms after key (update   3.0 ms): "ass" 296 candidates, 0 GCs 0 ms
+  request "ass" 232.1 ms after key
+  reply "ass": 1546, 297.0 ms after key
+key e
+  screen    9.0 ms after key (update   8.8 ms): "asse" 62 candidates, 0 GCs 0 ms
+  screen   49.5 ms after key (update   2.5 ms): "asse" 62 candidates, 0 GCs 0 ms
+key m
+  screen   11.9 ms after key (update  11.0 ms): "assem" 62 candidates, 0 GCs 0 ms
+  screen   62.4 ms after key (update   2.3 ms): "assem" 62 candidates, 0 GCs 0 ms
+  request "assem" 210.5 ms after key
+  reply "assem": 49, 217.2 ms after key
+  screen  270.8 ms after key (update   2.2 ms): "assem" 21 candidates, 0 GCs 0 ms
+key b
+  screen    9.3 ms after key (update   9.0 ms): "assemb" 20 candidates, 0 GCs 0 ms
+  screen   59.4 ms after key (update   1.9 ms): "assemb" 20 candidates, 0 GCs 0 ms
+key l
+  screen   11.8 ms after key (update  10.9 ms): "assembl" 20 candidates, 0 GCs 0 ms
+  screen   62.1 ms after key (update   1.9 ms): "assembl" 20 candidates, 0 GCs 0 ms
+  request "assembl" 210.5 ms after key
+  reply "assembl": 40, 216.9 ms after key
+  screen  269.4 ms after key (update   1.2 ms): "assembl" 20 candidates, 0 GCs 0 ms
+key e
+  screen    9.0 ms after key (update   8.7 ms): "assemble" 20 candidates, 0 GCs 0 ms
+  screen   58.5 ms after key (update   1.2 ms): "assemble" 20 candidates, 0 GCs 0 ms
+  request "assemble" 418.1 ms after key
+  reply "assemble": 33, 424.5 ms after key
+  screen  477.7 ms after key (update   2.4 ms): "assemble" 20 candidates, 0 GCs 0 ms
+key C-g
+key M-o
+  listed 750 files in 15.0 ms
+  screen   29.0 ms after key (update   3.9 ms): "" 807 candidates, 0 GCs 0 ms
+  screen   80.1 ms after key (update   6.6 ms): "" 807 candidates, 0 GCs 0 ms
+key S
+  screen   18.5 ms after key (update  17.7 ms): "S" 540 candidates, 0 GCs 0 ms
+  screen   61.2 ms after key (update   5.8 ms): "S" 540 candidates, 0 GCs 0 ms
+key o
+  screen   16.4 ms after key (update  16.1 ms): "So" 83 candidates, 0 GCs 0 ms
+  screen   56.5 ms after key (update   4.1 ms): "So" 83 candidates, 0 GCs 0 ms
+key l
+  screen   12.5 ms after key (update  12.1 ms): "Sol" 43 candidates, 0 GCs 0 ms
+  screen   57.7 ms after key (update   3.2 ms): "Sol" 43 candidates, 0 GCs 0 ms
+  request "Sol" 210.1 ms after key
+  reply "Sol": 343, 221.3 ms after key
+  screen  278.3 ms after key (update   3.3 ms): "Sol" 76 candidates, 0 GCs 0 ms
+key C-g
+key M-o
+  listed 750 files in 11.4 ms
+  screen   18.7 ms after key (update   1.9 ms): "" 807 candidates, 0 GCs 0 ms
+  screen   67.8 ms after key (update   1.9 ms): "" 807 candidates, 0 GCs 0 ms
+key m
+  screen   13.5 ms after key (update  12.9 ms): "m" 525 candidates, 0 GCs 0 ms
+  screen   54.7 ms after key (update   2.5 ms): "m" 525 candidates, 0 GCs 0 ms
+key a
+  screen   14.0 ms after key (update  13.3 ms): "ma" 347 candidates, 0 GCs 0 ms
+  screen   54.2 ms after key (update   2.0 ms): "ma" 347 candidates, 0 GCs 0 ms
+key i
+  screen   11.2 ms after key (update  10.6 ms): "mai" 29 candidates, 0 GCs 0 ms
+  screen   53.2 ms after key (update   1.1 ms): "mai" 29 candidates, 0 GCs 0 ms
+  request "mai" 208.5 ms after key
+  reply "mai": 760, 234.2 ms after key
+  screen  287.9 ms after key (update   1.0 ms): "mai" 49 candidates, 0 GCs 0 ms
+key n
+  screen    9.7 ms after key (update   9.4 ms): "main" 35 candidates, 0 GCs 0 ms
+  screen   52.7 ms after key (update   0.9 ms): "main" 35 candidates, 0 GCs 0 ms
+  request "main" 404.8 ms after key
+  reply "main": 425, 412.6 ms after key
+  screen  465.3 ms after key (update   1.7 ms): "main" 28 candidates, 0 GCs 0 ms
+key C-g
+key M-o
+  listed 750 files in 14.4 ms
+  screen   23.2 ms after key (update   2.2 ms): "" 807 candidates, 0 GCs 0 ms
+  screen   76.7 ms after key (update   6.6 ms): "" 807 candidates, 0 GCs 0 ms
+key v
+  screen   12.9 ms after key (update  12.6 ms): "v" 136 candidates, 0 GCs 0 ms
+  screen   56.1 ms after key (update   4.0 ms): "v" 136 candidates, 0 GCs 0 ms
+key e
+  screen   14.5 ms after key (update  14.2 ms): "ve" 56 candidates, 0 GCs 0 ms
+  screen   55.9 ms after key (update   3.3 ms): "ve" 56 candidates, 0 GCs 0 ms
+key c
+  screen   13.3 ms after key (update  12.4 ms): "vec" 5 candidates, 0 GCs 0 ms
+  screen   58.0 ms after key (update   2.2 ms): "vec" 5 candidates, 0 GCs 0 ms
+  request "vec" 211.4 ms after key
+  reply "vec": 1876, 252.3 ms after key
+  screen  312.6 ms after key (update   2.9 ms): "vec" 61 candidates, 0 GCs 0 ms
+key C-g
+key M-o
+  listed 750 files in 15.4 ms
+  screen   28.0 ms after key (update   3.5 ms): "" 807 candidates, 0 GCs 0 ms
+  screen   79.7 ms after key (update   6.6 ms): "" 807 candidates, 0 GCs 0 ms
+key T
+  screen   16.0 ms after key (update  15.7 ms): "T" 606 candidates, 0 GCs 0 ms
+  screen   55.0 ms after key (update   2.9 ms): "T" 606 candidates, 0 GCs 0 ms
+key r
+  screen   16.5 ms after key (update  15.6 ms): "Tr" 77 candidates, 0 GCs 0 ms
+  screen   58.7 ms after key (update   3.8 ms): "Tr" 77 candidates, 0 GCs 0 ms
+key i
+  screen   14.0 ms after key (update  13.6 ms): "Tri" 15 candidates, 0 GCs 0 ms
+  screen   57.2 ms after key (update   3.0 ms): "Tri" 15 candidates, 0 GCs 0 ms
+  request "Tri" 209.8 ms after key
+  reply "Tri": 3110, 332.3 ms after key
+  screen  406.1 ms after key (update   7.2 ms): "Tri" 187 candidates, 0 GCs 0 ms
+key C-g
+key M-o
+  listed 750 files in 16.1 ms
+  screen   30.7 ms after key (update   4.2 ms): "" 807 candidates, 0 GCs 0 ms
+  screen   81.3 ms after key (update   6.6 ms): "" 807 candidates, 0 GCs 0 ms
+key a
+  screen   20.2 ms after key (update  19.8 ms): "a" 598 candidates, 0 GCs 0 ms
+  screen   60.1 ms after key (update   7.6 ms): "a" 598 candidates, 0 GCs 0 ms
+key s
+  screen   24.4 ms after key (update  23.5 ms): "as" 386 candidates, 0 GCs 0 ms
+  screen   59.0 ms after key (update   3.0 ms): "as" 386 candidates, 0 GCs 0 ms
+key s
+  screen   39.7 ms after key (update  38.8 ms): "ass" 296 candidates, 0 GCs 0 ms
+  screen   59.3 ms after key (update   3.0 ms): "ass" 296 candidates, 0 GCs 0 ms
+  request "ass" 231.4 ms after key
+  reply "ass": 1546, 290.2 ms after key
+key e
+  screen   10.8 ms after key (update  10.5 ms): "asse" 62 candidates, 0 GCs 0 ms
+  screen   41.8 ms after key (update   1.1 ms): "asse" 62 candidates, 0 GCs 0 ms
+key m
+  screen    9.3 ms after key (update   9.0 ms): "assem" 62 candidates, 0 GCs 0 ms
+  screen   59.9 ms after key (update   2.4 ms): "assem" 62 candidates, 0 GCs 0 ms
+  request "assem" 207.9 ms after key
+  reply "assem": 49, 214.5 ms after key
+  screen  267.9 ms after key (update   2.1 ms): "assem" 21 candidates, 0 GCs 0 ms
+key b
+  screen   25.5 ms after key (update  24.6 ms): "assemb" 20 candidates, 0 GCs 0 ms
+  screen   73.0 ms after key (update   1.9 ms): "assemb" 20 candidates, 0 GCs 0 ms
+key l
+  screen   24.6 ms after key (update  23.7 ms): "assembl" 20 candidates, 0 GCs 0 ms
+  screen   71.4 ms after key (update   1.9 ms): "assembl" 20 candidates, 0 GCs 0 ms
+  request "assembl" 219.7 ms after key
+  reply "assembl": 40, 226.7 ms after key
+  screen  279.9 ms after key (update   2.0 ms): "assembl" 20 candidates, 0 GCs 0 ms
+key e
+  screen    8.8 ms after key (update   8.5 ms): "assemble" 20 candidates, 0 GCs 0 ms
+  screen   59.2 ms after key (update   1.9 ms): "assemble" 20 candidates, 0 GCs 0 ms
+  request "assemble" 417.9 ms after key
+  reply "assemble": 33, 420.6 ms after key
+  screen  472.7 ms after key (update   1.6 ms): "assemble" 20 candidates, 0 GCs 0 ms
+key C-g
+key M-o
+  listed 750 files in 14.5 ms
+  screen   22.8 ms after key (update   2.2 ms): "" 807 candidates, 0 GCs 0 ms
+  screen   71.4 ms after key (update   1.8 ms): "" 807 candidates, 0 GCs 0 ms
+key S
+  screen   15.9 ms after key (update  15.6 ms): "S" 540 candidates, 0 GCs 0 ms
+  screen   58.0 ms after key (update   5.7 ms): "S" 540 candidates, 0 GCs 0 ms
+key o
+  screen   16.4 ms after key (update  16.0 ms): "So" 83 candidates, 0 GCs 0 ms
+  screen   55.2 ms after key (update   2.5 ms): "So" 83 candidates, 0 GCs 0 ms
+key l
+  screen   17.1 ms after key (update  16.7 ms): "Sol" 43 candidates, 0 GCs 0 ms
+  screen   57.9 ms after key (update   3.2 ms): "Sol" 43 candidates, 0 GCs 0 ms
+  request "Sol" 212.9 ms after key
+  reply "Sol": 343, 224.1 ms after key
+  screen  281.4 ms after key (update   3.3 ms): "Sol" 76 candidates, 0 GCs 0 ms
+key C-g
+load after: 0.68 0.64 0.40

@@ -2658,7 +2658,9 @@ presets, GoogleTest runner.
   (deal.II); the plain check failed (60 listings in 60 editing calls). Built (T-133,
   0127): current call 1.9 / 0.4 / 10.2 ms (emacs-cpp / RMO-drafts / deal.II); first
   call 420 / 29 / 190 ms against 444 - 493 / 25 - 50 / 68 - 75 today; remote roots
-  listed as before.
+  listed as before. deal.II's slower first call accepted (owner 2026-11-05); more
+  trees and `M-o` measured (RESEARCH_go_to_anything 22): at LLVM's size (16532
+  directories) a current call is 100 ms, D-178's option off for such trees.
 - DECIDED D-176 (owner 2026-11-04: "leave reverter filter"): the reverter's filter
   keeps looking each record's buffer up (761 records, about four per file, for a
   190-file checkout: 10 - 11 ms on Arch, 0120); no merge of a call's records per
