@@ -2303,6 +2303,12 @@ presets, GoogleTest runner.
   their files would vanish, hence the check); a projectile update could change how
   `alien` git listing treats submodules (tested by a new ERT test); trees without
   submodules gain nothing (deal.II 64 ms, LLVM 340 ms per call stay).
+  Revisited 2026-11-05 after D-180 - D-182 (none touch file listing): on the Mac
+  projectile also picks fd (`projectile-fd-executable` is read when projectile loads,
+  after init.el puts MacPorts' directories on `exec-path`, D-089; fd is in README's
+  port list), so (h) applies there too; the Mac's file set and times are UNVERIFIED
+  (measured on Arch only; budgets bind there, D-057), its correctness checked by the
+  new ERT test in the Mac's `make test`.
   (i) Drop the duplicates only (`delete-dups` on the list `M-o` and `C-c p f` get).
   Against: no speed-up; the per-submodule pass still runs.
   (j) Silence "Projectile is indexing" (the progress message), nothing else.
