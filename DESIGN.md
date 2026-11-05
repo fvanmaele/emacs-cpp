@@ -2201,7 +2201,9 @@ presets, GoogleTest runner.
   measured across 63 files. Findings in; O-43.
 
 ## Open questions ledger (LIVING)
-- O-88 (OPEN 2026-11-05, from T-121; D-140 (c)): switch the Mac's Python server from
+- O-88 (RESOLVED 2026-11-05 with D-182: (a); owner: "O-88 (a), measure cost, research
+  Against:"; was OPEN 2026-11-05, from T-121; D-140 (c)): switch the Mac's Python
+  server from
   pyright to ty (RESEARCH_python_ty 4c). Measured: ty's first `M-.` 6 - 13 times
   sooner on a small tree, no sooner on SymPy (0.4 - 0.5 s, Arch 65 - 72 ms, cause
   UNVERIFIED); `M-?` over 5600 references 4.2 - 5.3 s through eglot against 6.8 -
@@ -2686,6 +2688,21 @@ presets, GoogleTest runner.
   Against: buffers become current later than 0.13 s; another measurement round on
   both machines. Not taken: (b) keep runs 1 - 3's PASS (choosing runs), (c) three more
   idle runs first (more samples, same 0.30 s).
+- DECIDED D-182 (owner 2026-11-05: "O-88 (a)"; supersedes D-140 (c)'s wait): ty is
+  the Python server on the Mac too, with MacPorts' and the user's packages found
+  (RESEARCH_python_ty 4c - 4e). Shape PROPOSED 2026-11-05 from 4e, owner to agree
+  (T-134): not `environment.python` inline (it overrides a project's `.venv` and its
+  own setting, 4e); instead (p) ty's process gets the directory of `python3`'s true
+  name first on PATH (`file-truename`, no process), so ty's own discovery finds
+  MacPorts' Python only where nothing else is set; (u) `environment.extra-paths` =
+  the user site-packages, sent only when the project has no `.venv` in its root, no
+  `VIRTUAL_ENV` or `CONDA_PREFIX` is set, its `ty.toml` / `pyproject.toml` names no
+  `python` for ty's environment (a regexp check), and Python reports
+  `ENABLE_USER_SITE` (one `python3 -c`, about 21 ms, once per session). Against: (u)'s
+  regexp check misses a `python` key written in a form it does not expect (ty then
+  sees the user packages where the project's interpreter would not); a project
+  whose environment changes during the session keeps the first answer; one more
+  case the Mac has and Arch does not.
 - DECIDED D-181 (owner 2026-11-05: "(a)"; O-87; amends D-180): MacPorts reads the
   local ports from a root-owned copy, `/opt/local/var/macports/sources/emacs-cpp/ports`,
   not from the repository: a `file://` source in a git work tree gets `git pull
@@ -4337,6 +4354,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-179 | 2026-11-05 | T-133 reverted: no call slower than today's listing; supersedes D-177, D-178 | 12 | O-85 |
 | D-180 | 2026-11-05 | ty on the Mac from a local binary MacPorts port in `packaging/macports` | 5 | O-86 |
 | D-181 | 2026-11-05 | local ports read from a root-owned copy under MacPorts' `sources/`, not the repository | 5 | O-87 |
+| D-182 | 2026-11-05 | O-88 (a): ty on the Mac too; PATH first, user site-packages when the base interpreter is used | 5 | O-88 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |
