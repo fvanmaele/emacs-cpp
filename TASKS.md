@@ -127,7 +127,7 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
 | T-079 | dropped | S | send the texlab range formatting report | D-101 | LaTeX left (D-145) |
 | T-080 | done 0071 | S | `make test` in a temporary HOME | D-104 | real home unchanged |
 | T-120 | done 0095 | S | Python server per platform: ty on Arch | D-140 | 146 tests |
-| T-121 | open | S | ty on the Mac: install and test | D-140 (c), D-180 | tier 1 port written 2026-11-05 (`packaging/macports/devel/ty`, `port lint` clean, ty 0.0.97 runs); install H-29 (root-owned copy, D-181); then RESEARCH_python_ty 4b's measurements on the Mac |
+| T-121 | open | S | ty on the Mac: install and test | D-140 (c), D-180 | tier 1 port written 2026-11-05 (`packaging/macports/devel/ty`, `port lint` clean, ty 0.0.97 runs); installed 2026-11-05 by `make macos-ports` (H-29: `ty @0.0.97_0` active, `/opt/local/bin/ty`; the copy root:wheel, `sources.conf` line in place); next RESEARCH_python_ty 4b's measurements on the Mac |
 | T-122 | done 0096 | S | gaps inside a word; `M-o` matches file names | D-141 | 149 tests |
 | T-123 | done 0097 | S | ty return type inference per project | D-142 | 150 tests |
 | T-124 | deferred | S | ruff: flymake backend, `C-c l f` | D-143 | until ty alone is too slow |
