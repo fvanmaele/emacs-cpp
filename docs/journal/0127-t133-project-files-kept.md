@@ -1,5 +1,7 @@
 # 0127 - T-133: projectile's lists kept while their directories hold
 
+> Superseded 2026-11-05 by D-179 (0128): the feature and its option were reverted.
+
 - **Date:** 2026-11-05
 - **Commits:** see `git log -- lisp/init-project.el` (this entry's commit)
 - **Tier:** 3 (owner 2026-11-05: "Tier 3 with short spike"; S21 PASS, 0126)
