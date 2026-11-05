@@ -1261,6 +1261,28 @@ first edit, first save, a second edit and save, each changed it; batch made no b
 or auto-save file). A check by directory times alone would list anew after every
 edit; S21 compares remedies.
 
+**After T-133** (owner 2026-11-05: "Slower first call acceptable for deal-ii, but do
+some additional benchmarking"; hp-elitedesk, the shipped module in batch Emacs, load
+below 0.6; first call and before T-133 medians of 5, current call of 9):
+| tree | files | directories checked | before T-133 | first call | current call |
+|---|---|---|---|---|---|
+| 10 small repositories | 10 - 853 | 3 - 336 | 9.1 - 17.4 ms | 9.2 - 29.8 ms | 0.23 - 1.89 ms |
+| RMO-drafts | 973 | 67 | 22.2 ms | 27.6 ms | 0.53 ms |
+| emacs-cpp | 7229 | 359 | 411.2 ms | 447.5 ms | 1.89 ms |
+| deal.II checkout | 34556 | 1805 | 63.6 ms | 177.6 ms | 9.62 ms |
+| LLVM 23.1.4 sources (inside emacs-cpp, ignored) | 180522 | 16532 | 335.8 ms | 1365.6 ms | 100.35 ms |
+A current call grows with the directories, about 6 us each; small repositories pay
+their old listing (mostly process start) once and then under 2 ms. At LLVM's size a
+current call costs S11's whole key budget (100 ms) and a first call four times the old
+listing: `emacs-cpp-keep-project-files` nil (D-178) suits such a tree.
+
+`M-o` in a terminal Emacs (S11's `prompt.sh`, run 3 with the shipped command, the
+RMO-drafts copy, 10 openings each; logs in `spikes/s21-projectile-cache/`): with the
+lists kept the first screen came 9.7 ms after `M-o` (median; 63.7 ms at the first
+opening), the listing inside it 1.1 ms (32.0 ms the first time); with the option off
+27.9 ms and 15.1 ms. emacs-cpp, whose listing is 411 ms, has no CMake presets for
+S11's harness (not measured there).
+
 ## Sources
 - JetBrains, CLion help "Search everywhere":
   https://www.jetbrains.com/help/clion/searching-everywhere.html
