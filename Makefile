@@ -26,6 +26,8 @@ HOME_CHECK = --eval "(when (file-equal-p \"~\" (concat \"~\" (user-login-name)))
 	(expand-file-name \"~\")))"
 endif
 # A missing grammar fails its tests instead of asking to install it on stdin.
+# The test HOME has no `//': macOS's TMPDIR ends in `/', and kpathsea reads `//' in a
+# HOME-relative path as a recursive search of everything under TMPDIR (T-135).
 ERT = $(EMACS) -Q --batch $(HOME_CHECK) -L scripts -L lisp -L test \
 	--eval "(setq treesit-auto-install-grammar 'never)" \
 	$(foreach f,$(sort $(wildcard test/*-test.el)),\
@@ -34,7 +36,8 @@ ERT = $(EMACS) -Q --batch $(HOME_CHECK) -L scripts -L lisp -L test \
 
 test: ## ERT in a temporary HOME; REAL_HOME=1 uses yours (run `make packages` first)
 ifeq ($(REAL_HOME),)
-	@home=$$(mktemp -d "$${TMPDIR:-/tmp}/emacs-cpp-test-home.XXXXXX") || exit 1; \
+	@tmp=$${TMPDIR:-/tmp}; \
+	home=$$(mktemp -d "$${tmp%/}/emacs-cpp-test-home.XXXXXX") || exit 1; \
 	trap 'rm -rf "$$home"' EXIT; trap 'exit 130' INT TERM; \
 	echo "make test: HOME=$$home"; \
 	HOME="$$home" $(ERT)
