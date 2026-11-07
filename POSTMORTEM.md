@@ -612,3 +612,16 @@ encoded structurally rather than in a comment.
   is offered again as O-79 (o).
 - Lesson: a duration around a call that can wait counts what runs inside the wait;
   name the place of a stall only from a measurement at that level.
+
+## 2026-11-07 - Markdown's PDF dropped the formulas' symbols silently (short)
+- What failed: `C-c C-c x` on RMO-drafts' `md/exact_coarse_model.md` gave a PDF without
+  its formulas' Greek letters and math symbols, and said nothing.
+- Caught by: the owner, the first real file after T-135 (0131).
+- Cause: the file writes formulas as code spans with Unicode (rho_I = Sigma p_i); pandoc's
+  default monospace font, Latin Modern Mono, has no such glyphs; xelatex drops them,
+  pandoc exits 0 with a `[WARNING] Missing character` line per drop, and the command
+  showed pandoc's output only on failure. The tests used `$x^2$` only.
+- Fix (commit): this commit, D-185: DejaVu Sans Mono for code
+  (`emacs-cpp-markdown-pdf-monofont`), missing characters a warning naming them.
+- Lesson: test a converter on the owner's real files, not only on the textbook input;
+  a tool's warnings on exit 0 are part of its result.
