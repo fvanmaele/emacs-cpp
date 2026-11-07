@@ -524,6 +524,10 @@ for one project in its `.dir-locals.el`:
 ```
 ((markdown-mode . ((emacs-cpp-markdown-pdf-engine . "lualatex"))))
 ```
+Formulas written as code with Unicode Greek letters and math symbols are set in
+DejaVu Sans Mono, which has them (D-185; `emacs-cpp-markdown-pdf-monofont`).
+A character no font has is left out of the PDF; the export then shows a warning
+naming each one.
 Needs pandoc and LaTeX: on Arch `sudo pacman -S pandoc-cli texlive-xetex`, on the Mac
 `sudo port install pandoc` and MacTeX. Math drawn inside the Markdown buffer is not
 configured (T-136, deferred).

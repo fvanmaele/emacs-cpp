@@ -51,9 +51,26 @@
 (ert-deftest init-writing-pdf-command ()
   "pandoc gets the file and its PDF by name, run in the file's directory."
   (init-test--load)
-  (should (equal (emacs-cpp-markdown--pdf-command "/a/b/doc.md" "lualatex")
+  (should (equal (emacs-cpp-markdown--pdf-command "/a/b/doc.md" "lualatex" nil)
                  '("pandoc" "doc.md" "-o" "doc.pdf" "--pdf-engine=lualatex")))
-  (should (equal emacs-cpp-markdown-pdf-engine "xelatex")))
+  (should (equal (emacs-cpp-markdown--pdf-command "/a/b/doc.md" "xelatex" "Menlo")
+                 '("pandoc" "doc.md" "-o" "doc.pdf" "--pdf-engine=xelatex"
+                   "-V" "monofont=Menlo")))
+  (should (equal emacs-cpp-markdown-pdf-engine "xelatex"))
+  (should (equal emacs-cpp-markdown-pdf-monofont "DejaVuSansMono.ttf")))
+
+(ert-deftest init-writing-pdf-missing-characters ()
+  "LaTeX's missing-glyph lines give each character once, in order (D-185)."
+  (init-test--load)
+  (should (equal (emacs-cpp-markdown--missing-characters
+                  (concat "[WARNING] Missing character: There is no \u03c1 (U+03C1) "
+                          "in font [lmmono10-regular]:!\n"
+                          "[WARNING] Missing character: There is no \u2202 (U+2202) "
+                          "in font [lmmono10-regular]:!\n"
+                          "[WARNING] Missing character: There is no \u03c1 (U+03C1) "
+                          "(U+03C1) in font [lmmono10-regular]:!\n"))
+                 '("\u03c1" "\u2202")))
+  (should-not (emacs-cpp-markdown--missing-characters "Output written.\n")))
 
 (ert-deftest init-writing-pdf-missing-tools ()
   "A missing pandoc or engine signals with the platform's install command."
@@ -109,6 +126,29 @@
         (should (eql 0 (init-writing-test--wait (emacs-cpp-markdown-pdf))))
         (should (eq (find-buffer-visiting pdf) shown))
         (should (buffer-live-p shown))))))
+
+(defun init-writing-test--warnings ()
+  "Return the text of the *Warnings* buffer, or the empty string."
+  (if-let* ((buffer (get-buffer "*Warnings*")))
+      (with-current-buffer buffer (buffer-string))
+    ""))
+
+(ert-deftest init-writing-pdf-code-span-glyphs ()
+  "Greek and math symbols in code spans reach the PDF with the default monofont;
+with pandoc's own font they are dropped, and the export warns naming them."
+  (init-test--load)
+  (skip-unless (init-writing-test--tools-p))
+  (init-writing-test--with-file "Restriction `\u03c1_I = \u03a3 p_i`, `\u2202f \u2265 0`.\n"
+    (when (get-buffer "*Warnings*")
+      (kill-buffer "*Warnings*"))
+    (should (eql 0 (init-writing-test--wait (emacs-cpp-markdown-pdf))))
+    (should-not (string-search "lacks" (init-writing-test--warnings)))
+    (let ((emacs-cpp-markdown-pdf-monofont nil))
+      (should (eql 0 (init-writing-test--wait (emacs-cpp-markdown-pdf)))))
+    (let ((warnings (init-writing-test--warnings)))
+      (should (string-match-p "lacks [0-9]+ characters" warnings))
+      (should (string-search "\u03c1" warnings))
+      (should (string-search "\u2265" warnings)))))
 
 (ert-deftest init-writing-pdf-failure ()
   "A LaTeX error: pandoc exits non-zero, its output is kept, the finish signals."

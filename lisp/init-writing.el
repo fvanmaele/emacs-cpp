@@ -4,15 +4,29 @@
 
 ;; The owner's existing packages, carried over (DESIGN 12).  Markdown buffers export to
 ;; PDF through pandoc and a LaTeX engine on `C-c C-c x', shown in doc-view (D-184,
-;; DESIGN 12.1).  Math drawn in the buffer is deferred (T-136).
+;; DESIGN 12.1).  Math drawn in the buffer is deferred (T-136).  Code spans use a
+;; monospace font with Greek and math symbols, and characters LaTeX drops are a
+;; warning (D-185).
 
 ;;; Code:
+
+(require 'cl-lib)
 
 (defcustom emacs-cpp-markdown-pdf-engine "xelatex"
   "LaTeX engine pandoc uses for `emacs-cpp-markdown-pdf' (D-184).
 Passed as pandoc's --pdf-engine; xelatex reads Unicode text and system fonts."
   :type 'string
   :safe #'stringp
+  :group 'tools)
+
+(defcustom emacs-cpp-markdown-pdf-monofont "DejaVuSansMono.ttf"
+  "Monospace font of code spans and blocks in `emacs-cpp-markdown-pdf' (D-185).
+Passed as pandoc's `-V monofont='; nil leaves pandoc's default, Latin Modern
+Mono, which has no Greek letters or math symbols: formulas written in code
+spans (rho_I = Sigma p_i, in Unicode) lose those characters.  DejaVu Sans Mono ships with TeX
+Live; a name with .ttf is looked up as a file there."
+  :type '(choice (const :tag "pandoc's default" nil) string)
+  :safe (lambda (value) (or (null value) (stringp value)))
   :group 'tools)
 
 (defconst emacs-cpp-markdown--pdf-output "*emacs-cpp-markdown-pdf*"
@@ -22,11 +36,22 @@ Passed as pandoc's --pdf-engine; xelatex reads Unicode text and system fonts."
   "Return the PDF file `emacs-cpp-markdown-pdf' writes for FILE."
   (concat (file-name-sans-extension file) ".pdf"))
 
-(defun emacs-cpp-markdown--pdf-command (file engine)
-  "Return the pandoc command line writing FILE's PDF with ENGINE."
-  (list "pandoc" (file-name-nondirectory file)
-        "-o" (file-name-nondirectory (emacs-cpp-markdown--pdf-file file))
-        (concat "--pdf-engine=" engine)))
+(defun emacs-cpp-markdown--pdf-command (file engine monofont)
+  "Return the pandoc command line writing FILE's PDF with ENGINE and MONOFONT.
+MONOFONT nil: pandoc's default monospace font."
+  (append (list "pandoc" (file-name-nondirectory file)
+                "-o" (file-name-nondirectory (emacs-cpp-markdown--pdf-file file))
+                (concat "--pdf-engine=" engine))
+          (and monofont (list "-V" (concat "monofont=" monofont)))))
+
+(defun emacs-cpp-markdown--missing-characters (output)
+  "Return the distinct characters LaTeX reported missing in OUTPUT, in order."
+  (let ((start 0)
+        found)
+    (while (string-match "Missing character: There is no \\(.\\)" output start)
+      (setq start (match-end 0))
+      (cl-pushnew (match-string 1 output) found :test #'equal))
+    (nreverse found)))
 
 (defun emacs-cpp-markdown--check-tools (engine)
   "Signal an error naming the install command when pandoc or ENGINE is missing."
@@ -53,6 +78,7 @@ The PDF goes beside the file, named as it with .pdf; the engine is
   (let* ((file (or buffer-file-name
                    (user-error "emacs-cpp: this buffer visits no file")))
          (engine emacs-cpp-markdown-pdf-engine)
+         (monofont emacs-cpp-markdown-pdf-monofont)
          (pdf (emacs-cpp-markdown--pdf-file file))
          (output (get-buffer-create emacs-cpp-markdown--pdf-output))
          (default-directory (file-name-directory file)))
@@ -65,7 +91,7 @@ The PDF goes beside the file, named as it with .pdf; the engine is
     (make-process
      :name "emacs-cpp-markdown-pdf"
      :buffer output
-     :command (emacs-cpp-markdown--pdf-command file engine)
+     :command (emacs-cpp-markdown--pdf-command file engine monofont)
      :noquery t
      :sentinel (lambda (process _event)
                  (when (memq (process-status process) '(exit signal))
@@ -73,10 +99,23 @@ The PDF goes beside the file, named as it with .pdf; the engine is
                     (process-exit-status process) file pdf))))))
 
 (defun emacs-cpp-markdown--pdf-finished (status file pdf)
-  "Show PDF when pandoc exited with STATUS 0 on FILE; else show its output, signal."
+  "Show PDF when pandoc exited with STATUS 0 on FILE; else show its output, signal.
+Characters LaTeX dropped for want of a glyph are a warning naming them (D-185):
+pandoc exits 0 and the PDF silently lacks them."
   (if (eql 0 status)
-      (prog1 (emacs-cpp-markdown--show-pdf pdf)
-        (message "emacs-cpp: wrote %s" pdf))
+      (let ((missing (emacs-cpp-markdown--missing-characters
+                      (with-current-buffer
+                          (get-buffer-create emacs-cpp-markdown--pdf-output)
+                        (buffer-string)))))
+        (prog1 (emacs-cpp-markdown--show-pdf pdf)
+          (if (null missing)
+              (message "emacs-cpp: wrote %s" pdf)
+            (display-warning
+             'emacs-cpp
+             (format "%s lacks %d characters its fonts have no glyph for: %s; \
+see %s, and `emacs-cpp-markdown-pdf-monofont' (D-185)"
+                     pdf (length missing) (string-join missing " ")
+                     emacs-cpp-markdown--pdf-output)))))
     (display-buffer (get-buffer-create emacs-cpp-markdown--pdf-output))
     (error "emacs-cpp: pandoc failed (exit %s) on %s; its output is in %s"
            status file emacs-cpp-markdown--pdf-output)))
