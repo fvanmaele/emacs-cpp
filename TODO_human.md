@@ -14,6 +14,18 @@ cannot read itself. An approval another session asks the owner for itself (a ben
 service's plan) is not an item.
 
 ## Run now
+- **H-31** (2026-11-07, unblocks T-135, D-184 - D-186) Markdown to PDF on Arch: the
+  install (agreed 2026-11-07), the tests, one export by hand.
+  1. On the Mac: `cd ~/source/repos/emacs-cpp && git push` (the session does not push).
+  2. On Arch: `sudo pacman -S pandoc-cli texlive-xetex mupdf-tools`
+  3. On Arch: `cd ~/source/repos/emacs-cpp && git pull --ff-only && kpsewhich
+     DejaVuSansMono.ttf && make test </dev/null`
+  4. On Arch: quit Emacs, start it again, open
+     `~/source/repos/RMO-drafts/md/exact_coarse_model.md`, press `C-c C-c x`.
+  Report back: what `kpsewhich` printed (or nothing); `make test`'s `Ran ...` line and
+  any FAILED test names; whether step 4's PDF shows the Greek letters, sharply, and
+  any `*Warnings*` text.
+
 - **H-14** (2026-10-21, unblocks T-118) Hand check: deal.II's own sources from RMO.
   The index is built (`indexes/dealii.dex`, deal.II 9.8.0).
   1. In Emacs on Arch, open `~/source/repos/RMO-gross-pitaevskii/.dir-locals.el` and
