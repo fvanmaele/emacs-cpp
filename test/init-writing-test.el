@@ -35,8 +35,9 @@
        (delete-directory root t))))
 
 (defun init-writing-test--tools-p ()
-  "Non-nil when pandoc and the configured engine are on `exec-path'."
-  (and (executable-find "pandoc") (executable-find emacs-cpp-markdown-pdf-engine)))
+  "Non-nil when pandoc, the configured engine and mutool are on `exec-path'."
+  (and (executable-find "pandoc") (executable-find emacs-cpp-markdown-pdf-engine)
+       (executable-find "mutool")))
 
 (defun init-writing-test--wait (process)
   "Wait up to 120 s for PROCESS to finish; return its exit status."
@@ -83,7 +84,19 @@
     (let ((err (should-error
                 (emacs-cpp-markdown--check-tools "emacs-cpp-no-such-engine"))))
       (should (string-match-p "emacs-cpp-no-such-engine is not on exec-path"
-                              (cadr err))))))
+                              (cadr err)))))
+  ;; pandoc and the engine found, mutool not (D-186).
+  (when (and (executable-find "pandoc") (executable-find "xelatex"))
+    (let ((dir (make-temp-file "emacs-cpp-writing-bin" t)))
+      (unwind-protect
+          (progn
+            (dolist (program '("pandoc" "xelatex"))
+              (make-symbolic-link (executable-find program)
+                                  (expand-file-name program dir)))
+            (let* ((exec-path (list dir))
+                   (err (should-error (emacs-cpp-markdown--check-tools "xelatex"))))
+              (should (string-match-p "mutool is not on exec-path" (cadr err)))))
+        (delete-directory dir t)))))
 
 (ert-deftest init-writing-pdf-defaults ()
   "The Mac finds MacTeX's engines (D-184); each platform names its install command."
@@ -92,11 +105,11 @@
     ('darwin
      (should (member "/Library/TeX/texbin" emacs-cpp-default-exec-path-prepend))
      (should (member "/Library/TeX/texbin" exec-path))
-     (should (string-match-p "port install pandoc"
+     (should (string-match-p "port install pandoc mupdf"
                              emacs-cpp-default-markdown-pdf-install)))
     ('gnu/linux
      (should (equal emacs-cpp-default-markdown-pdf-install
-                    "sudo pacman -S pandoc-cli texlive-xetex")))))
+                    "sudo pacman -S pandoc-cli texlive-xetex mupdf-tools")))))
 
 (ert-deftest init-writing-pdf-key ()
   "`C-c C-c x' exports in Markdown buffers; markdown-mode's own keys stay."

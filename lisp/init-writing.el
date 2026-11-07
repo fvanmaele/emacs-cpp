@@ -6,7 +6,7 @@
 ;; PDF through pandoc and a LaTeX engine on `C-c C-c x', shown in doc-view (D-184,
 ;; DESIGN 12.1).  Math drawn in the buffer is deferred (T-136).  Code spans use a
 ;; monospace font with Greek and math symbols, and characters LaTeX drops are a
-;; warning (D-185).
+;; warning (D-185).  DocView draws the PDF through MuPDF's SVG output (D-186).
 
 ;;; Code:
 
@@ -23,8 +23,8 @@ Passed as pandoc's --pdf-engine; xelatex reads Unicode text and system fonts."
   "Monospace font of code spans and blocks in `emacs-cpp-markdown-pdf' (D-185).
 Passed as pandoc's `-V monofont='; nil leaves pandoc's default, Latin Modern
 Mono, which has no Greek letters or math symbols: formulas written in code
-spans (rho_I = Sigma p_i, in Unicode) lose those characters.  DejaVu Sans Mono ships with TeX
-Live; a name with .ttf is looked up as a file there."
+spans (rho_I = Sigma p_i, in Unicode) lose those characters.  DejaVu Sans
+Mono ships with TeX Live; a name with .ttf is looked up as a file there."
   :type '(choice (const :tag "pandoc's default" nil) string)
   :safe (lambda (value) (or (null value) (stringp value)))
   :group 'tools)
@@ -54,10 +54,12 @@ MONOFONT nil: pandoc's default monospace font."
     (nreverse found)))
 
 (defun emacs-cpp-markdown--check-tools (engine)
-  "Signal an error naming the install command when pandoc or ENGINE is missing."
-  (dolist (program (list "pandoc" engine))
+  "Signal an error naming the install command when a program the export needs is
+missing: pandoc, ENGINE, and mutool, without which DocView falls back to gs's
+blurry 100 dpi PNGs instead of MuPDF's SVG pages (D-186)."
+  (dolist (program (list "pandoc" engine "mutool"))
     (unless (executable-find program)
-      (error "emacs-cpp: %s is not on exec-path; install: %s (D-184)"
+      (error "emacs-cpp: %s is not on exec-path; install: %s (D-184, D-186)"
              program emacs-cpp-default-markdown-pdf-install))))
 
 (defun emacs-cpp-markdown--show-pdf (pdf)

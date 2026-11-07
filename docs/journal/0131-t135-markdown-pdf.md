@@ -81,8 +81,11 @@ characters, which become a warning naming them. Two tests: the parse of those li
 and an export of Greek in a code span, clean with the default font and warned about
 with pandoc's own. POSTMORTEM has the short entry.
 The low resolution in DocView is gs rendering 100 dpi PNGs on a Retina screen;
-DocView uses MuPDF's SVG output on its own once `mutool` is on `exec-path`, an
-install for the owner to agree.
+DocView uses MuPDF's SVG output on its own once `mutool` is on `exec-path`. The
+owner ruled that (D-186) and installed the Mac's `mupdf` port; the export now
+requires `mutool` too, so DocView cannot fall back to gs unnoticed. Test: with
+pandoc and xelatex on `exec-path` and mutool not, the export signals naming mutool.
+`make test` on the Mac after both fixes: 164 run, 0 unexpected, 2 gdb tests skipped.
 
 ## Standard feedback (optional; the standard pulls it with `make feedback`)
 - Helped: "a choice offered to the owner, premises verified or marked UNVERIFIED";

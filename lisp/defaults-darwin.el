@@ -61,8 +61,8 @@ large `M-?' answer sooner than pyright's, its first `M-?' complete
   "The command that installs `emacs-cpp-default-python-server' (D-180, D-181).")
 
 (defconst emacs-cpp-default-markdown-pdf-install
-  "sudo port install pandoc; LaTeX: MacTeX (https://tug.org/mactex/)"
-  "The commands that install pandoc and its LaTeX engine (D-184).")
+  "sudo port install pandoc mupdf; LaTeX: MacTeX (https://tug.org/mactex/)"
+  "The commands that install pandoc, its LaTeX engine and mutool (D-184, D-186).")
 
 (provide 'defaults-darwin)
 ;;; defaults-darwin.el ends here
