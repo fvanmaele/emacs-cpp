@@ -1813,7 +1813,16 @@ the form that loads magit is found (S17 run 2, T-113).
   report deleted unsent). Kept: `lisp/init-writing.el` (markdown-mode, org-journal, no
   server; owner 2026-10-25), `RESEARCH_latex.md` and `RESEARCH_r_language_servers.md`
   as findings, marked superseded. Test: init.el loads with neither module nor
-  package on `load-path`. Built (0099).
+  package on `load-path`. Built (0099). Amended 2026-11-07 by D-184: Markdown gets
+  LaTeX export and math preview; `.tex` files stay as ruled here.
+- DECIDED D-184 (owner 2026-11-07: "(b) (a) + inline math images"; O-89; amends
+  D-145, D-089): Markdown buffers get (1) export to PDF through pandoc and a LaTeX
+  engine, shown in doc-view, and (2) math drawn as images in the buffer by
+  math-preview (GitLab `matsievskiysv/math-preview`, GPL-3.0-or-later), a new
+  submodule whose node program needs `npm ci` (a network fetch of `mathjax-full` 3,
+  run by a make target, never at startup). New dependencies: pandoc, a TeX
+  distribution with xelatex, node, npm. `/Library/TeX/texbin` returns to the Mac's
+  `exec-path` list (D-089). Shape and keys: DESIGN 12.1; done when: T-135. Tier 2.
 - DECIDED D-095 (owner 2026-10-14, O-45 (b), keys (k2); done when agreed): yasnippet
   (GNU ELPA's `externals/yasnippet`, pinned dd570a6 = 0.14.3) and yasnippet-snippets
   (NonGNU ELPA's `elpa/yasnippet-snippets`, pinned 606ee92, the branch's tip of
@@ -2112,6 +2121,37 @@ backend's process handling (7.1), its reverting rewritten from S20's
     posframe.
   - git: magit (holds magit-section), with-editor, cond-let, llama.
   - owner's existing: markdown-mode, org-journal.
+  - writing: math-preview (D-184; PROPOSED until T-135 is built).
+
+### 12.1 Markdown: LaTeX export and math preview (D-184, 2026-11-07; PROPOSED shape)
+Verified 2026-11-07 on the Mac: markdown-mode v2.8 (pinned) only fontifies math
+(`markdown-enable-math`, `C-c C-x C-e`), it does not draw it; its live preview runs in
+eww, which runs no JavaScript (no MathJax), and this Emacs has no xwidgets
+(`system-configuration-features`); Org 9.8.7 has no newer LaTeX preview to borrow.
+Installed: pandoc 3.13 (MacPorts), xelatex / lualatex / latexmk in
+`/Library/TeX/texbin`, gs (doc-view), node (`/opt/local/bin/node`). Not installed: npm
+(MacPorts ports `npm10`, `npm11` exist). Arch: pandoc, TeX Live, node, npm UNVERIFIED.
+math-preview: last commit a2ca3c1 (2024-08-01, version 5.1.2, tags up to v5.1.1);
+requires Emacs 26.1, dash, s (both vendored), json; `math-preview-command` takes a
+list, so `("node" "<repo>/lib/math-preview/math-preview.js")` runs it without a
+global npm install. Its default marks: `$`, `\(` inline; `$$`, `\[`, `equation`
+display. Rendering the SVGs (rsvg) on this Mac: UNVERIFIED (the session's npm
+install was refused, 2026-11-07).
+Shape:
+- Export: `emacs-cpp-markdown-pdf` (NEW) on `C-c C-c x` (free in
+  `markdown-mode-command-map`): saves the buffer, runs `pandoc FILE -o BASE.pdf
+  --pdf-engine=ENGINE` asynchronously (ENGINE from `emacs-cpp-markdown-pdf-engine`,
+  NEW, default `"xelatex"`), and on exit 0 shows the PDF in doc-view in another window,
+  reverting it when already shown. A non-zero exit shows pandoc's output buffer and
+  signals an error with the code. pandoc or the engine not on `exec-path`: an error
+  naming the platform's install command, when the command runs (startup does not
+  need them).
+- Math: math-preview in one `use-package` form in `lisp/init-writing.el`;
+  `markdown-enable-math` t; `C-c C-x C-p` `math-preview-all`, `C-c C-x C-u`
+  `math-preview-clear-all` (both free in `markdown-mode-map`). `make math-preview`
+  (NEW) runs `npm ci` in `lib/math-preview`; `node_modules` stays untracked (the
+  submodule's `ignore = untracked`). The command run without `node_modules`: an error
+  naming `make math-preview`.
 
 ## Scope ladder
 - v0.1 navigation: config loads from the repo via symlink with all packages vendored;
@@ -2205,6 +2245,18 @@ presets, GoogleTest runner.
   measured across 63 files. Findings in; O-43.
 
 ## Open questions ledger (LIVING)
+- O-89 (RESOLVED 2026-11-07 with D-184: (b); owner request 2026-11-07: "latex
+  export/preview support for markdown documents"): how Markdown gets LaTeX export and
+  preview, given D-145 removed LaTeX. Options as offered: (a) pandoc to PDF with a
+  LaTeX engine, shown in doc-view. Against: pandoc and TeX Live become dependencies on
+  both machines; `/Library/TeX/texbin` back on the Mac's PATH; a whole-document
+  compile per preview, no inline math. (b) (a) plus math drawn in the buffer by
+  math-preview. Against: a new submodule plus node and an npm install (network);
+  upstream quiet since 2024-08-01; the most code. (c) HTML preview with MathJax from a
+  CDN in the system browser. Against: a network call per preview; HTML, not LaTeX;
+  outside Emacs. (d) none, D-145 stands. Against: no export or preview key. Premise
+  corrected after the ruling: the option text named mathjax-node-cli (marked
+  UNVERIFIED); math-preview's node program is its own, on `mathjax-full` 3.
 - O-88 (RESOLVED 2026-11-05 with D-182: (a); owner: "O-88 (a), measure cost, research
   Against:"; was OPEN 2026-11-05, from T-121; D-140 (c)): switch the Mac's Python
   server from
@@ -4397,6 +4449,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-181 | 2026-11-05 | local ports read from a root-owned copy under MacPorts' `sources/`, not the repository | 5 | O-87 |
 | D-182 | 2026-11-05 | O-88 (a): ty on the Mac too; PATH first, user site-packages when the base interpreter is used | 5 | O-88 |
 | D-183 | 2026-11-05 | O-85 (h): projectile's per-submodule pass off, fd required for git listings | 12 | O-85, T-133 |
+| D-184 | 2026-11-07 | O-89 (b): Markdown to PDF by pandoc + LaTeX, math drawn by math-preview | 12 | O-89, D-145 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |
