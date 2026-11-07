@@ -316,7 +316,7 @@ block list as built through T-046 and partly stale (Python's server: D-140).
 | fswatch | `packaging/fswatch-no-loss/` | PROTOTYPE | T-098, D-109 |
 | package build | `scripts/build-packages.el` | KEEP | T-002, `make packages` |
 | theme | `lisp/init-ui.el` | KEEP | T-002 |
-| writing | `lisp/init-writing.el` | KEEP | T-002: markdown, org-journal |
+| writing | `lisp/init-writing.el` | KEEP | T-002: markdown, org-journal; PDF export (D-184, T-135) |
 | completion UI | `lisp/init-completion.el` | KEEP | T-003, owner-confirmed |
 | project, tree | `lisp/init-project.el` | KEEP | T-002: projectile, treemacs |
 | LSP | `lisp/init-lsp.el` | PROTOTYPE | eglot's form, `C-c l` (D-091) |
@@ -1823,6 +1823,8 @@ the form that loads magit is found (S17 run 2, T-113).
   run by a make target, never at startup). New dependencies: pandoc, a TeX
   distribution with xelatex, node, npm. `/Library/TeX/texbin` returns to the Mac's
   `exec-path` list (D-089). Shape and keys: DESIGN 12.1; done when: T-135. Tier 2.
+  Amended 2026-11-07 (owner: "Defer mathjax, agree otherwise"): (2) deferred (T-136);
+  no submodule, node or npm until it is moved back; (1) built by T-135.
 - DECIDED D-095 (owner 2026-10-14, O-45 (b), keys (k2); done when agreed): yasnippet
   (GNU ELPA's `externals/yasnippet`, pinned dd570a6 = 0.14.3) and yasnippet-snippets
   (NonGNU ELPA's `elpa/yasnippet-snippets`, pinned 606ee92, the branch's tip of
@@ -2121,9 +2123,10 @@ backend's process handling (7.1), its reverting rewritten from S20's
     posframe.
   - git: magit (holds magit-section), with-editor, cond-let, llama.
   - owner's existing: markdown-mode, org-journal.
-  - writing: math-preview (D-184; PROPOSED until T-135 is built).
+  - writing: math-preview (D-184; deferred, T-136).
 
-### 12.1 Markdown: LaTeX export and math preview (D-184, 2026-11-07; PROPOSED shape)
+### 12.1 Markdown: LaTeX export and math preview (D-184, 2026-11-07)
+Export agreed and built; math deferred (T-136).
 Verified 2026-11-07 on the Mac: markdown-mode v2.8 (pinned) only fontifies math
 (`markdown-enable-math`, `C-c C-x C-e`), it does not draw it; its live preview runs in
 eww, which runs no JavaScript (no MathJax), and this Emacs has no xwidgets
@@ -2145,8 +2148,12 @@ Shape:
   reverting it when already shown. A non-zero exit shows pandoc's output buffer and
   signals an error with the code. pandoc or the engine not on `exec-path`: an error
   naming the platform's install command, when the command runs (startup does not
-  need them).
-- Math: math-preview in one `use-package` form in `lisp/init-writing.el`;
+  need them). Built 2026-11-07 (T-135, 0131); the install commands are the defaults
+  files' `emacs-cpp-default-markdown-pdf-install`. Found while testing: a HOME
+  containing `//` (macOS's TMPDIR ends in `/`) makes every TeX run walk all of
+  TMPDIR, kpathsea's `//` being a recursive search; `make test`'s HOME fixed.
+- Math (DEFERRED 2026-11-07, T-136): math-preview in one `use-package` form in
+  `lisp/init-writing.el`;
   `markdown-enable-math` t; `C-c C-x C-p` `math-preview-all`, `C-c C-x C-u`
   `math-preview-clear-all` (both free in `markdown-mode-map`). `make math-preview`
   (NEW) runs `npm ci` in `lib/math-preview`; `node_modules` stays untracked (the
@@ -4449,7 +4456,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-181 | 2026-11-05 | local ports read from a root-owned copy under MacPorts' `sources/`, not the repository | 5 | O-87 |
 | D-182 | 2026-11-05 | O-88 (a): ty on the Mac too; PATH first, user site-packages when the base interpreter is used | 5 | O-88 |
 | D-183 | 2026-11-05 | O-85 (h): projectile's per-submodule pass off, fd required for git listings | 12 | O-85, T-133 |
-| D-184 | 2026-11-07 | O-89 (b): Markdown to PDF by pandoc + LaTeX, math drawn by math-preview | 12 | O-89, D-145 |
+| D-184 | 2026-11-07 | O-89 (b): Markdown to PDF by pandoc + LaTeX; math drawn by math-preview deferred | 12 | O-89, D-145 |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |
