@@ -7,107 +7,117 @@ macOS), `RET` = Enter. Everyday Emacs (windows, tabs, editing) and the common
 tasks step by step: `docs/MANUAL.md`.
 
 ## Code navigation (clangd through eglot)
-| Key | Does |
-|---|---|
-| `M-.` | go to definition (on a name or an `#include` line) |
-| `M-?` | find usages (references) |
-| `M-,` | go back to where you were before `M-.` / `M-?`; also the mouse's back button |
-| `C-M-,` | go forward again; also the mouse's forward button |
-| Cmd+click (Mac) / Super+click (Arch) | definition of the symbol clicked; on its definition: its usages |
-| Cmd+Opt+click / Super+Alt+click | implementations of the symbol clicked |
-| Cmd+Shift+click / Super+Shift+click | the type of the symbol clicked |
-| right click | menu: Find Definition / References, Rename, Code Actions, Implementation, Format |
-| `C-M-.` | search symbols in the whole project by name |
-| `C-c l s` | the same, with live preview (`consult-eglot-symbols`); libraries' symbols too |
-| `M-g i` | symbols of this file (functions, classes); `M-g I`: of all open files |
-| `C-c l i` | implementations / overrides |
-| `C-c l d` | declaration (header) of a definition |
-| `C-c l h` / `C-c l t` | call hierarchy / type hierarchy |
-| `M-x eglot-find-typeDefinition` | definition of the type of the thing at point |
-| `C-c l o` or `C-c p a` | switch between header and source (`.h` <-> `.cc`) |
+| Key                             | Does                                                        |
+|---------------------------------|-------------------------------------------------------------|
+| `M-.`                           | go to definition (on a name or an `#include` line)          |
+| `M-?`                           | find usages (references)                                    |
+| `M-,`                           | back to before `M-.` / `M-?`; also the mouse's back button  |
+| `C-M-,`                         | go forward again; also the mouse's forward button           |
+| Cmd+click                       | go to definition; on a definition: its usages               |
+| Cmd+Opt+click                   | implementations of the symbol clicked                       |
+| Cmd+Shift+click                 | the type of the symbol clicked                              |
+| right click                     | menu of eglot's actions: definition, references, rename ... |
+| `C-M-.`                         | search symbols in the whole project by name                 |
+| `C-c l s`                       | the same with live preview; libraries' symbols too          |
+| `M-g i`                         | symbols of this file; `M-g I`: of all open files            |
+| `C-c l i`                       | implementations / overrides                                 |
+| `C-c l d`                       | declaration (header) of a definition                        |
+| `C-c l h` / `C-c l t`           | call hierarchy / type hierarchy                             |
+| `M-x eglot-find-typeDefinition` | definition of the type of the thing at point                |
+| `C-c l o` or `C-c p a`          | switch between header and source (`.h` <-> `.cc`)           |
 
+Cmd and Opt are the Mac's; on Arch: Super and Alt. `C-c l s` is
+`consult-eglot-symbols`; `M-g i` lists functions, classes and the like.
 Several results open as a list with preview: move with the arrows, `RET` jumps. The
 header line shows the file's path in the project and the function at point; click a
 part to jump (D-043).
 
 ## Refactoring and code actions
-| Key | Does |
-|---|---|
-| `C-c l r` | rename the symbol in the whole project |
-| `C-c l a` | fixes and refactorings clangd offers here |
-| `C-c l f` | clang-format the region, or the file without a region |
-| `C-c l I` | hide / show inlay hints (parameter names, deduced types) |
-| `M-;` | comment / uncomment the region or line |
-| `M-i` | indent by hand to the next step (`c-ts-indent-offset`, D-066) |
-| `C-x TAB` then `S-<right>` / `S-<left>` | move the selected lines one step right / left |
-| `C-c l T` | apply clang-tidy's fixes to the whole project (asks for the checks) |
-| `C-c l M` | move classes to a new header / source (clang-move); add the source to CMake |
-| `C-c l N` | rename a namespace; then a list of the `old::` left, already changed: `C-x s` |
+| Key                                     | Does                                                  |
+|-----------------------------------------|-------------------------------------------------------|
+| `C-c l r`                               | rename the symbol in the whole project                |
+| `C-c l a`                               | fixes and refactorings clangd offers here             |
+| `C-c l f`                               | clang-format the region, or the file without a region |
+| `C-c l I`                               | hide / show inlay hints (parameter names, types)      |
+| `M-;`                                   | comment / uncomment the region or line                |
+| `M-i`                                   | indent by hand one step (`c-ts-indent-offset`, D-066) |
+| `C-x TAB` then `S-<right>` / `S-<left>` | move the selected lines one step right / left         |
+| `C-c l T`                               | clang-tidy's fixes, whole project (asks the checks)   |
+| `C-c l M`                               | move classes to a new header / source (clang-move)    |
+| `C-c l N`                               | rename a namespace (clang-change-namespace)           |
 
+After `C-c l M`, add the new source to CMake. After `C-c l N`, a list shows the
+`old::` left; the files are already changed: save them with `C-x s`.
 `C-c l f` follows the project's `.clang-format` (LLVM style without one); `TAB` and
-`RET` follow `.dir-locals.el` (Emacs's rules, D-065). Writing both from a file that has the project's style:
+`RET` follow `.dir-locals.el` (Emacs's rules, D-065). Writing both from a file that has the
+project's style:
 `docs/MANUAL.md` 8.
 
 ## Errors and warnings (flymake)
-| Key | Does |
-|---|---|
-| `M-g f` | list this file's diagnostics, jump with preview |
-| `M-x flymake-goto-next-error` | next diagnostic (`...-prev-error`: previous) |
-| `C-c l e` | all diagnostics of the project |
-| `M-g e` | jump to an error in the `*compilation*` buffer |
-| `M-g n` / `M-g p` | next / previous compilation error |
+| Key                           | Does                                            |
+|-------------------------------|-------------------------------------------------|
+| `M-g f`                       | list this file's diagnostics, jump with preview |
+| `M-x flymake-goto-next-error` | next diagnostic (`...-prev-error`: previous)    |
+| `C-c l e`                     | all diagnostics of the project                  |
+| `M-g e`                       | jump to an error in the `*compilation*` buffer  |
+| `M-g n` / `M-g p`             | next / previous compilation error               |
 
 ## Completion
-| Key | Does |
-|---|---|
-| `TAB` or `C-M-i` | complete at point (no popup while typing, D-020) |
-| `M-n` / `M-p` (or arrows) | next / previous candidate in the popup |
-| `RET` | insert the candidate; `C-g` cancels |
-| `M-h` | documentation of the candidate; `M-g`: its location |
+| Key                       | Does                                                |
+|---------------------------|-----------------------------------------------------|
+| `TAB` or `C-M-i`          | complete at point (no popup while typing, D-020)    |
+| `M-n` / `M-p` (or arrows) | next / previous candidate in the popup              |
+| `RET`                     | insert the candidate; `C-g` cancels                 |
+| `M-h`                     | documentation of the candidate; `M-g`: its location |
 
 ## Snippets (yasnippet, D-095)
-| Key | Does |
-|---|---|
-| `C-c y` | expand the snippet key before point (`for`, `class`, `def`, `begin` ...) |
-| `C-c & C-s` | choose a snippet by name and insert it |
-| `TAB` / `S-TAB` | inside a snippet: next / previous field (`TAB` completes while the popup is open) |
-| `C-d` | inside a snippet: clear the field |
+| Key             | Does                                                                     |
+|-----------------|--------------------------------------------------------------------------|
+| `C-c y`         | expand the snippet key before point (`for`, `class`, `def`, `begin` ...) |
+| `C-c & C-s`     | choose a snippet by name and insert it                                   |
+| `TAB` / `S-TAB` | inside a snippet: next / previous field                                  |
+| `C-d`           | inside a snippet: clear the field                                        |
 
-A clangd completion of a function brings its parameters as fields; `TAB` moves on.
+While the completion popup is open, `TAB` completes instead. A clangd completion of a
+function brings its parameters as fields; `TAB` moves on.
 `TAB` outside a snippet indents and completes as before. Own snippets:
 `M-x yas-new-snippet`, saved under `~/.emacs.d/snippets/<mode>/`.
 
 ## Jump to anything / search
-| Key | Does |
-|---|---|
-| `M-o` | go to anything: buffers, recent files, bookmarks, project files, the project's symbols (from the third letter); `<` then `b r m f s` narrows to one, `< l` all symbols (libraries too), `< x` commands, `< p` projects |
-| `C-x b` | buffers, recent files, bookmarks in one list |
-| `C-x p b` | buffers of this project |
-| `C-c p f` | find a file in the project |
+| Key       | Does                                                             |
+|-----------|------------------------------------------------------------------|
+| `M-o`     | go to anything (see below)                                       |
+| `C-x b`   | buffers, recent files, bookmarks in one list                     |
+| `C-x p b` | buffers of this project                                          |
+| `C-c p f` | find a file in the project                                       |
 | `C-c p d` | find a directory in the project; `C-c p e`: recent project files |
-| `M-s r` | ripgrep the project (live results); also `C-c p s r` |
-| `M-s G` | git grep; `M-s g`: grep |
-| `M-s d` | find files by name (fd) |
-| `M-s l` | lines of this buffer; `M-s L`: of all buffers |
-| `M-g g` | go to line |
-| `M-y` | choose from the kill ring (paste history) |
+| `M-s r`   | ripgrep the project (live results); also `C-c p s r`             |
+| `M-s G`   | git grep; `M-s g`: grep                                          |
+| `M-s d`   | find files by name (fd)                                          |
+| `M-s l`   | lines of this buffer; `M-s L`: of all buffers                    |
+| `M-g g`   | go to line                                                       |
+| `M-y`     | choose from the kill ring (paste history)                        |
 
+`M-o` lists buffers, recent files, bookmarks, project files and, from the third letter,
+the project's symbols. `<` then a letter narrows: `b r m f s` to one of those, `< l` all
+symbols (libraries too), `< x` commands, `< p` projects.
 In any list: words separated by space match in any order (`vec tria` finds
 `tria_vector.h`); a word's letters may skip only inside a word (`eto` finds
 `Vector`). In `M-o` a word matches the file name, as in CLion; `gpe/ite` also
-searches the directories (`include/rmo/gpe/iteration.h`). `M-r` in the minibuffer: history. `PgDn` / `PgUp` (or `C-v` /
+searches the directories (`include/rmo/gpe/iteration.h`). `M-r` in the minibuffer: history. `PgDn` /
+`PgUp` (or `C-v` /
 `M-v`): next / previous page of the list (D-084); `M-n` / `M-p`: earlier inputs.
 
 ## Act on things (embark)
-| Key | Does |
-|---|---|
-| `C-.` | actions on the thing at point or the selected candidate |
-| `C-;` | the default action at point |
-| `C-.` then `E` | export a candidate list to a buffer (e.g. grep results to edit) |
-| `C-h B` | search all key bindings |
-| prefix then `C-h` | list what a prefix (e.g. `C-c p`) offers |
-| `C-h i` | manuals: Emacs, magit, embark, orderless, dash, with-editor |
-| `C-x C-r` | open a recently visited file (`C-x b` lists them too) |
+| Key               | Does                                                            |
+|-------------------|-----------------------------------------------------------------|
+| `C-.`             | actions on the thing at point or the selected candidate         |
+| `C-;`             | the default action at point                                     |
+| `C-.` then `E`    | export a candidate list to a buffer (e.g. grep results to edit) |
+| `C-h B`           | search all key bindings                                         |
+| prefix then `C-h` | list what a prefix (e.g. `C-c p`) offers                        |
+| `C-h i`           | manuals: Emacs, magit, embark, orderless, dash, with-editor     |
+| `C-x C-r`         | open a recently visited file (`C-x b` lists them too)           |
 
 Line numbers show in code, text and configuration buffers, not in the tree or tool
 buffers (D-063); `M-x display-line-numbers-mode` hides / shows them in one buffer.
@@ -121,37 +131,37 @@ that can follow (D-034). `C-h` in that popup pages through them. In a prompt wit
 narrow keys (`M-o`, `C-x b`, `M-g i` ...), `<` shows them after 0.2 seconds (D-080).
 
 ## Projects, CMake presets, building
-| Key | Does |
-|---|---|
-| `C-c p p` | switch project |
-| `C-c p m` | menu of all projectile commands, grouped |
-| `C-c l P` | choose the active CMake preset (clangd restarts with its build dir) |
-| `C-c p c c` | build the active preset (`cmake --build build/debug`), from any buffer |
-| `C-c p c o` / `c t` | configure / test the active preset (`cmake --preset`, `ctest`) |
-| `C-c p c r` | run (asks for the command) |
-| `C-c p t` | toggle between implementation and test |
-| `C-c p !` | shell command in the project root |
-| `C-c p r` | replace text in the whole project |
-| `C-c p ?` | text search for the symbol at point in the project's files (`M-?` asks clangd) |
-| `C-c p k` | kill all buffers of the project |
+| Key                 | Does                                                                   |
+|---------------------|------------------------------------------------------------------------|
+| `C-c p p`           | switch project                                                         |
+| `C-c p m`           | menu of all projectile commands, grouped                               |
+| `C-c l P`           | choose the active CMake preset (clangd restarts with its build dir)    |
+| `C-c p c c`         | build the active preset (`cmake --build build/debug`), from any buffer |
+| `C-c p c o` / `c t` | configure / test the active preset (`cmake --preset`, `ctest`)         |
+| `C-c p c r`         | run (asks for the command)                                             |
+| `C-c p t`           | toggle between implementation and test                                 |
+| `C-c p !`           | shell command in the project root                                      |
+| `C-c p r`           | replace text in the whole project                                      |
+| `C-c p ?`           | text search for the symbol at point (`M-?` asks clangd)                |
+| `C-c p k`           | kill all buffers of the project                                        |
 
 The commands show at the prompt: add `--target main` to build one target. `M-g n` /
 `M-g p` jump to the next / previous compiler error. An edited command is remembered
 for the project; `M-x projectile-discard-command-cache` returns to the preset's.
 
 ## Debugging (dape + gdb or lldb)
-| Key | Does |
-|---|---|
-| `C-x C-a b` / click the fringe | toggle a breakpoint on the line (red mark) |
-| `C-x C-a d` `gdb-preset RET` | pick a target of the active preset, build it, debug it |
-| `C-x C-a d` `lldb-preset RET` | the same with lldb (macOS; on Arch too, D-051) |
+| Key                            | Does                                                   |
+|--------------------------------|--------------------------------------------------------|
+| `C-x C-a b` / click the fringe | toggle a breakpoint on the line (red mark)             |
+| `C-x C-a d` `gdb-preset RET`   | pick a target of the active preset, build it, debug it |
+| `C-x C-a d` `lldb-preset RET`  | the same with lldb (macOS; on Arch too, D-051)         |
 
 The prompt starts with `gdb-preset` on Arch and `lldb-preset` on macOS until one of
 them was used; then with your last input (D-055).
 | `C-x C-a n` `s` `o` `c` | step over / into / out / continue; then just `n` `s` `o` `c` |
-| `C-x C-a w` | watch an expression |
-| `C-x C-a i` | info buffers: stack, locals, breakpoints, threads |
-| `C-x C-a q` | end the session |
+| `C-x C-a w`             | watch an expression                                          |
+| `C-x C-a i`             | info buffers: stack, locals, breakpoints, threads            |
+| `C-x C-a q`             | end the session                                              |
 
 Program arguments: type them after the configuration name, as a vector of strings:
 `gdb-preset :args ["--levels" "5"]`. The prompt starts with your last input (kept
@@ -179,22 +189,28 @@ ty infers the return types of unannotated functions only in a project whose
 A line `# %%` (optionally with a title) starts a cell, as in jupytext, VS Code and
 Spyder.
 
-| Key | Does |
-|---|---|
-| `C-c C-c` | run the cell at point (starts the Python shell if needed) |
-| `M-n` / `M-p` | next / previous cell |
-| `C-c % s` | run the cell, go to the next |
-| `C-c % b` | run the whole buffer |
-| `C-c % a` / `C-c % @` | run the cells above / select the cell |
-| `C-c C-r` / `C-c C-z` | run the selection / go to the shell |
+| Key                   | Does                                                      |
+|-----------------------|-----------------------------------------------------------|
+| `C-c C-c`             | run the cell at point (starts the Python shell if needed) |
+| `M-n` / `M-p`         | next / previous cell                                      |
+| `C-c % s`             | run the cell, go to the next                              |
+| `C-c % b`             | run the whole buffer                                      |
+| `C-c % a` / `C-c % @` | run the cells above / select the cell                     |
+| `C-c C-r` / `C-c C-z` | run the selection / go to the shell                       |
+
+## Markdown (D-184)
+| Key                       | Does                                                            |
+|---------------------------|-----------------------------------------------------------------|
+| `C-c C-c x`               | PDF through pandoc and LaTeX beside the file, shown in doc-view |
+| `C-c C-c p` / `C-c C-c e` | markdown-mode's own HTML preview / export                       |
 
 ## Git (magit)
-| Key | Does |
-|---|---|
-| `C-x g` | status (stage `s`, unstage `u`, commit `c c`, push `P`, pull `F`, log `l l`) |
-| `C-x M-g` | all magit commands |
-| `C-c M-g` | commands for the current file (blame, log, diff) |
-| `?` in magit | help for the current buffer |
+| Key          | Does                                                                         |
+|--------------|------------------------------------------------------------------------------|
+| `C-x g`      | status (stage `s`, unstage `u`, commit `c c`, push `P`, pull `F`, log `l l`) |
+| `C-x M-g`    | all magit commands                                                           |
+| `C-c M-g`    | commands for the current file (blame, log, diff)                             |
+| `?` in magit | help for the current buffer                                                  |
 
 Lines changed since the last commit are marked in the right fringe (green added, blue
 changed, red deleted), after each save and each magit action (D-042).
@@ -203,22 +219,23 @@ changed, red deleted), after each save and each magit action (D-042).
 `C-c t` opens / closes the tree. It shows only the project of the buffer you are in and
 switches when you move to a file of another project (D-029); it does not move to the
 file you are in, and stays put for library headers reached with `M-.` (only projects
-with `.git` or `.projectile` are followed, D-070). `M-x customize-variable`: `emacs-cpp-tree-follow-project` nil keeps
+with `.git` or `.projectile` are followed, D-070). `M-x customize-variable`:
+`emacs-cpp-tree-follow-project` nil keeps
 one project, `emacs-cpp-tree-follow-file` t moves to the current file (D-067). Inside
 the tree:
 
-| Key | Does |
-|---|---|
-| `TAB` | expand / collapse |
-| `RET` | open file |
-| `o v` / `o h` | open in a vertical / horizontal split |
-| `c f` / `c d` | create file / directory |
-| `R` / `m` / `d` | rename / move / delete |
-| `y r` / `y a` | copy relative / absolute path |
-| `C-c C-p a` | add a project to the workspace |
-| `t h` | show / hide dotfiles |
-| `?` | help |
-| `q` | close the tree |
+| Key             | Does                                  |
+|-----------------|---------------------------------------|
+| `TAB`           | expand / collapse                     |
+| `RET`           | open file                             |
+| `o v` / `o h`   | open in a vertical / horizontal split |
+| `c f` / `c d`   | create file / directory               |
+| `R` / `m` / `d` | rename / move / delete                |
+| `y r` / `y a`   | copy relative / absolute path         |
+| `C-c C-p a`     | add a project to the workspace        |
+| `t h`           | show / hide dotfiles                  |
+| `?`             | help                                  |
+| `q`             | close the tree                        |
 
 ## Setup on the supported machine (Arch Linux)
 1. Clone with submodules; `~/.emacs.d/init.el` and `early-init.el` are symlinks to this
@@ -257,7 +274,8 @@ macOS is supported since 2026-10-09 (D-050), with tools from MacPorts only (D-05
 6. Patched clangd (D-052): `packaging/clangd-index-nav/build-macos.sh` builds LLVM
    23.1.3 (MacPorts' release, D-100) with the same patches as the Arch package,
    checks them against the PKGBUILD, and installs to `~/opt/clangd-index-nav`
-   (about 15 min on the owner's Mac; `--help` lists the options). Then set `emacs-cpp-clangd-program` to
+   (about 15 min on the owner's Mac; `--help` lists the options). Then set
+   `emacs-cpp-clangd-program` to
    `~/opt/clangd-index-nav/bin/clangd` (expanded path). clangd finds its builtin
    headers in `../lib/clang` next to the binary.
 7. Untested: if clangd reports standard headers (`<vector>`) as not found, let it ask
@@ -272,5 +290,6 @@ macOS is supported since 2026-10-09 (D-050), with tools from MacPorts only (D-05
    `lldb-dap` from the PATH: `sudo port select --set lldb mp-lldb-23` links the lldb-23
    port's as `/opt/local/bin/lldb-dap`. Or set the program, a path or a name:
    `M-x customize-variable RET emacs-cpp-debug-lldb-dap-program`, e.g.
-   `/opt/local/bin/lldb-dap-mp-23`, then "Save for future sessions". The gdb options (lazy symbols, gdb scripts)
+   `/opt/local/bin/lldb-dap-mp-23`, then "Save for future sessions". The gdb options (lazy symbols,
+   gdb scripts)
    do not apply to it.

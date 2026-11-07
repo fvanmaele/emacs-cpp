@@ -512,3 +512,25 @@ program as in a terminal, so plots appear as they would there.
 
 R and LaTeX are not configured (D-145): `.R` and `.tex` files open in Emacs's own
 modes, without a language server.
+
+## 15. Markdown to PDF
+`C-c C-c x` in a Markdown file saves it and has pandoc turn it into a PDF through LaTeX
+(D-184): `notes.md` becomes `notes.pdf` beside it, shown in another window. Math
+between `$ ... $` and `$$ ... $$` is set by LaTeX. Pressing it again rewrites the PDF
+and refreshes the window. It takes a few seconds; the message line says when it is
+done. On an error the window `*emacs-cpp-markdown-pdf*` shows pandoc's and LaTeX's
+output. The engine is xelatex (Unicode text, system fonts); another one, for example
+for one project in its `.dir-locals.el`:
+```
+((markdown-mode . ((emacs-cpp-markdown-pdf-engine . "lualatex"))))
+```
+Formulas written as code with Unicode Greek letters and math symbols are set in
+DejaVu Sans Mono, which has them (D-185; `emacs-cpp-markdown-pdf-monofont`).
+A character no font has is left out of the PDF; the export then shows a warning
+naming each one.
+Needs pandoc, LaTeX and MuPDF's mutool (which draws the pages sharply, D-186): on Arch
+`sudo pacman -S pandoc-cli texlive-xetex mupdf-tools`, on the Mac `sudo port install
+pandoc mupdf` and MacTeX. After installing mutool, restart Emacs if it had shown a PDF.
+The pages fit the window's width, also after the window is resized (D-187); `+` and
+`-` zoom until its size next changes. Math drawn inside the Markdown buffer is not
+configured (T-136, deferred).

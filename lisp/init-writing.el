@@ -2,12 +2,156 @@
 
 ;;; Commentary:
 
-;; The owner's existing packages, carried over unchanged (DESIGN 12).  Their autoloads
-;; register the file modes and commands; nothing is configured yet.
+;; The owner's existing packages, carried over (DESIGN 12).  Markdown buffers export to
+;; PDF through pandoc and a LaTeX engine on `C-c C-c x', shown in doc-view (D-184,
+;; DESIGN 12.1).  Math drawn in the buffer is deferred (T-136).  Code spans use a
+;; monospace font with Greek and math symbols, and characters LaTeX drops are a
+;; warning (D-185).  DocView draws the PDF through MuPDF's SVG output (D-186), its
+;; pages fitted to the window's width, refitted when the window is resized (D-187).
 
 ;;; Code:
 
-(use-package markdown-mode)
+(require 'cl-lib)
+
+(defvar doc-view-image-width)
+(declare-function image-mode-window-get "image-mode" (prop &optional winprops))
+(declare-function doc-view-insert-image "doc-view" (file &rest args))
+
+(defcustom emacs-cpp-markdown-pdf-engine "xelatex"
+  "LaTeX engine pandoc uses for `emacs-cpp-markdown-pdf' (D-184).
+Passed as pandoc's --pdf-engine; xelatex reads Unicode text and system fonts."
+  :type 'string
+  :safe #'stringp
+  :group 'tools)
+
+(defcustom emacs-cpp-markdown-pdf-monofont "DejaVuSansMono.ttf"
+  "Monospace font of code spans and blocks in `emacs-cpp-markdown-pdf' (D-185).
+Passed as pandoc's `-V monofont='; nil leaves pandoc's default, Latin Modern
+Mono, which has no Greek letters or math symbols: formulas written in code
+spans (rho_I = Sigma p_i, in Unicode) lose those characters.  DejaVu Sans
+Mono ships with TeX Live; a name with .ttf is looked up as a file there."
+  :type '(choice (const :tag "pandoc's default" nil) string)
+  :safe (lambda (value) (or (null value) (stringp value)))
+  :group 'tools)
+
+(defconst emacs-cpp-markdown--pdf-output "*emacs-cpp-markdown-pdf*"
+  "Buffer holding pandoc's output of the last export.")
+
+(defun emacs-cpp-markdown--pdf-file (file)
+  "Return the PDF file `emacs-cpp-markdown-pdf' writes for FILE."
+  (concat (file-name-sans-extension file) ".pdf"))
+
+(defun emacs-cpp-markdown--pdf-command (file engine monofont)
+  "Return the pandoc command line writing FILE's PDF with ENGINE and MONOFONT.
+MONOFONT nil: pandoc's default monospace font."
+  (append (list "pandoc" (file-name-nondirectory file)
+                "-o" (file-name-nondirectory (emacs-cpp-markdown--pdf-file file))
+                (concat "--pdf-engine=" engine))
+          (and monofont (list "-V" (concat "monofont=" monofont)))))
+
+(defun emacs-cpp-markdown--missing-characters (output)
+  "Return the distinct characters LaTeX reported missing in OUTPUT, in order."
+  (let ((start 0)
+        found)
+    (while (string-match "Missing character: There is no \\(.\\)" output start)
+      (setq start (match-end 0))
+      (cl-pushnew (match-string 1 output) found :test #'equal))
+    (nreverse found)))
+
+(defun emacs-cpp-markdown--check-tools (engine)
+  "Signal an error naming the install command when a program the export needs is
+missing: pandoc, ENGINE, and mutool, without which DocView falls back to gs's
+blurry 100 dpi PNGs instead of MuPDF's SVG pages (D-186)."
+  (dolist (program (list "pandoc" engine "mutool"))
+    (unless (executable-find program)
+      (error "emacs-cpp: %s is not on exec-path; install: %s (D-184, D-186)"
+             program emacs-cpp-default-markdown-pdf-install))))
+
+(defun emacs-cpp-markdown--fit-width (window)
+  "Fit the pages of WINDOW's DocView buffer to WINDOW's body width (D-187).
+Sets the buffer's `doc-view-image-width', which pages still being converted
+use when shown, and redraws the page WINDOW shows, if any.  Emacs scales
+images by `image-scaling-factor' on top of their :width (1.1 for an 11 pixel
+wide font), so the width is the body's divided by that factor.  A buffer
+DocView shows as text (no graphic display) is left alone."
+  (with-selected-window window
+    (let ((width (floor (window-body-width window t)
+                        (image-compute-scaling-factor))))
+      (when (and (derived-mode-p 'doc-view-mode)
+                 (not (eql width doc-view-image-width)))
+        (setq-local doc-view-image-width width)
+        (when-let* ((image (image-mode-window-get 'image)))
+          (doc-view-insert-image (plist-get (cdr image) :file)
+                                 :width width))))))
+
+(defun emacs-cpp-markdown--show-pdf (pdf)
+  "Show PDF in another window, reverting its buffer when it has one.  Return it.
+Its pages fit the window's width, also after the window is resized (D-187)."
+  (let ((buffer (find-buffer-visiting pdf)))
+    (if buffer
+        (with-current-buffer buffer
+          (revert-buffer t t))
+      (setq buffer (find-file-noselect pdf)))
+    (with-current-buffer buffer
+      ;; Buffer-local: `revert-buffer' resets it, so set again on each export.
+      (add-hook 'window-size-change-functions #'emacs-cpp-markdown--fit-width nil t))
+    (emacs-cpp-markdown--fit-width
+     (display-buffer buffer '(nil (inhibit-same-window . t))))
+    buffer))
+
+(defun emacs-cpp-markdown-pdf ()
+  "Write this Markdown file's PDF through pandoc and show it in doc-view (D-184).
+The PDF goes beside the file, named as it with .pdf; the engine is
+`emacs-cpp-markdown-pdf-engine'.  Return the pandoc process."
+  (interactive)
+  (let* ((file (or buffer-file-name
+                   (user-error "emacs-cpp: this buffer visits no file")))
+         (engine emacs-cpp-markdown-pdf-engine)
+         (monofont emacs-cpp-markdown-pdf-monofont)
+         (pdf (emacs-cpp-markdown--pdf-file file))
+         (output (get-buffer-create emacs-cpp-markdown--pdf-output))
+         (default-directory (file-name-directory file)))
+    (emacs-cpp-markdown--check-tools engine)
+    (save-buffer)
+    (with-current-buffer output
+      (let ((inhibit-read-only t))
+        (erase-buffer)))
+    (message "emacs-cpp: pandoc writing %s ..." (file-name-nondirectory pdf))
+    (make-process
+     :name "emacs-cpp-markdown-pdf"
+     :buffer output
+     :command (emacs-cpp-markdown--pdf-command file engine monofont)
+     :noquery t
+     :sentinel (lambda (process _event)
+                 (when (memq (process-status process) '(exit signal))
+                   (emacs-cpp-markdown--pdf-finished
+                    (process-exit-status process) file pdf))))))
+
+(defun emacs-cpp-markdown--pdf-finished (status file pdf)
+  "Show PDF when pandoc exited with STATUS 0 on FILE; else show its output, signal.
+Characters LaTeX dropped for want of a glyph are a warning naming them (D-185):
+pandoc exits 0 and the PDF silently lacks them."
+  (if (eql 0 status)
+      (let ((missing (emacs-cpp-markdown--missing-characters
+                      (with-current-buffer
+                          (get-buffer-create emacs-cpp-markdown--pdf-output)
+                        (buffer-string)))))
+        (prog1 (emacs-cpp-markdown--show-pdf pdf)
+          (if (null missing)
+              (message "emacs-cpp: wrote %s" pdf)
+            (display-warning
+             'emacs-cpp
+             (format "%s lacks %d characters its fonts have no glyph for: %s; \
+see %s, and `emacs-cpp-markdown-pdf-monofont' (D-185)"
+                     pdf (length missing) (string-join missing " ")
+                     emacs-cpp-markdown--pdf-output)))))
+    (display-buffer (get-buffer-create emacs-cpp-markdown--pdf-output))
+    (error "emacs-cpp: pandoc failed (exit %s) on %s; its output is in %s"
+           status file emacs-cpp-markdown--pdf-output)))
+
+(use-package markdown-mode
+  :config
+  (keymap-set markdown-mode-command-map "x" #'emacs-cpp-markdown-pdf))
 
 (use-package org-journal)
 

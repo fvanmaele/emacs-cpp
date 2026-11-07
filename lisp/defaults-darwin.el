@@ -13,11 +13,12 @@
 Apple silicon has no gdb (D-051, D-055).")
 
 (defconst emacs-cpp-default-exec-path-prepend
-  '("/opt/local/bin" "/opt/local/sbin")
+  '("/opt/local/bin" "/opt/local/sbin" "/Library/TeX/texbin")
   "Directories put in front of `exec-path' and PATH at startup when missing (D-089).
 Emacs started from the Dock or Finder gets launchd's PATH, /usr/bin:/bin:/usr/sbin:
 /sbin, whatever Emacs.app's Info.plist asks for: then rg, cmake, ninja, pyright
-(MacPorts, D-053; ty since D-182) were not found.")
+(MacPorts, D-053; ty since D-182) were not found.  /Library/TeX/texbin: MacTeX's
+engines, which pandoc runs for Markdown's PDF (D-184).")
 
 (defconst emacs-cpp-default-llvm-tools-dir "/opt/local/libexec/llvm-23/bin"
   "Directory of clang's command-line tools (clang-move, run-clang-tidy ...), or
@@ -58,6 +59,10 @@ large `M-?' answer sooner than pyright's, its first `M-?' complete
 (defconst emacs-cpp-default-python-server-install
   "make macos-ports (in the emacs-cpp repository)"
   "The command that installs `emacs-cpp-default-python-server' (D-180, D-181).")
+
+(defconst emacs-cpp-default-markdown-pdf-install
+  "sudo port install pandoc mupdf; LaTeX: MacTeX (https://tug.org/mactex/)"
+  "The commands that install pandoc, its LaTeX engine and mutool (D-184, D-186).")
 
 (provide 'defaults-darwin)
 ;;; defaults-darwin.el ends here
