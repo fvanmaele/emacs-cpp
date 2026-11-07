@@ -528,6 +528,7 @@ Formulas written as code with Unicode Greek letters and math symbols are set in
 DejaVu Sans Mono, which has them (D-185; `emacs-cpp-markdown-pdf-monofont`).
 A character no font has is left out of the PDF; the export then shows a warning
 naming each one.
-Needs pandoc and LaTeX: on Arch `sudo pacman -S pandoc-cli texlive-xetex`, on the Mac
-`sudo port install pandoc` and MacTeX. Math drawn inside the Markdown buffer is not
+Needs pandoc, LaTeX and MuPDF's mutool (which draws the pages sharply, D-186): on Arch
+`sudo pacman -S pandoc-cli texlive-xetex mupdf-tools`, on the Mac `sudo port install
+pandoc mupdf` and MacTeX. After installing mutool, restart Emacs if it had shown a PDF. Math drawn inside the Markdown buffer is not
 configured (T-136, deferred).

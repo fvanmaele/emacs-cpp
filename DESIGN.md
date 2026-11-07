@@ -1815,6 +1815,16 @@ the form that loads magit is found (S17 run 2, T-113).
   as findings, marked superseded. Test: init.el loads with neither module nor
   package on `load-path`. Built (0099). Amended 2026-11-07 by D-184: Markdown gets
   LaTeX export and math preview; `.tex` files stay as ruled here.
+- DECIDED D-186 (owner 2026-11-07: "(a) mupdf for SVG"; report "very low resolution
+  preview in DocView"): DocView draws the PDF through MuPDF's SVG output, which Emacs
+  31's doc-view chooses by itself when `mutool` is on `exec-path` (`doc-view.el`:
+  `doc-view-pdfdraw-program`, `doc-view-pdf->png-converter-function`,
+  `doc-view-mupdf-use-svg` t with rsvg); without it gs renders 100 dpi PNGs, blurry
+  on the Mac's Retina screen. The export requires `mutool` with pandoc and the
+  engine, so the fallback cannot come back silently. Installs: the Mac's `mupdf`
+  port (1.24.2, the owner 2026-11-07), Arch's `mupdf-tools`. Not taken: gs at a
+  higher dpi (sharpness on Retina UNVERIFIED), the system viewer (outside Emacs),
+  pdf-tools (a compiled server per machine).
 - DECIDED D-185 (owner report 2026-11-07: "no formulae display" on RMO-drafts'
   `md/exact_coarse_model.md`; tier 1 fix of T-135): code spans in the PDF use DejaVu
   Sans Mono (`emacs-cpp-markdown-pdf-monofont`, TeX Live's `DejaVuSansMono.ttf`);
@@ -2164,6 +2174,7 @@ Shape:
 - Code spans (D-185): pandoc gets `-V monofont=DejaVuSansMono.ttf`
   (`emacs-cpp-markdown-pdf-monofont`, nil for pandoc's default); characters LaTeX
   reports missing are a warning naming them after a successful export.
+- Viewer (D-186): DocView with MuPDF's SVG pages; `mutool` required by the export.
 - Math (DEFERRED 2026-11-07, T-136): math-preview in one `use-package` form in
   `lisp/init-writing.el`;
   `markdown-enable-math` t; `C-c C-x C-p` `math-preview-all`, `C-c C-x C-u`
@@ -4470,6 +4481,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-183 | 2026-11-05 | O-85 (h): projectile's per-submodule pass off, fd required for git listings | 12 | O-85, T-133 |
 | D-184 | 2026-11-07 | O-89 (b): Markdown to PDF by pandoc + LaTeX; math drawn by math-preview deferred | 12 | O-89, D-145 |
 | D-185 | 2026-11-07 | Markdown PDF: code in DejaVu Sans Mono, missing glyphs a warning | 12 | D-184, owner report |
+| D-186 | 2026-11-07 | Markdown PDF shown through MuPDF's SVG pages; mutool required | 12 | D-184, owner report |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |
