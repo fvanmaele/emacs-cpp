@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0131 | 2026-11-07 | T-135: Markdown to PDF through pandoc and LaTeX | T-135 | D-184 |
 | 0130 | 2026-11-05 | T-133: one fd listing per project, submodule pass off | T-133 | D-183 |
 | 0129 | 2026-11-05 | T-134: ty on the Mac, MacPorts' and the user's packages found | T-134, T-121 | D-180 - D-182 |
 | 0128 | 2026-11-05 | T-133 reverted: no call slower than today's listing | T-133 | D-179 |

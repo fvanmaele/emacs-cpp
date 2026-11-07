@@ -48,5 +48,9 @@ Its first `M-.' and a large `M-?' answer several times sooner than pyright's
 (defconst emacs-cpp-default-python-server-install "sudo pacman -S ty"
   "The command that installs `emacs-cpp-default-python-server' (D-140).")
 
+(defconst emacs-cpp-default-markdown-pdf-install
+  "sudo pacman -S pandoc-cli texlive-xetex"
+  "The command that installs pandoc and its LaTeX engine (D-184).")
+
 (provide 'defaults-gnu-linux)
 ;;; defaults-gnu-linux.el ends here

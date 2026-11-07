@@ -188,6 +188,12 @@ Spyder.
 | `C-c % a` / `C-c % @` | run the cells above / select the cell |
 | `C-c C-r` / `C-c C-z` | run the selection / go to the shell |
 
+## Markdown (D-184)
+| Key | Does |
+|---|---|
+| `C-c C-c x` | PDF through pandoc and LaTeX beside the file, shown in doc-view |
+| `C-c C-c p` / `C-c C-c e` | markdown-mode's own HTML preview / export |
+
 ## Git (magit)
 | Key | Does |
 |---|---|
