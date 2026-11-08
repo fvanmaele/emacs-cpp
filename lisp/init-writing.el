@@ -6,11 +6,16 @@
 ;; PDF through pandoc and a LaTeX engine on `C-c C-c x', shown in doc-view (D-184,
 ;; DESIGN 12.1).  Math drawn in the buffer is deferred (T-136).  Code spans use a
 ;; monospace font with Greek and math symbols, and characters LaTeX drops are a
-;; warning (D-185).  DocView draws the PDF through MuPDF's SVG output (D-186).
+;; warning (D-185).  DocView draws the PDF through MuPDF's SVG output (D-186), its
+;; pages fitted to the window's width, refitted when the window is resized (D-187).
 
 ;;; Code:
 
 (require 'cl-lib)
+
+(defvar doc-view-image-width)
+(declare-function image-mode-window-get "image-mode" (prop &optional winprops))
+(declare-function doc-view-insert-image "doc-view" (file &rest args))
 
 (defcustom emacs-cpp-markdown-pdf-engine "xelatex"
   "LaTeX engine pandoc uses for `emacs-cpp-markdown-pdf' (D-184).
@@ -62,14 +67,36 @@ blurry 100 dpi PNGs instead of MuPDF's SVG pages (D-186)."
       (error "emacs-cpp: %s is not on exec-path; install: %s (D-184, D-186)"
              program emacs-cpp-default-markdown-pdf-install))))
 
+(defun emacs-cpp-markdown--fit-width (window)
+  "Fit the pages of WINDOW's DocView buffer to WINDOW's body width (D-187).
+Sets the buffer's `doc-view-image-width', which pages still being converted
+use when shown, and redraws the page WINDOW shows, if any.  Emacs scales
+images by `image-scaling-factor' on top of their :width (1.1 for an 11 pixel
+wide font), so the width is the body's divided by that factor.  A buffer
+DocView shows as text (no graphic display) is left alone."
+  (with-selected-window window
+    (let ((width (floor (window-body-width window t)
+                        (image-compute-scaling-factor))))
+      (when (and (derived-mode-p 'doc-view-mode)
+                 (not (eql width doc-view-image-width)))
+        (setq-local doc-view-image-width width)
+        (when-let* ((image (image-mode-window-get 'image)))
+          (doc-view-insert-image (plist-get (cdr image) :file)
+                                 :width width))))))
+
 (defun emacs-cpp-markdown--show-pdf (pdf)
-  "Show PDF in another window, reverting its buffer when it has one.  Return it."
+  "Show PDF in another window, reverting its buffer when it has one.  Return it.
+Its pages fit the window's width, also after the window is resized (D-187)."
   (let ((buffer (find-buffer-visiting pdf)))
     (if buffer
         (with-current-buffer buffer
           (revert-buffer t t))
       (setq buffer (find-file-noselect pdf)))
-    (display-buffer buffer '(nil (inhibit-same-window . t)))
+    (with-current-buffer buffer
+      ;; Buffer-local: `revert-buffer' resets it, so set again on each export.
+      (add-hook 'window-size-change-functions #'emacs-cpp-markdown--fit-width nil t))
+    (emacs-cpp-markdown--fit-width
+     (display-buffer buffer '(nil (inhibit-same-window . t))))
     buffer))
 
 (defun emacs-cpp-markdown-pdf ()

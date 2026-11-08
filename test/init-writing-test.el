@@ -5,8 +5,9 @@
 ;; Tests in the shipped profile (T-135, D-184): the pandoc command line, the errors
 ;; for a missing pandoc or engine, `C-c C-c x' in Markdown buffers, and a real export
 ;; through pandoc and `emacs-cpp-markdown-pdf-engine' (skipped where either is
-;; missing): the PDF is written and shown, a second run reverts the same buffer, a
-;; LaTeX error leaves pandoc's output and signals.
+;; missing): the PDF is written and shown fitted to the window's width (D-187), a
+;; second run reverts the same buffer, a LaTeX error leaves pandoc's output and
+;; signals.
 
 ;;; Code:
 
@@ -138,7 +139,34 @@
         (should (get-buffer-window shown))
         (should (eql 0 (init-writing-test--wait (emacs-cpp-markdown-pdf))))
         (should (eq (find-buffer-visiting pdf) shown))
-        (should (buffer-live-p shown))))))
+        (should (buffer-live-p shown))
+        ;; Pages fit the window's width, after the revert too (D-187).
+        (with-current-buffer shown
+          (when (derived-mode-p 'doc-view-mode)
+            (should (eql doc-view-image-width
+                         (with-selected-window (get-buffer-window shown)
+                           (floor (window-body-width nil t)
+                                  (image-compute-scaling-factor))))))
+          (should (memq #'emacs-cpp-markdown--fit-width
+                        window-size-change-functions)))))))
+
+(ert-deftest init-writing-pdf-fit-width ()
+  "A resized window refits the shown PDF's pages to its body width (D-187)."
+  (init-test--load)
+  (with-temp-buffer
+    (require 'doc-view)
+    (let ((window (selected-window)))
+      (set-window-buffer window (current-buffer))
+      (setq-local doc-view-image-width 1)
+      ;; Shown as text: left alone.
+      (emacs-cpp-markdown--fit-width window)
+      (should (eql doc-view-image-width 1))
+      ;; DocView with no page drawn yet: the width alone.
+      (setq-local major-mode 'doc-view-mode)
+      (setq-local image-mode-winprops-alist nil)
+      (let ((image-scaling-factor 2))
+        (emacs-cpp-markdown--fit-width window))
+      (should (eql doc-view-image-width (floor (window-body-width window t) 2))))))
 
 (defun init-writing-test--warnings ()
   "Return the text of the *Warnings* buffer, or the empty string."

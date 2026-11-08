@@ -1815,6 +1815,16 @@ the form that loads magit is found (S17 run 2, T-113).
   as findings, marked superseded. Test: init.el loads with neither module nor
   package on `load-path`. Built (0099). Amended 2026-11-07 by D-184: Markdown gets
   LaTeX export and math preview; `.tex` files stay as ruled here.
+- DECIDED D-187 (owner report 2026-11-08: "pdf preview with C-c c x: not zoomed to
+  width (black borders on larger windows)"; tier 1 fix of D-186): the export's PDF
+  buffer fits its pages to the window's body width when shown and again whenever that
+  window changes size (a buffer-local `window-size-change-functions` entry, set again
+  after each revert). DocView drew every page at `doc-view-image-width`'s fixed 850 px.
+  The width is the body's divided by `image-compute-scaling-factor`, since Emacs
+  scales an image by `image-scaling-factor` on top of its `:width` (1.1 with an 11
+  px font: 1109 px of body drew 1220 px). Only the export's buffer; other PDFs keep
+  DocView's defaults. A zoom (`+`, `-`) holds until the window's size next changes.
+  One buffer in two windows of different widths fits the last one fitted.
 - DECIDED D-186 (owner 2026-11-07: "(a) mupdf for SVG"; report "very low resolution
   preview in DocView"): DocView draws the PDF through MuPDF's SVG output, which Emacs
   31's doc-view chooses by itself when `mutool` is on `exec-path` (`doc-view.el`:
@@ -2175,6 +2185,7 @@ Shape:
   (`emacs-cpp-markdown-pdf-monofont`, nil for pandoc's default); characters LaTeX
   reports missing are a warning naming them after a successful export.
 - Viewer (D-186): DocView with MuPDF's SVG pages; `mutool` required by the export.
+  Pages fit the window's width, refitted when it is resized (D-187).
 - Math (DEFERRED 2026-11-07, T-136): math-preview in one `use-package` form in
   `lisp/init-writing.el`;
   `markdown-enable-math` t; `C-c C-x C-p` `math-preview-all`, `C-c C-x C-u`
@@ -4481,6 +4492,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-183 | 2026-11-05 | O-85 (h): projectile's per-submodule pass off, fd required for git listings | 12 | O-85, T-133 |
 | D-184 | 2026-11-07 | O-89 (b): Markdown to PDF by pandoc + LaTeX; math drawn by math-preview deferred | 12 | O-89, D-145 |
 | D-185 | 2026-11-07 | Markdown PDF: code in DejaVu Sans Mono, missing glyphs a warning | 12 | D-184, owner report |
+| D-187 | 2026-11-08 | Markdown PDF pages fit the window's width, refit on resize | 12 | D-186, owner report |
 | D-186 | 2026-11-07 | Markdown PDF shown through MuPDF's SVG pages; mutool required | 12 | D-184, owner report |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |

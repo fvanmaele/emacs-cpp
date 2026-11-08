@@ -86,6 +86,14 @@ owner ruled that (D-186) and installed the Mac's `mupdf` port; the export now
 requires `mutool` too, so DocView cannot fall back to gs unnoticed. Test: with
 pandoc and xelatex on `exec-path` and mutool not, the export signals naming mutool.
 `make test` on the Mac after both fixes: 164 run, 0 unexpected, 2 gdb tests skipped.
+2026-11-08 (D-187): the owner saw the pages "not zoomed to width (black borders on
+larger windows)": DocView draws each page at a fixed 850 px. The export's buffer now
+fits the pages to the window's width, and again whenever that window changes size.
+Emacs enlarges images by `image-scaling-factor` on top of the width asked for (1.1
+here), so the width asked for is the window's divided by it. Checked in a graphical
+Emacs on Arch: 1109 px of window, 1101 px of page; split in half, 537 and 529.
+`make test` on Arch: 165 run, 0 unexpected, 1 skipped. Risk: a run exits 141 (a
+broken pipe) after the debugpy test, also without this change: T-137.
 
 ## Standard feedback (optional; the standard pulls it with `make feedback`)
 - Helped: "a choice offered to the owner, premises verified or marked UNVERIFIED";
