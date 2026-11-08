@@ -16,7 +16,7 @@
 ## What + why
 0103 left S20's new mode with its Arch half open (H-22). The owner ran it three times
 on the Arch workstation, idle (load 0.85 - 1.31), with the session's commits through
-b9e2146. Criteria 1 - 6 hold in every run; criterion 7, the wiring of
+93ca2b4. Criteria 1 - 6 hold in every run; criterion 7, the wiring of
 `window-buffer-change-functions`, is checked on the Mac only, as `RUN.md` says.
 
 A 190-file checkout leaves every unedited buffer current 0.13 - 0.14 s after `git`,

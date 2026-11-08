@@ -1,7 +1,7 @@
 # 0131 - T-135: Markdown to PDF through pandoc and LaTeX
 
 - **Date:** 2026-11-07
-- **Commits:** `0fca720` (make test's HOME), the commit adding this entry
+- **Commits:** `ae4d9f4` (make test's HOME), the commit adding this entry
 - **Tier:** 2
 - **Decisions:** D-184 (O-89 (b), math half deferred), amends D-145 and D-089
 - **Done when:** T-135's line, agreed 2026-11-07 ("Defer mathjax, agree otherwise"):
@@ -25,7 +25,7 @@ While testing, every LaTeX run inside `make test` hung for minutes. The cause wa
 the Makefile, not in the feature: on the Mac `TMPDIR` ends in `/`, so the test HOME
 was `.../T//emacs-cpp-test-home...`, and TeX's path library (kpathsea) reads `//` as
 "search every subdirectory". Each run walked all of TMPDIR. The Makefile now strips
-the trailing slash (tier 1, `0fca720`).
+the trailing slash (tier 1, `ae4d9f4`).
 
 ## Concepts (Emacs Lisp) explained
 - `make-process` starts a program without waiting for it; Emacs stays usable. Its

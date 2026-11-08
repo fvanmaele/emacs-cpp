@@ -21,7 +21,7 @@ recorded, not judged (D-165, D-057).
 ## Run 8 (session, Mac, 2026-11-04): shipped, CPU by `current-cpu-time` (D-164)
 `S18_RUNS=shipped:fake,shipped:pyright` (run 5 fake only), Darwin arm64, GNU Emacs
 31.1, `s18-run.el` reading `current-cpu-time` (cee20d1's fix), the shipped backend at
-607ba69; load 1.9 - 3.3. Logs: `mac-run8-shipped1.log` .. `mac-run8-shipped5.log`
+c29d328; load 1.9 - 3.3. Logs: `mac-run8-shipped1.log` .. `mac-run8-shipped5.log`
 (curly quotes made ASCII). Runs 1 - 3 found the tree emptied of its 187395 files
 (macOS removes TMPDIR files unused for 3 days; the directories stayed); runs 4 and 5
 ran on it regenerated. G DATA's real-time protection off (D-161).

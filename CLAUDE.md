@@ -14,7 +14,7 @@ An Emacs 31 configuration giving the owner a CLion-like C++ environment (navigat
 refactoring, diagnostics, CMake presets, debugger, git, jump-to-anything) on an Arch
 Linux workstation and a macOS machine (D-050). It will never be an Emacs distribution, a
 Windows config or a CLion keymap emulation (DESIGN 2).
-**Status:** v1.0.0 tagged 2026-11-04 on fc74a31 (owner), design ruled through D-176;
+**Status:** v1.0.0 tagged 2026-11-04 on 52007ad (owner), design ruled through D-176;
 the repository's first tag (v0.4.1, journal 0033, was recorded but never created).
 At 2026-10-10: v0.4.1 (navigation, build, debug, polish), design ruled through D-073.
 clangd stays (T-004); a locally patched clangd
@@ -125,7 +125,7 @@ done); eglot's
 share on RMO-drafts PASS on the Mac (0104). A checkout during clangd's reparse froze
 Emacs up to 1.1 s (O-79, 0105 - 0109, 0111): Emacs's own timers, mainly the reverter's
 queue step, ran inside a write to clangd that met a full pipe (not clangd's includer
-lookup: T-130's premise refuted, 6bde78c); D-156 (e), the queue step waits out the
+lookup: T-130's premise refuted, d1ef1f5); D-156 (e), the queue step waits out the
 filter, cuts it to 0.21 - 0.29 s (0108, 0111). D-160 (0111): the "residual write
 stall" was the reverter's filter run inside a blocked send (the pipe held the write
 10 - 15 ms; `send_process` then waits a fixed 20 ms); the block is the reverts' first

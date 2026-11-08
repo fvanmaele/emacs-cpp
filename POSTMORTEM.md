@@ -493,9 +493,9 @@ acceptable (D-179), after first accepting deal.II's.
 
 ### Timeline
 RESEARCH_go_to_anything 22 (T-133 researched) -> O-85 (f), D-177 -> owner: tier 3 ->
-S21 (criteria confirmed; PASS with `m2`, 0126) -> d4276bf (built, 0127; done when 3's
-"first call as today" not met on deal.II, put to the owner) -> 540a0aa (opt-out,
-D-178) -> 779ceb2 (benchmarks over 14 trees; deal.II accepted) -> this commit (reverted,
+S21 (criteria confirmed; PASS with `m2`, 0126) -> b7e3692 (built, 0127; done when 3's
+"first call as today" not met on deal.II, put to the owner) -> 7487e53 (opt-out,
+D-178) -> 0c885c4 (benchmarks over 14 trees; deal.II accepted) -> this commit (reverted,
 D-179, 0128).
 
 ### Root cause
@@ -567,7 +567,7 @@ encoded structurally rather than in a comment.
 - Lesson: an `H-n` naming a path in another repository checks that path when written.
 
 ## 2026-11-03 - A commit that failed docs-check was pushed (short)
-- What failed: 214cb3e (D-156) reached origin with a 118-column line in DESIGN's O-79.
+- What failed: 60f352c (D-156) reached origin with a 118-column line in DESIGN's O-79.
 - Caught by: the session, reading the chain's output after the push.
 - Cause: `make docs-check | tail -1 && git commit ... && git push`: the pipe gave
   `tail`'s status, not make's; the same day an edit script's failure was likewise
@@ -578,7 +578,7 @@ encoded structurally rather than in a comment.
 
 ## 2026-11-03 - A clangd mechanism stated from log lines, ruled on, then refuted (short)
 - What failed: 0106 and O-79 (f) said clangd's main thread runs the includer lookup;
-  the owner ruled D-156 (f) / T-130 on it; it was pushed (07f07bb, 214cb3e).
+  the owner ruled D-156 (f) / T-130 on it; it was pushed (95fa027, 60f352c).
 - Caught by: the session, reading `TUScheduler.cpp` when T-130 started.
 - Cause: log lines from worker threads, interleaved in the main thread's gaps, read
   as the main thread's work; the source was not opened before the option was offered.
@@ -625,3 +625,16 @@ encoded structurally rather than in a comment.
   (`emacs-cpp-markdown-pdf-monofont`), missing characters a warning naming them.
 - Lesson: test a converter on the owner's real files, not only on the textbook input;
   a tool's warnings on exit 0 are part of its result.
+
+## 2026-11-08 - Commits under the machine's identity reached GitHub (short)
+- What failed: 49 commits (2026-11-02 to 2026-11-08), 37 of them pushed to `origin/main`
+  and 3 to `origin/S20-arch`, and `v1.0.0`'s tag carried `this machine's global git identity
+  <the machine's address>`, this Arch machine's global git identity, not the owner's.
+- Caught by: the session, while building the release branch (D-194); the owner ruled the
+  fix.
+- Cause: the repository had no `user.name` / `user.email` of its own, so sessions on this
+  machine committed under the global identity; nothing checked the author.
+- Fix (commit): the history rewrite of D-195 and the repository's own identity, with the
+  commit that records them; GitHub after H-34.
+- Lesson: a session committing on a machine for the first time checks `git config
+  user.name` against the history's author before its first commit.

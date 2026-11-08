@@ -19,7 +19,7 @@ The owner ruled (D-166) that this counts: S20 fails on Arch, and the reverter mu
 revert from a queue instead of reverting all 189 buffers in one go.
 
 The session had offered that option as "before any T-128 code", but the module had
-already shipped that morning on the Mac (5316f49), and the session had not seen those
+already shipped that morning on the Mac (fb31b42), and the session had not seen those
 commits yet. With them on Arch, the session ran H-23's steps itself: `make test` passes
 (151 of 151), and the shipped module's three S20 runs block Emacs at most 0.13, 0.15
 and 0.25 s (the filter call 250.6 ms in run 3). That is over the limit too, at a

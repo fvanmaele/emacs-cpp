@@ -12,7 +12,7 @@
 
 ## What + why
 0116 measured the queued reverter on Arch; H-25 asked for the same three runs on the
-Mac. The session runs on the Mac and ran them itself at a4304ce. All three pass
+Mac. The session runs on the Mac and ran them itself at e1664a7. All three pass
 criteria 1 - 6: buffers current 0.32 - 0.60 s after `git` (limit 1.0 s), Emacs blocked
 at most 0.18 s (limit 0.25 s), the fswatch filter at most 1.1 ms per call. So
 `fswatch-chunked` passes on both machines, and D-167's next step is due: rewrite

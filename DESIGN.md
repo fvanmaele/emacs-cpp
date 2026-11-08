@@ -1822,6 +1822,20 @@ the form that loads magit is found (S17 run 2, T-113).
   as findings, marked superseded. Test: init.el loads with neither module nor
   package on `load-path`. Built (0099). Amended 2026-11-07 by D-184: Markdown gets
   LaTeX export and math preview; `.tex` files stay as ruled here.
+- DECIDED D-195 (owner 2026-11-08: "Use author the owner's name consistently for all
+  the branches", then "other address, the machine identity's only" and "All, incl. pushed"; "set git config
+  with the author"): the 49 commits made under this machine's global git identity
+  (`this machine's global git identity`, 2026-11-02 on) carry `the owner's name
+  <the owner's other address>` as author and committer on every branch (main,
+  release, S19, S20-arch) and `v1.0.0`'s tagger; `git filter-branch`, trees unchanged,
+  191 commit ids changed; cited ids in commit messages and in 18 tracked files mapped to
+  the new ones (46 in files). The `the owner's address` commits and the one by
+  the reviewer keep their authors. The repository's own `user.name` / `user.email` are
+  set (never `--global`). The rewritten `main` and `S20-arch` reach GitHub by the
+  owner's force push (H-34); the Mac's clone resets to them. Backup: a bundle of all
+  refs before the rewrite (session scratchpad) and `refs/original/`. Against: every id
+  after 2026-11-02 changes, other clones must reset, ids quoted outside the repository
+  (chats, reports) no longer resolve.
 - DECIDED D-194 (owner 2026-11-08: "Make a release branch which only contains feature
   commits with concise but clear descriptions, and documentation in docs/ and README.md",
   then "One per feature" and "MANUAL + CHEATSHEET"): branch `release`, built from main
@@ -1832,7 +1846,7 @@ the form that loads magit is found (S17 run 2, T-113).
   `standard.mk`, `LICENSE`, `.gitignore`, `.gitmodules`) and `README.md`,
   `docs/MANUAL.md`, `docs/CHEATSHEET.md`. Messages short, without ids; author and date
   of each feat commit, the models' `Co-Authored-By` lines kept. Its tip's code and docs
-  equal main's at a6bccab. Not pushed; rebuilt, not merged, when main moves on. Against:
+  equal main's at f4986a9. Not pushed; rebuilt, not merged, when main moves on. Against:
   README and the manual cite D-nnn ids whose DESIGN.md is not there; `make docs-check`
   fails there (no DESIGN.md); intermediate commits untested; a fix to an older feature
   sits in the feature before it.
@@ -2570,7 +2584,7 @@ presets, GoogleTest runner.
   (b) combines (a)'s bound with (c)'s shown latency. Recommendation: (b).
 - O-81 (RESOLVED 2026-11-04 with D-167: (b); owner: "O-81 (b)"; from D-166): how the
   shipped reverter
-  (`lisp/emacs-cpp-reverter.el`, 5316f49) reverts from a queue. Evidence: on Arch one
+  (`lisp/emacs-cpp-reverter.el`, fb31b42) reverts from a queue. Evidence: on Arch one
   filter call reverts 189 buffers in 124 - 302 ms (0110, 0115); about 0.7 - 1.6 ms per
   buffer. Options:
   (a) Change the module directly: the filter queues the call's buffers, a timer step
@@ -2895,7 +2909,7 @@ presets, GoogleTest runner.
   verdict. The reverter reverts from a queue, not all in one filter call, and that is
   measured before its code changes. Supersedes 0110's verdict; amends D-153 (reverts
   "at once") and D-162 (d). Premise corrected the same day: (a) was offered as "before
-  any T-128 code", but T-128's module had shipped that morning (5316f49), unseen by the
+  any T-128 code", but T-128's module had shipped that morning (fb31b42), unseen by the
   session; its `shipped` mode on Arch then also blocked 0.25 s (filter 250.6 ms, run 3
   of 3, load 3.1 - 3.4, 0115). How the queue goes into the shipped module: O-81.
   Against: buffers become current later than 0.13 s; another measurement round on
@@ -2961,7 +2975,7 @@ presets, GoogleTest runner.
   only. Not taken: (a) the binary in git, (b) a source submodule, (c) a build script.
 - DECIDED D-179 (owner 2026-11-05: "Revert the feature and decision that the perf
   impact (4x on large projects) is acceptable"): T-133's kept project file lists and
-  their option are reverted (code of d4276bf and 540a0aa); the slower first call
+  their option are reverted (code of b7e3692 and 7487e53); the slower first call
   (deal.II 178 ms against 64, LLVM's sources 1366 ms against 336, RESEARCH 22) is not
   acceptable, so a call may not cost more than today's listing on any tree. projectile
   lists on every `C-c p f` and `M-o` again. O-85 reopened with that constraint.
@@ -4586,6 +4600,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-183 | 2026-11-05 | O-85 (h): projectile's per-submodule pass off, fd required for git listings | 12 | O-85, T-133 |
 | D-184 | 2026-11-07 | O-89 (b): Markdown to PDF by pandoc + LaTeX; math drawn by math-preview deferred | 12 | O-89, D-145 |
 | D-185 | 2026-11-07 | Markdown PDF: code in DejaVu Sans Mono, missing glyphs a warning | 12 | D-184, owner report |
+| D-195 | 2026-11-08 | one author identity on every branch; history rewritten, force push H-34 | Conventions | owner |
 | D-194 | 2026-11-08 | branch `release`: one commit per feature, code and README / MANUAL / CHEATSHEET | Conventions | owner |
 | D-193 | 2026-11-08 | release class `later` (session's pick, owner to double-check) | Conventions | standard 2.17.1 |
 | D-192 | 2026-11-08 | S22 criterion 4 counts with a page clamp; defect reported upstream | 12 | owner, S22 |

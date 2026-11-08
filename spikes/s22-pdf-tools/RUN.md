@@ -27,5 +27,6 @@ Sources (D-190, the spike's only network): pdf-tools v1.3.0 and tablist, cloned 
 `arch-run1.log`. Results: RESULTS.md.
 
 ## The Mac (H-32)
-`S22_CLAMP=1 S22_LOG=mac-run1.log` with the MacPorts Emacs, then `S22_HOLD=1` for
-criterion 5: the run leaves `test.pdf` shown; the owner compares it with DocView's.
+`mac-run.sh`: clones the sources, builds `epdfinfo` against MacPorts' poppler, makes the
+test PDFs, runs `S22_CLAMP=1` (`mac-run1.log`), then `S22_HOLD=1` for criterion 5: the
+run leaves `test.pdf` shown; the owner compares it with DocView's (`mac-run2.log`).
