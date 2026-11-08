@@ -123,29 +123,46 @@
            (kill-emacs 4))))
 
 (defun s22-revert-1 ()
-  ;; 4: the file rewritten on disk (5 pages, 1 cm margins), reverted as the export does.
-  (let ((start (float-time)))
+  ;; 4: the file rewritten on disk (fewer pages, 1 cm margins), reverted as the export does.
+  (let ((start (float-time))
+        (expected (pdf-info-number-of-pages (expand-file-name "test-new.pdf" s22-src))))
+    (with-current-buffer s22-buffer
+      (s22-log "re-export: %d -> %d pages, shown page %d" (pdf-info-number-of-pages)
+               expected (pdf-view-current-page)))
     (copy-file (expand-file-name "test-new.pdf" s22-src) s22-pdf t)
     (with-current-buffer s22-buffer
+      ;; S22_CLAMP (D-192): show the last page when the shown one no longer exists.
+      (when (getenv "S22_CLAMP")
+        (add-hook 'after-revert-hook
+                  (lambda ()
+                    (let ((last (pdf-info-number-of-pages)))
+                      (when (> (pdf-view-current-page) last)
+                        (pdf-roll-goto-page last))))
+                  nil t))
       (revert-buffer t t)
       (run-at-time 1 nil
                    (lambda ()
                      (condition-case err
                      (with-current-buffer s22-buffer
                        (redisplay t)
-                       (s22-check "4 re-export" (and (= (pdf-info-number-of-pages) 5)
+                       (s22-check "4 re-export" (and (= (pdf-info-number-of-pages) expected)
                                                      pdf-view-roll-minor-mode
                                                      (s22-pages-in-window))
                                   "%.2f s: pages %d, roll %s, shown %S"
                                   (- (float-time) start) (pdf-info-number-of-pages)
                                   pdf-view-roll-minor-mode (s22-pages-in-window))
                        (s22-width-ok "after the revert")
-                       (s22-log "S22 done: %d failures" s22-failures)
-                       (kill-emacs 0))
+                       (s22-log "S22 done: %d failures (clamp %s)" s22-failures
+                                (and (getenv "S22_CLAMP") t))
+                       ;; S22_HOLD: leave the PDF shown for criterion 5; C-x C-c quits.
+                       (if (getenv "S22_HOLD")
+                           (cancel-function-timers #'s22-watchdog)
+                         (kill-emacs 0)))
                      (error (s22-check "4 re-export" nil "after the revert: %S" err)
                             (kill-emacs 4))))))))
 
 (run-at-time 1 nil #'s22-start)
 ;; Watchdog: a step that fails or hangs ends the run instead of leaving Emacs open.
-(run-at-time 240 nil (lambda () (s22-log "S22 watchdog: stopped after 240 s") (kill-emacs 3)))
+(defun s22-watchdog () (s22-log "S22 watchdog: stopped after 240 s") (kill-emacs 3))
+(run-at-time 240 nil #'s22-watchdog)
 ;;; s22.el ends here

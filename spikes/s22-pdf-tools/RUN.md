@@ -16,7 +16,8 @@ Sources (D-190, the spike's only network): pdf-tools v1.3.0 and tablist, cloned 
 3. `pdf-view-display-size` `fit-width`: a page fills the window's width (within 2 %),
    also after the window is resized.
 4. After the PDF is rewritten on disk (as `C-c C-c x` does), its buffer shows the new
-   content within 2 s, roll mode still on.
+   content within 2 s, roll mode still on. Amended 2026-11-08 (D-192): counted with
+   the page clamp after the revert (`S22_CLAMP=1`).
 5. Text is sharp on the machine's screen (the Mac: Retina, `pdf-view-use-scaling`):
    the owner's look, compared with DocView's SVG pages.
 
@@ -24,3 +25,7 @@ Sources (D-190, the spike's only network): pdf-tools v1.3.0 and tablist, cloned 
 `s22.el` in a graphical Emacs, from a timer: loads pdf-tools from `src/`, opens
 `test.pdf` (a long PDF exported from `docs/CHEATSHEET.md`), checks 2 - 4, logs to
 `arch-run1.log`. Results: RESULTS.md.
+
+## The Mac (H-32)
+`S22_CLAMP=1 S22_LOG=mac-run1.log` with the MacPorts Emacs, then `S22_HOLD=1` for
+criterion 5: the run leaves `test.pdf` shown; the owner compares it with DocView's.

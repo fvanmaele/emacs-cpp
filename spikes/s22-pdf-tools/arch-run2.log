@@ -1,0 +1,12 @@
+S22 run 2026-11-08 21:21:33, Emacs 31.1, epdfinfo /home/user/source/repos/emacs-cpp/spikes/s22-pdf-tools/src/pdf-tools/server/epdfinfo
+PASS 1 epdfinfo: pdf-info-check-epdfinfo succeeded
+pages 6, frame 1141x1306 px
+PASS 3 fit-width: one window: page 1109 px, window body 1109 px
+PASS 3 fit-width: after split-window-right: page 537 px, window body 537 px
+PASS 3 fit-width: after delete-other-windows: page 1109 px, window body 1109 px
+PASS 2 roll: reaches the end: 334 C-n, pages passed (1 2 3 4 5 6) of 6
+PASS 2 roll: two pages at a break: 261 of 334 samples show two pages, e.g. (1 192 (1 2))
+PASS 2 roll: no stop before the end: 0 stops nil
+PASS 4 re-export: 1.02 s: pages 5, roll t, shown (5)
+PASS 3 fit-width: after the revert: page 1109 px, window body 1109 px
+S22 done: 0 failures (clamp t)

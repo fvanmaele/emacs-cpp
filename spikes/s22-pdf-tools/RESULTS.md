@@ -1,8 +1,8 @@
 # S22 results
 
-Verdict: FAIL on Arch as written (2026-11-08, session): criterion 4 on a PDF that
-shrank below the shown page; criteria 1 - 3 PASS; with a page clamp after the revert
-(measured, below) 1 - 4 PASS. Criterion 5 and the Mac: not run (H-n).
+Verdict: PASS on Arch for criteria 1 - 4 with criterion 4 as amended (D-192, run 2,
+2026-11-08, session); run 1 FAIL on criterion 4 as first written. Criterion 5 and the
+Mac: not run (H-32).
 
 ## Environment
 Arch, Emacs 31.1 (graphical, `-Q`), pdf-tools v1.3.0 (5245f09), tablist 01f065e,
@@ -30,11 +30,14 @@ the export's pandoc options, 6 pages (3 cm margins) and 5 pages (1 cm).
    exists (`S22_CLAMP` in `s22-revert-probe.el`): page 5 drawn 1 s after the revert
    (`arch-revert-page6-clamp.log`).
 
+Run 2 (`arch-run2.log`, `S22_CLAMP=1`, a 1141 px wide frame): 1 - 4 PASS; criterion 4
+in 1.02 s, page 5 shown; 334 `C-n` to the end, 261 samples with two pages. Run 3
+(`arch-run3.log`, the expected page count read from `test-new.pdf` for the Mac):
+1 - 4 PASS.
+
 ## Decision
-For the owner: amend criterion 4 to count the clamp (a few lines of app code, written
-fresh, with a test) and go on to the Mac run, or stay on DocView. The defect is
-pdf-tools' (`pdf-roll-initialize` keeps a page past the new end); reported upstream
-only if the owner wants.
+Owner 2026-11-08 (D-192): criterion 4 counts with the clamp; the defect goes upstream
+(H-33, `upstream-issue.md`); the Mac run next (H-32).
 
 ## Gotchas
 - A spike script's read error leaves a graphical Emacs open and idle: `s22.el` runs

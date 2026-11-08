@@ -14,6 +14,48 @@ cannot read itself. An approval another session asks the owner for itself (a ben
 service's plan) is not an item.
 
 ## Run now
+- **H-32** (2026-11-08, unblocks S22, T-138, D-190, D-192) pdf-tools on the Mac:
+  build its server with MacPorts' poppler, run S22, judge sharpness. Install agreed
+  2026-11-08.
+  1. On Arch: `cd ~/source/repos/emacs-cpp && git push` (the session does not push).
+  2. On the Mac: `sudo port install poppler autoconf automake pkgconfig`
+  3. On the Mac: `cd ~/source/repos/emacs-cpp && git pull --ff-only`
+  4. On the Mac: `cd ~/source/repos/emacs-cpp/spikes/s22-pdf-tools && mkdir -p src &&
+     git clone -q --depth 1 --branch v1.3.0 https://github.com/vedang/pdf-tools
+     src/pdf-tools && git clone -q --depth 1 https://github.com/emacsorphanage/tablist
+     src/tablist`
+  5. On the Mac: `cd ~/source/repos/emacs-cpp/spikes/s22-pdf-tools/src/pdf-tools/server
+     && (./autogen.sh && ./configure && make) > ../../../build-mac.log 2>&1; echo exit
+     $?; tail -5 ../../../build-mac.log`
+  6. On the Mac: `cd ~/source/repos/emacs-cpp/spikes/s22-pdf-tools/src && cp
+     ../../../docs/CHEATSHEET.md cheat.md && pandoc cheat.md -o test-orig.pdf
+     --pdf-engine=xelatex -V monofont=DejaVuSansMono.ttf -V geometry:margin=3cm &&
+     pandoc cheat.md -o test-new.pdf --pdf-engine=xelatex -V
+     monofont=DejaVuSansMono.ttf -V geometry:margin=1cm`
+  7. On the Mac (an Emacs window opens, scrolls by itself for about 30 s and closes;
+     do not touch it): `cd ~/source/repos/emacs-cpp/spikes/s22-pdf-tools &&
+     S22_CLAMP=1 S22_LOG=mac-run1.log /Applications/MacPorts/Emacs.app/Contents/MacOS/Emacs
+     -Q --eval '(condition-case e (load (expand-file-name "s22.el")) (error
+     (append-to-file (format "S22 load error: %S\n" e) nil (expand-file-name
+     "mac-run1.log")) (kill-emacs 2)))'; cat mac-run1.log`
+  8. On the Mac, the same with the window kept open at the end: `cd
+     ~/source/repos/emacs-cpp/spikes/s22-pdf-tools && S22_HOLD=1 S22_CLAMP=1
+     S22_LOG=mac-run2.log /Applications/MacPorts/Emacs.app/Contents/MacOS/Emacs -Q
+     --eval '(load (expand-file-name "s22.el"))'`. When it stops scrolling, look at the
+     text; in your usual Emacs open the same PDF in DocView: `C-x C-f
+     ~/source/repos/emacs-cpp/spikes/s22-pdf-tools/src/test.pdf RET`; compare; quit the
+     spike's Emacs with `C-x C-c`.
+  Report back: step 5's `exit` line and tail; step 7's printed log; step 8: is
+  pdf-tools' text as sharp as DocView's, sharper, or blurrier?
+
+- **H-33** (2026-11-08, unblocks D-192's upstream report) Report pdf-tools' roll-mode
+  revert defect.
+  1. In a browser, signed in to GitHub, open https://github.com/vedang/pdf-tools/issues/new
+  2. On Arch: `cat ~/source/repos/emacs-cpp/spikes/s22-pdf-tools/upstream-issue.md`;
+     paste the line under `Title:` as the title and the text under `Body:` as the
+     body; submit.
+  Report back: the issue's URL.
+
 - **H-31** (2026-11-07, unblocks T-135, D-184 - D-186) Markdown to PDF on Arch: the
   install (agreed 2026-11-07), the tests, one export by hand.
   1. On the Mac: `cd ~/source/repos/emacs-cpp && git push` (the session does not push).

@@ -1815,26 +1815,36 @@ the form that loads magit is found (S17 run 2, T-113).
   as findings, marked superseded. Test: init.el loads with neither module nor
   package on `load-path`. Built (0099). Amended 2026-11-07 by D-184: Markdown gets
   LaTeX export and math preview; `.tex` files stay as ruled here.
-- PROPOSED D-191 (owner 2026-11-08: "Revert on changes in project + buffer changes,
-  shown message; prompt instead?", then "CLion's way"; tier 2, T-139; amends D-151
-  (2b)): a project buffer the reverter keeps because it has unsaved edits while its
-  file changed on disk is asked about, as CLion's File Cache Conflict dialog: load the
-  disk version (the edits dropped) / keep yours / diff (`ediff-current-file`, to
-  merge). Asked when the buffer is shown in a window of the focused frame: as it
-  becomes shown, as its frame regains focus, or, already shown in the focused frame,
-  after 1 s without input; one question at a time, never while the minibuffer is
-  active. D-151's message stays for the buffers not yet asked. D-151's premise
-  corrected (checked 2026-11-08, `emacs -Q`): for a buffer already edited, Emacs does
-  not call `ask-user-about-supersession-threat` on the next edit (only an unedited
+- DECIDED D-192 (owner 2026-11-08: "Amend, report upstream"; S22, D-190): S22's
+  criterion 4 counts with a page clamp: after a revert, a shown page past the new end
+  moves to the last page (an `after-revert-hook`; pdf-tools' roll mode otherwise leaves
+  the window blank until a key, S22 `arch-revert-page6.log`). With it S22 criteria 1 -
+  4 PASS on Arch (`arch-run2.log`); the clamp goes into the app code with pdf-tools,
+  written fresh with a test. The defect goes upstream (H-33, text in
+  `spikes/s22-pdf-tools/upstream-issue.md`); the clamp stays until a pdf-tools release
+  fixes it. The Mac's run: H-32 (install agreed 2026-11-08: `sudo port install poppler
+  autoconf automake pkgconfig`). Against: a workaround carried for another project's
+  defect; another roll-mode defect may surface in daily use.
+- DECIDED D-191 (owner 2026-11-08, done when agreed the same day: "Revert on changes in
+  project + buffer changes, shown message; prompt instead?", then "CLion's way"; tier 2,
+  T-139; amends D-151 (2b)): a project buffer the reverter keeps because it has unsaved
+  edits while its file changed on disk is asked about, as CLion's File Cache Conflict
+  dialog: load the disk version (the edits dropped) / keep yours / diff
+  (`ediff-current-file`, to merge). Asked when the buffer is shown in a window of the
+  focused frame: as it becomes shown, as its frame regains focus, or, already shown in
+  the focused frame, after 1 s without input; one question at a time, never while the
+  minibuffer is active. D-151's message stays for the buffers not yet asked. D-151's
+  premise corrected (checked 2026-11-08, `emacs -Q`): for a buffer already edited, Emacs
+  does not call `ask-user-about-supersession-threat` on the next edit (only an unedited
   buffer's first edit asks); only the save asks ("has changed since visited or saved.
   Save anyway?"). CLion: the dialog's three buttons; it checks when the IDE window or
-  the editor tab is activated (JetBrains help "File cache conflict", "System
-  settings"). Qt Creator: its file watcher, a check about 200 ms later (UNVERIFIED:
-  read from a summary of `documentmanager.cpp`). Not taken: asking at once, Qt
-  Creator's way (a typed key may answer it; it interrupts another prompt; N buffers,
-  N questions); the message alone with a mode-line mark. Against: focus and window
-  hooks and an idle timer to test; one question per buffer after a checkout; focus
-  events under the Arch window manager and on the Mac UNVERIFIED.
+  the editor tab is activated (JetBrains help "File cache conflict", "System settings").
+  Qt Creator: its file watcher, a check about 200 ms later (UNVERIFIED: read from a
+  summary of `documentmanager.cpp`). Not taken: asking at once, Qt Creator's way (a
+  typed key may answer it; it interrupts another prompt; N buffers, N questions); the
+  message alone with a mode-line mark. Against: focus and window hooks and an idle timer
+  to test; one question per buffer after a checkout; focus events under the Arch window
+  manager and on the Mac UNVERIFIED.
 - DECIDED D-190 (owner 2026-11-08: "Revisit D-186 and pdf-tools", then "Spike
   pdf-tools"; tier 3, spike S22, T-138): pdf-tools 1.3.0 (NonGNU ELPA 2026-01-01)
   adds `pdf-view-roll-minor-mode`, continuous scrolling (NEWS: "#224"), the gap that
@@ -4546,7 +4556,8 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-183 | 2026-11-05 | O-85 (h): projectile's per-submodule pass off, fd required for git listings | 12 | O-85, T-133 |
 | D-184 | 2026-11-07 | O-89 (b): Markdown to PDF by pandoc + LaTeX; math drawn by math-preview deferred | 12 | O-89, D-145 |
 | D-185 | 2026-11-07 | Markdown PDF: code in DejaVu Sans Mono, missing glyphs a warning | 12 | D-184, owner report |
-| D-191 | 2026-11-08 | PROPOSED: kept project buffer asked as CLion: load / keep / diff | 9 | owner, D-151 |
+| D-192 | 2026-11-08 | S22 criterion 4 counts with a page clamp; defect reported upstream | 12 | owner, S22 |
+| D-191 | 2026-11-08 | kept project buffer asked as CLion: load / keep / diff | 9 | owner, D-151 |
 | D-190 | 2026-11-08 | spike S22: pdf-tools 1.3.0 for the Markdown PDF, continuous scroll | 12 | owner, D-186 |
 | D-189 | 2026-11-08 | Markdown PDF margin 3 cm, configurable; continuous scrolling | 12 | owner |
 | D-188 | 2026-11-08 | `make test` ignores SIGPIPE as the shipped Emacs does | 12 | T-137 |

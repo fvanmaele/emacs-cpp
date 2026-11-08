@@ -12,7 +12,7 @@ marked NEW do not exist yet.
 - [x] 3. Arch run in a graphical Emacs: criteria 1 - 5 (~30 min)
   `s22.el` (NEW) drives pdf-tools on a long PDF from a timer, logs to `arch-run1.log`.
 - [x] 4. RESULTS.md (Arch half), spikes/README status (~10 min)
-- [ ] 5. H-n for the Mac run, printed in chat (~10 min)
+- [x] 5. H-n for the Mac run, printed in chat (~10 min)
 
 Added 2026-11-08 (same session; not S22's, kept here as the session's one plan):
 - [ ] 6. T-139: kept buffer asked as CLion, code + tests + journal (~60 min)
