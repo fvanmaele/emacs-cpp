@@ -1815,6 +1815,42 @@ the form that loads magit is found (S17 run 2, T-113).
   as findings, marked superseded. Test: init.el loads with neither module nor
   package on `load-path`. Built (0099). Amended 2026-11-07 by D-184: Markdown gets
   LaTeX export and math preview; `.tex` files stay as ruled here.
+- PROPOSED D-191 (owner 2026-11-08: "Revert on changes in project + buffer changes,
+  shown message; prompt instead?", then "CLion's way"; tier 2, T-139; amends D-151
+  (2b)): a project buffer the reverter keeps because it has unsaved edits while its
+  file changed on disk is asked about, as CLion's File Cache Conflict dialog: load the
+  disk version (the edits dropped) / keep yours / diff (`ediff-current-file`, to
+  merge). Asked when the buffer is shown in a window of the focused frame: as it
+  becomes shown, as its frame regains focus, or, already shown in the focused frame,
+  after 1 s without input; one question at a time, never while the minibuffer is
+  active. D-151's message stays for the buffers not yet asked. D-151's premise
+  corrected (checked 2026-11-08, `emacs -Q`): for a buffer already edited, Emacs does
+  not call `ask-user-about-supersession-threat` on the next edit (only an unedited
+  buffer's first edit asks); only the save asks ("has changed since visited or saved.
+  Save anyway?"). CLion: the dialog's three buttons; it checks when the IDE window or
+  the editor tab is activated (JetBrains help "File cache conflict", "System
+  settings"). Qt Creator: its file watcher, a check about 200 ms later (UNVERIFIED:
+  read from a summary of `documentmanager.cpp`). Not taken: asking at once, Qt
+  Creator's way (a typed key may answer it; it interrupts another prompt; N buffers,
+  N questions); the message alone with a mode-line mark. Against: focus and window
+  hooks and an idle timer to test; one question per buffer after a checkout; focus
+  events under the Arch window manager and on the Mac UNVERIFIED.
+- DECIDED D-190 (owner 2026-11-08: "Revisit D-186 and pdf-tools", then "Spike
+  pdf-tools"; tier 3, spike S22, T-138): pdf-tools 1.3.0 (NonGNU ELPA 2026-01-01)
+  adds `pdf-view-roll-minor-mode`, continuous scrolling (NEWS: "#224"), the gap that
+  kept D-186 on DocView with D-187 / D-189. S22 builds pdf-tools' `epdfinfo` server
+  against the system poppler on both machines and drives the viewer on a long PDF;
+  DocView stays until S22 passes on both, then pdf-tools replaces it for the export
+  (D-187's fit code goes). Network (spike only): `git clone` of
+  https://github.com/vedang/pdf-tools at v1.3.0 and of
+  https://github.com/emacsorphanage/tablist (its dependency) into
+  `spikes/s22-pdf-tools/src/`, ignored by git. Needs poppler-glib (Arch: installed,
+  26.10.0); the Mac's MacPorts `poppler` 26.02.0 with its glib library UNVERIFIED
+  (pdf-tools documents Homebrew only). Not taken: keep DocView (one page at a time,
+  no links or selection), research Emacs Reader first (continuous scrolling found in
+  a fork only; a native module; it builds MuPDF). Against: a C server per machine,
+  rebuilt after poppler updates; roll mode 10 months old (a stuck-at-page-top report
+  with ultra-scroll, not used here).
 - DECIDED D-189 (owner 2026-11-08: "pandoc settings, reduce the margin to 3cm
   top/bottom/left/right; make this configurable?" and "+ continuous scroll"; tier 1):
   the export passes `-V geometry:margin=` with `emacs-cpp-markdown-pdf-margin`, "3cm"
@@ -2241,6 +2277,7 @@ presets, GoogleTest runner.
 | compiled `lisp/` slows startup or stays bytecode | S17 | owner | D-125 |
 | fswatch backend loses changes or costs Emacs too much | S18 (PASS 2026-10-21 on Arch; the Mac's cost misread, O-80) | LLM / owner | D-127 |
 | per-project fswatch reverter loses changes or blocks Emacs | S20 (FAIL 2026-11-02: Mac criterion 3, VC steps; PASS on Arch; mode `fswatch-shown` for (e), D-153: PASS on the Mac 2026-11-03, 0103; FAIL on Arch 2026-11-04, criterion 3, D-166, 0115; `fswatch-chunked` D-167 PASS on Arch 0116 and the Mac 0117; module rewritten, D-168: `shipped` PASS on the Mac 0118 and on Arch 0119; refresh first, D-169: PASS on Arch 0122 and the Mac 0123) | LLM / owner | O-78 |
+| pdf-tools' epdfinfo fails to build on a machine, or roll mode misbehaves | S22 | LLM / owner | D-190 |
 | own package build glue mis-orders compilation | none (tests) | - | v0.1 |
 | config fails on macOS (paths, tools, tests) | none (`make test`) | owner | D-050 |
 | clangd too slow / too large on deal.II scale | S1 numbers | owner | v0.1 |
@@ -4509,6 +4546,8 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-183 | 2026-11-05 | O-85 (h): projectile's per-submodule pass off, fd required for git listings | 12 | O-85, T-133 |
 | D-184 | 2026-11-07 | O-89 (b): Markdown to PDF by pandoc + LaTeX; math drawn by math-preview deferred | 12 | O-89, D-145 |
 | D-185 | 2026-11-07 | Markdown PDF: code in DejaVu Sans Mono, missing glyphs a warning | 12 | D-184, owner report |
+| D-191 | 2026-11-08 | PROPOSED: kept project buffer asked as CLion: load / keep / diff | 9 | owner, D-151 |
+| D-190 | 2026-11-08 | spike S22: pdf-tools 1.3.0 for the Markdown PDF, continuous scroll | 12 | owner, D-186 |
 | D-189 | 2026-11-08 | Markdown PDF margin 3 cm, configurable; continuous scrolling | 12 | owner |
 | D-188 | 2026-11-08 | `make test` ignores SIGPIPE as the shipped Emacs does | 12 | T-137 |
 | D-187 | 2026-11-08 | Markdown PDF pages fit the window's width, refit on resize | 12 | D-186, owner report |

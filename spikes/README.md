@@ -78,6 +78,10 @@ code is written for it. Each spike is a self-contained directory with its own bu
   idle fswatch (D-127's 8 descriptors, 6 MB)? Gates T-128 (D-147). Since 2026-11-03
   judged in mode `fswatch-shown` (D-153): VC state and diff-hl refreshed for shown
   buffers only, diff-hl loaded, a deleted file in the checkout.
+- **S22 pdf-tools** (written 2026-11-08) - does pdf-tools 1.3.0's `epdfinfo` build
+  against the system poppler on Arch and on the Mac (MacPorts), and does its viewer
+  scroll a long PDF continuously (`pdf-view-roll-minor-mode`), fit the window's
+  width, and follow a re-export? Gates replacing DocView for the Markdown PDF (D-190).
 - **S4 cold-header flags** - DROPPED 2026-10-08: replaced by D-028 (patched clangd
   takes an includer from its index; owner ruled tier 2, toy reproduction as evidence).
   Was: which mechanism gives a header opened first (no including
@@ -110,3 +114,4 @@ Status words: `not started`, `ready` (RUN.md written, the owner runs it; no RESU
 | S21 | PASS 2026-11-05 with `m2` (D-177, T-133): plain check FAIL on editing (lock files), names re-read PASS; built and reverted (D-179: the first call, unbounded by S21, 4 times today's on large trees) | s21-projectile-cache/RESULTS.md |
 | S19 | FAIL (2026-11-04, hp-elitedesk): criterion 6, 16 of 26 `M-o` keys on RMO-drafts over twice pkgrel 1 with the field (D-174); criteria 1 - 5 PASS (D-172, D-173); not built (D-175) | s19-gap-trigrams/RESULTS.md |
 | S20 | `fswatch-shown` (D-153): PASS on the Mac (0103), FAIL on Arch criterion 3 (D-166, 0115; `shipped` too), `fswatch-chunked` (D-167) PASS on Arch (0116) and the Mac (0117); `shipped` (T-128) after the rewrite (D-168) PASS on the Mac (0118) and on Arch (0119), with refresh first (D-169) on Arch (0122) and the Mac (0123); eglot's share PASS on the Mac, O-79 closed (D-161); was FAIL: Mac criterion 3, VC steps (runs 4 - 6); PASS on Arch (runs 1 - 3) | s20-fswatch-reverter/RESULTS.md |
+| S22 | ready (RUN.md written; the session runs Arch, the owner the Mac) | |
