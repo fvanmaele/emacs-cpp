@@ -143,16 +143,14 @@ for f in $docs; do
         "$f" || fail "lines over $WIDTH cols in $f (above)"
 done
 
-# 0. A pending handoff is applied first: younger than two days a note, older a failure
-# (2.10.0: a strict check refused the commit that applied one handoff while another waited,
-# and an adopter parked a file outside its repo to commit).
+# 0. A pending handoff is applied first: a note with its age, never a failure (2.16.2). A
+# failure was cleared by moving or deleting the file (2.10.0, an adopter parked one outside
+# its repo; 2.16.1, an adopter deleted an unapplied one) and blocked unrelated commits.
 for h in ./*_handoff.md; do
     [ -f "$h" ] || continue
-    if [ -n "$(find "$h" -mmin +2880 2>/dev/null)" ]; then
-        fail "${h#./} pending over two days: apply it, delete it, then commit (rule 24)"
-    else
-        printf 'check: note: %s pending: apply it first; docs-check fails on it after two days (rule 24)\n' "${h#./}"
-    fi
+    days=0; for d in 1 2 3 7 14 30; do [ -n "$(find "$h" -mtime +$((d - 1)) 2>/dev/null)" ] && days=$d; done
+    case $days in 0) age="under a day" ;; 1) age="1 day" ;; *) age="$days days or more" ;; esac
+    printf 'check: note: %s pending %s: apply it first; never delete it unapplied (rule 24)\n' "${h#./}" "$age"
 done
 
 # 2. CLAUDE.md carries the standard version stamp.
@@ -161,9 +159,13 @@ if [ -f CLAUDE.md ]; then
         || fail "CLAUDE.md lacks 'Standard: llm_vibecoding_standard vX.Y.Z' line"
 else skip "CLAUDE.md absent"; fi
 
-# 3. TASKS 'done NNNN' -> docs/journal/NNNN-*.md exists.
+# 3. TASKS 'done NNNN' -> docs/journal/NNNN-*.md exists. Four digits standing alone only: a tier 1
+# row cites its commit (`done 8822658`), which is no journal 8822 (2.17.0, an adopter's request).
 if [ -f TASKS.md ]; then
-    for n in $(grep -o 'done [0-9][0-9][0-9][0-9]' TASKS.md | awk '{print $2}' | sort -u)
+    for n in $(awk '{ s = $0
+            while (match(s, /done [0-9][0-9][0-9][0-9]/)) {
+                if (substr(s, RSTART + RLENGTH, 1) !~ /[0-9A-Za-z]/) print substr(s, RSTART + 5, 4)
+                s = substr(s, RSTART + RLENGTH) } }' TASKS.md | sort -u)
     do
         ls docs/journal/"$n"-*.md >/dev/null 2>&1 \
             || fail "TASKS says done $n, no docs/journal/$n-*.md"
@@ -238,16 +240,17 @@ if [ -n "$bids" ]; then
     fi
 fi
 
-# 6. Risk register spikes appear in spikes/README.md; started spikes have RUN.md.
+# 6. Risk register spikes appear in spikes/README.md; started spikes have RUN.md. A spike id is
+# `S` digits and an optional lowercase letter suffix, a split spike (2.16.6, an adopter's request).
 if [ -f DESIGN.md ] && [ -f spikes/README.md ]; then
     grep -q '^## .*Risk register' DESIGN.md \
         || skip "DESIGN.md has no '## ... Risk register' heading; check 6 reads no risk"
     for id in $(awk '/^## .*Risk register/{on=1; next} /^## /{on=0} on' DESIGN.md \
-                | grep -ow 'S[0-9][0-9]*' | sort -u); do
+                | grep -ow 'S[0-9][0-9]*[a-z]*' | sort -u); do
         grep -qw "$id" spikes/README.md \
             || fail "risk register names $id, spikes/README.md does not"
     done
-    for id in $(grep '^| S[0-9][0-9]* |' spikes/README.md | grep -v 'not started' \
+    for id in $(grep '^| S[0-9][0-9]*[a-z]* |' spikes/README.md | grep -v 'not started' \
                 | awk -F'|' '{ gsub(/ /, "", $2); print $2 }'); do
         grep -lq "^# $id - " spikes/*/RUN.md 2>/dev/null \
             || fail "$id started (spikes/README.md), no spikes/*/RUN.md titled '# $id - '"
@@ -263,9 +266,18 @@ for sd in spikes/*/; do
     if [ ! -f "$f" ]; then
         # Status `ready` in spikes/README.md: RUN.md written for the owner (rule 4), not run yet
         # (2.6.0, an adopter's request: a placeholder verdict would be a false record).
-        id=$(sed -n 's/^# \(S[0-9][0-9]*\) - .*/\1/p' "$sd/RUN.md" | head -n 1)
+        # Status `running`: a spike that runs for weeks has no verdict yet; a note with RUN.md's age
+        # (2.17.0, an adopter's month-long spike; an abandoned one is still seen).
+        id=$(sed -n 's/^# \(S[0-9][0-9]*[a-z]*\) - .*/\1/p' "$sd/RUN.md" | head -n 1)
         if [ -n "$id" ] && [ -f spikes/README.md ] && grep -q "^| $id | ready" spikes/README.md; then continue; fi
-        fail "${sd%/}: RUN.md present, no RESULTS.md (verdict not written; status 'ready' if the owner has not run it)"
+        if [ -n "$id" ] && [ -f spikes/README.md ] && grep -q "^| $id | running" spikes/README.md; then
+            t=$(git log --diff-filter=A --format=%ct -- "$sd/RUN.md" 2>/dev/null | tail -n 1)
+            if [ -n "$t" ]; then age="$(( ($(date +%s) - t) / 86400 )) days since RUN.md was first committed"
+            else age="RUN.md not committed yet"; fi
+            printf 'check: note: %s: %s running, %s; RESULTS.md with its verdict closes it\n' "${sd%/}" "$id" "$age"
+            continue
+        fi
+        fail "${sd%/}: RUN.md present, no RESULTS.md (verdict not written; status 'ready' or 'running' if not run yet)"
         continue
     fi
     v=$(grep -m1 'Verdict:' "$f")
@@ -434,6 +446,113 @@ done
 # (2.10.0, the owner's dashboard: 97 repos tracked its file and stayed dirty).
 if [ "$in_git" -eq 1 ] && git ls-files --error-unmatch STATUS.md >/dev/null 2>&1; then
     printf 'check: note: STATUS.md is tracked; it is generated: git rm --cached STATUS.md, add /STATUS.md to .gitignore\n'
+fi
+
+# 16. A TASKS row is one result, at most L (rule 30): a note when one T-nnn is the first id of more
+# than 3 JOURNAL.md index rows; `<repo>:T-nnn` and longer ids are skipped, and so is a row TASKS.md
+# marks done: the note is for a row still growing (2.16.0: an adopter's row sized L ran to 19
+# entries; 2.16.1: every row it noted across the fleet was already done). Only the first id
+# counts, the entry's work; later ones are citations (2.17.0: an adopter's research entries named
+# a task they fed, and it was noted though nobody had worked on it).
+if [ -f JOURNAL.md ]; then
+    done_ids=$([ -f TASKS.md ] && awk -F'|' '$2 ~ /^ *T-[0-9]+ *$/ && $3 ~ /^ *done/ {
+        gsub(/ /, "", $2); printf "%s ", $2 }' TASKS.md)
+    awk -v done_ids=" $done_ids" '/^\| *[0-9][0-9][0-9][0-9] / {
+            s = $0; off = 0
+            while (match(s, /T-[0-9]+/)) {
+                at = off + RSTART; c = at > 1 ? substr($0, at - 1, 1) : ""
+                id = substr(s, RSTART, RLENGTH)
+                if (c !~ /[A-Za-z0-9_:-]/) { n[id]++; break }
+                off += RSTART + RLENGTH - 1; s = substr(s, RSTART + RLENGTH)
+            } }
+        END { for (id in n) if (n[id] > 3 && index(done_ids, " " id " ") == 0)
+            printf "check: note: %s is the work of %d JOURNAL.md index rows; %s\n", id, n[id],
+                "past its third entry a row is split (rule 30)" }' \
+        JOURNAL.md | sort
+fi
+
+# 17. Prior art before the first spike (rule 31): a note when a spike's RUN.md or RESULTS.md is
+# not yet in HEAD (the commit that adds it) while DESIGN section 1 has no `Searches:` line
+# (2.16.0: an adopter ran five spikes before finding the closest tool its first search named).
+if [ -f DESIGN.md ] && grep -q '^## 1\.' DESIGN.md \
+        && ! awk '/^## 1\./ { on = 1; next } /^## / { on = 0 }
+                  on && /^[-* ]*(\*\*)?Searches:/ { found = 1 } END { exit !found }' DESIGN.md; then
+    for f in spikes/*/RUN.md spikes/*/RESULTS.md; do
+        [ -f "$f" ] || continue
+        [ "$in_git" -eq 1 ] && git cat-file -e "HEAD:$f" 2>/dev/null && continue
+        printf 'check: note: %s is new and DESIGN section 1 has no Searches: line; %s\n' "$f" \
+            'search for the closest tool and read it before the first spike (rule 31)'
+        break
+    done
+fi
+
+# 18. `waits on` in a TASKS status cell (rule 30; 2.17.0, research_task_kanban_organization's
+# request): `waits on <id>[, <id>...]`, each id `T-nnn`, `<repo>:T-nnn` or `H-n`, names what must
+# be done before the row can start. Fails: a T-nnn that is no row here, a cycle, an H-n that
+# TODO_human.md never held (a deleted H-n is done, rule 21). Notes: every target done (the row is
+# ready), a `<repo>:T-nnn` whose ../<repo>/TASKS.md is missing, a cell no tool can read (old prose
+# such as `waits on Q-7` stays legal).
+if [ -f TASKS.md ] && grep -qE '^[|] *T-[0-9]+ *[|] *waits on' TASKS.md; then
+    h_now=$([ -f TODO_human.md ] && grep -o '[*][*]H-[0-9]*[*][*]' TODO_human.md | tr -d '*' | tr '\n' ' ')
+    h_ever=$([ "$in_git" -eq 1 ] && git log -p --format= -- TODO_human.md 2>/dev/null \
+        | grep -o '[*][*]H-[0-9]*[*][*]' | tr -d '*' | sort -u | tr '\n' ' ')
+    res=$(awk -F'|' -v h_now=" $h_now " -v h_ever=" $h_now $h_ever " '
+        function sib(repo, id,    f, line, a, s, st, r) {
+            f = "../" repo "/TASKS.md"; st = "norow"
+            r = (getline line < f); if (r < 0) return "missing"
+            while (r > 0) {
+                split(line, a, "|"); s = a[2]; gsub(/ /, "", s)
+                if (s == id) { st = a[3]; sub(/^ +/, "", st); break }
+                r = (getline line < f)
+            }
+            close(f); return st
+        }
+        function reach(from, target, depth,    n, k, a) {
+            if (depth > 500) return 0
+            n = split(adj[from], a, " ")
+            for (k = 1; k <= n; k++) {
+                if (a[k] == target) return 1
+                if (!(a[k] in seen)) { seen[a[k]] = 1; if (reach(a[k], target, depth + 1)) return 1 }
+            }
+            return 0
+        }
+        $2 ~ /^ *T-[0-9]+ *$/ {
+            id = $2; gsub(/ /, "", id); st = $3; gsub(/^ +| +$/, "", st)
+            row[id] = 1; status[id] = st; if (st ~ /^waits on/) wait[id] = st
+        }
+        END {
+            ok = "^waits on (([A-Za-z0-9_.-]+:)?T-[0-9]+|H-[0-9]+)(, (([A-Za-z0-9_.-]+:)?T-[0-9]+|H-[0-9]+))*$"
+            for (id in wait) {
+                st = wait[id]
+                if (st !~ ok) { printf "N %s: \"%s\" names no T-nnn or H-n a tool reads\n", id, st; continue }
+                n = split(substr(st, 10), t, ", "); open_ = 0; bad = 0
+                for (i = 1; i <= n; i++) {
+                    x = t[i]
+                    if (x ~ /^H-/) {
+                        if (index(h_now, " " x " ")) open_++
+                        else if (!index(h_ever, " " x " ")) {
+                            printf "F %s waits on %s, which TODO_human.md never held\n", id, x; bad = 1 }
+                    } else if (x ~ /:/) {
+                        split(x, rp, ":"); s = sib(rp[1], rp[2])
+                        if (s == "missing") printf "N %s waits on %s; ../%s/TASKS.md is not here\n", id, x, rp[1]
+                        else if (s == "norow") printf "N %s waits on %s, no row of ../%s/TASKS.md\n", id, x, rp[1]
+                        else if (s !~ /^done/) open_++
+                    } else if (!(x in row)) { printf "F %s waits on %s, which is no row of TASKS.md\n", id, x; bad = 1 }
+                    else { adj[id] = adj[id] " " x; if (status[x] !~ /^done/) open_++ }
+                }
+                if (!bad && open_ == 0) printf "N %s waits on rows that are all done: it is ready\n", id
+            }
+            for (id in wait) { split("", seen); if (reach(id, id, 0))
+                printf "F %s is in a cycle of waits on; one of the rows cannot wait\n", id }
+        }' TASKS.md | sort)
+    while IFS= read -r line; do
+        case $line in
+            "F "*) fail "TASKS ${line#F } (rule 30)" ;;
+            "N "*) printf 'check: note: TASKS %s (rule 30)\n' "${line#N }" ;;
+        esac
+    done <<EOF
+$res
+EOF
 fi
 
 # STANDARD_SKIP validation: every entry matched at least one doc or code file above.

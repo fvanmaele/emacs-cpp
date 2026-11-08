@@ -7,7 +7,8 @@
 ;; and deleted files' buffers kept and named), one fswatch per root gone with its
 ;; last buffer, the filter only queuing and timer steps reverting within a budget
 ;; (D-167), no step inside another, an overflow checking every buffer, and the
-;; option, globally and per project.  Needs git and the patched fswatch.
+;; option, globally and per project; an edited buffer whose file changed asked as
+;; CLion asks (D-191).  Needs git and the patched fswatch.
 
 ;;; Code:
 
@@ -137,6 +138,118 @@ with its last buffer; auto-revert leaves the root's buffers to the reverter."
               (kill-buffer buffer))
             (should-not (emacs-cpp-reverter-processes))
             (should-not (seq-some #'process-live-p processes))))))))
+
+(defun emacs-cpp-reverter-test--armed ()
+  "Non-nil if a look for a question is armed; cancel it (the test calls it)."
+  (when emacs-cpp-reverter--ask-timer
+    (cancel-timer emacs-cpp-reverter--ask-timer)
+    (setq emacs-cpp-reverter--ask-timer nil)
+    t))
+
+(ert-deftest emacs-cpp-reverter-ask ()
+  "D-191: an edited buffer whose file changed is asked load / keep / diff when the
+focused frame shows it: after an idle pause, when shown, when the frame regains
+focus; never while the minibuffer is active; keep is not asked again until the
+file changes again; the message names only buffers not about to be asked."
+  (init-test--load)
+  (let* ((root (emacs-cpp-reverter-test--dir ".projectile"))
+         (file (expand-file-name "a.h" root))
+         (other (get-buffer-create "*emacs-cpp-reverter-test other*"))
+         (focused t) (minibuffer nil) asked answer diffed messages)
+    (emacs-cpp-reverter-test--cleanup (list root)
+      (write-region "disk 1\n" nil file)
+      (let ((buffer (find-file-noselect file))
+            (change (lambda (text)
+                      ;; Another program: Emacs's own `write-region' onto a file an
+                      ;; edited buffer visits asks about the conflict itself.  A later
+                      ;; modification time than the last one Emacs saw.
+                      (sleep-for 0.02)
+                      (should (eql 0 (call-process "sh" nil nil nil "-c"
+                                                   "printf '%s' \"$1\" > \"$2\""
+                                                   "sh" text file))))))
+        (set-window-buffer (selected-window) buffer)
+        (with-current-buffer buffer (goto-char (point-max)) (insert "mine\n"))
+        (cl-letf* (((symbol-function 'frame-focus-state) (lambda (&rest _) focused))
+                   ((symbol-function 'active-minibuffer-window) (lambda () minibuffer))
+                   ((symbol-function 'read-multiple-choice)
+                    (lambda (prompt choices &rest _)
+                      (push prompt asked)
+                      (assq answer choices)))
+                   ((symbol-function 'ediff-current-file)
+                    (lambda () (setq diffed (current-buffer))))
+                   (original (symbol-function 'message))
+                   ((symbol-function 'message)
+                    (lambda (format-string &rest args)
+                      (when (stringp format-string)
+                        (push (apply #'format format-string args) messages))
+                      (apply original format-string args))))
+          (accept-process-output nil 0.5)  ; fswatch's watches
+          ;; Shown in the focused frame: a question after an idle pause; no message.
+          (funcall change "disk 2\n")
+          (should (emacs-cpp-reverter-test--wait
+                   (lambda () (memq buffer emacs-cpp-reverter--conflicts))))
+          (should (emacs-cpp-reverter-test--armed))
+          (accept-process-output nil 0.3)
+          (should-not (seq-some (lambda (text) (string-search "a.h" text)) messages))
+          ;; The minibuffer active: not asked; its exit arms the look again.
+          (setq minibuffer t)
+          (emacs-cpp-reverter--ask)
+          (should-not asked)
+          (setq minibuffer nil)
+          (emacs-cpp-reverter--on-minibuffer-exit)
+          (should (emacs-cpp-reverter-test--armed))
+          ;; Keep: the edits stay, the same change is not asked again.
+          (setq answer ?k)
+          (emacs-cpp-reverter--ask)
+          (should (equal asked '("a.h changed on disk; you have unsaved edits")))
+          (should (equal (emacs-cpp-reverter-test--text buffer) "disk 1\nmine\n"))
+          (should (buffer-modified-p buffer))
+          (should-not emacs-cpp-reverter--conflicts)
+          (emacs-cpp-reverter--conflict buffer)
+          (should-not emacs-cpp-reverter--conflicts)
+          ;; A second change after keep: asked again.  Hidden: no question yet and
+          ;; the message names it; shown: asked; load: the disk's text.
+          (set-window-buffer (selected-window) other)
+          (setq messages nil)
+          (funcall change "disk 3\n")
+          (should (emacs-cpp-reverter-test--wait
+                   (lambda () (memq buffer emacs-cpp-reverter--conflicts))))
+          (should-not (emacs-cpp-reverter-test--armed))
+          (should (emacs-cpp-reverter-test--wait
+                   (lambda ()
+                     (seq-some (lambda (text)
+                                 (string-search "unsaved edits changed on disk: a.h" text))
+                               messages))))
+          (set-window-buffer (selected-window) buffer)
+          (emacs-cpp-reverter--on-show (selected-frame))
+          (should (emacs-cpp-reverter-test--armed))
+          (setq answer ?l asked nil)
+          (emacs-cpp-reverter--ask)
+          (should (= 1 (length asked)))
+          (should (equal (emacs-cpp-reverter-test--text buffer) "disk 3\n"))
+          (should-not (buffer-modified-p buffer))
+          ;; Edited again, changed again while the frame has no focus: asked when
+          ;; it regains focus; diff: ediff, not asked again.
+          (with-current-buffer buffer (goto-char (point-max)) (insert "mine\n"))
+          (setq focused nil)
+          (funcall change "disk 4\n")
+          (should (emacs-cpp-reverter-test--wait
+                   (lambda () (memq buffer emacs-cpp-reverter--conflicts))))
+          (should-not (emacs-cpp-reverter-test--armed))
+          (setq asked nil)
+          (emacs-cpp-reverter--ask)
+          (should-not asked)
+          (setq focused t)
+          (emacs-cpp-reverter--on-focus)
+          (should (emacs-cpp-reverter-test--armed))
+          (setq answer ?d)
+          (emacs-cpp-reverter--ask)
+          (should (= 1 (length asked)))
+          (should (eq diffed buffer))
+          (should (buffer-modified-p buffer))
+          (should-not emacs-cpp-reverter--conflicts)
+          (with-current-buffer buffer (set-buffer-modified-p nil)))
+        (kill-buffer other)))))
 
 (ert-deftest emacs-cpp-reverter-queue ()
   "D-153, D-156 (e): a reverted buffer shown in a window is refreshed from the

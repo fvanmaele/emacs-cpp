@@ -55,6 +55,17 @@ this to its own file, /opt/local/bin/lldb-dap-mp-23.  Set it with
                  (file :tag "Program (path or name)"))
   :group 'tools)
 
+(defcustom emacs-cpp-debug-lldb-debuginfod-timeout 5
+  "Seconds lldb waits for one debuginfod request at an `lldb-preset' launch.
+D-198.
+lldb looks up system libraries' debug info at launch when DEBUGINFOD_URLS is set
+(Arch sets it); its own default is debuginfod's 90 s per request, so an
+unreachable server held a launch past dape's 60 s.  A launch makes about 6
+requests (measured: 2 s each took a launch from 6 to 18 s), so 5 s keeps an
+unreachable server under a minute (39 - 40 s); a longer download is skipped."
+  :type 'natnum
+  :group 'tools)
+
 (defcustom emacs-cpp-debug-default-configuration emacs-cpp-default-debug-configuration
   "The debug configuration `C-x C-a d' offers first in a C++ buffer (D-055).
 Offered only while dape's history holds no `gdb-preset' or `lldb-preset' entry;
@@ -231,11 +242,24 @@ emacs-cpp-debug-lldb-dap-program (D-051)"
   "Return the `gdb-preset' configuration: dape's `gdb' one plus the preset parts."
   (emacs-cpp-debug--preset-config 'gdb #'emacs-cpp-debug--prepare))
 
+(defun emacs-cpp-debug--lldb-init-commands ()
+  "lldb commands run before the target is made: the debuginfod cap (D-198)."
+  (vector (format "settings set plugin.symbol-locator.debuginfod.timeout %d"
+                  emacs-cpp-debug-lldb-debuginfod-timeout)))
+
 (defun emacs-cpp-debug--lldb-preset-config ()
   "Return the `lldb-preset' configuration: dape's `lldb-dap' one plus the preset
-parts, started with `emacs-cpp-debug-lldb-dap' (D-051)."
-  (plist-put (emacs-cpp-debug--preset-config 'lldb-dap #'emacs-cpp-debug--prepare-build)
-             'command #'emacs-cpp-debug-lldb-dap))
+parts, started with `emacs-cpp-debug-lldb-dap' (D-051), with the debuginfod cap
+as its init commands (D-198)."
+  (let ((config (emacs-cpp-debug--preset-config 'lldb-dap
+                                                #'emacs-cpp-debug--prepare-build)))
+    (when (plist-get config :initCommands)
+      (error "emacs-cpp: dape's `lldb-dap' configuration has its own initCommands; \
+merge them with the debuginfod cap in lisp/init-debug.el (D-198)"))
+    (thread-first
+      config
+      (plist-put 'command #'emacs-cpp-debug-lldb-dap)
+      (plist-put :initCommands #'emacs-cpp-debug--lldb-init-commands))))
 
 ;; gud (M-x gdb, pdb, perldb) binds its map on `gud-key-prefix' globally when it
 ;; loads; on the default C-x C-a that would take dape's keys for the session (D-044).
@@ -249,6 +273,11 @@ parts, started with `emacs-cpp-debug-lldb-dap' (D-051)."
   ;; Gutter clicks in C and C++ buffers; dape (135 ms) loads with the first one.  Not
   ;; `prog-mode': *scratch* is one, and would load dape at every startup.
   :hook (c-ts-base-mode . dape-breakpoint-mode)
+  ;; lldb-dap looks up debug info through debuginfod at launch (Arch sets
+  ;; DEBUGINFOD_URLS); a slow server passed the 10 s default and the session failed
+  ;; (T-140, D-197).  A slow lookup now only slows the launch; lldb's own cap on an
+  ;; unreachable server is `emacs-cpp-debug-lldb-debuginfod-timeout' (D-198).
+  :custom (dape-request-timeout 60)
   :config
   (setf (alist-get 'gdb-preset dape-configs) (emacs-cpp-debug--gdb-preset-config))
   (setf (alist-get 'lldb-preset dape-configs) (emacs-cpp-debug--lldb-preset-config))
