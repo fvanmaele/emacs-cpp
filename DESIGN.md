@@ -69,7 +69,7 @@ gaps named; "PROPOSED" had stood unchanged since 2026-10-07.
 
 SUPERSEDED (2026-10-20, refuted; review 0084, A-2): "CLion parity for the daily loop is
 reachable with built-ins plus about fifteen direct packages and under ~600 lines of own
-Lisp. Refuted if v0.3 needs more." v0.4.1 (2026-10-08) needed more; at c031e2b the tree
+Lisp. Refuted if v0.3 needs more." v0.4.1 (2026-10-08) needed more; at d29b22a the tree
 pins 33 submodules and holds 3111 lines of own Lisp (19 files). No size budget replaces
 it: features are judged by their D-nnn, the packages by D-006.
 Rows marked (R) need a short RESEARCH note before a verdict is claimed in README.
@@ -184,7 +184,7 @@ Observed on the owner's Mac, 2026-10-09 (D-050):
    answers whatever HOME says) and stops otherwise. `make test REAL_HOME=1` runs in
    the real HOME, without the check. The test files do not check: a hand run works in
    any HOME, so per-file guards such as the presets tests' `project-list-file`
-   (7416ce8) stay. Built (T-080, 0071): on the Mac the real home stayed unchanged
+   (af11763) stay. Built (T-080, 0071): on the Mac the real home stayed unchanged
    (`~/.python_history`, which a real-HOME run rewrites, included).
 
 ## 5. Load model (the core contract)
@@ -772,7 +772,7 @@ Known defects: none yet (nothing built).
   server's on-type formatting (`eglot-ignored-server-capabilities`), so clangd is not
   asked on newline and changes no text. Why: clangd's on-type reply also reformats the
   line RET ended (hand alignment collapsed, `double value() {}` split in two), and
-  taking only part of it duplicated text (owner report 2026-10-10, fixed in 5592b4e);
+  taking only part of it duplicated text (owner report 2026-10-10, fixed in c02c439);
   with D-062 the rules place RET's line as `.clang-format` would in RMO's cases (0 / 4 /
   8, batch 2026-10-10), need no server and no round trip. Left: `case` labels and
   arguments after an open `(` (T-040). `C-c l f` stays for exact `.clang-format`.
@@ -1559,7 +1559,7 @@ Budgets, measured on the owner machine (T-008 measures, numbers go here):
   directory are not affected. `M-?` reference counts differed between runs (14, 15, 24 for
   the same name); not compared.
 - Arch (T-027, 0091, 2026-10-21; the owner's workstation, 16 cores; load 0.96 - 1.23).
-  Startup (`scripts/measure-startup.sh 10`, portable-bench, commit a35b8cd): median
+  Startup (`scripts/measure-startup.sh 10`, portable-bench, commit 69bcd40): median
   0.182 s, min 0.180, max 0.198, 1 garbage collection each. First `M-.` on `std::visit`
   in RMO's `main.cc` (S8's protocol, `results-run3-arch-2026-10-21.log`):
 
@@ -1835,7 +1835,12 @@ the form that loads magit is found (S17 run 2, T-113).
   owner's force push (H-34); the Mac's clone resets to them. Backup: a bundle of all
   refs before the rewrite (session scratchpad) and `refs/original/`. Against: every id
   after 2026-11-02 changes, other clones must reset, ids quoted outside the repository
-  (chats, reports) no longer resolve.
+  (chats, reports) no longer resolve. Amended the same day (owner: "Rewrite history for
+  mail to the owner's address on all branches", "+ update the identity stored at
+  .git/config"): every commit of the owner's, the other-address ones and those above,
+  carries `the owner's name and address`, as does `v1.0.0`'s tagger and the
+  repository's `.git/config`; 444 ids changed, 109 cited ids in files mapped; the
+  the reviewer commit keeps its author.
 - DECIDED D-194 (owner 2026-11-08: "Make a release branch which only contains feature
   commits with concise but clear descriptions, and documentation in docs/ and README.md",
   then "One per feature" and "MANUAL + CHEATSHEET"): branch `release`, built from main
@@ -1846,7 +1851,7 @@ the form that loads magit is found (S17 run 2, T-113).
   `standard.mk`, `LICENSE`, `.gitignore`, `.gitmodules`) and `README.md`,
   `docs/MANUAL.md`, `docs/CHEATSHEET.md`. Messages short, without ids; author and date
   of each feat commit, the models' `Co-Authored-By` lines kept. Its tip's code and docs
-  equal main's at f4986a9. Not pushed; rebuilt, not merged, when main moves on. Against:
+  equal main's at 601fd9c. Not pushed; rebuilt, not merged, when main moves on. Against:
   README and the manual cite D-nnn ids whose DESIGN.md is not there; `make docs-check`
   fails there (no DESIGN.md); intermediate commits untested; a fix to an older feature
   sits in the feature before it.
@@ -2014,7 +2019,7 @@ the form that loads magit is found (S17 run 2, T-113).
   with a clear message when a submodule is uninitialized"): amends D-069. Before a series is
   applied, the files it changes, creates or renames (`git apply --numstat`) get the
   pinned commit's content; a file the commit lacks is deleted. A changed patch
-  (consult-eglot 0001 grew in d06e07e) then replaces its older version, which
+  (consult-eglot 0001 grew in 31ab9f3) then replaces its older version, which
   D-069's reverse could not take out; a hand edit in such a file is lost, other
   files keep theirs. Before that, `git submodule status` over every submodule stops
   the build naming each one not checked out (`git submodule update --init <path>`;
@@ -2584,7 +2589,7 @@ presets, GoogleTest runner.
   (b) combines (a)'s bound with (c)'s shown latency. Recommendation: (b).
 - O-81 (RESOLVED 2026-11-04 with D-167: (b); owner: "O-81 (b)"; from D-166): how the
   shipped reverter
-  (`lisp/emacs-cpp-reverter.el`, fb31b42) reverts from a queue. Evidence: on Arch one
+  (`lisp/emacs-cpp-reverter.el`, e1f3599) reverts from a queue. Evidence: on Arch one
   filter call reverts 189 buffers in 124 - 302 ms (0110, 0115); about 0.7 - 1.6 ms per
   buffer. Options:
   (a) Change the module directly: the filter queues the call's buffers, a timer step
@@ -2909,7 +2914,7 @@ presets, GoogleTest runner.
   verdict. The reverter reverts from a queue, not all in one filter call, and that is
   measured before its code changes. Supersedes 0110's verdict; amends D-153 (reverts
   "at once") and D-162 (d). Premise corrected the same day: (a) was offered as "before
-  any T-128 code", but T-128's module had shipped that morning (fb31b42), unseen by the
+  any T-128 code", but T-128's module had shipped that morning (e1f3599), unseen by the
   session; its `shipped` mode on Arch then also blocked 0.25 s (filter 250.6 ms, run 3
   of 3, load 3.1 - 3.4, 0115). How the queue goes into the shipped module: O-81.
   Against: buffers become current later than 0.13 s; another measurement round on
@@ -2975,7 +2980,7 @@ presets, GoogleTest runner.
   only. Not taken: (a) the binary in git, (b) a source submodule, (c) a build script.
 - DECIDED D-179 (owner 2026-11-05: "Revert the feature and decision that the perf
   impact (4x on large projects) is acceptable"): T-133's kept project file lists and
-  their option are reverted (code of b7e3692 and 7487e53); the slower first call
+  their option are reverted (code of db686da and eee9a25); the slower first call
   (deal.II 178 ms against 64, LLVM's sources 1366 ms against 336, RESEARCH 22) is not
   acceptable, so a call may not cost more than today's listing on any tree. projectile
   lists on every `C-c p f` and `M-o` again. O-85 reopened with that constraint.
@@ -3530,7 +3535,7 @@ presets, GoogleTest runner.
   report upstream (owner). Owner rules.
 - O-54 (RESOLVED 2026-10-14 with D-104, (b); from POSTMORTEM, "Tests wrote into the
   owner's ~/.emacs.d"): `make test` appended its temporary projects to
-  `~/.emacs.d/projects.eld` (fixed in 7416ce8), the second isolation leak after the tmux
+  `~/.emacs.d/projects.eld` (fixed in af11763), the second isolation leak after the tmux
   one (2026-10-07). Proposed: the suite records the real `~/.emacs.d`'s file list, sizes
   and times before the run and fails when they changed after it. Options: (a) that check
   in `make test`; (b) run the tests with `HOME` set to a temporary directory; (c)
@@ -4600,7 +4605,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-183 | 2026-11-05 | O-85 (h): projectile's per-submodule pass off, fd required for git listings | 12 | O-85, T-133 |
 | D-184 | 2026-11-07 | O-89 (b): Markdown to PDF by pandoc + LaTeX; math drawn by math-preview deferred | 12 | O-89, D-145 |
 | D-185 | 2026-11-07 | Markdown PDF: code in DejaVu Sans Mono, missing glyphs a warning | 12 | D-184, owner report |
-| D-195 | 2026-11-08 | one author identity on every branch; history rewritten, force push H-34 | Conventions | owner |
+| D-195 | 2026-11-08 | one author identity (the owner's address) on every branch; history rewritten, force push H-34 | Conventions | owner |
 | D-194 | 2026-11-08 | branch `release`: one commit per feature, code and README / MANUAL / CHEATSHEET | Conventions | owner |
 | D-193 | 2026-11-08 | release class `later` (session's pick, owner to double-check) | Conventions | standard 2.17.1 |
 | D-192 | 2026-11-08 | S22 criterion 4 counts with a page clamp; defect reported upstream | 12 | owner, S22 |

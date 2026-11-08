@@ -257,11 +257,11 @@ later an Emacs started from the Dock stopped with "emacs-cpp: rg is not on exec-
 while `which rg` found it, and AUCTeX's preview said "LaTeX found no preview images".
 
 ### Timeline
-- 0102577 (T-021, 0034, 2026-10-09): platform paths, `${hostSystemName}`, CMake 3.31's
+- 5b99693 (T-021, 0034, 2026-10-09): platform paths, `${hostSystemName}`, CMake 3.31's
   `build.ninja`, eglot watches only project files, at most 500 (D-054); tests by true
   name and waiting for eglot's handshake.
 - D-055 (T-031, 0039): per-platform defaults files instead of `if`s in the modules.
-- d7bc180, 7c70dd0 (D-089, 2026-10-13): launchd's PATH lacks `/opt/local/bin` and
+- 704b4ae, 48d21b9 (D-089, 2026-10-13): launchd's PATH lacks `/opt/local/bin` and
   `/Library/TeX/texbin`; the config puts them in front of `exec-path` and PATH.
 
 ### Root cause
@@ -294,11 +294,11 @@ Owner report: "symbols are copied/inserted". With RMO's `.clang-format`
 (`BraceWrapping: AfterFunction`), `double value() {}` RET left an extra `{}` line.
 
 ### Timeline
-- 28dc924, 83d3d9a (D-061, T-035, 0043): RET asks clangd's on-type formatting for the
+- ae64e34, 7a4addf (D-061, T-035, 0043): RET asks clangd's on-type formatting for the
   new line's indentation and restores the line above as typed.
-- Same day, owner report; 5592b4e restores everything from the saved line to the new
+- Same day, owner report; c02c439 restores everything from the saved line to the new
   line (tier 1).
-- a8f4798 (D-065): RET by Emacs's rules again; eglot ignores on-type formatting.
+- 0f6657a (D-065): RET by Emacs's rules again; eglot ignores on-type formatting.
 
 ### Root cause
 clangd's reply to a newline reformats the whole statement it ended, splitting and
@@ -332,7 +332,7 @@ file.
 
 ### Timeline
 - D-018 (2026-10-07): eglot refuses loudly when the database or `-std` is missing.
-- 8ebacfc (2026-10-10): every error on the way to clangd's command gets D-018's
+- 64b2e18 (2026-10-10): every error on the way to clangd's command gets D-018's
   error-level warning; invalid JSON names the file; an empty database is refused.
 
 ### Root cause
@@ -363,11 +363,11 @@ D-018 extended 2026-10-10 (any preset or database error, an empty database); D-0
 another case on the Mac, or, for pyright, under a path holding `:` and `+`.
 
 ### Timeline
-- d605e09 (D-082, T-060, 0056): project symbols kept by comparing each symbol's URI
+- 4f70323 (D-082, T-060, 0056): project symbols kept by comparing each symbol's URI
   with the project root's URI, as eglot spells it.
-- 31b8948 (D-083, T-061, 0057): clangd's spelling and case added.
-- 0304078 (D-083): pyright's third spelling added.
-- 0619b4b (D-085, T-062, 0058): one rule for every server, from the characters any
+- 67fd738 (D-083, T-061, 0057): clangd's spelling and case added.
+- 02a5316 (D-083): pyright's third spelling added.
+- 1151949 (D-085, T-062, 0058): one rule for every server, from the characters any
   encoder leaves unescaped.
 
 ### Root cause
@@ -386,7 +386,7 @@ characters, so each new server or path was a new spelling to add.
   worked throughout.
 
 ### DESIGN updates
-D-083, then D-085 (one matcher; owner's hand check 30c48bd).
+D-083, then D-085 (one matcher; owner's hand check f289c5c).
 
 ### Lessons
 - Compare identifiers in a form independent of who encoded them; test with hostile
@@ -402,7 +402,7 @@ D-083, then D-085 (one matcher; owner's hand check 30c48bd).
 ### Timeline
 - Since the presets tests (c0a3142, 2026-10-07): project.el fixes `project-list-file`
   when it loads, before `init-test` redirects `user-emacs-directory`.
-- 7416ce8 (2026-10-14): the presets test file points it into a temporary directory.
+- af11763 (2026-10-14): the presets test file points it into a temporary directory.
 
 ### Root cause
 The same as the tmux leak of 2026-10-07: the test environment was assumed to be
@@ -433,8 +433,8 @@ then indented with a tab where texlab gave two spaces in a project with a
 `.latexindent.yaml`, and with tabs where AUCTeX's `TAB` uses spaces.
 
 ### Timeline
-- 8df56f8 (O-51): texlab 5.25.1 has no range formatting.
-- c0b0c15 (D-101, T-074, 0068): latexindent for regions, then, by the owner's ruling,
+- b5cfe8f (O-51): texlab 5.25.1 has no range formatting.
+- 6793b7a (D-101, T-074, 0068): latexindent for regions, then, by the owner's ruling,
   for buffers too; DESIGN said "latexindent's defaults, as texlab calls it".
 - 5ae4bf9 (O-53): texlab's source read: it passes `--local` from its own directory and
   ignores `insertSpaces`; D-101's claim marked wrong.
@@ -462,19 +462,19 @@ D-101 marked, D-103; upstream report `docs/upstream/texlab-range-formatting.md`
 
 ## Smaller issues, 2026-10-09 .. 2026-10-14
 Fixed once, no decision reopened; listed so the pattern stays visible.
-- 2e778ee: `M-o` listed files before binding the GC threshold; deal.II-sized projects
+- 0c76fec: `M-o` listed files before binding the GC threshold; deal.II-sized projects
   collected garbage while the prompt opened (S11 run 3 on RMO's 2673 files missed it).
   Lesson as 2026-10-07: measure at the target scale (D-010).
-- 8121303 (D-070): the tree followed `M-.` into deal.II's install directory, which
+- 5c14d42 (D-070): the tree followed `M-.` into deal.II's install directory, which
   projectile took for a project (a Makefile).
-- f35ba4b (D-073): the line number column changed width while scrolling.
-- 94626cc, b8e0918 (D-062, T-039, T-040): `c-ts-mode` indentation gaps (member after a
+- 62cccff (D-073): the line number column changed width while scrolling.
+- b1daf15, ceeb9a7 (D-062, T-039, T-040): `c-ts-mode` indentation gaps (member after a
   blank line, constructor initializers), worked around, three upstream reports drafted
   (T-036, T-037, T-039).
-- a36c149 (D-079): consult kept hidden sources in the candidate list; patch 0001.
-- b30a5a2 (D-093): navigation clicks on Ctrl took Emacs's own Ctrl clicks on Arch; Super
+- 445c67e (D-079): consult kept hidden sources in the candidate list; patch 0001.
+- 15fa08e (D-093): navigation clicks on Ctrl took Emacs's own Ctrl clicks on Arch; Super
   on both platforms.
-- 9782c0e (D-098): `init-python` worked only because `init.el` loaded `init-lsp` first;
+- 913a702 (D-098): `init-python` worked only because `init.el` loaded `init-lsp` first;
   every module is now loaded alone in a test.
 - D-094: LLVM 23's `clang-change-namespace` crashes on two sources; patched (D-097),
   upstream report T-070.
@@ -493,9 +493,9 @@ acceptable (D-179), after first accepting deal.II's.
 
 ### Timeline
 RESEARCH_go_to_anything 22 (T-133 researched) -> O-85 (f), D-177 -> owner: tier 3 ->
-S21 (criteria confirmed; PASS with `m2`, 0126) -> b7e3692 (built, 0127; done when 3's
-"first call as today" not met on deal.II, put to the owner) -> 7487e53 (opt-out,
-D-178) -> 0c885c4 (benchmarks over 14 trees; deal.II accepted) -> this commit (reverted,
+S21 (criteria confirmed; PASS with `m2`, 0126) -> db686da (built, 0127; done when 3's
+"first call as today" not met on deal.II, put to the owner) -> eee9a25 (opt-out,
+D-178) -> da93b7c (benchmarks over 14 trees; deal.II accepted) -> this commit (reverted,
 D-179, 0128).
 
 ### Root cause
@@ -567,7 +567,7 @@ encoded structurally rather than in a comment.
 - Lesson: an `H-n` naming a path in another repository checks that path when written.
 
 ## 2026-11-03 - A commit that failed docs-check was pushed (short)
-- What failed: 60f352c (D-156) reached origin with a 118-column line in DESIGN's O-79.
+- What failed: 69d34a5 (D-156) reached origin with a 118-column line in DESIGN's O-79.
 - Caught by: the session, reading the chain's output after the push.
 - Cause: `make docs-check | tail -1 && git commit ... && git push`: the pipe gave
   `tail`'s status, not make's; the same day an edit script's failure was likewise
@@ -578,7 +578,7 @@ encoded structurally rather than in a comment.
 
 ## 2026-11-03 - A clangd mechanism stated from log lines, ruled on, then refuted (short)
 - What failed: 0106 and O-79 (f) said clangd's main thread runs the includer lookup;
-  the owner ruled D-156 (f) / T-130 on it; it was pushed (95fa027, 60f352c).
+  the owner ruled D-156 (f) / T-130 on it; it was pushed (642c127, 69d34a5).
 - Caught by: the session, reading `TUScheduler.cpp` when T-130 started.
 - Cause: log lines from worker threads, interleaved in the main thread's gaps, read
   as the main thread's work; the source was not opened before the option was offered.

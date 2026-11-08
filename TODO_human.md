@@ -26,7 +26,7 @@ service's plan) is not an item.
      commit of main; anything else: stop and report it)
   4. On the Mac: `cd ~/source/repos/emacs-cpp && git fetch origin && git reset --hard
      origin/main && git config user.name "the owner's name" && git config user.email
-     the owner's other address`
+     the owner's address`
   Report back: step 3's output if it was not as expected; any push refused.
 
 - **H-32** (2026-11-08, unblocks S22, T-138, D-190, D-192; waits on H-34) pdf-tools on

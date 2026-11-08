@@ -9,7 +9,7 @@
   with HOME set to it, deletes it afterwards, keeps ERT's exit status. The runner
   checks first, in that Emacs, that HOME is not the real home (`~` vs `~USER`) and
   stops with an error otherwise. `make test REAL_HOME=1` runs in the real HOME as
-  before, no check. Test files unchanged; the 7416ce8 project-list-file redirect
+  before, no check. Test files unchanged; the af11763 project-list-file redirect
   stays. Evidence: make test on the Mac leaves the real home unchanged (snapshot
   before/after, ~/.python_history included), REAL_HOME=1 still passes, the check
   refuses when the temporary HOME is bypassed. Arch run by the owner. Met on the Mac.
@@ -20,7 +20,7 @@
 ## What + why
 Twice a test run wrote into the owner's home: the startup measurements through tmux
 (2026-10-07) and `make test` appending temporary projects to
-`~/.emacs.d/projects.eld` (7416ce8). Each leak was fixed where it was found; the
+`~/.emacs.d/projects.eld` (af11763). Each leak was fixed where it was found; the
 POSTMORTEM entry of 2026-10-14 asked for a fix that covers the next one too (O-54).
 `make test` now gives the whole run an empty home of its own. Programs find files
 such as `~/.emacs.d`, `~/.python_history` or `~/.config` through HOME, so whatever a

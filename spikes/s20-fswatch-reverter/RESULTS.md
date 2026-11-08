@@ -114,7 +114,7 @@ Findings:
 - Run 1 met a repository emptied by macOS: files under TMPDIR unused for 3 days are
   deleted, the directories kept, and `run.sh` took the husk as kept; the first mode
   failed at its first `git checkout` and `run.sh` stopped. The husk was removed by
-  hand and `run.sh` now stops on it (07cb685). Run 1's numbers are from the
+  hand and `run.sh` now stops on it (ea9703f). Run 1's numbers are from the
   regenerated repository.
 
 ## Follow-up on the Mac (session, 2026-11-02, O-78 revisited)
@@ -175,7 +175,7 @@ Limits:
   (D-153).
 
 ## Mode `fswatch-shown`, Arch runs 1 - 3 (owner, 2026-11-03; H-22, D-153)
-Linux x86_64, GNU Emacs 31.1 (GTK 3.24.52), the session's commits through 93ca2b4,
+Linux x86_64, GNU Emacs 31.1 (GTK 3.24.52), the session's commits through d812683,
 diff-hl from `lib/diff-hl`. Logs: `arch-shown-run1.log` .. `arch-shown-run3.log`
 (`s20.log` is run 3). Load 0.85 - 1.31 at the start, runs 23:05 - 23:07Z.
 
@@ -210,7 +210,7 @@ Findings:
 ## Mode `fswatch-shown`, Arch runs 4 - 6 (session, 2026-11-04; D-166)
 Host: hp-elitedesk (Intel Core i5-6500, 4 cores, 15 GB), not the Xeon W-2145
 workstation of RESEARCH_go_to_anything 20 (recorded 2026-11-04).
-The same commands as runs 1 - 3, on `main` at 0c1b3c3 (the spike's mode unchanged).
+The same commands as runs 1 - 3, on `main` at f032376 (the spike's mode unchanged).
 Logs: `arch-shown-run4.log` .. `arch-shown-run6.log`. Load 1.32 - 1.87 at the start,
 runs 18:04 - 18:06Z; this session's Claude Code process was running.
 
@@ -488,7 +488,7 @@ the other checkouts, under E2's 0.25 s. Differences besides the scan:
   3.6); one 16 ms blocked send in run 1's first checkout.
 
 ## Mode `shipped`, Mac runs 1 - 3 (session, 2026-11-04; T-128, D-162 (d))
-The config's `lisp/emacs-cpp-reverter.el` at fb31b42 in place of the spike's reverter
+The config's `lisp/emacs-cpp-reverter.el` at e1f3599 in place of the spike's reverter
 (RUN.md, mode `shipped`). Logs: `mac-shipped-run1.log` .. `mac-shipped-run3.log`. Load
 4.0 - 5.2 at the start; G DATA's real-time protection off (D-161; on during 0103).
 
@@ -510,7 +510,7 @@ the scan's absence accounts for part of it (UNVERIFIED how much).
 ## Mode `shipped`, Arch runs 1 - 3 (session, 2026-11-04; T-128, D-166)
 Host: hp-elitedesk (Intel Core i5-6500, 4 cores, 15 GB), not the Xeon W-2145
 workstation of RESEARCH_go_to_anything 20 (recorded 2026-11-04).
-H-23's steps 3 - 6, run by the session on Arch at 0c1b3c3: `make test` 151 of 151 as
+H-23's steps 3 - 6, run by the session on Arch at f032376: `make test` 151 of 151 as
 expected (46.9 s); logs `arch-shipped-run1.log` .. `arch-shipped-run3.log`. Load 3.10 -
 3.37 at the start (`make test` had just run; H-23 asked for an idle machine).
 
@@ -570,7 +570,7 @@ Findings:
 
 
 ## Mode `fswatch-chunked`, Mac runs 1 - 3 (session, 2026-11-04; D-167, H-25)
-H-25's steps 3 - 5, run by the session on the Mac at e1664a7, `fswatch-shown` after
+H-25's steps 3 - 5, run by the session on the Mac at 4dea3e9, `fswatch-shown` after
 the new mode in each run as contrast. Logs: `mac-chunked-run1.log` ..
 `mac-chunked-run3.log`. Load 4.40 - 4.55 at the start, not idle: `mediaanalysisd`
 (macOS, about 120 % CPU) ran through all three; the judged `fswatch-shown` Mac runs
@@ -641,7 +641,7 @@ Findings:
 ## Mode `shipped` after the rewrite, Arch runs 1 - 3 (session, 2026-11-04; D-168, H-26)
 Host: hp-elitedesk (Intel Core i5-6500, 4 cores, 15 GB), not the Xeon W-2145
 workstation of RESEARCH_go_to_anything 20 (recorded 2026-11-04).
-H-26's steps 3 - 6 run by the session on Arch at 13887cb: `make test` 151 of 151 as
+H-26's steps 3 - 6 run by the session on Arch at 149ad4a: `make test` 151 of 151 as
 expected (44.1 s). Logs: `arch-shipped-chunked-run1.log` .. `run3.log`,
 `fswatch-chunked` after `shipped` in each as contrast. Load 2.24 - 2.50 at the start
 (`make test` 20 s before, this session running).
@@ -678,7 +678,7 @@ Host: hp-elitedesk (Intel Core i5-6500, 4 cores, 15 GB), not the Xeon W-2145
 workstation of RESEARCH_go_to_anything 20 (recorded 2026-11-04).
 Scripts in `probe/` (`run-probe.sh` loads one of `trace.el`, `dedupe.el`,
 `ready.el` before `s20-run.el` in mode `shipped`; `tstep.sh` runs `tstep.el` in a
-terminal Emacs). Arch, at cb5e5c0, load about 2.
+terminal Emacs). Arch, at db96ce9, load about 2.
 
 - Slow revert on `a` (0119): `trace.el` times each revert with `gcs-done`. In 3 of 3
   runs the slowest revert on `a` (30.7 - 33.1 ms) held one garbage collection of
@@ -703,7 +703,7 @@ scan's share), and why `git` took 0.11 - 0.13 s in 0115's run 6 (past, unrecorde
 ## D-168 revisited: the steps' order, Arch runs 1 - 3 (session, 2026-11-04; O-82)
 Host: hp-elitedesk (Intel Core i5-6500, 4 cores, 15 GB), not the Xeon W-2145
 workstation of RESEARCH_go_to_anything 20 (recorded 2026-11-04).
-At 73ddbb6. Per round: `S20_MODES="shipped fswatch-chunked"` (logs
+At cfe7758. Per round: `S20_MODES="shipped fswatch-chunked"` (logs
 `arch-d168-shipped-run1.log` .. `run3.log`), then mode `shipped` with
 `probe/refresh-first.el` (a queued shown buffer's refresh runs before the remaining
 reverts; one timer, one kind of work per step; logs `arch-d168-refresh-first-run1.log`
@@ -726,7 +726,7 @@ later.
 Host: hp-elitedesk (Intel Core i5-6500, 4 cores, 15 GB), not the Xeon W-2145
 workstation of RESEARCH_go_to_anything 20 (recorded 2026-11-04).
 `lisp/emacs-cpp-reverter.el` with D-169 (a shown buffer's refresh before the
-remaining reverts), uncommitted on bf1646f, `fswatch-chunked` after it in each run as
+remaining reverts), uncommitted on 36caa27, `fswatch-chunked` after it in each run as
 contrast; `make test` 151 of 151 (`emacs-cpp-reverter-steps` fails on the module
 before the change). Logs: `arch-d169-shipped-run1.log` .. `run3.log`. Load 2.02 -
 2.55 at the start.
@@ -754,7 +754,7 @@ limit.
 
 
 ## Mode `shipped` with D-169, Mac runs 1 - 3 (session, 2026-11-04; T-131, H-27)
-H-27's steps 3 - 6, run by the session on the Mac at d3a1ea1: `make test` 151 run,
+H-27's steps 3 - 6, run by the session on the Mac at d162dd6: `make test` 151 run,
 0 unexpected, 3 skipped (gdb, ty: as before); `fswatch-chunked` after `shipped` in
 each run as contrast. Logs: `mac-d169-shipped-run1.log` .. `mac-d169-shipped-run3.log`.
 Load 2.64 - 3.08 at the start.

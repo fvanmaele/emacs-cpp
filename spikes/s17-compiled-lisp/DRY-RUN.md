@@ -5,7 +5,7 @@ The finding below does not look machine-dependent and should be checked first th
 
 ## Environment
 The owner's Mac (Apple silicon, 11 cores), MacPorts Emacs 31.1 with native
-compilation, load 4.9 - 6.0 (not idle). Tree after 4683f20. `run.sh 10 2`; log
+compilation, load 4.9 - 6.0 (not idle). Tree after a34b26a. `run.sh 10 2`; log
 `dry-run-mac.log`. Diagnostics by hand afterwards (below), same trees.
 
 ## Measurements

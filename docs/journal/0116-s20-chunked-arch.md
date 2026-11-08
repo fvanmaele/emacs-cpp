@@ -2,7 +2,7 @@
 
 - **Date:** 2026-11-04
 - **Commits:** see `git log -- spikes/s20-fswatch-reverter` (this entry's commit);
-  14d17f0 (D-167)
+  e51b0a6 (D-167)
 - **Tier:** 3 (spike S20)
 - **Decisions:** D-167 (O-81 (b))
 - **Host:** hp-elitedesk (i5-6500, 4 cores, 15 GB), not the Xeon W-2145 workstation

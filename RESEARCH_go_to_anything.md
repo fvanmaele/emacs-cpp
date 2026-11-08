@@ -262,7 +262,7 @@ the same word.
   config) narrows without input: `<` `s` took 36 ms.
 - `C-c l s` keeps consult-eglot's throttle (0.5 s) and debounce (0.2 s): no request
   and no update while typing, one list after the pause. D-077 set 0.05 s for `M-o`.
-- A bug in T-049, fixed (2e778ee): the files were listed before the 64 MB threshold
+- A bug in T-049, fixed (0c76fec): the files were listed before the 64 MB threshold
   was bound; opening took 302 - 311 ms with 6 collections.
 
 **Checked change** (scratch, consult's function redefined): a hidden source that

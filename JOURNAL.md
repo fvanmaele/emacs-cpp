@@ -70,7 +70,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 | 0087 | 2026-10-20 | S18 fswatch backend: Mac dry run, 5 of 5 | S18 | D-127 |
 | 0086 | 2026-10-20 | Standard 2.14.0; O-70, O-71 revisited | standard | none |
 | 0085 | 2026-10-20 | T-111: Arch clangd follows the installed LLVM | T-111 | D-123 |
-| 0084 | 2026-10-20 | Review of c031e2b folded in; S16, S17 dry runs | review | D-122..125 |
+| 0084 | 2026-10-20 | Review of d29b22a folded in; S16, S17 dry runs | review | D-122..125 |
 | 0083 | 2026-10-20 | T-110: Emacs's own eglot, macOS watch advice | T-110 | D-121 |
 | 0082 | 2026-10-20 | T-109: LSP 3.18 matching with tiers in every prompt | T-109 | D-120 |
 | 0081 | 2026-10-19 | T-108: clangd 0013, mid-word ranked by shape | T-108 | D-119 |

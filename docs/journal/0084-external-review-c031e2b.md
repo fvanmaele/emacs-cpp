@@ -1,12 +1,12 @@
-# 0084 - External review of c031e2b folded in
+# 0084 - External review of d29b22a folded in
 
 - **Date:** 2026-10-20
-- **Commits:** `64ba133` (C-11, C-12), `0cb3fca` (A-1, A-2), `006dd64` (A-5),
-  `4683f20` (review:B-1, T-111); this entry with D-124, D-125 and spikes S16, S17
+- **Commits:** `9f8ee86` (C-11, C-12), `e3a20a2` (A-1, A-2), `780b692` (A-5),
+  `a34b26a` (review:B-1, T-111); this entry with D-124, D-125 and spikes S16, S17
 - **Tier:** 1 (fixes) / review fold-in; 2 (T-111); 3 (S16, S17: spikes first)
 - **Decisions:** D-122 (license), D-123 (LLVM pin), D-124 (match function), D-125
   (compiled `lisp/`); O-70 (fswatch), O-71 (stale `.elc`) opened
-- **Done when:** every finding verified against c031e2b and either fixed with a test,
+- **Done when:** every finding verified against d29b22a and either fixed with a test,
   recorded as not taken with a reason, or handed to the owner with the question named
 - **Tag:** none
 
@@ -17,7 +17,7 @@
 branch `audit/main`, commit ed29327) published `REVIEW_2026-10-20_c031e2b.md`, prepared
 with an LLM, human review pending by its own header, plus three patch files and the
 scripts behind its numbers. Its own `FORK.md` asks that findings be treated as claims;
-each one below was checked against this tree at c031e2b before acting. Overall the
+each one below was checked against this tree at d29b22a before acting. Overall the
 review is careful and mostly right; four points in it are wrong or overstated (below).
 The owner ruled the same day: "A2 - mark as superseded. Revisit A-3 and A-1. Tier 2
 under own D-nnn llvm-unpin.patch. Ruling for the matcher / section 3. Run
@@ -37,17 +37,17 @@ nothing to delete.
   pyright replying null to an early rename. `test/init-test.el` now records
   `textDocument/publishDiagnostics` through `eglot-handle-notification` (a public
   generic, no new internal) and the test waits for the file's first diagnostics.
-  Passes here in 2.1 s. `64ba133`.
+  Passes here in 2.1 s. `9f8ee86`.
 - **Taken: C-11, `make test` prompted for a missing grammar.** Emacs 31's
   `treesit-auto-install-grammar` defaults to `ask` and asks through `y-or-n-p`, in
   batch too. The `ERT` line sets it to `never`. Not in the configuration: startup
-  already refuses without the grammar (D-008). `64ba133`.
+  already refuses without the grammar (D-008). `9f8ee86`.
 - **Taken: A-2, the refuted Lisp budget.** DESIGN 1's "about fifteen direct packages
   and under ~600 lines of own Lisp" marked SUPERSEDED with the numbers (33
-  submodules, 3111 lines); no size budget replaces it. `0cb3fca`.
+  submodules, 3111 lines); no size budget replaces it. `e3a20a2`.
 - **Taken in part: A-1, template leftovers.** `CLAUDE.md:79`'s placeholder now names
   the ccls hybrid (D-023, D-024, POSTMORTEM 2026-10-08); `JOURNAL.md`'s template title
-  and 0000 row gone. `0cb3fca`. Not taken: the standard's upgrade to 2.13.0 (no
+  and 0000 row gone. `e3a20a2`. Not taken: the standard's upgrade to 2.13.0 (no
   checkout of the standard on this machine; the owner's `make upgrade`); RESULTS.md
   for S7 and S10 (both wait for owner runs, O-12; the newer check's demand is met by
   the runs, not by stubs).
@@ -57,10 +57,10 @@ nothing to delete.
 - **Taken: A-4, HANDOFF 10 lists 8 of 29 internal symbols.** For the next HANDOFF
   update, from a command (the review's `review/counts.sh`), not by hand.
 - **Taken: A-5, no license.** MIT for the repository's own work, the patch files
-  keep their projects' licenses (D-122). `006dd64`.
+  keep their projects' licenses (D-122). `780b692`.
 - **Taken: review:B-1, the LLVM pin, tier 2 (D-123, T-111, 0085).** The review's
   `review/llvm-unpin.patch` through `git am`, author kept; its version check was a
-  glob that let "24.0.0git" through to `sed -i`; fixed and tested here. `4683f20`.
+  glob that let "24.0.0git" through to `sed -i`; fixed and tested here. `a34b26a`.
 - **Taken: section 3, the matcher, option C, spike first (D-124, S16, T-112).** Mac
   dry run (`spikes/s16-match-function/DRY-RUN.md`): the function keeps the 15 rows
   and gives the regexps' tier on all 270144 pairs (8 inputs, 33768 deal.II names);
@@ -76,7 +76,7 @@ nothing to delete.
   0.40 s interpreted); native modules start in 0.91 s because they load magit at
   startup and re-queue 45 files for compilation; the form behind it is S17 run 2's
   question (T-113).
-- **Taken: portable-bench.sh on the Mac (5b item 6).** 2026-10-20, 64ba133, Emacs
+- **Taken: portable-bench.sh on the Mac (5b item 6).** 2026-10-20, 9f8ee86, Emacs
   31.1, 11 cores, load 6.0 / 5.1 / 4.8 (not idle): startup median 0.410 s (0.390 -
   0.485, 1 collection each), against the 0.852 s of 2026-10-09 (DESIGN 11; Mac
   numbers are recorded, not judged, D-057); `make test` 133 tests, 131 passed, 2

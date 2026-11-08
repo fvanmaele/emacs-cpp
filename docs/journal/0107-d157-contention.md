@@ -11,7 +11,7 @@
 > Plain English for someone who does not read Emacs Lisp or C++ fluently.
 
 ## What + why
-After T-130's premise fell (d1ef1f5), the suspect for clangd not reading Emacs's
+After T-130's premise fell (3505d11), the suspect for clangd not reading Emacs's
 messages was a starved main thread: with the patched header flags the reparse keeps
 all 11 cores busy twice as long. D-157 tested it two ways. Stock flags with the
 second checkout landing 1 s into the reparse, deep inside the busiest part, never
