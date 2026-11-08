@@ -1,12 +1,19 @@
 # TASKS - work born from rulings
 
 Fed by DESIGN rulings (open questions, parity verdicts) and spike results. A row leaves this
-list only by landing as a journal entry, whose number replaces the status. Nothing here is
+list only by becoming a journal entry, whose number replaces the status. Nothing here is
 a commitment; order is the owner's priority.
 
-Columns: id | status (open / next / done NNNN) | size (S / M / L) | title | source
-(D-nnn, defect Dn, RESEARCH section, spike, owner ask, another repo's `<repo>:D-nnn`) |
-what (one line, concrete enough to start from, ending with `done when: ...`).
+One row is one measured result or one feature; a row that would be bigger than L is split
+when it is written (the standard's rule 30). A roadmap or wish list is no task ledger: its
+item becomes a row here when it is ruled, and the roadmap is then only the row's cited
+source.
+
+Columns: id | status (open / next / waits on T-nnn, H-n / done NNNN) | size (session time,
+an appetite, not an estimate: S under 1 h, M up to half a working day, L up to one working
+day) | title | source (D-nnn, defect Dn, RESEARCH section, spike, owner ask, another repo's
+`<repo>:D-nnn`) | what (one line, concrete enough to start from, ending with `done when:
+...`).
 
 ## v0.1 navigation
 | id | status | size | title | source | what |
@@ -200,7 +207,7 @@ what (one line, concrete enough to start from, ending with `done when: ...`).
   fails on `/var` vs `/private/var`; the other 14 failures not yet examined (most may
   follow from the startup stop). Tier 2. PROPOSED done when (owner to agree): Emacs
   starts on the Mac with no errors; `make test` passes there except tests that need
-  gdb or the patched clangd, which skip with a reason until T-022 / T-023 land;
+  gdb or the patched clangd, which skip with a reason until T-022 / T-023 are done;
   `make test` still passes on Arch. Agreed 2026-10-09. Built 2026-10-09 (0034): the
   Mac part is met (startup clean, the gdb tests skip, the rest pass). Arch
   2026-10-09: `make packages && make test` 54 / 54, none skipped. Done.

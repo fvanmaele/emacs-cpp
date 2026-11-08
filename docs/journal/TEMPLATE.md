@@ -5,7 +5,7 @@
 - **Tier:** 2 | 3 (spike Sn)
 - **Decisions:** D-nnn, D-mmm (what this implements or changes)
 - **Done when:** <the line agreed before code was written>
-- **Tag:** vX.Y.Z (only if this entry lands a milestone tag)
+- **Tag:** vX.Y.Z (only if this entry comes with a milestone tag)
 
 > Plain English for someone who does not read <language> fluently. Explain the WHY and the
 > idioms; do NOT restate the commit diff.

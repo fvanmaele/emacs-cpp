@@ -15,3 +15,5 @@
 /packaging/fswatch-no-loss/*.pkg.tar.zst
 # Library indexes built by `make library-index` (D-133): index, stamp, sources.
 /indexes/
+# A generated dashboard, never the project's record (standard rule; D-193's upgrade).
+/STATUS.md

@@ -5,6 +5,8 @@ code is written for it. Each spike is a self-contained directory with its own bu
 
 ## Rules
 - One spike answers one risk from the DESIGN risk register. It produces a verdict, not code.
+  A spike split in two keeps its number and adds a lowercase letter to it; the checks read
+  both.
 - Two docs per spike: `RUN.md` (which risk, prerequisites, what the session runs and what
   the owner does, or the script and its report; ends by pointing at RESULTS.md) and
   `RESULTS.md` (opens with `Verdict: PASS/FAIL`, then environment,
@@ -96,7 +98,8 @@ code is written for it. Each spike is a self-contained directory with its own bu
 
 ## Status
 Status words: `not started`, `ready` (RUN.md written, the owner runs it; no RESULTS.md yet),
-`running`, `PASS`, `FAIL` (copied from RESULTS.md).
+`running` (being run, no RESULTS.md yet; docs-check notes its age), `PASS`, `FAIL` (copied
+from RESULTS.md).
 | Spike | Status | RESULTS |
 |---|---|---|
 | S1 | PASS (run 2) | s1-compile-db/RESULTS.md |

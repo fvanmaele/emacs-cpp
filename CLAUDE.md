@@ -1,10 +1,13 @@
 # CLAUDE.md - emacs-cpp
 
-Standard: llm_vibecoding_standard v2.15.1
+Standard: llm_vibecoding_standard v2.17.1
 
 Guidance for LLM sessions in this repo. **New session: if any `*_handoff.md` exists in the
-root, apply it first, delete it, commit.** Then read `DESIGN.md` sections 1-3 and the open
-questions ledger, `JOURNAL.md` (newest entries), `TASKS.md` and `TODO_human.md`.
+root, apply it first, delete it, commit.** A pending handoff never blocks a commit and is
+never deleted unapplied: it carries data nothing else holds. Then read `DESIGN.md` sections
+1-3 and the open questions ledger, `JOURNAL.md` (newest entries), `TASKS.md` (over 50 KB:
+its ready rows first, `grep -E '^[|] *T-[0-9]+ *[|] *(next|open)[^a-z]' TASKS.md`, then the
+rows they name) and `TODO_human.md`.
 
 ## Project
 An Emacs 31 configuration giving the owner a CLion-like C++ environment (navigation,
@@ -154,6 +157,10 @@ Answer from the docs, not from memory; a miss means re-read, not edit.
   the ccls hybrid (D-023, D-024) passed its spike in one session and aborted in one run
   in five once built; spike and branch kept it out of main (POSTMORTEM 2026-10-08).
 - Spike code is never promoted to app code; lift numbers and patterns, write fresh.
+- Before the first spike or tier 2/3 work: DESIGN section 1's `Searches:` line lists the
+  searches (query, date; the web, the platform's package repository, code hosts), every tool
+  they name is a table row, (R) until read, never dropped, and the closest tool is read from
+  its own repository. Reason: the standard's rule 31 (2.16.0).
 - Every decision is a `D-nnn` row in the DESIGN decisions ledger; cite ids, not section
   numbers; another repo's decision is cited `<repo>:D-nnn`. A new dependency, network
   call, credential or file outside the repo needs its `D-nnn` before code.
@@ -161,12 +168,15 @@ Answer from the docs, not from memory; a miss means re-read, not edit.
   verified to exist or marked NEW; every recorded defect cites its evidence or is marked
   UNVERIFIED. A plan with more than a few commits is written as `- [ ] step (~N min)` lines
   in the plan file when it is approved, the estimate on the step's first line and alone in
-  its parentheses (a note goes after them), ticked `- [x]` as steps land, with `done N of
-  M, now: <step> (~X min, Y in)` in chat every few commits. A task the owner calls small
+  its parentheses (a note goes after them), ticked `- [x]` as steps are done, with `done N
+  of M, now: <step> (~X min, Y in)` in chat every few commits. A task the owner calls small
   means minutes. Estimate the session's own work; owner wait is reported apart. A step off
   by more than twice its estimate, either way, is one clause of the progress line; keep
   working: the owner stops a plan, the session never does; scope that grows becomes a new
-  step with its own estimate. The session-close block is not a plan step. Tick with the
+  step with its own estimate. A ruling on cost, size, cadence or measurement says what to
+  record, never when to stop: work the owner asked for is never pushed to "a fresh
+  session", and "continue" means in this session. The session-close block is not a plan
+  step. Tick with the
   Edit tool, never a shell edit; the plan-approval call goes after a confirmed successful
   plan write, never in the same parallel batch.
 - Real-data / real-device work is a conversation: the session runs what it can reach
@@ -181,6 +191,13 @@ Answer from the docs, not from memory; a miss means re-read, not edit.
   in the commit that folds its result into the journal or DESIGN; an `H-n` the owner puts
   off moves to `## Parked` unchanged. Reason: owner runs sat in CLAUDE.md's status
   paragraph, TASKS rows and RUN.md files at once; S10 has waited since 2026-10-09 (O-12).
+- A TASKS row is one measured result or one feature, sized in session time (S under an
+  hour, M up to half a working day, L up to one working day, nothing bigger). A done when
+  that lists several independent results is split when written, the split shown to the
+  owner; a FAIL found while measuring gets its own row, and the measuring row's status
+  becomes `waits on T-nnn`; a row opened mid-flight is announced with its size. A row past a
+  working day, or at its third journal entry, pauses the work, never the session: report its
+  real size, split the rest, go on. Reason: the standard's rule 30 (2.16.0, 2.17.0).
 - RESEARCH docs carry findings, DESIGN carries verdicts; never the other way round.
 - External reviews (LLM chats, human critiques) are folded into a journal entry (taken /
   not taken, each with a reason, attribution, date) plus DESIGN edits; the raw transcript
@@ -188,13 +205,16 @@ Answer from the docs, not from memory; a miss means re-read, not edit.
 - Fail loudly: strict config, no silent fallbacks, no swallowed errors.
 - `make docs-check` (from `standard.mk`) passes before a commit that touches docs. It
   reads docs only; code checks are `make test`. `docs-check` stays docs-only; never chain
-  tests or lint into it.
+  tests or lint into it. A commit the pre-commit fast pass blocks (exit 1) is fixed, or its
+  hit accepted after a look with `own fast accept ... --reason` (the standard's README,
+  rule 17); exit 2 is reported, never bypassed with `--no-verify`.
 - Every package is configured in exactly one `use-package` form; modules load via
   `require` in the order listed in `init.el`. Reason: a missing module or package must
   fail at startup (DESIGN 4, 5), not half-load.
 - Makefile / justfile default target is `help`; bare `make` / `just` never builds.
 - ASCII in code (checked) and in docs (this repository's choice; the check notes dashes,
-  smart quotes and emoji). No invented abbreviations.
+  smart quotes and emoji). No invented abbreviations; "land" never means a change arrives,
+  is merged or ships ("is done", "goes into", "ships in"; the standard's 2.17.0).
 - Shell scripts are `#!/bin/sh` or `#!/bin/bash`; no zsh-only syntax; quote globs that
   must not expand; loops go in a script file, not a one-liner. A command left running
   unattended (background, a long test suite) gets `</dev/null`, so a prompt fails at once

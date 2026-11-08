@@ -70,7 +70,7 @@ paperwork if wanted. Once accepted:
 - With Emacs master: the next GNU ELPA eglot release carries them; the submodule
   can then pin that release's commit unpatched (no fork, still vendored, D-006), or
   the config can return to the built-in eglot when an Emacs release includes them
-  (a behaviour change normally lands in the next major release, not a 31.x bugfix
+  (a behaviour change normally ships in the next major release, not a 31.x bugfix
   release; not checked for eglot, a :core package with its own ELPA releases).
 - Until then the fork stays. Cost: none new. Risk: acceptance and timing are not in
   our hands; 0002 may not be taken as is.

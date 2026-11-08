@@ -73,6 +73,13 @@ Lisp. Refuted if v0.3 needs more." v0.4.1 (2026-10-08) needed more; at c031e2b t
 pins 33 submodules and holds 3111 lines of own Lisp (19 files). No size budget replaces
 it: features are judged by their D-nnn, the packages by D-006.
 Rows marked (R) need a short RESEARCH note before a verdict is claimed in README.
+Searches: recorded from 2026-11-08 (rule 31, standard 2.16.0); earlier searches are in
+the RESEARCH_*.md docs, each with its own sources and dates. "pdf-tools emacs continuous
+scroll pdf-view-roll" (web, 2026-11-08); "vedang pdf-tools release epdfinfo macOS
+MacPorts poppler build" (web, 2026-11-08); "emacs-reader MuPDF dynamic module Emacs PDF
+continuous scroll" (web, 2026-11-08); MacPorts `poppler` port page (2026-11-08);
+pdf-tools read from its repository (v1.3.0, S22). Tools named: pdf-tools, image-roll,
+pdf-continuous-scroll-mode, Emacs Reader (R: not read from its repository; D-190).
 
 ## 2. Place in the ecosystem, non-goals
 For: one owner, an Arch Linux workstation and a macOS machine (D-050), C++ projects
@@ -165,7 +172,7 @@ Observed on the owner's Mac, 2026-10-09 (D-050):
 5. The owner runs anything that touches the live `~/.emacs.d` or real projects; sessions
    hand over exact commands.
 6. No module without a section here; no risky change without a PASS spike.
-7. Performance is measured, not assumed (section 11): a tuning setting lands only with
+7. Performance is measured, not assumed (section 11): a tuning setting goes in only with
    the number it moved, or with the source that justifies it.
 8. DECIDED D-058 (owner 2026-10-09, O-24 c): `make test` passes on the machine at hand
    (Arch or the Mac) before a commit; the other platform is not required.
@@ -1506,7 +1513,7 @@ each, with a recommendation; the owner agreed to all of them (D-111):
   no project, and treemacs (70 ms) loads only with the tree.
 
 ## 11. Performance (Q-2, D-010)
-Budgets, measured on the owner machine (T-008 measures, numbers land here):
+Budgets, measured on the owner machine (T-008 measures, numbers go here):
 - Startup: time from `before-init-time` to the end of `after-init-hook` <= 0.5 s with
   all packages built. (Supersedes "`(emacs-init-time)` <= 0.5 s", 2026-10-07:
   `emacs-init-time` stops before `after-init-hook`, where projectile, vertico and corfu
@@ -1815,6 +1822,14 @@ the form that loads magit is found (S17 run 2, T-113).
   as findings, marked superseded. Test: init.el loads with neither module nor
   package on `load-path`. Built (0099). Amended 2026-11-07 by D-184: Markdown gets
   LaTeX export and math preview; `.tex` files stay as ruled here.
+- DECIDED D-193 (2026-11-08, the session's pick, for the owner to double-check;
+  llm_vibecoding_standard README "Who adopts, and when", upgrade to 2.17.1): this
+  project's release class is **later** (may be released in future). Reason: its own
+  GitHub remote (`<owner>/emacs-cpp`, not a fork of another project), an MIT license
+  (D-122) and `HANDOFF.md` for outside reviewers point to a release; no owner ruling of
+  public was found (public_release_standard's label map is not on this machine). Only
+  the owner rules a project public. `reeve.toml` absent: `release` set once the
+  dashboard takes the key.
 - DECIDED D-192 (owner 2026-11-08: "Amend, report upstream"; S22, D-190): S22's
   criterion 4 counts with a page clamp: after a revert, a shown page past the new end
   moves to the last page (an `after-revert-hook`; pdf-tools' roll mode otherwise leaves
@@ -2868,7 +2883,7 @@ presets, GoogleTest runner.
   "at once") and D-162 (d). Premise corrected the same day: (a) was offered as "before
   any T-128 code", but T-128's module had shipped that morning (5316f49), unseen by the
   session; its `shipped` mode on Arch then also blocked 0.25 s (filter 250.6 ms, run 3
-  of 3, load 3.1 - 3.4, 0115). How the queue lands in the shipped module: O-81.
+  of 3, load 3.1 - 3.4, 0115). How the queue goes into the shipped module: O-81.
   Against: buffers become current later than 0.13 s; another measurement round on
   both machines. Not taken: (b) keep runs 1 - 3's PASS (choosing runs), (c) three more
   idle runs first (more samples, same 0.30 s).
@@ -4557,6 +4572,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-183 | 2026-11-05 | O-85 (h): projectile's per-submodule pass off, fd required for git listings | 12 | O-85, T-133 |
 | D-184 | 2026-11-07 | O-89 (b): Markdown to PDF by pandoc + LaTeX; math drawn by math-preview deferred | 12 | O-89, D-145 |
 | D-185 | 2026-11-07 | Markdown PDF: code in DejaVu Sans Mono, missing glyphs a warning | 12 | D-184, owner report |
+| D-193 | 2026-11-08 | release class `later` (session's pick, owner to double-check) | Conventions | standard 2.17.1 |
 | D-192 | 2026-11-08 | S22 criterion 4 counts with a page clamp; defect reported upstream | 12 | owner, S22 |
 | D-191 | 2026-11-08 | kept project buffer asked as CLion: load / keep / diff | 9 | owner, D-151 |
 | D-190 | 2026-11-08 | spike S22: pdf-tools 1.3.0 for the Markdown PDF, continuous scroll | 12 | owner, D-186 |
