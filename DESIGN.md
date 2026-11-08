@@ -1822,6 +1822,20 @@ the form that loads magit is found (S17 run 2, T-113).
   as findings, marked superseded. Test: init.el loads with neither module nor
   package on `load-path`. Built (0099). Amended 2026-11-07 by D-184: Markdown gets
   LaTeX export and math preview; `.tex` files stay as ruled here.
+- DECIDED D-194 (owner 2026-11-08: "Make a release branch which only contains feature
+  commits with concise but clear descriptions, and documentation in docs/ and README.md",
+  then "One per feature" and "MANUAL + CHEATSHEET"): branch `release`, built from main
+  with `git commit-tree`, 87 commits, one per feat commit of main in time order; each
+  is main's tree where that feature's group ends (the fix, refactor, test and chore
+  commits up to the next feat folded in), with only the code and build paths (`lisp/`,
+  `test/`, `scripts/`, `packaging/`, `patches/`, `lib/`, the init files, `Makefile`,
+  `standard.mk`, `LICENSE`, `.gitignore`, `.gitmodules`) and `README.md`,
+  `docs/MANUAL.md`, `docs/CHEATSHEET.md`. Messages short, without ids; author and date
+  of each feat commit, the models' `Co-Authored-By` lines kept. Its tip's code and docs
+  equal main's at a6bccab. Not pushed; rebuilt, not merged, when main moves on. Against:
+  README and the manual cite D-nnn ids whose DESIGN.md is not there; `make docs-check`
+  fails there (no DESIGN.md); intermediate commits untested; a fix to an older feature
+  sits in the feature before it.
 - DECIDED D-193 (2026-11-08, the session's pick, for the owner to double-check;
   llm_vibecoding_standard README "Who adopts, and when", upgrade to 2.17.1): this
   project's release class is **later** (may be released in future). Reason: its own
@@ -4572,6 +4586,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-183 | 2026-11-05 | O-85 (h): projectile's per-submodule pass off, fd required for git listings | 12 | O-85, T-133 |
 | D-184 | 2026-11-07 | O-89 (b): Markdown to PDF by pandoc + LaTeX; math drawn by math-preview deferred | 12 | O-89, D-145 |
 | D-185 | 2026-11-07 | Markdown PDF: code in DejaVu Sans Mono, missing glyphs a warning | 12 | D-184, owner report |
+| D-194 | 2026-11-08 | branch `release`: one commit per feature, code and README / MANUAL / CHEATSHEET | Conventions | owner |
 | D-193 | 2026-11-08 | release class `later` (session's pick, owner to double-check) | Conventions | standard 2.17.1 |
 | D-192 | 2026-11-08 | S22 criterion 4 counts with a page clamp; defect reported upstream | 12 | owner, S22 |
 | D-191 | 2026-11-08 | kept project buffer asked as CLion: load / keep / diff | 9 | owner, D-151 |
