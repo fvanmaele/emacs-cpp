@@ -94,6 +94,11 @@ here), so the width asked for is the window's divided by it. Checked in a graphi
 Emacs on Arch: 1109 px of window, 1101 px of page; split in half, 537 and 529.
 `make test` on Arch: 165 run, 0 unexpected, 1 skipped. Risk: a run exits 141 (a
 broken pipe) after the debugpy test, also without this change: T-137.
+T-137, the same day (D-188): batch Emacs dies when it writes to a program that has
+closed its input; the Emacs the owner runs ignores that signal and reports an error
+instead. Seen in `init-python-eglot-only-in-projects`: a timer wrote to ty after ty
+shut down. `make test` now ignores the signal as the shipped Emacs does: that test
+12 of 12, `make test` 5 of 5.
 
 ## Standard feedback (optional; the standard pulls it with `make feedback`)
 - Helped: "a choice offered to the owner, premises verified or marked UNVERIFIED";
