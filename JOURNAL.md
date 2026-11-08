@@ -21,7 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
-| 0134 | 2026-11-08 | S22: pdf-tools PASS on the Mac, Arch's look left | T-138 | D-190, D-192 |
+| 0134 | 2026-11-08 | S22: pdf-tools PASS on both machines | T-138 | D-190, D-192 |
 | 0133 | 2026-11-08 | llm_vibecoding_standard 2.15.1 -> 2.17.1 | - | D-193 |
 | 0132 | 2026-11-08 | T-139: edited buffer whose file changed asked as CLion | T-139 | D-191 |
 | 0131 | 2026-11-07 | T-135: Markdown to PDF through pandoc and LaTeX | T-135 | D-184 |

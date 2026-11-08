@@ -14,19 +14,6 @@ cannot read itself. An approval another session asks the owner for itself (a ben
 service's plan) is not an item.
 
 ## Run now
-- **H-35** (2026-11-08, unblocks S22, T-138, D-190) pdf-tools on Arch: judge sharpness
-  (criterion 5), the one S22 criterion left; the Mac passes all five (0134).
-  1. On Arch: `command -v mutool` (expect a path; none: H-31's step 2 first, DocView needs
-     it for its SVG pages)
-  2. On Arch (the window scrolls by itself for about 30 s and stops on the last page; do
-     not touch it until then): `S22_HOLD=1 S22_CLAMP=1 S22_LOG=arch-run4.log emacs -Q -l
-     ~/source/repos/emacs-cpp/spikes/s22-pdf-tools/s22.el`
-  3. In your usual Emacs: `C-x C-f
-     ~/source/repos/emacs-cpp/spikes/s22-pdf-tools/src/test.pdf RET` (DocView). Give both
-     windows the same size and compare the text.
-  4. In the S22 window: `C-x C-c`
-  Report back: is pdf-tools' text as sharp as DocView's, sharper, or blurrier?
-
 - **H-33** (2026-11-08, unblocks D-192's upstream report) Report pdf-tools' roll-mode
   revert defect.
   1. In a browser, signed in to GitHub, open https://github.com/vedang/pdf-tools/issues/new

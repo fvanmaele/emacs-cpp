@@ -1,15 +1,15 @@
-# 0134 - S22: pdf-tools PASS on the Mac, Arch's look left
+# 0134 - S22: pdf-tools PASS on both machines
 
 - **Date:** 2026-11-08
-- **Commits:** `16c2937` (the script's fix, run 1), `af7d7fe` and `9f1c437` (Arch), and the
-  commit that carries this entry
+- **Commits:** `16c2937` (the script's fix, run 1), `af7d7fe` and `9f1c437` (Arch),
+  `32faaa6` (the Mac's verdict), and the commit that records Arch's look
 - **Tier:** 3 (spike S22)
 - **Decisions:** D-190, D-192
 - **Done when:** S22's five criteria (`spikes/s22-pdf-tools/RUN.md`) PASS on each machine.
-  Not met yet: criterion 5 on Arch (H-35).
+  Met 2026-11-08, criterion 4 as amended (D-192).
 
 > Plain English: can pdf-tools, a PDF viewer with its own compiled helper program, replace
-> DocView for the Markdown PDF on both machines? The Mac says yes; Arch owes one look.
+> DocView for the Markdown PDF on both machines? Yes.
 
 ## What + why
 DocView shows one page at a time; pdf-tools 1.3.0 scrolls across pages. Its price is a C
@@ -22,8 +22,9 @@ It built without a change. Criteria 1 - 4 pass with the same figures in both run
 owner compared the text with DocView's and found it as sharp (criterion 5). Figures:
 `spikes/s22-pdf-tools/RESULTS.md`.
 
-The sharpness look had been filed for the Mac only. Criteria hold on each machine, and
-nobody has judged Arch's, so S22 is not yet PASS and DocView stays (D-190): H-35.
+The sharpness look had been filed for the Mac only, though criteria hold on each machine;
+H-35 added Arch's, and the owner found the text as sharp there too. S22 is PASS on both;
+D-190's replacement of DocView follows (T-142).
 
 ## Concepts (shell, Emacs) explained
 - **A graphical Emacs on the Mac may change directory by itself.** Started with stdin not
@@ -47,11 +48,13 @@ nobody has judged Arch's, so S22 is not yet PASS and DocView stays (D-190): H-35
 - **Assumed:** `epdfinfo` keeps working across `port upgrade poppler`. **Would break if:**
   the library's version changes; a rebuild is then needed, D-190's own case against.
   **DESIGN bet:** D-190.
+- **Assumed:** Arch's DocView drew MuPDF's SVG pages in the comparison (H-35's first step
+  asked for `mutool`; the session could not see Arch). **Would break if:** `mutool` was
+  missing, so the look compared with gs's blurrier PNGs. **DESIGN bet:** D-186, D-190.
 
 ## How to verify
 `cat spikes/s22-pdf-tools/mac-run1.log` shows `S22 done: 0 failures (clamp t)`. To rerun:
 `spikes/s22-pdf-tools/mac-run.sh`, then look and quit with `C-x C-c`.
 
 ## Open questions (optional)
-None. S22's PASS on both leads to D-190's replacement of DocView, a tier 2 change whose
-done when is agreed first.
+None. D-190's replacement of DocView is T-142, tier 2, its done when agreed first.

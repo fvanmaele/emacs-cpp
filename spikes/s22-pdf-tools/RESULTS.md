@@ -1,9 +1,9 @@
 # S22 results
 
-Verdict: PASS on Arch for criteria 1 - 4 with criterion 4 as amended (D-192, run 2,
-2026-11-08, session); run 1 FAIL on criterion 4 as first written. PASS on the Mac for
-criteria 1 - 5 (`mac-run1.log`, `mac-run2.log`, the owner's look, 2026-11-08). Not yet
-PASS on both: criterion 5 on Arch has not been judged (H-35).
+Verdict: PASS on both machines, 2026-11-08, criterion 4 as amended (D-192). Arch:
+criteria 1 - 4 by the session (run 2; run 1 FAIL on criterion 4 as first written),
+criterion 5 the owner's look. The Mac: criteria 1 - 4 by the session (`mac-run1.log`,
+`mac-run2.log`), criterion 5 the owner's look.
 
 ## Environment
 Arch, Emacs 31.1 (graphical, `-Q`), pdf-tools v1.3.0 (5245f09), tablist 01f065e,
@@ -35,6 +35,7 @@ Run 2 (`arch-run2.log`, `S22_CLAMP=1`, a 1141 px wide frame): 1 - 4 PASS; criter
 in 1.02 s, page 5 shown; 334 `C-n` to the end, 261 samples with two pages. Run 3
 (`arch-run3.log`, the expected page count read from `test-new.pdf` for the Mac):
 1 - 4 PASS.
+Criterion 5, owner, 2026-11-08, on Arch: "pdf-tools as sharp as DocView". PASS.
 
 ## The Mac (`mac-run1.log`, `build-mac.log`, 2026-11-08, session)
 Apple silicon, Emacs 31.1 (`emacs-app` port, graphical, `-Q`), pdf-tools v1.3.0 (5245f09),
@@ -54,8 +55,8 @@ tablist 01f065e, MacPorts poppler 26.02.0, frame 597 x 508 px, `S22_CLAMP=1`. Te
 
 ## Decision
 Owner 2026-11-08 (D-192): criterion 4 counts with the clamp; the defect goes upstream
-(H-33, `upstream-issue.md`); the Mac run next (H-32). D-190 keeps DocView until S22
-passes on both machines: criterion 5 on Arch is left (H-35).
+(H-33, `upstream-issue.md`); the Mac run next (H-32). S22 PASS on both machines,
+2026-11-08: D-190's replacement of DocView follows (T-142).
 
 ## Gotchas
 - A spike script's read error leaves a graphical Emacs open and idle: `s22.el` runs

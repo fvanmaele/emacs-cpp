@@ -1939,10 +1939,10 @@ the form that loads magit is found (S17 run 2, T-113).
   https://github.com/emacsorphanage/tablist (its dependency) into
   `spikes/s22-pdf-tools/src/`, ignored by git. Needs poppler-glib (Arch: installed,
   26.10.0); the Mac's MacPorts `poppler` 26.02.0 with its glib library (pdf-tools
-  documents Homebrew only; checked 2026-11-08: builds and links, S22 1 - 5 PASS on the
-  Mac, 0134; criterion 5 on Arch: H-35). Not taken: keep DocView (one page at a time,
-  no links or selection), research Emacs Reader first (continuous scrolling found in
-  a fork only; a native module; it builds MuPDF). Against: a C server per machine,
+  documents Homebrew only; checked 2026-11-08: builds and links). S22 PASS on both
+  machines 2026-11-08 (0134); the replacement: T-142. Not taken: keep DocView (one page
+  at a time, no links or selection), research Emacs Reader first (continuous scrolling
+  found in a fork only; a native module; it builds MuPDF). Against: a C server per machine,
   rebuilt after poppler updates; roll mode 10 months old (a stuck-at-page-top report
   with ultra-scroll, not used here).
 - DECIDED D-189 (owner 2026-11-08: "pandoc settings, reduce the margin to 3cm
