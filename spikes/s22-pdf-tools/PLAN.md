@@ -11,6 +11,7 @@ marked NEW do not exist yet.
   ignored by git).
 - [x] 3. Arch run in a graphical Emacs: criteria 1 - 5 (~30 min)
   `s22.el` (NEW) drives pdf-tools on a long PDF from a timer, logs to `arch-run1.log`.
+  Corrected 2026-11-08: that run covered criteria 1 - 4; criterion 5 on Arch is H-35.
 - [x] 4. RESULTS.md (Arch half), spikes/README status (~10 min)
 - [x] 5. H-n for the Mac run, printed in chat (~10 min)
 
