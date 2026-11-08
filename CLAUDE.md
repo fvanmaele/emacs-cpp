@@ -14,7 +14,7 @@ An Emacs 31 configuration giving the owner a CLion-like C++ environment (navigat
 refactoring, diagnostics, CMake presets, debugger, git, jump-to-anything) on an Arch
 Linux workstation and a macOS machine (D-050). It will never be an Emacs distribution, a
 Windows config or a CLion keymap emulation (DESIGN 2).
-**Status:** v1.0.0 tagged 2026-11-04 on 82805ca (owner), design ruled through D-176;
+**Status:** v1.0.0 tagged 2026-11-04 on 8c35210 (owner), design ruled through D-176;
 the repository's first tag (v0.4.1, journal 0033, was recorded but never created).
 At 2026-10-10: v0.4.1 (navigation, build, debug, polish), design ruled through D-073.
 clangd stays (T-004); a locally patched clangd
@@ -80,7 +80,7 @@ D-113 0011 / 0012 switched per request, announced as a capability;
 T-025 round 2, T-026 queued. D-116 `make packages` resets patched files, submodules
 at the pin (T-105, 0078).
 
-2026-10-20: review of d29b22a folded in (0084): MIT license (D-122), the Arch clangd
+2026-10-20: review of 5a23316 folded in (0084): MIT license (D-122), the Arch clangd
 follows pacman's LLVM through `make clangd` (D-123, T-111), match tiers as a function
 (D-124, S16) only with compiled `lisp/` (D-125, DESIGN 11.1, S17: native modules load
 magit at startup); DESIGN 1 ruled (D-126); llm_vibecoding_standard 2.14.0 (0086),
@@ -125,7 +125,7 @@ done); eglot's
 share on RMO-drafts PASS on the Mac (0104). A checkout during clangd's reparse froze
 Emacs up to 1.1 s (O-79, 0105 - 0109, 0111): Emacs's own timers, mainly the reverter's
 queue step, ran inside a write to clangd that met a full pipe (not clangd's includer
-lookup: T-130's premise refuted, 3505d11); D-156 (e), the queue step waits out the
+lookup: T-130's premise refuted, 10f25ad); D-156 (e), the queue step waits out the
 filter, cuts it to 0.21 - 0.29 s (0108, 0111). D-160 (0111): the "residual write
 stall" was the reverter's filter run inside a blocked send (the pipe held the write
 10 - 15 ms; `send_process` then waits a fixed 20 ms); the block is the reverts' first
@@ -232,6 +232,10 @@ Answer from the docs, not from memory; a miss means re-read, not edit.
 - A failure that reached a person or did damage gets a short POSTMORTEM entry in the commit
   that fixes it; a failed direction a full one; normal work (a test failing before done, a
   typo, a rerun) none. Reason: the standard's rule (llm_vibecoding_standard 2.14.0).
+- No names, user names, handles or e-mail addresses of people in `.md` files or in commit
+  message text (subjects, bodies); "the owner", "a reviewer", `<repository URL>`,
+  `/home/USER` instead. Model attribution trailers stay; author and committer fields are
+  git's. Reason: the owner, 2026-11-08 (D-196); the history was rewritten to remove them.
 - No first-person authorship for the owner in any file, commit or text for others: the
   work was written by the models named in the `Co-Authored-By` trailers. Reason: the
   standard's rule (2.14.0).

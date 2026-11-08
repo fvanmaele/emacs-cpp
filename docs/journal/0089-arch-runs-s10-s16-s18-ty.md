@@ -31,7 +31,7 @@ replacing pyright with ty. Results, in each spike's `RESULTS.md`:
   `ConfigCompile.cpp:419-422`), `M-?` 7 -> 2 for the patched clangd. Run 2: a
   deal.II name in a probe file of the copy, and a second config fragment that turns
   the background index back on (UNVERIFIED that it does).
-- **Bench** (review 0084, 5b item 6), Arch, commit 69bcd40, load 0.96: startup median
+- **Bench** (review 0084, 5b item 6), Arch, commit fe74279, load 0.96: startup median
   0.182 s (0.180 - 0.198, 1 collection each, budget 0.5 s holds); `make test` 135 of
   135, 37.5 s wall. The review's machine: 0.097 s, 20.2 s.
 - **H-1**: `clangd-index-nav 23.1.3-9` installed (`pacman -Q`, read here); T-111 and

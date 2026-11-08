@@ -2,7 +2,7 @@
 
 - **Date:** 2026-11-03
 - **Commits:** see `git log -- spikes/s20-fswatch-reverter` (this entry's commit);
-  351e580 (D-153)
+  8c63440 (D-153)
 - **Tier:** 3 (spike S20)
 - **Decisions:** D-153 (O-78 (e)), D-151, D-152 (its edge cases)
 - **Done when:** three runs of `fswatch-shown` on each machine pass the criteria in

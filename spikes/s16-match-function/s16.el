@@ -94,7 +94,7 @@ small letter or digit; a capital ending a run of capitals before a small letter.
 ;;;; The report.
 
 (defconst s16-spec
-  ;; test/init-completion-test.el, init-completion-match-tiers (D-120), d29b22a.
+  ;; test/init-completion-test.el, init-completion-match-tiers (D-120), 5a23316.
   '(("vec" "Vector.cc" 1) ("vec" "src/vector.h" 1) ("ser" "HTTPServer" 1)
     ("tools" "VectorTools.cc" 1) ("ector" "Vector.cc" 2)
     ("vt" "VectorTools.cc" 2) ("VT" "VectorTools.cc" 2)

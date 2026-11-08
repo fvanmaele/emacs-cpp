@@ -7,7 +7,7 @@ Criteria 1 and 2 do not depend on the machine.
 The owner's Mac (Apple silicon, 11 cores), MacPorts Emacs 31.1 with native
 compilation, load 4.6 - 5.1 (not idle: G DATA scanning, D-057's note). Corpus: the
 deal.II checkout at v9.6.2, `git ls-files`, 33768 names. Commit: the tree after
-a34b26a. Log: `dry-run-mac.log`.
+85f9a0f. Log: `dry-run-mac.log`.
 
 ## Measurements
 1. Spec: 15 rows and the sort example, 0 failures in each state.

@@ -25,8 +25,8 @@ service's plan) is not an item.
      && git log --oneline -1 main` (expect no changed files and `bcd7691` or an older
      commit of main; anything else: stop and report it)
   4. On the Mac: `cd ~/source/repos/emacs-cpp && git fetch origin && git reset --hard
-     origin/main && git config user.name "the owner's name" && git config user.email
-     the owner's address`
+     origin/main && git config user.name "$(git log -1 --format=%an origin/main)" && git
+     config user.email "$(git log -1 --format=%ae origin/main)"`
   Report back: step 3's output if it was not as expected; any push refused.
 
 - **H-32** (2026-11-08, unblocks S22, T-138, D-190, D-192; waits on H-34) pdf-tools on

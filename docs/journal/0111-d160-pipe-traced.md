@@ -2,7 +2,7 @@
 
 - **Date:** 2026-11-03
 - **Commits:** see `git log -- spikes/s20-fswatch-reverter` (this entry's commit);
-  the CPU time correction is a5c7f06
+  the CPU time correction is 3f3a4fd
 - **Tier:** 3 (spike S20)
 - **Decisions:** D-160 (O-79, "do more research on the leftover write stall"); O-80
   opened
@@ -35,7 +35,7 @@ repository's tree, against 0.2 - 0.3 ms idle. Arch has no such checker.
 
 On the way the session found that Emacs 31.1 reports other processes' CPU time 41.7
 times too small on Apple silicon. S18 had judged the Mac's watch cost with it; that
-correction is O-80 (a5c7f06).
+correction is O-80 (3f3a4fd).
 
 ## Concepts explained
 - `DYLD_INSERT_LIBRARIES` and interposing: macOS loads an extra library into a

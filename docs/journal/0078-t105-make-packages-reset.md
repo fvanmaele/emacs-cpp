@@ -16,7 +16,7 @@
 
 ## What + why
 The Arch run of 2026-10-19 hit two failures in `make packages`. consult-eglot's
-patch 0001 had grown on the Mac (31ab9f3); Arch still had the older version applied.
+patch 0001 had grown on the Mac (a06add2); Arch still had the older version applied.
 D-069 took a series out by applying it in reverse, but the reverse of the new patch
 does not fit the old one's changes, the failure was ignored, and applying the new
 patch over the old stopped the build with "patch does not apply". Second, `lib/eglot`
@@ -62,7 +62,7 @@ to be checked out at its pin before anything is built.
 
 ## How to verify
 - `make packages` twice: "8 patches in force" both times.
-- Stale patch: `git show 31ab9f3^:PATCH > /tmp/old.patch`, PATCH being
+- Stale patch: `git show a06add2^:PATCH > /tmp/old.patch`, PATCH being
   `patches/consult-eglot/0001-Keep-each-server-s-workspace-symbol-reply-in-the-ord.patch`,
   `git -C lib/consult-eglot checkout -- consult-eglot.el`,
   `git -C lib/consult-eglot apply /tmp/old.patch`, then `make packages`: passes, and

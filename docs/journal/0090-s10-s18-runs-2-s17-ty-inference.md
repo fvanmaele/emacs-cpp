@@ -1,8 +1,8 @@
 # 0090 - S10 and S18 run 2, S17's result, ty's diagnostics explained
 
 - **Date:** 2026-10-21
-- **Commits:** see `git log -1 --grep "S10 and S18 run 2"`; S17 in 4d048ae, S16's
-  criteria in ecf6ae1
+- **Commits:** see `git log -1 --grep "S10 and S18 run 2"`; S17 in b698775, S16's
+  criteria in c053339
 - **Tier:** 3 (spike runs; spike code only)
 - **Decisions:** D-130 (O-12 (b)); bears on D-127, D-124, D-125, O-72
 - **Done when:** both runs' verdicts in their RESULTS.md, the ty differences placed

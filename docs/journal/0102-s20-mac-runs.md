@@ -1,7 +1,7 @@
 # 0102 - S20 Mac runs 1 - 6: FAIL on VC refresh steps
 
 - **Date:** 2026-11-02
-- **Commits:** ea9703f (`run.sh` stops on an emptied repository); see `git log --
+- **Commits:** 35f9de2 (`run.sh` stops on an emptied repository); see `git log --
   spikes/s20-fswatch-reverter` (this entry's commit)
 - **Tier:** 3 (spike S20)
 - **Decisions:** D-148, D-149 (S20 failed, so O-78 reopens)
@@ -30,7 +30,7 @@ Before run 1 every run died after the log's header: macOS had emptied the kept
 repository under TMPDIR (files unused for 3 days are deleted, directories kept), and
 `run.sh` only checked that the directory exists. The empty directory was removed and
 the repository regenerated; `run.sh` now stops with a message on such a directory
-(ea9703f).
+(35f9de2).
 
 ## Concepts (Emacs Lisp) explained
 - `vc-refresh-state` recomputes a buffer's version-control state for the mode line.

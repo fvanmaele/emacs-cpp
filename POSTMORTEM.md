@@ -16,7 +16,7 @@ Short entry shape:
 Entries below were written on 2026-10-08 from the git history (79 commits, v0.1.0 to
 v0.4.1) and the journal; oldest first. Not entries: spikes that failed as designed (S1
 run 1, S5, S8 run 1), which is the process working. Entries from 2026-10-09 on were
-added on 2026-10-14 from the 129 commits after 10e676e (journal 0034 - 0070), followed
+added on 2026-10-14 from the 129 commits after 5c9b47d (journal 0034 - 0070), followed
 by a list of smaller issues that reopened nothing; again not entries: S11 run 1 and
 S12, which failed as designed.
 
@@ -34,9 +34,9 @@ the owner's real `~/.emacs.d`.
 - e0c8bff (T-002, journal 0002): 0.21 - 0.30 s reported.
 - 2026-10-07: DESIGN 11 redefines the budget (to the end of `after-init-hook`), marks
   the old figure superseded; new figures 0.60 - 1.21 s, taken under 390 % CPU load.
-- ec1b786 (T-008, 0023): `scripts/measure-startup.sh`, idle machine: 0.355 s, 0.151 s
+- 42192bf (T-008, 0023): `scripts/measure-startup.sh`, idle machine: 0.355 s, 0.151 s
   with D-038.
-- b78fbfe (code review, 0031): the tmux environment leak found and fixed.
+- d1c31f9 (code review, 0031): the tmux environment leak found and fixed.
 
 ### Root cause
 Each measurement was trusted without a check that it measured the intended thing:
@@ -112,10 +112,10 @@ Owner report (O-21): right after a restart, `iteration.h` opened from `C-x C-r` 
 - e191461 (patch 0005, T-011, 0015): a header borrows an includer's flags from the
   index; fmt toy "opened first: 0 errors"; owner check on RMO (`assemble.h` opened
   first) clean; T-011 done.
-- 14e7745: O-21 diagnosed by reading clangd.
-- a3b7dfe, e3d4d08 (S9, 0027): toy 1 / 5 header-first sessions guessed; RMO 10 / 10.
-- a5504e2 (patch 0006, pkgrel 4, 0028): 10 / 10 correct, but 1.48 - 1.56 s.
-- aca5e3e (patch 0007, pkgrel 5, 0029), 5c4f294 (S9 run 3): 0.91 - 1.02 s.
+- 3c8cb10: O-21 diagnosed by reading clangd.
+- 2cf1c1c, 89c48b6 (S9, 0027): toy 1 / 5 header-first sessions guessed; RMO 10 / 10.
+- d2e17c4 (patch 0006, pkgrel 4, 0028): 10 / 10 correct, but 1.48 - 1.56 s.
+- 61b8ba9 (patch 0007, pkgrel 5, 0029), 56a1dc0 (S9 run 3): 0.91 - 1.02 s.
 
 ### Root cause
 Patch 0005 waited while a load counter was above 0. The counter rose in
@@ -188,9 +188,9 @@ Three times a setting was in the configuration, the tests passed, and it did not
 
 ### Timeline
 - e0c8bff (T-002): treemacs-projectile form and unconditional `load-theme`.
-- d66d5b4 (T-015): `:demand t`, now loads.
-- 3a8fc5f (D-040): default theme only when none is saved.
-- 0eda303 (T-018) -> b78fbfe (review, 0031): dead line removed.
+- 540692c (T-015): `:demand t`, now loads.
+- d58df9e (D-040): default theme only when none is saved.
+- 1e6ee98 (T-018) -> d1c31f9 (review, 0031): dead line removed.
 
 ### Root cause
 The tests checked the configuration (a variable's value, a keymap entry, `featurep`
@@ -224,8 +224,8 @@ D-040; D-045 corrected (0031); `:demand t` on both `:after` forms (T-015).
 The owner asked, the same day, to return to the tree opening only on `C-c t`.
 
 ### Timeline
-ac094ae (D-048) -> b78fbfe (two review fixes to it) -> 5a098b7 (v0.4.0, includes it)
--> a748f3a (D-049, 0033), tag v0.4.1.
+064bcd4 (D-048) -> d1c31f9 (two review fixes to it) -> e22fd2e (v0.4.0, includes it)
+-> e68ff05 (D-049, 0033), tag v0.4.1.
 
 ### Root cause
 "Open treemacs by default (set option)" was built as on-by-default with rules of its
@@ -257,11 +257,11 @@ later an Emacs started from the Dock stopped with "emacs-cpp: rg is not on exec-
 while `which rg` found it, and AUCTeX's preview said "LaTeX found no preview images".
 
 ### Timeline
-- 5b99693 (T-021, 0034, 2026-10-09): platform paths, `${hostSystemName}`, CMake 3.31's
+- 1b968ad (T-021, 0034, 2026-10-09): platform paths, `${hostSystemName}`, CMake 3.31's
   `build.ninja`, eglot watches only project files, at most 500 (D-054); tests by true
   name and waiting for eglot's handshake.
 - D-055 (T-031, 0039): per-platform defaults files instead of `if`s in the modules.
-- 704b4ae, 48d21b9 (D-089, 2026-10-13): launchd's PATH lacks `/opt/local/bin` and
+- cae3c9a, f5e18de (D-089, 2026-10-13): launchd's PATH lacks `/opt/local/bin` and
   `/Library/TeX/texbin`; the config puts them in front of `exec-path` and PATH.
 
 ### Root cause
@@ -294,11 +294,11 @@ Owner report: "symbols are copied/inserted". With RMO's `.clang-format`
 (`BraceWrapping: AfterFunction`), `double value() {}` RET left an extra `{}` line.
 
 ### Timeline
-- ae64e34, 7a4addf (D-061, T-035, 0043): RET asks clangd's on-type formatting for the
+- 36816ab, c2e3084 (D-061, T-035, 0043): RET asks clangd's on-type formatting for the
   new line's indentation and restores the line above as typed.
-- Same day, owner report; c02c439 restores everything from the saved line to the new
+- Same day, owner report; 4a92b73 restores everything from the saved line to the new
   line (tier 1).
-- 0f6657a (D-065): RET by Emacs's rules again; eglot ignores on-type formatting.
+- 952bb78 (D-065): RET by Emacs's rules again; eglot ignores on-type formatting.
 
 ### Root cause
 clangd's reply to a newline reformats the whole statement it ended, splitting and
@@ -332,7 +332,7 @@ file.
 
 ### Timeline
 - D-018 (2026-10-07): eglot refuses loudly when the database or `-std` is missing.
-- 64b2e18 (2026-10-10): every error on the way to clangd's command gets D-018's
+- 8bee24e (2026-10-10): every error on the way to clangd's command gets D-018's
   error-level warning; invalid JSON names the file; an empty database is refused.
 
 ### Root cause
@@ -363,11 +363,11 @@ D-018 extended 2026-10-10 (any preset or database error, an empty database); D-0
 another case on the Mac, or, for pyright, under a path holding `:` and `+`.
 
 ### Timeline
-- 4f70323 (D-082, T-060, 0056): project symbols kept by comparing each symbol's URI
+- 01b7a86 (D-082, T-060, 0056): project symbols kept by comparing each symbol's URI
   with the project root's URI, as eglot spells it.
-- 67fd738 (D-083, T-061, 0057): clangd's spelling and case added.
-- 02a5316 (D-083): pyright's third spelling added.
-- 1151949 (D-085, T-062, 0058): one rule for every server, from the characters any
+- 6ea9741 (D-083, T-061, 0057): clangd's spelling and case added.
+- 462148d (D-083): pyright's third spelling added.
+- 73217e7 (D-085, T-062, 0058): one rule for every server, from the characters any
   encoder leaves unescaped.
 
 ### Root cause
@@ -386,7 +386,7 @@ characters, so each new server or path was a new spelling to add.
   worked throughout.
 
 ### DESIGN updates
-D-083, then D-085 (one matcher; owner's hand check f289c5c).
+D-083, then D-085 (one matcher; owner's hand check 814b22d).
 
 ### Lessons
 - Compare identifiers in a form independent of who encoded them; test with hostile
@@ -402,7 +402,7 @@ D-083, then D-085 (one matcher; owner's hand check f289c5c).
 ### Timeline
 - Since the presets tests (c0a3142, 2026-10-07): project.el fixes `project-list-file`
   when it loads, before `init-test` redirects `user-emacs-directory`.
-- af11763 (2026-10-14): the presets test file points it into a temporary directory.
+- e217df7 (2026-10-14): the presets test file points it into a temporary directory.
 
 ### Root cause
 The same as the tmux leak of 2026-10-07: the test environment was assumed to be
@@ -433,8 +433,8 @@ then indented with a tab where texlab gave two spaces in a project with a
 `.latexindent.yaml`, and with tabs where AUCTeX's `TAB` uses spaces.
 
 ### Timeline
-- b5cfe8f (O-51): texlab 5.25.1 has no range formatting.
-- 6793b7a (D-101, T-074, 0068): latexindent for regions, then, by the owner's ruling,
+- 812e8d1 (O-51): texlab 5.25.1 has no range formatting.
+- be47626 (D-101, T-074, 0068): latexindent for regions, then, by the owner's ruling,
   for buffers too; DESIGN said "latexindent's defaults, as texlab calls it".
 - 5ae4bf9 (O-53): texlab's source read: it passes `--local` from its own directory and
   ignores `insertSpaces`; D-101's claim marked wrong.
@@ -462,19 +462,19 @@ D-101 marked, D-103; upstream report `docs/upstream/texlab-range-formatting.md`
 
 ## Smaller issues, 2026-10-09 .. 2026-10-14
 Fixed once, no decision reopened; listed so the pattern stays visible.
-- 0c76fec: `M-o` listed files before binding the GC threshold; deal.II-sized projects
+- 103cc6a: `M-o` listed files before binding the GC threshold; deal.II-sized projects
   collected garbage while the prompt opened (S11 run 3 on RMO's 2673 files missed it).
   Lesson as 2026-10-07: measure at the target scale (D-010).
-- 5c14d42 (D-070): the tree followed `M-.` into deal.II's install directory, which
+- 9bfc7d9 (D-070): the tree followed `M-.` into deal.II's install directory, which
   projectile took for a project (a Makefile).
-- 62cccff (D-073): the line number column changed width while scrolling.
-- b1daf15, ceeb9a7 (D-062, T-039, T-040): `c-ts-mode` indentation gaps (member after a
+- ed6813c (D-073): the line number column changed width while scrolling.
+- b399b3e, 8f65e4f (D-062, T-039, T-040): `c-ts-mode` indentation gaps (member after a
   blank line, constructor initializers), worked around, three upstream reports drafted
   (T-036, T-037, T-039).
-- 445c67e (D-079): consult kept hidden sources in the candidate list; patch 0001.
-- 15fa08e (D-093): navigation clicks on Ctrl took Emacs's own Ctrl clicks on Arch; Super
+- 4901358 (D-079): consult kept hidden sources in the candidate list; patch 0001.
+- 30f75cb (D-093): navigation clicks on Ctrl took Emacs's own Ctrl clicks on Arch; Super
   on both platforms.
-- 913a702 (D-098): `init-python` worked only because `init.el` loaded `init-lsp` first;
+- 4ccc4fa (D-098): `init-python` worked only because `init.el` loaded `init-lsp` first;
   every module is now loaded alone in a test.
 - D-094: LLVM 23's `clang-change-namespace` crashes on two sources; patched (D-097),
   upstream report T-070.
@@ -493,9 +493,9 @@ acceptable (D-179), after first accepting deal.II's.
 
 ### Timeline
 RESEARCH_go_to_anything 22 (T-133 researched) -> O-85 (f), D-177 -> owner: tier 3 ->
-S21 (criteria confirmed; PASS with `m2`, 0126) -> db686da (built, 0127; done when 3's
-"first call as today" not met on deal.II, put to the owner) -> eee9a25 (opt-out,
-D-178) -> da93b7c (benchmarks over 14 trees; deal.II accepted) -> this commit (reverted,
+S21 (criteria confirmed; PASS with `m2`, 0126) -> 9a0dedd (built, 0127; done when 3's
+"first call as today" not met on deal.II, put to the owner) -> b90b6c9 (opt-out,
+D-178) -> 8288f32 (benchmarks over 14 trees; deal.II accepted) -> this commit (reverted,
 D-179, 0128).
 
 ### Root cause
@@ -567,7 +567,7 @@ encoded structurally rather than in a comment.
 - Lesson: an `H-n` naming a path in another repository checks that path when written.
 
 ## 2026-11-03 - A commit that failed docs-check was pushed (short)
-- What failed: 69d34a5 (D-156) reached origin with a 118-column line in DESIGN's O-79.
+- What failed: 8959ea8 (D-156) reached origin with a 118-column line in DESIGN's O-79.
 - Caught by: the session, reading the chain's output after the push.
 - Cause: `make docs-check | tail -1 && git commit ... && git push`: the pipe gave
   `tail`'s status, not make's; the same day an edit script's failure was likewise
@@ -578,7 +578,7 @@ encoded structurally rather than in a comment.
 
 ## 2026-11-03 - A clangd mechanism stated from log lines, ruled on, then refuted (short)
 - What failed: 0106 and O-79 (f) said clangd's main thread runs the includer lookup;
-  the owner ruled D-156 (f) / T-130 on it; it was pushed (642c127, 69d34a5).
+  the owner ruled D-156 (f) / T-130 on it; it was pushed (40ab205, 8959ea8).
 - Caught by: the session, reading `TUScheduler.cpp` when T-130 started.
 - Cause: log lines from worker threads, interleaved in the main thread's gaps, read
   as the main thread's work; the source was not opened before the option was offered.

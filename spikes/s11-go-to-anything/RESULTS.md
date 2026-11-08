@@ -28,7 +28,7 @@ out 224 - 231 ms after the key (consult's 0.2 s debounce, D-087, so run 2's 200 
 symbol criterion no longer applies) and reach the screen about 100 ms after the
 reply; `eto` got 495 project symbols. The first two attempts at this run never got
 ready: a relative `S11_LOG` was written from the opened file's directory (fixed
-b823769), and setup errors were not logged (fixed e5fa605).
+9c5c964), and setup errors were not logged (fixed 6be3860).
 
 ## Run 5 (2026-10-13 19:13, Mac, load not logged: no /proc there)
 Raw output: `results-run5.log`. O-37, T-059. The owner's deal.II project

@@ -3,7 +3,7 @@
 Question (owner, 2026-10-08): which modes for Python, R and Perl, and do they conflict
 with the current C++ keys and settings? Findings only; verdicts go to DESIGN (O-19,
 O-20). Checked on the owner machine against Emacs 31.1, the shipped configuration at
-1e2ab29 and the local package database (`pacman -Ss`, no network); ESS is not
+a885397 and the local package database (`pacman -Ss`, no network); ESS is not
 installed, so its rows are from its documentation as remembered, not checked.
 
 Scope reminder (DESIGN 2): other languages "may ride along, never drive design". So

@@ -5,7 +5,7 @@
 - **Tier:** 3 (the revert of T-133, tier 3)
 - **Decisions:** D-179 (supersedes D-177, D-178); O-85 reopened
 - **Host:** hp-elitedesk (i5-6500, 4 cores, 15 GB, Arch)
-- **Done when:** `lisp/init-project.el`, its tests and the manual as before db686da;
+- **Done when:** `lisp/init-project.el`, its tests and the manual as before 9a0dedd;
   `make test` passes; the decisions record why.
 
 > Plain English for someone who does not read Emacs Lisp fluently.
@@ -20,7 +20,7 @@ accepted that for deal.II, then, with the wider benchmarks, ruled it not accepta
 (D-179) and asked for the feature and that acceptance to be reverted.
 
 `lisp/init-project.el`, `test/init-project-test.el` and `docs/MANUAL.md` are back as
-they were before db686da; the option `emacs-cpp-keep-project-files` is gone with them.
+they were before 9a0dedd; the option `emacs-cpp-keep-project-files` is gone with them.
 projectile lists on every call again. O-85 is open again, with the constraint that a
 remedy may not make any call slower than today's listing. S21's harness and its
 findings (lock files change directory times; the per-directory check) stay in
@@ -28,16 +28,16 @@ findings (lock files change directory times; the per-directory check) stay in
 
 ## Concepts explained
 - A revert by restoring files, not `git revert`: the files return to their state
-  before db686da, while the journal entry 0127 and S21's results stay as the record.
+  before 9a0dedd, while the journal entry 0127 and S21's results stay as the record.
 
 ## Key files walked
 - `lisp/init-project.el`, `test/init-project-test.el`, `docs/MANUAL.md` - restored.
 - `POSTMORTEM.md` - the entry of 2026-11-05.
 
 ## Assumptions + risks  (the postmortem ledger)
-- **Assumed:** nothing else came to depend on the kept lists between db686da and the
+- **Assumed:** nothing else came to depend on the kept lists between 9a0dedd and the
   revert. **Would break if:** a later commit used `emacs-cpp-project-files`; none did
-  (`git log db686da^..HEAD -- lisp/`). **DESIGN bet:** D-179.
+  (`git log 9a0dedd^..HEAD -- lisp/`). **DESIGN bet:** D-179.
 
 ## How to verify
 `make test`; `C-c p f` in emacs-cpp shows "Projectile is indexing" on every call, as

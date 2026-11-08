@@ -1,7 +1,7 @@
 # 0091 - Arch measurements (T-027) and why native modules loaded magit (S17)
 
 - **Date:** 2026-10-21
-- **Commits:** see `git log -1 --grep "S17 runs 2 and 3"`; D-131 in e6c4346, 31d2e2d
+- **Commits:** see `git log -1 --grep "S17 runs 2 and 3"`; D-131 in 3eb66b3, 614feff
 - **Tier:** 3 (spike runs, spike code only) and 1 (measurements into DESIGN 11)
 - **Decisions:** D-131 (O-73 (a)); O-74 opened; bears on D-125, D-128
 - **Done when:** T-027's Arch numbers in DESIGN 11; S17's cause shown and a fix measured

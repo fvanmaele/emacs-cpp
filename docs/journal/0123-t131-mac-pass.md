@@ -2,7 +2,7 @@
 
 - **Date:** 2026-11-04
 - **Commits:** see `git log -- spikes/s20-fswatch-reverter` (this entry's commit);
-  the code d162dd6
+  the code ba43a51
 - **Tier:** 2 (T-131)
 - **Decisions:** D-169
 - **Done when:** D-169: `emacs-cpp-reverter-steps` checks the order, `make test`
@@ -15,7 +15,7 @@
 ## What + why
 D-169 has the reverter refresh a shown buffer's branch and diff-hl marks before it
 reverts the remaining hidden buffers. Arch passed in 0122; H-27 asked for the same on
-the Mac, where this session runs, so it ran H-27's steps 3 - 6 itself at d162dd6.
+the Mac, where this session runs, so it ran H-27's steps 3 - 6 itself at ba43a51.
 `make test` passes (151 run, 0 unexpected, the usual 3 skips) and all three S20
 `shipped` runs pass: Emacs blocked at most 0.08 - 0.11 s (limit 0.25 s), shown buffers
 complete 0.23 - 0.31 s after `git` (D-168 on the Mac: 0.49 - 0.58 s), every buffer

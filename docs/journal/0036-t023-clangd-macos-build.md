@@ -39,7 +39,7 @@ with both patched flags. `init-cpp-patched-clangd-navigates` passes with it.
   missing; changed sources start from a fresh tree.
 - **`LLVM_APPEND_VC_REV=OFF`.** LLVM puts the git revision of the source tree into
   `clangd --version`. Built inside this repository, it picked up this repository's
-  revision ("clangd version 23.1.1 (<repository URL> a1f47e9...)" in
+  revision ("clangd version 23.1.1 (<repository URL> ec3a68e...)" in
   the owner's manual build); now it says only "clangd version 23.1.1".
 - **Builtin headers.** clangd looks for `stddef.h` and friends in `../lib/clang/23`
   next to its binary, so the install copies that directory along.
