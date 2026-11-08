@@ -1844,7 +1844,8 @@ the form that loads magit is found (S17 run 2, T-113).
   of the earlier rewrites deleted (bundles of every step in the session scratchpad).
   Kept: author and committer fields, the mailing list `bug-gnu-emacs@gnu.org`, the model
   trailers. Not touched (outside the ruling): `LICENSE`'s copyright line and the patch
-  files' `From:` headers. GitHub after H-34.
+  files' `From:` headers. Pushed 2026-11-08 by the session (owner: "push rewritten
+  history"): main, S20-arch, release; `watch-docs-arch` on GitHub not rewritten.
 - DECIDED D-195 (owner 2026-11-08: "Use author the owner's name consistently for all the
   branches", then "other address, the machine identity's only" and "All, incl. pushed";
   "set git config with the author"): the 49 commits made under this machine's global git

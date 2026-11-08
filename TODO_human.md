@@ -14,20 +14,15 @@ cannot read itself. An approval another session asks the owner for itself (a ben
 service's plan) is not an item.
 
 ## Run now
-- **H-34** (2026-11-08, unblocks D-195 on GitHub, H-32) Push the rewritten history; reset
-  the Mac's clone to it. Each push only goes through while GitHub still holds the old
-  commit named.
-  1. On Arch: `cd ~/source/repos/emacs-cpp && git push
-     --force-with-lease=main:bcd769126873d0fdfb4cd59d458d02af6365226a origin main`
-  2. On Arch: `cd ~/source/repos/emacs-cpp && git push
-     --force-with-lease=S20-arch:bd7372dc0a75c47156e27fdc660ba120db3f2388 origin S20-arch`
-  3. On the Mac: `cd ~/source/repos/emacs-cpp && git status --short --untracked-files=no
+- **H-34** (2026-11-08, unblocks H-32; D-195, D-196) Reset the Mac's clone to the
+  rewritten history (pushed by the session 2026-11-08: main 949066d, S20-arch, release).
+  1. On the Mac: `cd ~/source/repos/emacs-cpp && git status --short --untracked-files=no
      && git log --oneline -1 main` (expect no changed files and `bcd7691` or an older
      commit of main; anything else: stop and report it)
-  4. On the Mac: `cd ~/source/repos/emacs-cpp && git fetch origin && git reset --hard
+  2. On the Mac: `cd ~/source/repos/emacs-cpp && git fetch origin && git reset --hard
      origin/main && git config user.name "$(git log -1 --format=%an origin/main)" && git
      config user.email "$(git log -1 --format=%ae origin/main)"`
-  Report back: step 3's output if it was not as expected; any push refused.
+  Report back: step 1's output if it was not as expected.
 
 - **H-32** (2026-11-08, unblocks S22, T-138, D-190, D-192; waits on H-34) pdf-tools on
   the Mac: build its server with MacPorts' poppler, run S22, judge sharpness. Install
