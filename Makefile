@@ -11,9 +11,13 @@ help: ## list targets (default; builds nothing)
 
 EMACS ?= emacs
 
-.PHONY: packages test clangd library-index macos-ports
+.PHONY: packages epdfinfo test test-gui clangd library-index macos-ports
 packages: ## byte-compile lib/ submodules; write lib/load-path.el, lib/autoloads.el
 	$(EMACS) -Q --batch -l scripts/build-packages.el -f build-packages-batch
+
+# Apart from `packages', which needs no C compiler and no poppler (D-199).
+epdfinfo: ## build pdf-tools' server against the system's poppler; rerun after poppler changes
+	sh scripts/build-epdfinfo.sh
 
 # make test runs in an empty temporary HOME, so no test can write to the real one
 # (D-104); REAL_HOME=1 runs in yours, as a hand run of the test files does.
@@ -48,6 +52,20 @@ ifeq ($(REAL_HOME),)
 else
 	trap '' PIPE; unset DEBUGINFOD_URLS; $(ERT)
 endif
+
+# The tests that need pages drawn, in a graphical Emacs (batch Emacs draws nothing; D-199).
+# --chdir: on the Mac a graphical Emacs whose stdin is not a tty starts in HOME.
+test-gui: ## ERT needing a display: a window opens, do not touch it (run `make epdfinfo` first)
+	@tmp=$${TMPDIR:-/tmp}; \
+	home=$$(mktemp -d "$${tmp%/}/emacs-cpp-test-home.XXXXXX") || exit 1; \
+	trap 'rm -rf "$$home"' EXIT; trap 'exit 130' INT TERM; \
+	echo "make test-gui: HOME=$$home"; unset DEBUGINFOD_URLS; \
+	HOME="$$home" EMACS_CPP_GUI_TEST_LOG="$$home/test-gui.log" \
+		$(EMACS) --chdir="$(CURDIR)" -Q -L scripts -L lisp -L test -L test/gui \
+		-l gui-test-run </dev/null; code=$$?; \
+	if [ -f "$$home/test-gui.log" ]; then cat "$$home/test-gui.log"; \
+	else echo "make test-gui: no log: Emacs did not start graphically"; [ "$$code" -ne 0 ] || code=2; fi; \
+	exit "$$code"
 
 # The patched clangd at the installed LLVM's version (D-027): pkgver from llvm-config,
 # checksums refreshed, then makepkg with MAKEPKG_FLAGS (-si installs).

@@ -535,11 +535,14 @@ Formulas written as code with Unicode Greek letters and math symbols are set in
 DejaVu Sans Mono, which has them (D-185; `emacs-cpp-markdown-pdf-monofont`).
 A character no font has is left out of the PDF; the export then shows a warning
 naming each one.
-Needs pandoc, LaTeX and MuPDF's mutool (which draws the pages sharply, D-186): on Arch
-`sudo pacman -S pandoc-cli texlive-xetex mupdf-tools`, on the Mac `sudo port install
-pandoc mupdf` and MacTeX. After installing mutool, restart Emacs if it had shown a PDF.
-The pages fit the window's width, also after the window is resized (D-187); `+` and
-`-` zoom until its size next changes. Scrolling past a page's bottom goes on to the next
-page (D-189). The margin is 3 cm on all sides: `emacs-cpp-markdown-pdf-margin` (a TeX length
+Needs pandoc and LaTeX: on Arch `sudo pacman -S pandoc-cli texlive-xetex`, on the Mac
+`sudo port install pandoc` and MacTeX.
+Every PDF, exported or opened by hand, opens in pdf-tools (D-199): the pages fit the
+window's width, also after the window is resized; `+` and `-` zoom; scrolling runs on
+from page to page; `C-s` searches, `f` follows a link by its letter, a click follows it
+too, and dragging selects text. Its server is built once with `make epdfinfo` (on the
+Mac first `sudo port install poppler autoconf automake pkgconfig`), and again after a
+poppler library change: until then no PDF opens, and the message line names this command
+over the file's raw text. The margin is 3 cm on all sides: `emacs-cpp-markdown-pdf-margin` (a TeX length
 such as `"2.5cm"`, nil for pandoc's default), also per project in `.dir-locals.el`. Math drawn inside the Markdown buffer is not
 configured (T-136, deferred).

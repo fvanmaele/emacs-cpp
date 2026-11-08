@@ -3,21 +3,27 @@
 ;;; Commentary:
 
 ;; The owner's existing packages, carried over (DESIGN 12).  Markdown buffers export to
-;; PDF through pandoc and a LaTeX engine on `C-c C-c x', shown in doc-view (D-184,
-;; DESIGN 12.1).  Math drawn in the buffer is deferred (T-136).  Code spans use a
-;; monospace font with Greek and math symbols, and characters LaTeX drops are a
-;; warning (D-185).  DocView draws the PDF through MuPDF's SVG output (D-186), its
-;; pages fitted to the window's width, refitted when the window is resized (D-187),
-;; scrolling on into the next page; the page margin is 3 cm (D-189).
+;; PDF through pandoc and a LaTeX engine on `C-c C-c x' (D-184, DESIGN 12.1).  Math drawn
+;; in the buffer is deferred (T-136).  Code spans use a monospace font with Greek and math
+;; symbols, and characters LaTeX drops are a warning (D-185); the page margin is 3 cm
+;; (D-189).  Every PDF opens in pdf-tools, scrolling continuously, its pages at the
+;; window's width (D-199); its server is `make epdfinfo', and without it no PDF opens.
 
 ;;; Code:
 
 (require 'cl-lib)
 
-(defvar doc-view-image-width)
-(defvar doc-view-continuous)
+(defvar pdf-info-epdfinfo-program)
+(defvar image-mode-winprops-alist)
+(defvar pdf-view-roll-minor-mode)
 (declare-function image-mode-window-get "image-mode" (prop &optional winprops))
-(declare-function doc-view-insert-image "doc-view" (file &rest args))
+(declare-function image-mode-window-put "image-mode" (prop val &optional winprops))
+(declare-function pdf-info-check-epdfinfo "pdf-info" (&optional interactive-p))
+(declare-function pdf-info-number-of-pages "pdf-info" (&optional file-or-buffer))
+(declare-function pdf-roll-goto-page "pdf-roll" (page &optional window))
+(declare-function pdf-tools-enable-minor-modes "pdf-tools" (&optional modes))
+(declare-function pdf-view-goto-page "pdf-view" (page &optional window))
+(declare-function pdf-view-mode "pdf-view" ())
 
 (defcustom emacs-cpp-markdown-pdf-engine "xelatex"
   "LaTeX engine pandoc uses for `emacs-cpp-markdown-pdf' (D-184).
@@ -70,51 +76,74 @@ MONOFONT nil: pandoc's default monospace font; MARGIN nil: its default margins."
       (cl-pushnew (match-string 1 output) found :test #'equal))
     (nreverse found)))
 
-(defun emacs-cpp-markdown--check-tools (engine)
-  "Signal an error naming the install command when a program the export needs is
-missing: pandoc, ENGINE, and mutool, without which DocView falls back to gs's
-blurry 100 dpi PNGs instead of MuPDF's SVG pages (D-186)."
-  (dolist (program (list "pandoc" engine "mutool"))
-    (unless (executable-find program)
-      (error "emacs-cpp: %s is not on exec-path; install: %s (D-184, D-186)"
-             program emacs-cpp-default-markdown-pdf-install))))
+(defvar emacs-cpp-pdf--server-checked nil
+  "The `pdf-info-epdfinfo-program' that passed the check in this session, or nil.")
 
-(defun emacs-cpp-markdown--fit-width (window)
-  "Fit the pages of WINDOW's DocView buffer to WINDOW's body width (D-187).
-Sets the buffer's `doc-view-image-width', which pages still being converted
-use when shown, and redraws the page WINDOW shows, if any.  Emacs scales
-images by `image-scaling-factor' on top of their :width (1.1 for an 11 pixel
-wide font), so the width is the body's divided by that factor.  A buffer
-DocView shows as text (no graphic display) is left alone."
-  (with-selected-window window
-    (let ((width (floor (window-body-width window t)
-                        (image-compute-scaling-factor))))
-      (when (and (derived-mode-p 'doc-view-mode)
-                 (not (eql width doc-view-image-width)))
-        (setq-local doc-view-image-width width)
-        (when-let* ((image (image-mode-window-get 'image)))
-          (doc-view-insert-image (plist-get (cdr image) :file)
-                                 :width width))))))
+(defun emacs-cpp-pdf--check-server ()
+  "Signal an error naming `make epdfinfo' unless pdf-tools' server runs (D-199).
+Not built, or built against a poppler library since replaced: both only show when
+it runs.  A pass holds for the session; a failure is checked again next time, so
+that no restart is needed after the build."
+  (require 'pdf-info)
+  (unless (equal emacs-cpp-pdf--server-checked pdf-info-epdfinfo-program)
+    (condition-case err
+        (pdf-info-check-epdfinfo)
+      (error
+       (error "emacs-cpp: pdf-tools' server does not run: %s; run `make epdfinfo' in %s (D-199)"
+              (error-message-string err) emacs-cpp-root)))
+    (setq emacs-cpp-pdf--server-checked pdf-info-epdfinfo-program)))
+
+(defun emacs-cpp-pdf-view-mode ()
+  "`pdf-view-mode' with its server checked first: the mode of every PDF (D-199).
+An error here reaches the owner through `normal-mode' as a message over the raw
+file, which names the fix."
+  (emacs-cpp-pdf--check-server)
+  (require 'pdf-tools)
+  (pdf-view-mode))
+
+(defun emacs-cpp-pdf--clamp-page ()
+  "Move each window past this PDF's new end to its last page (D-192).
+After a revert that shortens the document, roll mode draws nothing in a window on
+a page that no longer exists until the next key.  Every window that has shown the
+buffer counts: it may be the export's window, not selected, or come back later.
+Its record of pages drawn goes too: `pdf-roll-initialize' clears only the selected
+window's, and undrawing a page that no longer exists stops the redraw."
+  (let ((last (pdf-info-number-of-pages)))
+    (dolist (window (mapcar #'car image-mode-winprops-alist))
+      (when (and (window-live-p window)
+                 (> (or (image-mode-window-get 'page window) 1) last))
+        (image-mode-window-put 'displayed-pages nil window)
+        (if pdf-view-roll-minor-mode
+            (pdf-roll-goto-page last window)
+          (pdf-view-goto-page last window))))))
+
+(defun emacs-cpp-pdf--setup ()
+  "Turn on `pdf-tools-enabled-modes' and the clamp in this PDF buffer (D-192, D-199)."
+  (pdf-tools-enable-minor-modes)
+  (add-hook 'after-revert-hook #'emacs-cpp-pdf--clamp-page nil t))
+
+(defun emacs-cpp-markdown--check-tools (engine)
+  "Signal an error naming the fix when something the export needs is missing:
+pandoc and ENGINE, with the install command, or pdf-tools' server, which shows the
+PDF, before LaTeX has run (D-199)."
+  (dolist (program (list "pandoc" engine))
+    (unless (executable-find program)
+      (error "emacs-cpp: %s is not on exec-path; install: %s (D-184)"
+             program emacs-cpp-default-markdown-pdf-install)))
+  (emacs-cpp-pdf--check-server))
 
 (defun emacs-cpp-markdown--show-pdf (pdf)
-  "Show PDF in another window, reverting its buffer when it has one.  Return it.
-Its pages fit the window's width, also after the window is resized (D-187);
-scrolling past a page's edge goes on to the next or previous page (D-189)."
+  "Show PDF in another window, reverting its buffer when it has one.  Return it."
   (let ((buffer (find-buffer-visiting pdf)))
     (if buffer
         (with-current-buffer buffer
           (revert-buffer t t))
       (setq buffer (find-file-noselect pdf)))
-    (with-current-buffer buffer
-      ;; Buffer-local: `revert-buffer' resets both, so set again on each export.
-      (setq-local doc-view-continuous t)
-      (add-hook 'window-size-change-functions #'emacs-cpp-markdown--fit-width nil t))
-    (emacs-cpp-markdown--fit-width
-     (display-buffer buffer '(nil (inhibit-same-window . t))))
+    (display-buffer buffer '(nil (inhibit-same-window . t)))
     buffer))
 
 (defun emacs-cpp-markdown-pdf ()
-  "Write this Markdown file's PDF through pandoc and show it in doc-view (D-184).
+  "Write this Markdown file's PDF through pandoc and show it in pdf-tools (D-184, D-199).
 The PDF goes beside the file, named as it with .pdf; the engine is
 `emacs-cpp-markdown-pdf-engine'.  Return the pandoc process."
   (interactive)
@@ -167,6 +196,18 @@ see %s, and `emacs-cpp-markdown-pdf-monofont' (D-185)"
 (use-package markdown-mode
   :config
   (keymap-set markdown-mode-command-map "x" #'emacs-cpp-markdown-pdf))
+
+;; Not `pdf-tools-install': it rebuilds the server, installs system packages and can fail
+;; silently (D-199).  Dark themes add `pdf-view-dark-minor-mode' to the list by themselves.
+(use-package pdf-tools
+  :mode ("\\.[pP][dD][fF]\\'" . emacs-cpp-pdf-view-mode)
+  :magic ("%PDF" . emacs-cpp-pdf-view-mode)
+  :hook (pdf-view-mode . emacs-cpp-pdf--setup)
+  :custom
+  (pdf-info-epdfinfo-program (expand-file-name "lib/pdf-tools/server/epdfinfo" emacs-cpp-root))
+  (pdf-view-display-size 'fit-width)
+  (pdf-tools-enabled-modes '(pdf-view-roll-minor-mode pdf-links-minor-mode
+                             pdf-isearch-minor-mode)))
 
 (use-package org-journal)
 
