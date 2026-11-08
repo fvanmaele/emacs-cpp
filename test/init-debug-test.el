@@ -433,6 +433,12 @@ into a call, out of it and over a line, then end the session."
         (should-error (dape--config-ensure (alist-get 'lldb-preset dape-configs) t)
                       :type 'user-error)))))
 
+(ert-deftest init-debug-request-timeout ()
+  "A slow debuginfod lookup at lldb-dap's launch only slows it (T-140, D-197)."
+  (init-test--load)
+  (require 'dape)
+  (should (= dape-request-timeout 60)))
+
 (ert-deftest init-debug-lldb-preset-builds-stops-and-steps ()
   (init-test--load)
   (unless (ignore-errors (emacs-cpp-debug-lldb-dap))

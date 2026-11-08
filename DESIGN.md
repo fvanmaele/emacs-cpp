@@ -1822,6 +1822,15 @@ the form that loads magit is found (S17 run 2, T-113).
   as findings, marked superseded. Test: init.el loads with neither module nor
   package on `load-path`. Built (0099). Amended 2026-11-07 by D-184: Markdown gets
   LaTeX export and math preview; `.tex` files stay as ruled here.
+- DECIDED D-197 (owner 2026-11-08: "Longer launch + tests offline"; T-140): dape's
+  `dape-request-timeout` is 60 s (was jsonrpc's 10 s) in the shipped config, so lldb-dap's
+  debuginfod lookups at launch (Arch's `DEBUGINFOD_URLS`, lldb's lookup timeout 0) only
+  slow a launch on a slow server; `make test` unsets `DEBUGINFOD_URLS`, so no test waits
+  on the network. Checked: `make test` 5 of 5 with the URLs pointing at an address that
+  never answers. Not covered: an unreachable server; outside `make test` the launch then
+  failed after 60 s (lldb waits for the system's connect timeout, about two minutes);
+  T-141. Against: a hung adapter is noticed after 60 s, not 10; the tests no longer
+  cover debuginfod.
 - DECIDED D-196 (owner 2026-11-08: "Don't include identities or mails in .md files", "If
   those are already commited in .md, rewrite history", "Don't include the name/mails in
   the commit message explanations either"): no person's name, user name, handle or
@@ -4619,6 +4628,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-183 | 2026-11-05 | O-85 (h): projectile's per-submodule pass off, fd required for git listings | 12 | O-85, T-133 |
 | D-184 | 2026-11-07 | O-89 (b): Markdown to PDF by pandoc + LaTeX; math drawn by math-preview deferred | 12 | O-89, D-145 |
 | D-185 | 2026-11-07 | Markdown PDF: code in DejaVu Sans Mono, missing glyphs a warning | 12 | D-184, owner report |
+| D-197 | 2026-11-08 | dape request timeout 60 s; make test without debuginfod | 5 | T-140 |
 | D-196 | 2026-11-08 | no names or addresses in .md files or commit messages; history rewritten | Conventions | owner |
 | D-195 | 2026-11-08 | one author identity (the owner's address) on every branch; history rewritten, force push H-34 | Conventions | owner |
 | D-194 | 2026-11-08 | branch `release`: one commit per feature, code and README / MANUAL / CHEATSHEET | Conventions | owner |

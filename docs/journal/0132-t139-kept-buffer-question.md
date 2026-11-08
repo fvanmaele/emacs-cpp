@@ -52,6 +52,12 @@ are looking at the buffer.
 - **Risk:** `init-debug-lldb-preset-builds-stops-and-steps` timed out on lldb's
   `:launch` 3 times between 21:30 and 21:35 on Arch, then passed 4 times, with and
   without this change: T-140.
+- **T-140, the same day (D-197):** the cause is lldb-dap asking Arch's debuginfod server
+  for system libraries' debug info at launch; each test run's fresh HOME has no cache,
+  and dape gave a request 10 s. With the server address pointing nowhere the failure
+  repeats exactly; without it the test passes in 4 - 5 s. dape now waits 60 s, and
+  `make test` runs without the server: 5 runs in a row pass. An unreachable server still
+  holds the launch past 60 s: T-141.
 
 ## How to verify
 `make test`. By hand: open a project file, type a character, change the file in a

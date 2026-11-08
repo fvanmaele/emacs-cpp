@@ -249,6 +249,10 @@ parts, started with `emacs-cpp-debug-lldb-dap' (D-051)."
   ;; Gutter clicks in C and C++ buffers; dape (135 ms) loads with the first one.  Not
   ;; `prog-mode': *scratch* is one, and would load dape at every startup.
   :hook (c-ts-base-mode . dape-breakpoint-mode)
+  ;; lldb-dap looks up debug info through debuginfod at launch (Arch sets
+  ;; DEBUGINFOD_URLS); a slow server passed the 10 s default and the session failed
+  ;; (T-140, D-197).  A slow lookup now only slows the launch.
+  :custom (dape-request-timeout 60)
   :config
   (setf (alist-get 'gdb-preset dape-configs) (emacs-cpp-debug--gdb-preset-config))
   (setf (alist-get 'lldb-preset dape-configs) (emacs-cpp-debug--lldb-preset-config))
