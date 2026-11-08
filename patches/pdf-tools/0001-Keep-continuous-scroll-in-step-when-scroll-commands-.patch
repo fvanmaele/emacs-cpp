@@ -1,0 +1,69 @@
+From 8f6342f96f9110dfa7770a441e118cc09d8219b6 Mon Sep 17 00:00:00 2001
+From: Ferdinand Vanmaele <ferdinand-joseph.vanmaele@uni-a.de>
+Date: Mon, 9 Nov 2026 00:52:26 +0100
+Subject: [PATCH] Keep continuous scroll in step when scroll commands precede
+ redisplay
+
+pdf-roll-scroll-forward and pdf-roll-scroll-backward set the page and the
+vscroll, but leave window-start on the old page: pdf-roll-pre-redisplay
+moves it at the next redisplay.  The vscroll counts from window-start, so
+a scroll command running before that redisplay starts from the old page
+again.  Redisplay waits while input is pending, so this happens when
+mouse wheel or trackpad events queue up, as on a loaded machine: at a
+page break the view jumps back by a page or skips ahead.
+
+pdf-roll-scroll-forward also measured a page that redisplay had not drawn
+yet by its placeholder, a space 1000 lines tall, so the next page break
+never came.  It now draws the page before measuring it, as
+pdf-roll-scroll-backward does, and records it in displayed-pages.
+
+Both commands now set window-start to the page they end on.
+---
+ lisp/pdf-roll.el | 17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
+
+diff --git a/lisp/pdf-roll.el b/lisp/pdf-roll.el
+index 2cc5d16..1b09630 100644
+--- a/lisp/pdf-roll.el
++++ b/lisp/pdf-roll.el
+@@ -276,7 +276,16 @@ If PIXELS is non-nil N is number of pixels instead of lines."
+   (setq window (or window (selected-window)))
+   (when (> 0 n) (pdf-roll-scroll-backward (- n) window))
+   (let ((pos (goto-char (window-start window))))
+-    (while (let* ((data (pos-visible-in-window-p (point) window t))
++    (while (let* ((page (pdf-roll-page-at-current-pos))
++                  ;; Measure the page, not the placeholder standing for it until
++                  ;; `pdf-roll-pre-redisplay' draws it, which a following scroll
++                  ;; command may precede; record it, so redisplay can undisplay it.
++                  (_ (progn (pdf-roll-display-page page window)
++                            (image-mode-window-put
++                             'displayed-pages
++                             (cl-adjoin page (image-mode-window-get 'displayed-pages window))
++                             window)))
++                  (data (pos-visible-in-window-p (point) window t))
+                   (occupied-pixels (cond ((nth 2 data) (nth 4 data))
+                                          (data (line-pixel-height))
+                                          (t (pdf-roll-display-page
+@@ -289,6 +298,10 @@ If PIXELS is non-nil N is number of pixels instead of lines."
+                  (cl-decf n occupied-pixels))))
+       (forward-char 4))
+     (setf (pdf-view-current-page window) (pdf-roll-page-at-current-pos))
++    ;; The vscroll counts from `window-start'; move it to the new page now, since
++    ;; `pdf-roll-pre-redisplay' does so only at the next redisplay, which a
++    ;; following scroll command may precede.
++    (set-window-start window (point) t)
+     (pdf-roll-set-vscroll (+ (if (eq pos (point)) (window-vscroll window t) 0) n)
+                           window)))
+ 
+@@ -317,6 +330,8 @@ If PIXELS is non-nil N is number of pixels instead of lines."
+                           (pdf-roll-page-at-current-pos) window)
+                          (cl-decf n (line-pixel-height)))
+                   (> n 0)))
++      ;; As in `pdf-roll-scroll-forward': the vscroll counts from the new page.
++      (set-window-start window (point) t)
+       (pdf-roll-set-vscroll (- n) window)))
+   (setf (pdf-view-current-page window) (pdf-roll-page-at-current-pos)))
+ 
+-- 
+2.56.0
+

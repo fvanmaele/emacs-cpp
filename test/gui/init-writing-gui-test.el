@@ -127,6 +127,31 @@ Fails when roll mode logged a drawing error meanwhile."
             (setq both (equal (init-writing-gui--drawn-pages window) '(1 2))))))
       (should both))))
 
+(defun init-writing-gui--scroll-steps (window from command steps redraw)
+  "Run COMMAND STEPS times in WINDOW from the top of page FROM; return (PAGE VSCROLL).
+REDRAW non-nil: a redraw after each step; nil: none until the last, as when
+trackpad events queue under load and Emacs skips redraws while input waits."
+  (init-writing-gui--goto window from)
+  (with-selected-window window
+    (dotimes (_ steps)
+      (funcall command 3 window)
+      (when redraw (redisplay t))))
+  (redisplay t)
+  (with-current-buffer (window-buffer window)
+    (list (pdf-view-current-page window) (window-vscroll window t))))
+
+(ert-deftest init-writing-gui-scroll-steps-without-redraw ()
+  "Steps without a redraw between them end where the same steps with redraws end,
+across page breaks, forward and backward (D-200, pdf-tools patch 0001)."
+  (init-writing-gui--with-pdf 6
+    (let ((window (init-writing-gui--show pdf)))
+      (dolist (case '((1 pdf-roll-scroll-forward) (4 pdf-roll-scroll-backward)))
+        (let ((with (init-writing-gui--scroll-steps window (car case) (cadr case) 40 t))
+              (without (init-writing-gui--scroll-steps window (car case) (cadr case) 40 nil)))
+          ;; 40 steps of 3 lines cross at least one page break.
+          (should-not (= (car with) (car case)))
+          (should (equal without with)))))))
+
 (defun init-writing-gui--shorten-and-check (pdf window selected revert)
   "PDF, 6 pages, with page 6 in WINDOW, becomes 5 pages; REVERT must leave a page drawn.
 SELECTED non-nil: WINDOW is the selected window during the revert."

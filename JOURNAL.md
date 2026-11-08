@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0136 | 2026-11-09 | T-143: roll-mode scrolling in step without a redisplay | T-143 | D-200 |
 | 0135 | 2026-11-09 | T-142: every PDF in pdf-tools | T-142 | D-199, D-192 |
 | 0134 | 2026-11-08 | S22: pdf-tools PASS on both machines | T-138 | D-190, D-192 |
 | 0133 | 2026-11-08 | llm_vibecoding_standard 2.15.1 -> 2.17.1 | - | D-193 |

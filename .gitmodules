@@ -158,6 +158,7 @@
 	url = https://github.com/vedang/pdf-tools
 	ignore = untracked
 	load-path = lisp
+	patch = patches/pdf-tools/0001-Keep-continuous-scroll-in-step-when-scroll-commands-.patch
 [submodule "tablist"]
 	path = lib/tablist
 	url = https://github.com/emacsorphanage/tablist

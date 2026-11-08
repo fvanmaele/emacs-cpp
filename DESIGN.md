@@ -1841,6 +1841,23 @@ the form that loads magit is found (S17 run 2, T-113).
   poppler library change stops every PDF until `make epdfinfo` is rerun; roll mode on long
   PDFs is unmeasured (S22's had 5 - 6 pages; T-142 records it); a mode function's error
   reaches the owner as a message over the raw PDF, `normal-mode` catches it.
+- DECIDED D-200 (owner 2026-11-09: "Agree patch against pdf-tools"; tier 2, T-143, 0136):
+  pdf-tools patch 0001 (D-069) keeps roll mode's scrolling in step when scroll commands
+  run before a redisplay, as trackpad events do on a loaded machine (the owner's report:
+  the Mac, any PDF, under load, a jump at page breaks). `pdf-roll-scroll-forward` and
+  `-backward` set the page and vscroll but left `window-start` on the old page until
+  `pdf-roll-pre-redisplay`; the next command counted from the old page (a probe: 40 steps
+  of 42 px end on page 1 instead of 3). Forward also measured a page not drawn yet by its
+  placeholder, a space 1000 lines tall, and never reached the next break (page 2 at 724 px
+  of 700). The patch sets `window-start` to the page each command ends on and draws a page
+  before measuring it, recorded in `displayed-pages`. Test: `make test-gui`'s
+  `init-writing-gui-scroll-steps-without-redraw`: 40 steps forward and backward without a
+  redraw end where they do with one; fails without either half. Not taken: settings only
+  (`ns-use-mwheel-momentum`, coalescing: fewer events, but two still meeting one redraw
+  jump the same way; reasoned, not measured); a redisplay inside the commands (a page
+  drawn per wheel event, slower exactly under load). Against: a patch on pdf-tools'
+  scrolling to carry until upstream takes it (report not sent); pages drawn by the command
+  stay drawn until the next redisplay undisplays them.
 - DECIDED D-198 (owner 2026-11-08: "Run T-141"): lldb-preset caps lldb's debuginfod
   requests: its `initCommands` run `settings set
   plugin.symbol-locator.debuginfod.timeout N`, N from
@@ -2353,7 +2370,8 @@ Shape:
 - Viewer (D-199, T-142; SUPERSEDES D-186's DocView and `mutool`, D-187, D-189's
   scrolling): every PDF in pdf-tools, through `emacs-cpp-pdf-view-mode` (NEW), which
   checks the server first: `auto-mode-alist` and `magic-mode-alist`. Roll mode, links,
-  isearch by `pdf-tools-enabled-modes`; `fit-width`; D-192's clamp on `after-revert-hook`.
+  isearch by `pdf-tools-enabled-modes`; `fit-width`; D-192's clamp on `after-revert-hook`;
+  scrolling without a redisplay between steps by pdf-tools patch 0001 (D-200).
   Margin `emacs-cpp-markdown-pdf-margin`, 3 cm (D-189).
 - Math (DEFERRED 2026-11-07, T-136): math-preview in one `use-package` form in
   `lisp/init-writing.el`;
@@ -4662,6 +4680,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-183 | 2026-11-05 | O-85 (h): projectile's per-submodule pass off, fd required for git listings | 12 | O-85, T-133 |
 | D-184 | 2026-11-07 | O-89 (b): Markdown to PDF by pandoc + LaTeX; math drawn by math-preview deferred | 12 | O-89, D-145 |
 | D-185 | 2026-11-07 | Markdown PDF: code in DejaVu Sans Mono, missing glyphs a warning | 12 | D-184, owner report |
+| D-200 | 2026-11-09 | pdf-tools patch 0001: roll-mode scroll commands in step without a redisplay | 12 | T-143, owner report |
 | D-199 | 2026-11-08 | every PDF in pdf-tools; `make epdfinfo`, no fallback; `make test-gui` | 12 | owner, S22 |
 | D-198 | 2026-11-08 | lldb's debuginfod requests capped at 5 s at lldb-preset's launch | 5 | T-141 |
 | D-197 | 2026-11-08 | dape request timeout 60 s; make test without debuginfod | 5 | T-140 |

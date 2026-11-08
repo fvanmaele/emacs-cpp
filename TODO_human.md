@@ -14,8 +14,10 @@ cannot read itself. An approval another session asks the owner for itself (a ben
 service's plan) is not an item.
 
 ## Run now
-- **H-36** (2026-11-09, unblocks T-142, D-199) pdf-tools on every PDF: Arch's run and the
-  hand check of link and selection. No system install: S22 built the server there.
+- **H-36** (2026-11-09, unblocks T-142, D-199, D-200) pdf-tools on every PDF: Arch's run
+  and the hand check of link and selection; step 2's `make packages` applies pdf-tools
+  patch 0001, step 3's `make test-gui` tests it. No system install: S22 built the server
+  there.
   1. On the Mac: `cd ~/source/repos/emacs-cpp && git push`
   2. On Arch: `cd ~/source/repos/emacs-cpp && git pull --ff-only && git submodule update
      --init lib/pdf-tools lib/tablist && make packages && make epdfinfo && make test
