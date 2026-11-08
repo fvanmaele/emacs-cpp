@@ -447,7 +447,11 @@ Open a file that already has the project's style, then:
 After the first step key (`C-x C-a n`), plain `n` `s` `o` `c` keep going. Program
 arguments: `gdb-preset :args ["--levels" "5"]` at the `C-x C-a d` prompt; the prompt
 starts with your last input. `lldb-preset` does the same with lldb: on macOS, where
-there is no gdb, use it in place of `gdb-preset`.
+there is no gdb, use it in place of `gdb-preset`. On Arch lldb fetches system
+libraries' debug info from the internet at launch; a slow or unreachable server makes
+the first launch slower (up to about 40 s), not fail.
+`emacs-cpp-debug-lldb-debuginfod-timeout` (5 s per request) sets how long it waits
+(D-198).
 
 Python files work the same way with ty on Arch and pyright on the Mac (navigation,
 rename, `C-c l` keys); `C-x C-a d debugpy RET` debugs the current file.

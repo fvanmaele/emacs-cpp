@@ -1822,6 +1822,15 @@ the form that loads magit is found (S17 run 2, T-113).
   as findings, marked superseded. Test: init.el loads with neither module nor
   package on `load-path`. Built (0099). Amended 2026-11-07 by D-184: Markdown gets
   LaTeX export and math preview; `.tex` files stay as ruled here.
+- DECIDED D-198 (owner 2026-11-08: "Run T-141"): lldb-preset caps lldb's debuginfod
+  requests: its `initCommands` run `settings set
+  plugin.symbol-locator.debuginfod.timeout N`, N from
+  `emacs-cpp-debug-lldb-debuginfod-timeout` (5 s); lldb's own default is debuginfod's
+  90 s per request. A launch makes about 6 requests (a 2 s cap took it from 6 to 18 s),
+  so 5 s keeps an unreachable server at 39 - 40 s, inside dape's 60 s (D-197); the
+  real server 7 and 14 s. A dape whose `lldb-dap` entry brings its own `initCommands`
+  stops the config at startup. Against: a download longer than 5 s is skipped for that
+  launch (symbols of that library missing until a later launch fetches it).
 - DECIDED D-197 (owner 2026-11-08: "Longer launch + tests offline"; T-140): dape's
   `dape-request-timeout` is 60 s (was jsonrpc's 10 s) in the shipped config, so lldb-dap's
   debuginfod lookups at launch (Arch's `DEBUGINFOD_URLS`, lldb's lookup timeout 0) only
@@ -4630,6 +4639,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-183 | 2026-11-05 | O-85 (h): projectile's per-submodule pass off, fd required for git listings | 12 | O-85, T-133 |
 | D-184 | 2026-11-07 | O-89 (b): Markdown to PDF by pandoc + LaTeX; math drawn by math-preview deferred | 12 | O-89, D-145 |
 | D-185 | 2026-11-07 | Markdown PDF: code in DejaVu Sans Mono, missing glyphs a warning | 12 | D-184, owner report |
+| D-198 | 2026-11-08 | lldb's debuginfod requests capped at 5 s at lldb-preset's launch | 5 | T-141 |
 | D-197 | 2026-11-08 | dape request timeout 60 s; make test without debuginfod | 5 | T-140 |
 | D-196 | 2026-11-08 | no names or addresses in .md files or commit messages; history rewritten | Conventions | owner |
 | D-195 | 2026-11-08 | one author identity (the owner's address) on every branch; history rewritten, force push H-34 | Conventions | owner |

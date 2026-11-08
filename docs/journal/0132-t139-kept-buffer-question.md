@@ -58,6 +58,9 @@ are looking at the buffer.
   repeats exactly; without it the test passes in 4 - 5 s. dape now waits 60 s, and
   `make test` runs without the server: 5 runs in a row pass. An unreachable server still
   holds the launch past 60 s: T-141.
+- **T-141, the same day (D-198):** lldb itself now gives up on one debuginfod request
+  after 5 s (an lldb setting sent when the debugger starts). A launch asks about six
+  times, so with the server unreachable the test passes in 39 - 40 s instead of failing.
 
 ## How to verify
 `make test`. By hand: open a project file, type a character, change the file in a
