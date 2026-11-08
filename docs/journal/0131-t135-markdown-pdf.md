@@ -99,6 +99,10 @@ closed its input; the Emacs the owner runs ignores that signal and reports an er
 instead. Seen in `init-python-eglot-only-in-projects`: a timer wrote to ty after ty
 shut down. `make test` now ignores the signal as the shipped Emacs does: that test
 12 of 12, `make test` 5 of 5.
+Also 2026-11-08 (D-189, owner): the margin is 3 cm on all four sides and can be set,
+`emacs-cpp-markdown-pdf-margin`; the text of such a PDF starts 3.0 cm from the
+page's edges. Scrolling past a page's end goes on to the next page. DocView still
+shows one page at a time.
 
 ## Standard feedback (optional; the standard pulls it with `make feedback`)
 - Helped: "a choice offered to the owner, premises verified or marked UNVERIFIED";

@@ -53,13 +53,14 @@
 (ert-deftest init-writing-pdf-command ()
   "pandoc gets the file and its PDF by name, run in the file's directory."
   (init-test--load)
-  (should (equal (emacs-cpp-markdown--pdf-command "/a/b/doc.md" "lualatex" nil)
+  (should (equal (emacs-cpp-markdown--pdf-command "/a/b/doc.md" "lualatex" nil nil)
                  '("pandoc" "doc.md" "-o" "doc.pdf" "--pdf-engine=lualatex")))
-  (should (equal (emacs-cpp-markdown--pdf-command "/a/b/doc.md" "xelatex" "Menlo")
+  (should (equal (emacs-cpp-markdown--pdf-command "/a/b/doc.md" "xelatex" "Menlo" "2.5cm")
                  '("pandoc" "doc.md" "-o" "doc.pdf" "--pdf-engine=xelatex"
-                   "-V" "monofont=Menlo")))
+                   "-V" "monofont=Menlo" "-V" "geometry:margin=2.5cm")))
   (should (equal emacs-cpp-markdown-pdf-engine "xelatex"))
-  (should (equal emacs-cpp-markdown-pdf-monofont "DejaVuSansMono.ttf")))
+  (should (equal emacs-cpp-markdown-pdf-monofont "DejaVuSansMono.ttf"))
+  (should (equal emacs-cpp-markdown-pdf-margin "3cm")))
 
 (ert-deftest init-writing-pdf-missing-characters ()
   "LaTeX's missing-glyph lines give each character once, in order (D-185)."
@@ -148,7 +149,14 @@
                            (floor (window-body-width nil t)
                                   (image-compute-scaling-factor))))))
           (should (memq #'emacs-cpp-markdown--fit-width
-                        window-size-change-functions)))))))
+                        window-size-change-functions))
+          ;; Scrolling goes on into the next page, after the revert too (D-189).
+          (should (local-variable-p 'doc-view-continuous))
+          (should doc-view-continuous))
+        ;; The margin goes to pandoc, and LaTeX accepts it (D-189).
+        (let ((process (emacs-cpp-markdown-pdf)))
+          (should (member "geometry:margin=3cm" (process-command process)))
+          (should (eql 0 (init-writing-test--wait process))))))))
 
 (ert-deftest init-writing-pdf-fit-width ()
   "A resized window refits the shown PDF's pages to its body width (D-187)."

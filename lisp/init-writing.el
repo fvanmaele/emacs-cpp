@@ -7,13 +7,15 @@
 ;; DESIGN 12.1).  Math drawn in the buffer is deferred (T-136).  Code spans use a
 ;; monospace font with Greek and math symbols, and characters LaTeX drops are a
 ;; warning (D-185).  DocView draws the PDF through MuPDF's SVG output (D-186), its
-;; pages fitted to the window's width, refitted when the window is resized (D-187).
+;; pages fitted to the window's width, refitted when the window is resized (D-187),
+;; scrolling on into the next page; the page margin is 3 cm (D-189).
 
 ;;; Code:
 
 (require 'cl-lib)
 
 (defvar doc-view-image-width)
+(defvar doc-view-continuous)
 (declare-function image-mode-window-get "image-mode" (prop &optional winprops))
 (declare-function doc-view-insert-image "doc-view" (file &rest args))
 
@@ -34,6 +36,15 @@ Mono ships with TeX Live; a name with .ttf is looked up as a file there."
   :safe (lambda (value) (or (null value) (stringp value)))
   :group 'tools)
 
+(defcustom emacs-cpp-markdown-pdf-margin "3cm"
+  "Page margin, all four sides, of `emacs-cpp-markdown-pdf' (D-189).
+A TeX length, passed as pandoc's `-V geometry:margin='; nil leaves pandoc's
+default (LaTeX's own margins, wider on the sides).  A bad length is a LaTeX
+error: the export shows pandoc's output and signals."
+  :type '(choice (const :tag "pandoc's default" nil) string)
+  :safe (lambda (value) (or (null value) (stringp value)))
+  :group 'tools)
+
 (defconst emacs-cpp-markdown--pdf-output "*emacs-cpp-markdown-pdf*"
   "Buffer holding pandoc's output of the last export.")
 
@@ -41,13 +52,14 @@ Mono ships with TeX Live; a name with .ttf is looked up as a file there."
   "Return the PDF file `emacs-cpp-markdown-pdf' writes for FILE."
   (concat (file-name-sans-extension file) ".pdf"))
 
-(defun emacs-cpp-markdown--pdf-command (file engine monofont)
-  "Return the pandoc command line writing FILE's PDF with ENGINE and MONOFONT.
-MONOFONT nil: pandoc's default monospace font."
+(defun emacs-cpp-markdown--pdf-command (file engine monofont margin)
+  "Return the pandoc command line writing FILE's PDF with ENGINE, MONOFONT, MARGIN.
+MONOFONT nil: pandoc's default monospace font; MARGIN nil: its default margins."
   (append (list "pandoc" (file-name-nondirectory file)
                 "-o" (file-name-nondirectory (emacs-cpp-markdown--pdf-file file))
                 (concat "--pdf-engine=" engine))
-          (and monofont (list "-V" (concat "monofont=" monofont)))))
+          (and monofont (list "-V" (concat "monofont=" monofont)))
+          (and margin (list "-V" (concat "geometry:margin=" margin)))))
 
 (defun emacs-cpp-markdown--missing-characters (output)
   "Return the distinct characters LaTeX reported missing in OUTPUT, in order."
@@ -86,14 +98,16 @@ DocView shows as text (no graphic display) is left alone."
 
 (defun emacs-cpp-markdown--show-pdf (pdf)
   "Show PDF in another window, reverting its buffer when it has one.  Return it.
-Its pages fit the window's width, also after the window is resized (D-187)."
+Its pages fit the window's width, also after the window is resized (D-187);
+scrolling past a page's edge goes on to the next or previous page (D-189)."
   (let ((buffer (find-buffer-visiting pdf)))
     (if buffer
         (with-current-buffer buffer
           (revert-buffer t t))
       (setq buffer (find-file-noselect pdf)))
     (with-current-buffer buffer
-      ;; Buffer-local: `revert-buffer' resets it, so set again on each export.
+      ;; Buffer-local: `revert-buffer' resets both, so set again on each export.
+      (setq-local doc-view-continuous t)
       (add-hook 'window-size-change-functions #'emacs-cpp-markdown--fit-width nil t))
     (emacs-cpp-markdown--fit-width
      (display-buffer buffer '(nil (inhibit-same-window . t))))
@@ -108,6 +122,7 @@ The PDF goes beside the file, named as it with .pdf; the engine is
                    (user-error "emacs-cpp: this buffer visits no file")))
          (engine emacs-cpp-markdown-pdf-engine)
          (monofont emacs-cpp-markdown-pdf-monofont)
+         (margin emacs-cpp-markdown-pdf-margin)
          (pdf (emacs-cpp-markdown--pdf-file file))
          (output (get-buffer-create emacs-cpp-markdown--pdf-output))
          (default-directory (file-name-directory file)))
@@ -120,7 +135,7 @@ The PDF goes beside the file, named as it with .pdf; the engine is
     (make-process
      :name "emacs-cpp-markdown-pdf"
      :buffer output
-     :command (emacs-cpp-markdown--pdf-command file engine monofont)
+     :command (emacs-cpp-markdown--pdf-command file engine monofont margin)
      :noquery t
      :sentinel (lambda (process _event)
                  (when (memq (process-status process) '(exit signal))

@@ -1815,6 +1815,15 @@ the form that loads magit is found (S17 run 2, T-113).
   as findings, marked superseded. Test: init.el loads with neither module nor
   package on `load-path`. Built (0099). Amended 2026-11-07 by D-184: Markdown gets
   LaTeX export and math preview; `.tex` files stay as ruled here.
+- DECIDED D-189 (owner 2026-11-08: "pandoc settings, reduce the margin to 3cm
+  top/bottom/left/right; make this configurable?" and "+ continuous scroll"; tier 1):
+  the export passes `-V geometry:margin=` with `emacs-cpp-markdown-pdf-margin`, "3cm"
+  by default, nil for pandoc's own margins (a `.dir-locals.el` value, like the engine).
+  Checked: the text of a 3cm PDF starts 85.04 pt (3.0 cm) from the page's left and top
+  edges (mutool's stext). The export's PDF buffer sets `doc-view-continuous` t:
+  scrolling past a page's bottom (or top) goes on to the next (previous) page. DocView
+  still shows one page at a time; pages drawn one under the other need a different
+  viewer (pdf-tools, ruled out in D-186). Only the export's buffer, as D-187.
 - DECIDED D-188 (2026-11-08, T-137; tier 1, test harness): `make test` runs Emacs with
   SIGPIPE ignored (`trap '' PIPE` in the recipe), as the shipped, graphical Emacs sets
   it at startup (strace: `rt_sigaction(SIGPIPE, SIG_IGN)`; batch Emacs sets none).
@@ -2192,7 +2201,8 @@ Shape:
   (`emacs-cpp-markdown-pdf-monofont`, nil for pandoc's default); characters LaTeX
   reports missing are a warning naming them after a successful export.
 - Viewer (D-186): DocView with MuPDF's SVG pages; `mutool` required by the export.
-  Pages fit the window's width, refitted when it is resized (D-187).
+  Pages fit the window's width, refitted when it is resized (D-187); scrolling goes on
+  into the next page; margin `emacs-cpp-markdown-pdf-margin`, 3 cm (D-189).
 - Math (DEFERRED 2026-11-07, T-136): math-preview in one `use-package` form in
   `lisp/init-writing.el`;
   `markdown-enable-math` t; `C-c C-x C-p` `math-preview-all`, `C-c C-x C-u`
@@ -4499,6 +4509,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-183 | 2026-11-05 | O-85 (h): projectile's per-submodule pass off, fd required for git listings | 12 | O-85, T-133 |
 | D-184 | 2026-11-07 | O-89 (b): Markdown to PDF by pandoc + LaTeX; math drawn by math-preview deferred | 12 | O-89, D-145 |
 | D-185 | 2026-11-07 | Markdown PDF: code in DejaVu Sans Mono, missing glyphs a warning | 12 | D-184, owner report |
+| D-189 | 2026-11-08 | Markdown PDF margin 3 cm, configurable; continuous scrolling | 12 | owner |
 | D-188 | 2026-11-08 | `make test` ignores SIGPIPE as the shipped Emacs does | 12 | T-137 |
 | D-187 | 2026-11-08 | Markdown PDF pages fit the window's width, refit on resize | 12 | D-186, owner report |
 | D-186 | 2026-11-07 | Markdown PDF shown through MuPDF's SVG pages; mutool required | 12 | D-184, owner report |
