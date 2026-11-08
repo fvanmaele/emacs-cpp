@@ -649,3 +649,14 @@ encoded structurally rather than in a comment.
 - Fix (commit): `--chdir` on both runs, in this commit.
 - Lesson: a dry run on the other machine clears the script's logic, not the target's
   startup; a script handing Emacs a path uses an absolute one or `--chdir`.
+
+## 2026-11-09 - A test's cleanup broke native compilation's processes (short)
+- What failed: `error in process sentinel: Selecting deleted buffer` in `make test-gui`'s
+  window, 10 times, with about 4 s of pauses in one test.
+- Caught by: the owner, watching the window; the session's log held the same line.
+- Cause: `init-writing-test--kill-new-buffers` killed `*Async-native-compile-log*`, where
+  the background compiles of a graphical Emacs write; a temporary HOME has an empty cache,
+  so each run compiles. Wrapping every sentinel to trace it hid the error.
+- Fix (commit): the cleanup spares that buffer, in this commit.
+- Lesson: a test's cleanup kills only what the test made by name, not whatever is new; to
+  trace a timing fault use `signal-hook-function`, which changes nothing it observes.

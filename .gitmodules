@@ -153,3 +153,12 @@
 	shallow = true
 	ignore = untracked
 	patch = patches/yasnippet-snippets/0001-Load-the-snippets-when-the-package-is-loaded-not-wit.patch
+[submodule "pdf-tools"]
+	path = lib/pdf-tools
+	url = https://github.com/vedang/pdf-tools
+	ignore = untracked
+	load-path = lisp
+[submodule "tablist"]
+	path = lib/tablist
+	url = https://github.com/emacsorphanage/tablist
+	ignore = untracked

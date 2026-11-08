@@ -2318,7 +2318,7 @@ backend's process handling (7.1), its reverting rewritten from S20's
     posframe.
   - git: magit (holds magit-section), with-editor, cond-let, llama.
   - owner's existing: markdown-mode, org-journal.
-  - writing: math-preview (D-184; deferred, T-136).
+  - writing: pdf-tools, tablist (D-199); math-preview (D-184; deferred, T-136).
 
 ### 12.1 Markdown: LaTeX export and math preview (D-184, 2026-11-07)
 Export agreed and built; math deferred (T-136).
@@ -2339,7 +2339,7 @@ Shape:
 - Export: `emacs-cpp-markdown-pdf` (NEW) on `C-c C-c x` (free in
   `markdown-mode-command-map`): saves the buffer, runs `pandoc FILE -o BASE.pdf
   --pdf-engine=ENGINE` asynchronously (ENGINE from `emacs-cpp-markdown-pdf-engine`,
-  NEW, default `"xelatex"`), and on exit 0 shows the PDF in doc-view in another window,
+  NEW, default `"xelatex"`), and on exit 0 shows the PDF in another window,
   reverting it when already shown. A non-zero exit shows pandoc's output buffer and
   signals an error with the code. pandoc or the engine not on `exec-path`: an error
   naming the platform's install command, when the command runs (startup does not
@@ -2350,9 +2350,11 @@ Shape:
 - Code spans (D-185): pandoc gets `-V monofont=DejaVuSansMono.ttf`
   (`emacs-cpp-markdown-pdf-monofont`, nil for pandoc's default); characters LaTeX
   reports missing are a warning naming them after a successful export.
-- Viewer (D-186): DocView with MuPDF's SVG pages; `mutool` required by the export.
-  Pages fit the window's width, refitted when it is resized (D-187); scrolling goes on
-  into the next page; margin `emacs-cpp-markdown-pdf-margin`, 3 cm (D-189).
+- Viewer (D-199, T-142; SUPERSEDES D-186's DocView and `mutool`, D-187, D-189's
+  scrolling): every PDF in pdf-tools, through `emacs-cpp-pdf-view-mode` (NEW), which
+  checks the server first: `auto-mode-alist` and `magic-mode-alist`. Roll mode, links,
+  isearch by `pdf-tools-enabled-modes`; `fit-width`; D-192's clamp on `after-revert-hook`.
+  Margin `emacs-cpp-markdown-pdf-margin`, 3 cm (D-189).
 - Math (DEFERRED 2026-11-07, T-136): math-preview in one `use-package` form in
   `lisp/init-writing.el`;
   `markdown-enable-math` t; `C-c C-x C-p` `math-preview-all`, `C-c C-x C-u`
@@ -4672,8 +4674,8 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-190 | 2026-11-08 | spike S22: pdf-tools 1.3.0 for the Markdown PDF, continuous scroll | 12 | owner, D-186 |
 | D-189 | 2026-11-08 | Markdown PDF margin 3 cm, configurable; continuous scrolling | 12 | owner |
 | D-188 | 2026-11-08 | `make test` ignores SIGPIPE as the shipped Emacs does | 12 | T-137 |
-| D-187 | 2026-11-08 | Markdown PDF pages fit the window's width, refit on resize | 12 | D-186, owner report |
-| D-186 | 2026-11-07 | Markdown PDF shown through MuPDF's SVG pages; mutool required | 12 | D-184, owner report |
+| D-187 | 2026-11-08 | Markdown PDF pages fit the window's width, refit on resize; SUPERSEDED by D-199 | 12 | D-186, owner report |
+| D-186 | 2026-11-07 | Markdown PDF shown through MuPDF's SVG pages; mutool required; SUPERSEDED by D-199 | 12 | D-184, owner report |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |
 | D-119 | 2026-10-19 | spike S15: mid-word matches ranked by shape in clangd | 10 | O-67 |
 | D-118 | 2026-10-19 | `M-o`'s project symbols headed "Project Symbol" | 10 | O-66 |

@@ -14,6 +14,21 @@ cannot read itself. An approval another session asks the owner for itself (a ben
 service's plan) is not an item.
 
 ## Run now
+- **H-36** (2026-11-09, unblocks T-142, D-199) pdf-tools on every PDF: Arch's run and the
+  hand check of link and selection. No system install: S22 built the server there.
+  1. On the Mac: `cd ~/source/repos/emacs-cpp && git push`
+  2. On Arch: `cd ~/source/repos/emacs-cpp && git pull --ff-only && git submodule update
+     --init lib/pdf-tools lib/tablist && make packages && make epdfinfo && make test
+     </dev/null`
+  3. On Arch (a window opens twice, do not touch it): `cd ~/source/repos/emacs-cpp && make
+     test-gui && sh scripts/measure-pdf.sh /tmp/measure-pdf-arch.log`
+  4. On Arch: `printf '# One\n\n[to two](#two)\n\n\\newpage\n\n# Two {#two}\n\nselect
+     this text\n' > /tmp/h36.md`, then quit Emacs, start it again, `C-x C-f /tmp/h36.md
+     RET`, `C-c C-c x`. In the PDF's window: click `to two` (page 2 shows); drag over
+     `select this text`, `M-w`, and yank it into `*scratch*`.
+  Report back: `make test`'s and `make test-gui`'s `Ran ...` lines and any FAILED names;
+  step 3's seven measure lines; whether the click jumped and the yank gave the text.
+
 - **H-33** (2026-11-08, unblocks D-192's upstream report) Report pdf-tools' roll-mode
   revert defect.
   1. In a browser, signed in to GitHub, open https://github.com/vedang/pdf-tools/issues/new
@@ -25,7 +40,7 @@ service's plan) is not an item.
 - **H-31** (2026-11-07, unblocks T-135, D-184 - D-186) Markdown to PDF on Arch: the
   install (agreed 2026-11-07), the tests, one export by hand.
   1. On the Mac: `cd ~/source/repos/emacs-cpp && git push` (the session does not push).
-  2. On Arch: `sudo pacman -S pandoc-cli texlive-xetex mupdf-tools`
+  2. On Arch: `sudo pacman -S pandoc-cli texlive-xetex`
   3. On Arch: `cd ~/source/repos/emacs-cpp && git pull --ff-only && kpsewhich
      DejaVuSansMono.ttf && make test </dev/null`
   4. On Arch: quit Emacs, start it again, open

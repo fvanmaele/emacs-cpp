@@ -39,7 +39,7 @@ configuration chooses them, connects them and gives them keys.
 |---|---|
 | `early-init.el`, `init.el` | startup: load path, then every module in a fixed order |
 | `lisp/` | the configuration's own code, one module per concern (C++, Python, git ...) |
-| `lib/` | 31 third-party packages as git submodules at pinned commits (D-006) |
+| `lib/` | 33 third-party packages as git submodules at pinned commits (D-006) |
 | `patches/` | fixes to those packages, applied by `make packages` (D-069, D-116) |
 | `packaging/` | locally patched tools: clangd, fswatch, clang-change-namespace |
 | `scripts/`, `Makefile` | builds and checks; bare `make` only prints help |

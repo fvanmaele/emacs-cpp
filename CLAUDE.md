@@ -105,6 +105,7 @@ Project file lists: no cache (D-179); one fd per listing, projectile's submodule
 off, fd required (D-183, T-133, 0130): emacs-cpp 434 -> 16 ms; the Mac passes (2026-11-06).
 Markdown to PDF through pandoc + xelatex on `C-c C-c x` (O-89, D-184, T-135, 0131; Mac
 passes, Arch after the owner's install); math drawn in the buffer deferred (T-136).
+Every PDF in pdf-tools (D-199, T-142, 0135): `make epdfinfo`; `make test-gui` draws pages.
 ty's return type inference per project (D-142, 0097); ruff deferred (D-143, T-124).
 Mac run of H-15 by the session (0098): S18 run 6 `shipped` PASS; FSEvents kept
 `Created` on recent files, fswatch patch 0005 (pkgrel 3, D-144, T-125); Mac clangd

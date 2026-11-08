@@ -201,7 +201,7 @@ Spyder.
 ## Markdown (D-184)
 | Key                       | Does                                                            |
 |---------------------------|-----------------------------------------------------------------|
-| `C-c C-c x`               | PDF through pandoc and LaTeX beside the file, shown in doc-view |
+| `C-c C-c x`               | PDF through pandoc and LaTeX beside the file, shown in pdf-tools |
 | `C-c C-c p` / `C-c C-c e` | markdown-mode's own HTML preview / export                       |
 
 ## Git (magit)
