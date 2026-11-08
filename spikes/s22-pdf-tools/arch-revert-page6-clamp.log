@@ -1,0 +1,5 @@
+before revert: mode pdf-view-mode roll t point 21 start 21 size 23 overlays-with-display 8 (window #<window 3 on test.pdf>) shown (6) vscroll 0
+revert +1 s: mode pdf-view-mode roll t point 17 start 17 size 19 overlays-with-display 6 (window #<window 3 on test.pdf>) shown (5) vscroll 0
+revert +3 s: mode pdf-view-mode roll t point 17 start 17 size 19 overlays-with-display 6 (window #<window 3 on test.pdf>) shown (5) vscroll 0
+after one C-p: mode pdf-view-mode roll t point 15 start 13 size 19 overlays-with-display 7 (window #<window 3 on test.pdf>) shown (4 5) vscroll 3043
+revert +6 s: mode pdf-view-mode roll t point 15 start 13 size 19 overlays-with-display 7 (window #<window 3 on test.pdf>) shown (4 5) vscroll 3043

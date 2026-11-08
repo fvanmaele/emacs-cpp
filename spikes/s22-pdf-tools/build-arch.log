@@ -1,0 +1,29 @@
+Running autoreconf...
+configure.ac:14: installing './ar-lib'
+configure.ac:11: installing './compile'
+configure.ac:61: installing './config.guess'
+configure.ac:61: installing './config.sub'
+configure.ac:6: installing './install-sh'
+configure.ac:6: installing './missing'
+Makefile.am: installing './depcomp'
+
+Is case-sensitive searching enabled ?     yes
+Is modifying text annotations enabled ?   yes
+Is modifying markup annotations enabled ? yes
+
+epdfinfo.c: In function ‘image_render_page’:
+epdfinfo.c:710:7: warning: ‘poppler_page_render_for_printing_with_options’ is deprecated: Use poppler_page_render_full instead [-Wdeprecated-declarations]
+  710 |       (page, cr, POPPLER_PRINT_DOCUMENT);
+      |       ^
+In file included from /usr/include/poppler/glib/poppler.h:358,
+                 from epdfinfo.c:28:
+/usr/include/poppler/glib/poppler-page.h:56:6: note: declared here
+   56 | void poppler_page_render_for_printing_with_options(PopplerPage *page, cairo_t *cairo, PopplerPrintFlags options) G_GNUC_DEPRECATED_FOR(poppler_page_render_full);
+      |      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+epdfinfo.c: In function ‘annotation_markup_append_text_region’:
+epdfinfo.c:1621:5: warning: ‘poppler_page_get_selection_region’ is deprecated: Use poppler_page_get_selected_region instead [-Wdeprecated-declarations]
+ 1621 |     poppler_page_get_selection_region (page, 1.0, selection_style, region);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/include/poppler/glib/poppler-page.h:92:8: note: declared here
+   92 | GList *poppler_page_get_selection_region(PopplerPage *page, gdouble scale, PopplerSelectionStyle style, PopplerRectangle *selection) G_GNUC_DEPRECATED_FOR(poppler_page_get_selected_region);
+      |        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
