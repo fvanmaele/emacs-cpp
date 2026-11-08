@@ -1822,6 +1822,25 @@ the form that loads magit is found (S17 run 2, T-113).
   as findings, marked superseded. Test: init.el loads with neither module nor
   package on `load-path`. Built (0099). Amended 2026-11-07 by D-184: Markdown gets
   LaTeX export and math preview; `.tex` files stay as ruled here.
+- DECIDED D-199 (owner 2026-11-08: "T-142 agree, pdf-tools open every PDF"; tier 2, T-142;
+  S22 PASS on both machines, 0134): every PDF opens in pdf-tools 1.3.0's `pdf-view-mode`,
+  with continuous scrolling (roll mode), pages at the window's width, links and isearch.
+  This widens D-190's "for the export" and replaces D-186's viewer and `mutool`, D-187 and
+  D-189's scrolling; D-189's margin stays. `lib/pdf-tools` (v1.3.0, 5245f09) and
+  `lib/tablist` (01f065e) are submodules at the spike's pins; the network: their clones,
+  by git only. `make epdfinfo` (NEW, `scripts/build-epdfinfo.sh`) builds the server inside
+  the submodule, apart from `make packages`, which needs no C compiler and no poppler. A
+  server missing or not starting: an error naming `make epdfinfo`, no fallback.
+  `pdf-tools-install` is not called: by its own docstring it rebuilds the server, tries to
+  install system packages and can fail silently. D-192's clamp covers every window showing
+  the buffer (S22's read the selected window only; the export's PDF is in another one).
+  `make test-gui` (NEW) runs the tests that need pages drawn in a graphical Emacs; `make
+  test` stays without a window. Not taken: the export's PDFs only (a PDF opened by hand
+  gets DocView: two viewers, other keys, one page at a time, `mutool` kept); DocView as
+  the fallback for a broken server (against fail-loudly; a second code path). Against: a
+  poppler library change stops every PDF until `make epdfinfo` is rerun; roll mode on long
+  PDFs is unmeasured (S22's had 5 - 6 pages; T-142 records it); a mode function's error
+  reaches the owner as a message over the raw PDF, `normal-mode` catches it.
 - DECIDED D-198 (owner 2026-11-08: "Run T-141"): lldb-preset caps lldb's debuginfod
   requests: its `initCommands` run `settings set
   plugin.symbol-locator.debuginfod.timeout N`, N from
@@ -4641,6 +4660,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-183 | 2026-11-05 | O-85 (h): projectile's per-submodule pass off, fd required for git listings | 12 | O-85, T-133 |
 | D-184 | 2026-11-07 | O-89 (b): Markdown to PDF by pandoc + LaTeX; math drawn by math-preview deferred | 12 | O-89, D-145 |
 | D-185 | 2026-11-07 | Markdown PDF: code in DejaVu Sans Mono, missing glyphs a warning | 12 | D-184, owner report |
+| D-199 | 2026-11-08 | every PDF in pdf-tools; `make epdfinfo`, no fallback; `make test-gui` | 12 | owner, S22 |
 | D-198 | 2026-11-08 | lldb's debuginfod requests capped at 5 s at lldb-preset's launch | 5 | T-141 |
 | D-197 | 2026-11-08 | dape request timeout 60 s; make test without debuginfod | 5 | T-140 |
 | D-196 | 2026-11-08 | no names or addresses in .md files or commit messages; history rewritten | Conventions | owner |
