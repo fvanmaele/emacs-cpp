@@ -1815,6 +1815,13 @@ the form that loads magit is found (S17 run 2, T-113).
   as findings, marked superseded. Test: init.el loads with neither module nor
   package on `load-path`. Built (0099). Amended 2026-11-07 by D-184: Markdown gets
   LaTeX export and math preview; `.tex` files stay as ruled here.
+- DECIDED D-188 (2026-11-08, T-137; tier 1, test harness): `make test` runs Emacs with
+  SIGPIPE ignored (`trap '' PIPE` in the recipe), as the shipped, graphical Emacs sets
+  it at startup (strace: `rt_sigaction(SIGPIPE, SIG_IGN)`; batch Emacs sets none).
+  With the default, a write to a server that already closed its input killed the run
+  with exit 141 (`init-python-eglot-only-in-projects`, 2 of 6 runs: a timer writing to
+  ty after its shutdown); ignored, the write is the error "no longer connected to pipe",
+  as in the shipped profile. 12 of 12 runs of that test pass, 5 of 5 `make test`.
 - DECIDED D-187 (owner report 2026-11-08: "pdf preview with C-c c x: not zoomed to
   width (black borders on larger windows)"; tier 1 fix of D-186): the export's PDF
   buffer fits its pages to the window's body width when shown and again whenever that
@@ -4492,6 +4499,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-183 | 2026-11-05 | O-85 (h): projectile's per-submodule pass off, fd required for git listings | 12 | O-85, T-133 |
 | D-184 | 2026-11-07 | O-89 (b): Markdown to PDF by pandoc + LaTeX; math drawn by math-preview deferred | 12 | O-89, D-145 |
 | D-185 | 2026-11-07 | Markdown PDF: code in DejaVu Sans Mono, missing glyphs a warning | 12 | D-184, owner report |
+| D-188 | 2026-11-08 | `make test` ignores SIGPIPE as the shipped Emacs does | 12 | T-137 |
 | D-187 | 2026-11-08 | Markdown PDF pages fit the window's width, refit on resize | 12 | D-186, owner report |
 | D-186 | 2026-11-07 | Markdown PDF shown through MuPDF's SVG pages; mutool required | 12 | D-184, owner report |
 | D-120 | 2026-10-20 | LSP 3.18's letters-in-order match, tiers, every prompt | 10 | owner |

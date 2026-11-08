@@ -34,15 +34,18 @@ ERT = $(EMACS) -Q --batch $(HOME_CHECK) -L scripts -L lisp -L test \
 		--eval "(require '$(basename $(notdir $(f))))") \
 	-f ert-run-tests-batch-and-exit
 
+# SIGPIPE ignored as the shipped, graphical Emacs sets it at startup: batch Emacs keeps
+# the default and dies (exit 141) when a write meets a server that closed its input;
+# ignored, the write is an error, as in the shipped profile (T-137).
 test: ## ERT in a temporary HOME; REAL_HOME=1 uses yours (run `make packages` first)
 ifeq ($(REAL_HOME),)
 	@tmp=$${TMPDIR:-/tmp}; \
 	home=$$(mktemp -d "$${tmp%/}/emacs-cpp-test-home.XXXXXX") || exit 1; \
 	trap 'rm -rf "$$home"' EXIT; trap 'exit 130' INT TERM; \
-	echo "make test: HOME=$$home"; \
+	echo "make test: HOME=$$home"; trap '' PIPE; \
 	HOME="$$home" $(ERT)
 else
-	$(ERT)
+	trap '' PIPE; $(ERT)
 endif
 
 # The patched clangd at the installed LLVM's version (D-027): pkgver from llvm-config,
