@@ -150,18 +150,18 @@ The commands show at the prompt: add `--target main` to build one target. `M-g n
 for the project; `M-x projectile-discard-command-cache` returns to the preset's.
 
 ## Debugging (dape + gdb or lldb)
-| Key                            | Does                                                   |
-|--------------------------------|--------------------------------------------------------|
-| `C-x C-a b` / click the fringe | toggle a breakpoint on the line (red mark)             |
-| `C-x C-a d` `gdb-preset RET`   | pick a target of the active preset, build it, debug it |
-| `C-x C-a d` `lldb-preset RET`  | the same with lldb (macOS; on Arch too, D-051)         |
+| Key                            | Does                                                         |
+|--------------------------------|--------------------------------------------------------------|
+| `C-x C-a b` / click the fringe | toggle a breakpoint on the line (red mark)                   |
+| `C-x C-a d` `gdb-preset RET`   | pick a target of the active preset, build it, debug it       |
+| `C-x C-a d` `lldb-preset RET`  | the same with lldb (macOS; on Arch too, D-051)               |
+| `C-x C-a n` `s` `o` `c`        | step over / into / out / continue; then just `n` `s` `o` `c` |
+| `C-x C-a w`                    | watch an expression                                          |
+| `C-x C-a i`                    | info buffers: stack, locals, breakpoints, threads            |
+| `C-x C-a q`                    | end the session                                              |
 
 The prompt starts with `gdb-preset` on Arch and `lldb-preset` on macOS until one of
 them was used; then with your last input (D-055).
-| `C-x C-a n` `s` `o` `c` | step over / into / out / continue; then just `n` `s` `o` `c` |
-| `C-x C-a w`             | watch an expression                                          |
-| `C-x C-a i`             | info buffers: stack, locals, breakpoints, threads            |
-| `C-x C-a q`             | end the session                                              |
 
 Program arguments: type them after the configuration name, as a vector of strings:
 `gdb-preset :args ["--levels" "5"]`. The prompt starts with your last input (kept
@@ -224,18 +224,18 @@ with `.git` or `.projectile` are followed, D-070). `M-x customize-variable`:
 one project, `emacs-cpp-tree-follow-file` t moves to the current file (D-067). Inside
 the tree:
 
-| Key             | Does                                  |
-|-----------------|---------------------------------------|
-| `TAB`           | expand / collapse                     |
-| `RET`           | open file                             |
-| `o v` / `o h`   | open in a vertical / horizontal split |
-| `c f` / `c d`   | create file / directory               |
-| `R` / `m` / `d` | rename / move / delete                |
-| `y r` / `y a`   | copy relative / absolute path         |
-| `C-c C-p a`     | add a project to the workspace        |
-| `t h`           | show / hide dotfiles                  |
-| `?`             | help                                  |
-| `q`             | close the tree                        |
+| Key             | Does                                                       |
+|-----------------|------------------------------------------------------------|
+| `TAB`           | expand / collapse                                          |
+| `RET`           | open file                                                  |
+| `o v` / `o h`   | open in a vertical / horizontal split                      |
+| `c f` / `c d`   | create file / directory                                    |
+| `R` / `m` / `d` | rename / move / delete                                     |
+| `y r` / `y a`   | copy relative / absolute path                              |
+| `C-c C-p a`     | add a project to the workspace                             |
+| `t h`           | show / hide dotfiles                                       |
+| `?`             | help                                                       |
+| `q`             | close the tree                                             |
 
 ## Setup on the supported machine (Arch Linux)
 1. Clone with submodules; `~/.emacs.d/init.el` and `early-init.el` are symlinks to this
