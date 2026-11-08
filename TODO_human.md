@@ -14,28 +14,17 @@ cannot read itself. An approval another session asks the owner for itself (a ben
 service's plan) is not an item.
 
 ## Run now
-- **H-34** (2026-11-08, unblocks H-32; D-195, D-196) Reset the Mac's clone to the
-  rewritten history (pushed by the session 2026-11-08: main 949066d, S20-arch, release).
-  1. On the Mac: `cd ~/source/repos/emacs-cpp && git status --short --untracked-files=no
-     && git log --oneline -1 main` (expect no changed files and `bcd7691` or an older
-     commit of main; anything else: stop and report it)
-  2. On the Mac: `cd ~/source/repos/emacs-cpp && git fetch origin && git reset --hard
-     origin/main && git config user.name "$(git log -1 --format=%an origin/main)" && git
-     config user.email "$(git log -1 --format=%ae origin/main)"`
-  Report back: step 1's output if it was not as expected.
-
-- **H-32** (2026-11-08, unblocks S22, T-138, D-190, D-192; waits on H-34) pdf-tools on
-  the Mac: build its server with MacPorts' poppler, run S22, judge sharpness. Install
-  agreed 2026-11-08. The script ran end to end on Arch as a dry run (run 1: 0 failures).
-  1. On the Mac: `sudo port install poppler autoconf automake pkgconfig`
-  2. On the Mac (two Emacs windows in turn: the first scrolls by itself for about 30 s
-     and closes, do not touch it; the second stays open: look at the text, open the same
-     PDF in your usual Emacs with `C-x C-f
-     ~/source/repos/emacs-cpp/spikes/s22-pdf-tools/src/test.pdf RET` (DocView), compare,
-     then quit the second window with `C-x C-c`):
-     `~/source/repos/emacs-cpp/spikes/s22-pdf-tools/mac-run.sh`
-  Report back: the `mac-run: build exit` line and the lines after it; the printed run 1
-  log; is pdf-tools' text as sharp as DocView's, sharper, or blurrier?
+- **H-32** (2026-11-08, unblocks S22, T-138, D-190, D-192) pdf-tools on the Mac: judge
+  sharpness (criterion 5). Built and run by the session 2026-11-08: criteria 1 - 4 PASS.
+  1. On the Mac, only if no S22 window is open (it scrolls by itself for about 30 s and
+     stops on the last page; do not touch it until then): `S22_HOLD=1 S22_CLAMP=1
+     S22_LOG=mac-run2.log /Applications/MacPorts/Emacs.app/Contents/MacOS/Emacs -Q -l
+     ~/source/repos/emacs-cpp/spikes/s22-pdf-tools/s22.el`
+  2. In your usual Emacs: `C-x C-f
+     ~/source/repos/emacs-cpp/spikes/s22-pdf-tools/src/test.pdf RET` (DocView). Give both
+     windows the same size and compare the text.
+  3. In the S22 window: `C-x C-c`
+  Report back: is pdf-tools' text as sharp as DocView's, sharper, or blurrier?
 
 - **H-33** (2026-11-08, unblocks D-192's upstream report) Report pdf-tools' roll-mode
   revert defect.

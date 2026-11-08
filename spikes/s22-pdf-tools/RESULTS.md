@@ -1,8 +1,8 @@
 # S22 results
 
 Verdict: PASS on Arch for criteria 1 - 4 with criterion 4 as amended (D-192, run 2,
-2026-11-08, session); run 1 FAIL on criterion 4 as first written. Criterion 5 and the
-Mac: not run (H-32).
+2026-11-08, session); run 1 FAIL on criterion 4 as first written. The Mac: criteria 1 -
+4 PASS (`mac-run1.log`, 2026-11-08, session). Criterion 5: not judged (H-32).
 
 ## Environment
 Arch, Emacs 31.1 (graphical, `-Q`), pdf-tools v1.3.0 (5245f09), tablist 01f065e,
@@ -35,6 +35,19 @@ in 1.02 s, page 5 shown; 334 `C-n` to the end, 261 samples with two pages. Run 3
 (`arch-run3.log`, the expected page count read from `test-new.pdf` for the Mac):
 1 - 4 PASS.
 
+## The Mac (`mac-run1.log`, `build-mac.log`, 2026-11-08, session)
+Apple silicon, Emacs 31.1 (`emacs-app` port, graphical, `-Q`), pdf-tools v1.3.0 (5245f09),
+tablist 01f065e, MacPorts poppler 26.02.0, frame 597 x 508 px, `S22_CLAMP=1`. Test PDFs:
+6 and 5 pages, as on Arch.
+1. `epdfinfo` built by the same commands, exit 0, linked to MacPorts'
+   `libpoppler-glib.8.dylib`; `pdf-info-check-epdfinfo` succeeded. PASS.
+2. 295 `C-n` from page 1 to the end of page 6; 164 of 295 samples show two pages; no
+   stop. PASS.
+3. Page 560 px in a 560 px body; after `split-window-right` 266 in 266; back to one
+   window 560 in 560; after the revert 560 in 560. PASS.
+4. 6 -> 5 pages while page 6 was shown: 1.02 s, 5 pages, roll mode on, page 5 shown.
+   PASS.
+
 ## Decision
 Owner 2026-11-08 (D-192): criterion 4 counts with the clamp; the defect goes upstream
 (H-33, `upstream-issue.md`); the Mac run next (H-32).
@@ -44,3 +57,7 @@ Owner 2026-11-08 (D-192): criterion 4 counts with the clamp; the defect goes ups
   under a guarded `load` and a 240 s watchdog.
 - Without `pdf-tools-install`, `find-file` opens a PDF in DocView; the spike calls
   `pdf-view-mode` itself.
+- On the Mac a graphical Emacs whose stdin is not a tty starts in HOME (probe 2026-11-08:
+  `</dev/null` -> `~/`; a tty -> the directory it was started in; `--chdir` -> the one
+  named). `mac-run.sh`'s first run looked for `~/s22.el` and logged there; it now passes
+  `--chdir`.

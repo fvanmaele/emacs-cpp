@@ -638,3 +638,14 @@ encoded structurally rather than in a comment.
   commit that records them; GitHub after H-34.
 - Lesson: a session committing on a machine for the first time checks `git config
   user.name` against the history's author before its first commit.
+
+## 2026-11-08 - S22's Mac script looked for its files in HOME (short)
+- What failed: H-32's `mac-run.sh` stopped at `cat: mac-run1.log: No such file or
+  directory`; Emacs had written its load error to `~/mac-run1.log`.
+- Caught by: the owner, running H-32.
+- Cause: a graphical Emacs on the Mac starts in HOME when stdin is not a tty (probe in
+  S22's RESULTS); the script's `</dev/null` triggers that, and `s22.el` and the log were
+  named relative to the start directory. The dry run on Arch could not show it.
+- Fix (commit): `--chdir` on both runs, in this commit.
+- Lesson: a dry run on the other machine clears the script's logic, not the target's
+  startup; a script handing Emacs a path uses an absolute one or `--chdir`.

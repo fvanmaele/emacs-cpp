@@ -44,13 +44,15 @@ load='(condition-case e (load (expand-file-name "s22.el"))
                                (expand-file-name (getenv "S22_LOG")))
                (kill-emacs 2)))'
 
+# --chdir: on the Mac a graphical Emacs whose stdin is not a tty starts in HOME, where
+# neither s22.el nor the log belongs.
 echo "mac-run: run 1 (an Emacs window scrolls by itself for about 30 s; do not touch it)"
 rm -f mac-run1.log
-S22_CLAMP=1 S22_LOG=mac-run1.log "$emacs" -Q --eval "$load" </dev/null || true
+S22_CLAMP=1 S22_LOG=mac-run1.log "$emacs" --chdir="$here" -Q --eval "$load" </dev/null || true
 cat mac-run1.log
 
 [ -z "${S22_NO_HOLD:-}" ] || exit 0
 echo "mac-run: run 2 (the window stays open: compare the text with DocView, then C-x C-c)"
 rm -f mac-run2.log
-S22_HOLD=1 S22_CLAMP=1 S22_LOG=mac-run2.log "$emacs" -Q --eval "$load" </dev/null || true
+S22_HOLD=1 S22_CLAMP=1 S22_LOG=mac-run2.log "$emacs" --chdir="$here" -Q --eval "$load" </dev/null || true
 tail -2 mac-run2.log
