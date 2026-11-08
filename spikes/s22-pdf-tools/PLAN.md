@@ -15,5 +15,5 @@ marked NEW do not exist yet.
 - [x] 5. H-n for the Mac run, printed in chat (~10 min)
 
 Added 2026-11-08 (same session; not S22's, kept here as the session's one plan):
-- [ ] 6. T-139: kept buffer asked as CLion, code + tests + journal (~60 min)
+- [x] 6. T-139: kept buffer asked as CLion, code + tests + journal (~60 min)
   `lisp/emacs-cpp-reverter.el`, `test/emacs-cpp-reverter-test.el`; D-191 DECIDED.

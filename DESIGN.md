@@ -2073,7 +2073,8 @@ the form that loads magit is found (S17 run 2, T-113).
     `fswatch-novc`, `-l 0.1`, 0102), faster than a jump after a checkout. Against:
     eglot's work per revert runs in the filter, unmeasured (RMO); it may stretch the
     delay.
-  - (2b) A buffer with unsaved edits whose file changed: T-128 leaves it (as S20's
+  - (2b) (amended by D-191: asked as CLion asks) A buffer with unsaved edits whose file
+    changed: T-128 leaves it (as S20's
     `s20--revert`, `buffer-modified-p`), Emacs's prompts stay
     (`ask-user-about-supersession-threat` on the first edit, the modification-time
     check on save), and the filter adds one message per batch naming the skipped

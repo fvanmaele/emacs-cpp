@@ -18,7 +18,9 @@
 ;; froze Emacs for seconds on the Mac (O-78).  A step never runs inside another
 ;; (D-156 (e), D-161 (p)): Emacs runs filters and timers while a revert's send to a
 ;; busy server waits (O-79).  Edited and deleted files'
-;; buffers are kept and named in a message (D-151, D-152); an overflow or an fswatch
+;; buffers are kept and named in a message (D-151, D-152); an edited one is asked
+;; about as CLion asks, load / keep / diff, once a window of the focused frame
+;; shows it (D-191); an overflow or an fswatch
 ;; that dies is warned about, never hidden.  Buffers it does not cover are left to
 ;; auto-revert (init-project), which asks `emacs-cpp-reverter-covers-p'.
 
@@ -31,6 +33,7 @@
 (declare-function projectile-root-marked "projectile" (dir))
 (declare-function projectile-root-bottom-up "projectile" (dir &optional list))
 (declare-function diff-hl-update "diff-hl" ())
+(declare-function ediff-current-file "ediff" ())
 (defvar emacs-cpp-default-fswatch-program)
 
 (defconst emacs-cpp-reverter-latency 0.1
@@ -73,6 +76,22 @@ before a step that met a running one tries again (D-153).")
 
 (defvar emacs-cpp-reverter--busy nil
   "Non-nil while a step runs (D-156 (e), D-161 (p)).")
+
+(defvar emacs-cpp-reverter--conflicts nil
+  "Buffers with unsaved edits whose files changed on disk, to be asked (D-191).")
+
+(defvar-local emacs-cpp-reverter--answered nil
+  "The file's modification time when this buffer's question was last answered
+with keep or diff: the same change is not asked again (D-191).")
+
+(defvar emacs-cpp-reverter--asking nil
+  "Non-nil while a question is asked: one at a time (D-191).")
+
+(defvar emacs-cpp-reverter--ask-timer nil
+  "The timer of the next look for a question to ask, or nil.")
+
+(defconst emacs-cpp-reverter-ask-idle 1
+  "Seconds without input before a shown buffer is asked (D-191).")
 
 ;;;; Which buffers
 
@@ -145,7 +164,8 @@ On `kill-buffer-hook'."
           emacs-cpp-reverter--stale nil
           emacs-cpp-reverter--queue (delq (current-buffer) emacs-cpp-reverter--queue)
           emacs-cpp-reverter--reverts (delq (current-buffer) emacs-cpp-reverter--reverts)
-          emacs-cpp-reverter--kept (assq-delete-all (current-buffer) emacs-cpp-reverter--kept))
+          emacs-cpp-reverter--kept (assq-delete-all (current-buffer) emacs-cpp-reverter--kept)
+          emacs-cpp-reverter--conflicts (delq (current-buffer) emacs-cpp-reverter--conflicts))
     (unless (emacs-cpp-reverter--buffers root (current-buffer))
       (emacs-cpp-reverter--stop root))))
 
@@ -253,10 +273,14 @@ newer."
       'reverted))))
 
 (defun emacs-cpp-reverter--message (kept)
-  "One message naming KEPT, (BUFFER . WHY) not reverted, newest first."
+  "One message naming KEPT, (BUFFER . WHY) not reverted, newest first.
+An edited buffer the focused frame shows is left out: it is asked (D-191)."
   (let* ((names (lambda (why)
                   (cl-loop for (buffer . reason) in (reverse kept)
-                           when (eq reason why) collect (buffer-name buffer))))
+                           when (and (eq reason why)
+                                     (not (and (eq why 'edited)
+                                               (emacs-cpp-reverter--focused-window buffer))))
+                           collect (buffer-name buffer))))
          (edited (funcall names 'edited))
          (deleted (funcall names 'deleted))
          (parts (delq nil
@@ -358,6 +382,8 @@ With the queue empty, one message names the buffers kept since it last was."
                     (when (buffer-live-p buffer)
                       (pcase (emacs-cpp-reverter--revert buffer)
                         ((and why (or 'edited 'deleted))
+                         (when (eq why 'edited)
+                           (emacs-cpp-reverter--conflict buffer))
                          (unless (assq buffer emacs-cpp-reverter--kept)
                            (push (cons buffer why) emacs-cpp-reverter--kept))))))
                   (< (- (float-time) start) emacs-cpp-reverter-budget)))))
@@ -392,11 +418,93 @@ runs timers), it only arms again (D-156 (e), D-161 (p))."
         (emacs-cpp-reverter--arm emacs-cpp-reverter-pause)))))
 
 (defun emacs-cpp-reverter--on-show (frame)
-  "Refresh each stale buffer FRAME's windows show (`window-buffer-change-functions')."
+  "Refresh each stale buffer FRAME's windows show.
+On `window-buffer-change-functions'; a buffer waiting for its question is asked
+soon after (D-191)."
   (dolist (window (window-list frame 'no-minibuf))
     (let ((buffer (window-buffer window)))
       (when (buffer-local-value 'emacs-cpp-reverter--stale buffer)
-        (emacs-cpp-reverter--refresh buffer)))))
+        (emacs-cpp-reverter--refresh buffer))
+      (when (memq buffer emacs-cpp-reverter--conflicts)
+        (emacs-cpp-reverter--ask-soon 0)))))
+
+;;;; Edited buffers whose files changed: asked as CLion asks (D-191)
+
+(defun emacs-cpp-reverter--file-time (buffer)
+  "Modification time of BUFFER's file on disk, or nil."
+  (file-attribute-modification-time (file-attributes (buffer-file-name buffer))))
+
+(defun emacs-cpp-reverter--conflict (buffer)
+  "Note BUFFER, edited, whose file changed on disk, for its question.
+A change already answered (keep, diff) is not asked again."
+  (unless (equal (emacs-cpp-reverter--file-time buffer)
+                 (buffer-local-value 'emacs-cpp-reverter--answered buffer))
+    (cl-pushnew buffer emacs-cpp-reverter--conflicts)
+    (when (emacs-cpp-reverter--focused-window buffer)
+      (emacs-cpp-reverter--ask-soon emacs-cpp-reverter-ask-idle))))
+
+(defun emacs-cpp-reverter--focused-window (buffer)
+  "A window of the focused frame showing BUFFER, or nil.  A frame whose focus
+Emacs cannot tell (`unknown', some terminals) counts as focused."
+  (let ((frame (selected-frame)))
+    (and (frame-focus-state frame)
+         (get-buffer-window buffer frame))))
+
+(defun emacs-cpp-reverter--ask-soon (idle)
+  "Look for a question to ask once Emacs has been idle IDLE seconds.
+Already idle: the rest of IDLE from now, as an idle timer would wait for the next
+idle period instead."
+  (when emacs-cpp-reverter--ask-timer
+    (cancel-timer emacs-cpp-reverter--ask-timer))
+  (setq emacs-cpp-reverter--ask-timer
+        (if-let* ((now (current-idle-time)))
+            (run-with-timer (max 0 (- idle (float-time now))) nil
+                            #'emacs-cpp-reverter--ask)
+          (run-with-idle-timer idle nil #'emacs-cpp-reverter--ask))))
+
+(defun emacs-cpp-reverter--ask ()
+  "Ask about each conflicting buffer the focused frame shows, one at a time.
+Never while the minibuffer is active (asked again when it closes) or a question
+is open."
+  (setq emacs-cpp-reverter--ask-timer nil)
+  (unless (or emacs-cpp-reverter--asking (active-minibuffer-window))
+    (let ((emacs-cpp-reverter--asking t))
+      (dolist (buffer (reverse emacs-cpp-reverter--conflicts))
+        (when (and (buffer-live-p buffer)
+                   (emacs-cpp-reverter--focused-window buffer))
+          (setq emacs-cpp-reverter--conflicts (delq buffer emacs-cpp-reverter--conflicts))
+          (emacs-cpp-reverter--ask-one buffer))))))
+
+(defun emacs-cpp-reverter--ask-one (buffer)
+  "Ask about BUFFER: load the disk version, keep the edits, or diff them."
+  (with-current-buffer buffer
+    (cond
+     ((verify-visited-file-modtime buffer))    ; saved or reverted meanwhile
+     ((not (file-readable-p buffer-file-name))) ; deleted: D-152's message
+     ((not (buffer-modified-p))                 ; edits undone: an ordinary revert
+      (emacs-cpp-reverter--enqueue-revert buffer))
+     (t
+      (pcase (car (read-multiple-choice
+                   (format "%s changed on disk; you have unsaved edits"
+                           (buffer-name buffer))
+                   '((?l "load disk" "load the file from disk, dropping your edits")
+                     (?k "keep yours" "keep your edits; saving asks before overwriting")
+                     (?d "diff" "compare buffer and file in ediff to merge"))))
+        (?l (revert-buffer t t t)
+            (emacs-cpp-reverter--enqueue buffer))
+        (?k (setq emacs-cpp-reverter--answered (emacs-cpp-reverter--file-time buffer)))
+        (?d (setq emacs-cpp-reverter--answered (emacs-cpp-reverter--file-time buffer))
+            (ediff-current-file)))))))
+
+(defun emacs-cpp-reverter--on-focus ()
+  "Ask when a frame regains focus (`after-focus-change-function', D-191)."
+  (when (and emacs-cpp-reverter--conflicts (frame-focus-state (selected-frame)))
+    (emacs-cpp-reverter--ask-soon 0)))
+
+(defun emacs-cpp-reverter--on-minibuffer-exit ()
+  "Ask what waited for the minibuffer to close (D-191)."
+  (when emacs-cpp-reverter--conflicts
+    (emacs-cpp-reverter--ask-soon emacs-cpp-reverter-ask-idle)))
 
 ;; The function held back while reverting is diff-hl's own (D-153); a diff-hl
 ;; without it fails here, when it loads, not with marks drawn twice.
@@ -409,6 +517,8 @@ lisp/emacs-cpp-reverter.el holds back while reverting; update it (D-153)")))
 (add-hook 'after-set-visited-file-name-hook #'emacs-cpp-reverter--adopt)
 (add-hook 'kill-buffer-hook #'emacs-cpp-reverter--release)
 (add-hook 'window-buffer-change-functions #'emacs-cpp-reverter--on-show)
+(add-function :after after-focus-change-function #'emacs-cpp-reverter--on-focus)
+(add-hook 'minibuffer-exit-hook #'emacs-cpp-reverter--on-minibuffer-exit)
 
 (provide 'emacs-cpp-reverter)
 ;;; emacs-cpp-reverter.el ends here

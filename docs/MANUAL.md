@@ -174,8 +174,11 @@ when the buffer has no unsaved edits. In a project (a git repository or a direct
 with a `.projectile` file) this happens within about a second after the change, on
 both machines; the mode line's branch and the change marks follow when a window shows
 the buffer. Elsewhere it happens at once on Arch and within 5 s on the Mac. A buffer
-with unsaved edits is left alone and named in a message, as is a buffer whose file was
-deleted; Emacs asks when you next edit or save it. To turn the project behaviour off,
+with unsaved edits is not reloaded: in a project, once you look at it (it is shown, its
+frame regains focus, or after a second without typing) Emacs asks, as CLion does: `l`
+load the file from disk, dropping your edits; `k` keep yours (saving asks before
+overwriting); `d` compare the two in ediff to merge (D-191). A buffer you are not
+looking at is named in a message until then; one whose file was deleted is too. To turn the project behaviour off,
 set `emacs-cpp-revert-project-buffers` to nil (`M-x customize-variable`), or for one
 project in its `.dir-locals.el`: `((nil . ((emacs-cpp-revert-project-buffers . nil))))`;
 its buffers then reload as outside a project. If the warning "fswatch for ... ended"
