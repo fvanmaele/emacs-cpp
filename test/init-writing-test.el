@@ -110,6 +110,32 @@ signals \"Selecting deleted buffer\" (graphical Emacs only: batch does not compi
   (should (equal emacs-cpp-markdown-pdf-monofont "DejaVuSansMono.ttf"))
   (should (equal emacs-cpp-markdown-pdf-margin "3cm")))
 
+(ert-deftest init-writing-pdf-mainfont ()
+  "The main font: four files name each style; a name passes alone; nil passes
+nothing; anything else is an error naming the option (D-205)."
+  (init-test--load)
+  (should (equal emacs-cpp-markdown-pdf-mainfont
+                 '("DejaVuSerif.ttf" "DejaVuSerif-Bold.ttf" "DejaVuSerif-Italic.ttf"
+                   "DejaVuSerif-BoldItalic.ttf")))
+  (should (equal (last (emacs-cpp-markdown--pdf-command
+                        "/a/doc.md" "xelatex" nil nil emacs-cpp-markdown-pdf-mainfont)
+                       8)
+                 '("-V" "mainfont=DejaVuSerif.ttf"
+                   "-V" "mainfontoptions=BoldFont=DejaVuSerif-Bold.ttf"
+                   "-V" "mainfontoptions=ItalicFont=DejaVuSerif-Italic.ttf"
+                   "-V" "mainfontoptions=BoldItalicFont=DejaVuSerif-BoldItalic.ttf")))
+  (should (equal (last (emacs-cpp-markdown--pdf-command
+                        "/a/doc.md" "xelatex" nil nil "STIX Two Text")
+                       2)
+                 '("-V" "mainfont=STIX Two Text")))
+  (should-not (member "-V" (emacs-cpp-markdown--pdf-command "/a/doc.md" "xelatex" nil nil nil)))
+  (should (string-search "emacs-cpp-markdown-pdf-mainfont"
+                         (cadr (should-error (emacs-cpp-markdown--mainfont-args
+                                              '("a.ttf" "b.ttf"))))))
+  (should (funcall (get 'emacs-cpp-markdown-pdf-mainfont 'safe-local-variable)
+                   "STIX Two Text"))
+  (should-not (funcall (get 'emacs-cpp-markdown-pdf-mainfont 'safe-local-variable) 7)))
+
 (ert-deftest init-writing-pdf-missing-characters ()
   "LaTeX's missing-glyph lines give each character once, in order (D-185)."
   (init-test--load)
@@ -338,6 +364,24 @@ with pandoc's own font they are dropped, and the export warns naming them."
       (let ((err (should-error
                   (emacs-cpp-markdown--pdf-finished status file pdf))))
         (should (string-match-p "pandoc failed (exit [0-9]+)" (cadr err)))))))
+
+(ert-deftest init-writing-pdf-text-glyphs ()
+  "Greek letters in plain text, bold and italic reach the PDF with the default main
+font; with pandoc's own, Latin Modern, they are dropped and the export warns (D-205)."
+  (init-test--load)
+  (skip-unless (init-writing-test--tools-p))
+  (init-writing-test--with-file
+      "Mass \u03c1 and share \u03b8, **bold \u03b2**, *italic \u03bb*, ***both \u03c1***.\n"
+    (when (get-buffer "*Warnings*")
+      (kill-buffer "*Warnings*"))
+    (should (eql 0 (init-writing-test--wait (emacs-cpp-markdown-pdf))))
+    (should-not (string-search "lacks" (init-writing-test--warnings)))
+    (let ((emacs-cpp-markdown-pdf-mainfont nil))
+      (should (eql 0 (init-writing-test--wait (emacs-cpp-markdown-pdf)))))
+    (let ((warnings (init-writing-test--warnings)))
+      (should (string-match-p "lacks [0-9]+ characters" warnings))
+      (should (string-search "\u03b8" warnings))
+      (should (string-search "emacs-cpp-markdown-pdf-mainfont" warnings)))))
 
 ;; `C-c C-c o' (D-202): the export, then the platform's opener outside Emacs.
 
