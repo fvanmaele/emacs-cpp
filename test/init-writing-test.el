@@ -100,9 +100,11 @@ signals \"Selecting deleted buffer\" (graphical Emacs only: batch does not compi
   "pandoc gets the file and its PDF by name, run in the file's directory."
   (init-test--load)
   (should (equal (emacs-cpp-markdown--pdf-command "/a/b/doc.md" "lualatex" nil nil)
-                 '("pandoc" "doc.md" "-o" "doc.pdf" "--pdf-engine=lualatex")))
+                 '("pandoc" "doc.md" "-f" "markdown+autolink_bare_uris"
+                   "-o" "doc.pdf" "--pdf-engine=lualatex")))
   (should (equal (emacs-cpp-markdown--pdf-command "/a/b/doc.md" "xelatex" "Menlo" "2.5cm")
-                 '("pandoc" "doc.md" "-o" "doc.pdf" "--pdf-engine=xelatex"
+                 '("pandoc" "doc.md" "-f" "markdown+autolink_bare_uris"
+                   "-o" "doc.pdf" "--pdf-engine=xelatex"
                    "-V" "monofont=Menlo" "-V" "geometry:margin=2.5cm")))
   (should (equal emacs-cpp-markdown-pdf-engine "xelatex"))
   (should (equal emacs-cpp-markdown-pdf-monofont "DejaVuSansMono.ttf"))
@@ -446,6 +448,40 @@ image path resolves; `markdown-preview' opened a temporary file elsewhere."
                              (with-temp-buffer
                                (insert-file-contents html)
                                (buffer-string)))))))
+
+;; Bare URIs as links, HTML through pandoc only (D-204).
+
+(ert-deftest init-writing-html-pandoc-only ()
+  "The HTML commands run pandoc; without it, an error naming the install command."
+  (init-test--load)
+  (init-writing-test--with-file "# Title\n"
+    (should (eq markdown-command #'emacs-cpp-markdown--html))
+    (let ((err (let ((exec-path nil))
+                 (should-error (markdown "*init-writing-html*")))))
+      (should (string-match-p "pandoc is not on exec-path" (cadr err)))
+      (should (string-search emacs-cpp-default-markdown-pdf-install (cadr err))))))
+
+(ert-deftest init-writing-html-bare-uris ()
+  "A bare URI and one in angle brackets are both links in the HTML."
+  (init-test--load)
+  (skip-unless (executable-find "pandoc"))
+  (init-writing-test--with-file "See https://example.org/a?b=1 and <https://example.org/c>.\n"
+    (let ((html (with-current-buffer (markdown "*init-writing-html*")
+                  (prog1 (buffer-string) (kill-buffer)))))
+      ;; pandoc wraps lines, also between `<a' and `href'.
+      (should (string-match-p "<a[ \n]+href=\"https://example\\.org/a\\?b=1\"" html))
+      (should (string-match-p "<a[ \n]+href=\"https://example\\.org/c\"" html)))))
+
+(ert-deftest init-writing-pdf-bare-uris ()
+  "A bare URI is a link in the PDF too, as pdf-tools reads its links."
+  (init-test--load)
+  (skip-unless (init-writing-test--tools-p))
+  (init-writing-test--with-file "See https://example.org/a?b=1 here.\n"
+    (let ((pdf (expand-file-name "doc.pdf" default-directory)))
+      (should (eql 0 (init-writing-test--wait (emacs-cpp-markdown-pdf))))
+      (should (member "https://example.org/a?b=1"
+                      (mapcar (lambda (link) (alist-get 'uri link))
+                              (pdf-info-pagelinks 1 pdf)))))))
 
 (provide 'init-writing-test)
 ;;; init-writing-test.el ends here

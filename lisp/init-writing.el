@@ -58,11 +58,32 @@ error: the export shows pandoc's output and signals."
   "Return the PDF file `emacs-cpp-markdown-pdf' writes for FILE."
   (concat (file-name-sans-extension file) ".pdf"))
 
+(defconst emacs-cpp-markdown--pandoc-reader '("-f" "markdown+autolink_bare_uris")
+  "How pandoc reads Markdown for the HTML and the PDF: bare URIs become links (D-204).")
+
+(defun emacs-cpp-markdown--check-pandoc ()
+  "Signal an error naming the install command when pandoc is not on `exec-path'."
+  (unless (executable-find "pandoc")
+    (error "emacs-cpp: pandoc is not on exec-path; install: %s (D-184, D-204)"
+           emacs-cpp-default-markdown-pdf-install)))
+
+(defun emacs-cpp-markdown--html (begin end buffer)
+  "Write the HTML of BEGIN..END into BUFFER through pandoc: `markdown-command' (D-204).
+Bare URIs become links; pandoc missing or failing is an error, no other program."
+  (emacs-cpp-markdown--check-pandoc)
+  (let* ((coding-system-for-write 'utf-8)
+         (coding-system-for-read 'utf-8)
+         (status (apply #'call-process-region begin end "pandoc" nil (list buffer nil) nil
+                        emacs-cpp-markdown--pandoc-reader)))
+    (unless (eql 0 status)
+      (error "emacs-cpp: pandoc failed (exit %s) writing the HTML (D-204)" status))))
+
 (defun emacs-cpp-markdown--pdf-command (file engine monofont margin)
   "Return the pandoc command line writing FILE's PDF with ENGINE, MONOFONT, MARGIN.
 MONOFONT nil: pandoc's default monospace font; MARGIN nil: its default margins."
-  (append (list "pandoc" (file-name-nondirectory file)
-                "-o" (file-name-nondirectory (emacs-cpp-markdown--pdf-file file))
+  (append (list "pandoc" (file-name-nondirectory file))
+          emacs-cpp-markdown--pandoc-reader
+          (list "-o" (file-name-nondirectory (emacs-cpp-markdown--pdf-file file))
                 (concat "--pdf-engine=" engine))
           (and monofont (list "-V" (concat "monofont=" monofont)))
           (and margin (list "-V" (concat "geometry:margin=" margin)))))
@@ -127,10 +148,10 @@ window's, and undrawing a page that no longer exists stops the redraw."
 pandoc and ENGINE, with the install command; then OPENER, the program that opens
 the PDF outside Emacs (D-202), or, when OPENER is nil, pdf-tools' server, which
 shows it (D-199); all before LaTeX has run."
-  (dolist (program (list "pandoc" engine))
-    (unless (executable-find program)
-      (error "emacs-cpp: %s is not on exec-path; install: %s (D-184)"
-             program emacs-cpp-default-markdown-pdf-install)))
+  (emacs-cpp-markdown--check-pandoc)
+  (unless (executable-find engine)
+    (error "emacs-cpp: %s is not on exec-path; install: %s (D-184)"
+           engine emacs-cpp-default-markdown-pdf-install))
   (if (null opener)
       (emacs-cpp-pdf--check-server)
     (unless (executable-find opener)
@@ -238,6 +259,8 @@ see %s, and `emacs-cpp-markdown-pdf-monofont' (D-185)"
   :custom
   ;; `C-c C-c o': the PDF opened outside Emacs (D-202).
   (markdown-open-command #'emacs-cpp-markdown-pdf-open)
+  ;; The HTML of `C-c C-c p', `v', `e' through pandoc only, bare URIs linked (D-204).
+  (markdown-command #'emacs-cpp-markdown--html)
   :config
   (keymap-set markdown-mode-command-map "x" #'emacs-cpp-markdown-pdf)
   ;; `C-c C-c p' writes FILE.html beside the file, so relative image paths resolve:
