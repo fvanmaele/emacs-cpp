@@ -14,14 +14,6 @@ cannot read itself. An approval another session asks the owner for itself (a ben
 service's plan) is not an item.
 
 ## Run now
-- **H-37** (2026-11-09, unblocks T-148, D-202) The Mac: `C-c C-c o` opens the Markdown
-  PDF in Preview; the session's own run could not show it (its command sandbox).
-  1. On the Mac: quit Emacs and start it again.
-  2. On the Mac: `C-x C-f ~/source/repos/RMO-drafts/md/direction_comparison.md RET`, then
-     `C-c C-c o`, and wait for `emacs-cpp: wrote` in the echo area.
-  Report back: whether Preview came to the front with `direction_comparison.pdf`, and
-  whether it showed the new export (it had that file open already).
-
 - **H-36** (2026-11-09, unblocks T-142, T-145, T-148, D-199 - D-202) pdf-tools on every PDF:
   Arch's run and the hand check of link and selection; step 2's `make packages` applies
   pdf-tools patch 0001, step 3's `make test-gui` tests it and `M-o`'s PDF preview (D-201).

@@ -40,9 +40,11 @@ function that receives the finished PDF, pdf-tools' display for `x`, the opener 
 ## Assumptions + risks  (the postmortem ledger)
 - **Assumed:** `open` shows the PDF in Preview from the owner's Emacs; the session's run
   exited 0 but Preview did not list the file, likely the session's command sandbox.
-  **Would break if:** H-37 shows nothing. **DESIGN bet:** D-202.
-- **Assumed:** Preview shows a rewritten PDF when opened again (UNVERIFIED; H-37 asks).
-  **Would break if:** the owner sees the old version. **DESIGN bet:** D-202.
+  Confirmed 2026-11-09 by the owner's H-37 ("OK"). **Would break if:** a later macOS
+  changes `open`. **DESIGN bet:** D-202.
+- **Assumed:** Preview shows a rewritten PDF when opened again: confirmed by H-37 (the
+  PDF was open in Preview before the export). **Would break if:** the owner sees the old
+  version. **DESIGN bet:** D-202.
 - **Assumed:** Arch's desktop maps PDFs to a viewer for `xdg-open` (UNVERIFIED; H-36).
   **Would break if:** `xdg-open` opens nothing or a browser. **DESIGN bet:** D-202.
 
