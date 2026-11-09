@@ -1841,6 +1841,20 @@ the form that loads magit is found (S17 run 2, T-113).
   poppler library change stops every PDF until `make epdfinfo` is rerun; roll mode on long
   PDFs is unmeasured (S22's had 5 - 6 pages; T-142 records it); a mode function's error
   reaches the owner as a message over the raw PDF, `normal-mode` catches it.
+- DECIDED D-202 (owner 2026-11-09: "a way to use pdf export + finder open", then "Agree 1";
+  tier 2, T-148): `C-c C-c o` exports the Markdown file's PDF as `C-c C-c x` does (the same
+  pandoc options, glyph warning, error buffer) and opens it with the platform's opener,
+  not in Emacs: `open` on the Mac (Finder's default application), `xdg-open` on Arch,
+  `emacs-cpp-default-pdf-open-command` (NEW) in the defaults files. Through markdown-mode's
+  own `markdown-open-command` (a function, set in its one `use-package` form): `o` was
+  markdown-mode's "open in an external program" key, unusable here (the option unset); the
+  HTML keys `p` and `v` open outside Emacs as well. The opener missing: an error naming
+  it before pandoc runs, no fallback to pdf-view; the opener failing: an error from its
+  sentinel. `C-c C-c x` unchanged. Not taken: `C-c C-c X` (the map's only capital, Shift);
+  `C-u C-c C-c x` (hidden from which-key); an option switching `x` (not both at hand).
+  Against: markdown-mode's documentation describes `o` as opening the Markdown file in a
+  previewer; an external viewer may not reload a rewritten PDF by itself (UNVERIFIED for
+  Preview); `xdg-open` picks the viewer from the desktop's settings (UNVERIFIED on Arch).
 - DECIDED D-201 (owner 2026-11-09: "narrower side window (M-o; compare to previous
   default DocView behavior)", then "A"; tier 2, T-145): `M-o` previews a PDF in a side
   window on the right, `emacs-cpp-go-pdf-preview-width` (NEW, 0.4 of the frame), pages
@@ -4699,6 +4713,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-183 | 2026-11-05 | O-85 (h): projectile's per-submodule pass off, fd required for git listings | 12 | O-85, T-133 |
 | D-184 | 2026-11-07 | O-89 (b): Markdown to PDF by pandoc + LaTeX; math drawn by math-preview deferred | 12 | O-89, D-145 |
 | D-185 | 2026-11-07 | Markdown PDF: code in DejaVu Sans Mono, missing glyphs a warning | 12 | D-184, owner report |
+| D-202 | 2026-11-09 | `C-c C-c o` exports the Markdown PDF and opens it outside Emacs (`open`, `xdg-open`) | 12 | T-148, owner |
 | D-201 | 2026-11-09 | `M-o` previews PDFs in a right side window, through `display-buffer-alist` | 10 | T-145, owner |
 | D-200 | 2026-11-09 | pdf-tools patch 0001: roll-mode scroll commands in step without a redisplay | 12 | T-143, owner report |
 | D-199 | 2026-11-08 | every PDF in pdf-tools; `make epdfinfo`, no fallback; `make test-gui` | 12 | owner, S22 |
