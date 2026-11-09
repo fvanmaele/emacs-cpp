@@ -1865,8 +1865,8 @@ the form that loads magit is found (S17 run 2, T-113).
   only capital, Shift); `C-u C-c C-c x` (hidden from which-key); an option switching `x`
   (not both at hand). Against: markdown-mode's documentation describes `o` as opening the
   Markdown file in a previewer; an external viewer may not reload a rewritten PDF by
-  itself (Preview did: H-37, owner 2026-11-09 "OK"); `xdg-open` picks the viewer from the desktop's settings
-  (UNVERIFIED on Arch).
+  itself (Preview did: H-37, owner 2026-11-09 "OK"); `xdg-open` picks the viewer from the
+  desktop's settings (UNVERIFIED on Arch).
 - DECIDED D-201 (owner 2026-11-09: "narrower side window (M-o; compare to previous
   default DocView behavior)", then "A"; tier 2, T-145): `M-o` previews a PDF in a side
   window on the right, `emacs-cpp-go-pdf-preview-width` (NEW, 0.4 of the frame), pages
