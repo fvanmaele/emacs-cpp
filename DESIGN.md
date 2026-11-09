@@ -1841,20 +1841,22 @@ the form that loads magit is found (S17 run 2, T-113).
   poppler library change stops every PDF until `make epdfinfo` is rerun; roll mode on long
   PDFs is unmeasured (S22's had 5 - 6 pages; T-142 records it); a mode function's error
   reaches the owner as a message over the raw PDF, `normal-mode` catches it.
-- DECIDED D-202 (owner 2026-11-09: "a way to use pdf export + finder open", then "Agree 1";
-  tier 2, T-148): `C-c C-c o` exports the Markdown file's PDF as `C-c C-c x` does (the same
-  pandoc options, glyph warning, error buffer) and opens it with the platform's opener,
-  not in Emacs: `open` on the Mac (Finder's default application), `xdg-open` on Arch,
-  `emacs-cpp-default-pdf-open-command` (NEW) in the defaults files. Through markdown-mode's
-  own `markdown-open-command` (a function, set in its one `use-package` form): `o` was
-  markdown-mode's "open in an external program" key, unusable here (the option unset); the
-  HTML keys `p` and `v` open outside Emacs as well. The opener missing: an error naming
-  it before pandoc runs, no fallback to pdf-view; the opener failing: an error from its
-  sentinel. `C-c C-c x` unchanged. Not taken: `C-c C-c X` (the map's only capital, Shift);
-  `C-u C-c C-c x` (hidden from which-key); an option switching `x` (not both at hand).
-  Against: markdown-mode's documentation describes `o` as opening the Markdown file in a
-  previewer; an external viewer may not reload a rewritten PDF by itself (UNVERIFIED for
-  Preview); `xdg-open` picks the viewer from the desktop's settings (UNVERIFIED on Arch).
+- DECIDED D-202 (owner 2026-11-09: "a way to use pdf export + finder open", then "Agree
+  1"; tier 2, T-148): `C-c C-c o` exports the Markdown file's PDF as `C-c C-c x` does (the
+  same pandoc options, glyph warning, error buffer) and opens it with the platform's
+  opener, not in Emacs: `open` on the Mac (Finder's default application), `xdg-open` on
+  Arch, `emacs-cpp-default-pdf-open-command` (NEW) in the defaults files. Through
+  markdown-mode's own `markdown-open-command` (a function, set in its one `use-package`
+  form): `o` was markdown-mode's "open in an external program" key, unusable here (the
+  option unset); the HTML keys `p` and `v` open outside Emacs as well. The opener missing:
+  an error naming it before pandoc runs, no fallback to pdf-view; the opener failing: an
+  error-level warning (an error in a sentinel is only an echo-area message, and ends a
+  batch Emacs). Built (0138). `C-c C-c x` unchanged. Not taken: `C-c C-c X` (the map's
+  only capital, Shift); `C-u C-c C-c x` (hidden from which-key); an option switching `x`
+  (not both at hand). Against: markdown-mode's documentation describes `o` as opening the
+  Markdown file in a previewer; an external viewer may not reload a rewritten PDF by
+  itself (UNVERIFIED for Preview); `xdg-open` picks the viewer from the desktop's settings
+  (UNVERIFIED on Arch).
 - DECIDED D-201 (owner 2026-11-09: "narrower side window (M-o; compare to previous
   default DocView behavior)", then "A"; tier 2, T-145): `M-o` previews a PDF in a side
   window on the right, `emacs-cpp-go-pdf-preview-width` (NEW, 0.4 of the frame), pages
@@ -2405,6 +2407,9 @@ Shape:
   checks the server first: `auto-mode-alist` and `magic-mode-alist`. Roll mode, links,
   isearch by `pdf-tools-enabled-modes`; `fit-width`; D-192's clamp on `after-revert-hook`;
   scrolling without a redisplay between steps by pdf-tools patch 0001 (D-200).
+- Outside Emacs (D-202, T-148): `C-c C-c o`, markdown-mode's `markdown-open-command` set to
+  `emacs-cpp-markdown-pdf-open` (NEW): the same export, then
+  `emacs-cpp-default-pdf-open-command` (NEW; `open`, `xdg-open`) on the PDF.
   Margin `emacs-cpp-markdown-pdf-margin`, 3 cm (D-189).
 - Math (DEFERRED 2026-11-07, T-136): math-preview in one `use-package` form in
   `lisp/init-writing.el`;

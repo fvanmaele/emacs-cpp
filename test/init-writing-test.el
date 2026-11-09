@@ -337,5 +337,93 @@ with pandoc's own font they are dropped, and the export warns naming them."
                   (emacs-cpp-markdown--pdf-finished status file pdf))))
         (should (string-match-p "pandoc failed (exit [0-9]+)" (cadr err)))))))
 
+;; `C-c C-c o' (D-202): the export, then the platform's opener outside Emacs.
+
+(defun init-writing-test--opener (directory exit)
+  "Write an opener script into DIRECTORY that records its argument and exits EXIT.
+Return (SCRIPT . RECORD), RECORD the file it writes the argument to."
+  (let ((script (expand-file-name "opener.sh" directory))
+        (record (expand-file-name "opened" directory)))
+    (write-region (format "#!/bin/sh\nprintf '%%s' \"$1\" > '%s'\nexit %d\n" record exit)
+                  nil script)
+    (set-file-modes script #o755)
+    (cons script record)))
+
+(ert-deftest init-writing-pdf-open-key-and-defaults ()
+  "`C-c C-c o' is markdown-open, whose command is the export to the opener;
+each platform names its opener; `C-c C-c x' stays."
+  (init-test--load)
+  (init-writing-test--with-file "# Title\n"
+    (should (eq (key-binding (kbd "C-c C-c o")) #'markdown-open))
+    (should (eq markdown-open-command #'emacs-cpp-markdown-pdf-open))
+    (should (eq (key-binding (kbd "C-c C-c x")) #'emacs-cpp-markdown-pdf)))
+  (should (equal emacs-cpp-default-pdf-open-command
+                 (pcase system-type ('darwin "open") ('gnu/linux "xdg-open")))))
+
+(ert-deftest init-writing-pdf-open-missing-opener ()
+  "A missing opener is an error naming it, before pandoc starts."
+  (init-test--load)
+  (init-writing-test--with-file "# Title\n"
+    (let* ((started nil)
+           (err (cl-letf (((symbol-function 'make-process)
+                           (lambda (&rest args) (push args started) nil))
+                          ((symbol-function 'executable-find)
+                           (lambda (program &rest _)
+                             (unless (equal program "emacs-cpp-no-opener")
+                               (concat "/bin/" program)))))
+                  (let ((emacs-cpp-default-pdf-open-command "emacs-cpp-no-opener"))
+                    (should-error (markdown-open))))))
+      (should (string-search "emacs-cpp-no-opener" (cadr err)))
+      (should-not started))))
+
+(ert-deftest init-writing-pdf-open-failing-opener ()
+  "An opener that exits non-zero is an error-level warning naming it and the code."
+  (init-test--load)
+  (let* ((directory (make-temp-file "emacs-cpp-opener" t))
+         (opener (init-writing-test--opener directory 3)))
+    (when (get-buffer "*Warnings*")
+      (kill-buffer "*Warnings*"))
+    (unwind-protect
+        (progn
+          (init-writing-test--wait (emacs-cpp-markdown--open-pdf (car opener) "/x/doc.pdf"))
+          (should (equal (with-temp-buffer
+                           (insert-file-contents (cdr opener))
+                           (buffer-string))
+                         "/x/doc.pdf"))
+          (should (string-match-p "/x/doc.pdf failed (exit 3)"
+                                  (init-writing-test--warnings))))
+      (delete-directory directory t))))
+
+(ert-deftest init-writing-pdf-open-export ()
+  "`C-c C-c o' writes the PDF once and hands its path to the opener; Emacs shows none."
+  (init-test--load)
+  (skip-unless (and (executable-find "pandoc")
+                    (executable-find emacs-cpp-markdown-pdf-engine)))
+  (init-writing-test--with-file "# Title\n\nText.\n"
+    (let* ((pdf (expand-file-name "doc.pdf" default-directory))
+           (opener (init-writing-test--opener default-directory 0))
+           (exports 0)
+           (process
+            (let ((emacs-cpp-default-pdf-open-command (car opener))
+                  (make (symbol-function 'make-process)))
+              (cl-letf (((symbol-function 'make-process)
+                         (lambda (&rest args)
+                           (when (equal (plist-get args :name) "emacs-cpp-markdown-pdf")
+                             (cl-incf exports))
+                           (apply make args))))
+                (markdown-open)
+                (get-process "emacs-cpp-markdown-pdf")))))
+      (should (= exports 1))
+      (should (eql 0 (init-writing-test--wait process)))
+      (let ((deadline (+ (float-time) 10)))
+        (while (and (not (file-exists-p (cdr opener))) (< (float-time) deadline))
+          (accept-process-output nil 0.1)))
+      (should (file-exists-p pdf))
+      (should (equal (with-temp-buffer
+                       (insert-file-contents (cdr opener))
+                       (buffer-string))
+                     pdf))
+      (should-not (find-buffer-visiting pdf)))))
+
 (provide 'init-writing-test)
 ;;; init-writing-test.el ends here

@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0138 | 2026-11-09 | T-148: the Markdown PDF opened outside Emacs on `C-c C-c o` | T-148 | D-202 |
 | 0137 | 2026-11-09 | T-145: `M-o` previews PDFs in a side window | T-145 | D-201 |
 | 0136 | 2026-11-09 | T-143: roll-mode scrolling in step without a redisplay | T-143 | D-200 |
 | 0135 | 2026-11-09 | T-142: every PDF in pdf-tools | T-142 | D-199, D-192 |
