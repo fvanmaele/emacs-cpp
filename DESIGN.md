@@ -1841,6 +1841,23 @@ the form that loads magit is found (S17 run 2, T-113).
   poppler library change stops every PDF until `make epdfinfo` is rerun; roll mode on long
   PDFs is unmeasured (S22's had 5 - 6 pages; T-142 records it); a mode function's error
   reaches the owner as a message over the raw PDF, `normal-mode` catches it.
+- DECIDED D-201 (owner 2026-11-09: "narrower side window (M-o; compare to previous
+  default DocView behavior)", then "A"; tier 2, T-145): `M-o` previews a PDF in a side
+  window on the right, `emacs-cpp-go-pdf-preview-width` (NEW, 0.4 of the frame), pages
+  at that window's width; the window `M-o` started from shows its buffer from before the
+  prompt meanwhile. Through public Emacs options only: while the prompt is open `M-o`
+  binds `switch-to-buffer-obey-display-actions` t, so consult's preview switch follows
+  `display-buffer-alist`, and adds two entries whose conditions hold only while the
+  minibuffer is active: a PDF buffer to `display-buffer-in-side-window`; any other
+  buffer removes that side window, then shows as before. Moving to another candidate or
+  `C-g` removes it; `RET` (consult's `return`, after the minibuffer has closed) opens the
+  PDF as before. Probe 2026-11-09 (Emacs 31.1, consult 3.10): the layouts as described.
+  Not taken: wrapping `consult--file-state` (an internal function; owner); `fit-page`
+  previews in the same window (B: no narrower window); the candidate list in a side
+  window through vertico-multiform (C: changes `M-o` for every candidate). Against:
+  `switch-to-buffer` follows `display-buffer-alist` for every candidate while the prompt
+  is open and for `RET` on a buffer (another package's entry would apply there); on the
+  Mac's small frame 0.4 gives small pages. `C-c p f` has no preview: unchanged.
 - DECIDED D-200 (owner 2026-11-09: "Agree patch against pdf-tools"; tier 2, T-143, 0136):
   pdf-tools patch 0001 (D-069) keeps roll mode's scrolling in step when scroll commands
   run before a redisplay, as trackpad events do on a loaded machine (the owner's report:
@@ -4680,6 +4697,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-183 | 2026-11-05 | O-85 (h): projectile's per-submodule pass off, fd required for git listings | 12 | O-85, T-133 |
 | D-184 | 2026-11-07 | O-89 (b): Markdown to PDF by pandoc + LaTeX; math drawn by math-preview deferred | 12 | O-89, D-145 |
 | D-185 | 2026-11-07 | Markdown PDF: code in DejaVu Sans Mono, missing glyphs a warning | 12 | D-184, owner report |
+| D-201 | 2026-11-09 | `M-o` previews PDFs in a right side window, through `display-buffer-alist` | 10 | T-145, owner |
 | D-200 | 2026-11-09 | pdf-tools patch 0001: roll-mode scroll commands in step without a redisplay | 12 | T-143, owner report |
 | D-199 | 2026-11-08 | every PDF in pdf-tools; `make epdfinfo`, no fallback; `make test-gui` | 12 | owner, S22 |
 | D-198 | 2026-11-08 | lldb's debuginfod requests capped at 5 s at lldb-preset's launch | 5 | T-141 |
