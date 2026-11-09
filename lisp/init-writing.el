@@ -239,7 +239,10 @@ see %s, and `emacs-cpp-markdown-pdf-monofont' (D-185)"
   ;; `C-c C-c o': the PDF opened outside Emacs (D-202).
   (markdown-open-command #'emacs-cpp-markdown-pdf-open)
   :config
-  (keymap-set markdown-mode-command-map "x" #'emacs-cpp-markdown-pdf))
+  (keymap-set markdown-mode-command-map "x" #'emacs-cpp-markdown-pdf)
+  ;; `C-c C-c p' writes FILE.html beside the file, so relative image paths resolve:
+  ;; `markdown-preview' wrote it to a temporary directory (D-203).
+  (keymap-set markdown-mode-command-map "p" #'markdown-export-and-preview))
 
 ;; Not `pdf-tools-install': it rebuilds the server, installs system packages and can fail
 ;; silently (D-199).  Dark themes add `pdf-view-dark-minor-mode' to the list by themselves.

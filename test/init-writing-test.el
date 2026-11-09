@@ -425,5 +425,27 @@ each platform names its opener; `C-c C-c x' stays."
                      pdf))
       (should-not (find-buffer-visiting pdf)))))
 
+;; `C-c C-c p' (D-203): the HTML beside the file, its images found.
+
+(ert-deftest init-writing-html-preview-beside-the-file ()
+  "`C-c C-c p' writes doc.html beside doc.md and opens that file, so a relative
+image path resolves; `markdown-preview' opened a temporary file elsewhere."
+  (init-test--load)
+  (skip-unless (executable-find "pandoc"))
+  (init-writing-test--with-file "# Title\n\n![pic](img.png)\n"
+    (let* ((html (expand-file-name "doc.html" default-directory))
+           (opened nil)
+           (record (lambda (url &rest _) (push url opened))))
+      (should (eq (key-binding (kbd "C-c C-c p")) #'markdown-export-and-preview))
+      (advice-add 'browse-url :override record)
+      (unwind-protect
+          (call-interactively (key-binding (kbd "C-c C-c p")))
+        (advice-remove 'browse-url record))
+      (should (equal opened (list (concat "file://" html))))
+      (should (string-search "src=\"img.png\""
+                             (with-temp-buffer
+                               (insert-file-contents html)
+                               (buffer-string)))))))
+
 (provide 'init-writing-test)
 ;;; init-writing-test.el ends here
