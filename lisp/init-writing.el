@@ -42,6 +42,43 @@ Mono ships with TeX Live; a name with .ttf is looked up as a file there."
   :safe (lambda (value) (or (null value) (stringp value)))
   :group 'tools)
 
+(defun emacs-cpp-markdown--mainfont-p (value)
+  "Non-nil when VALUE is a valid `emacs-cpp-markdown-pdf-mainfont'."
+  (or (null value) (stringp value)
+      (and (proper-list-p value) (= (length value) 4) (seq-every-p #'stringp value))))
+
+(defcustom emacs-cpp-markdown-pdf-mainfont
+  '("DejaVuSerif.ttf" "DejaVuSerif-Bold.ttf" "DejaVuSerif-Italic.ttf"
+    "DejaVuSerif-BoldItalic.ttf")
+  "Main font of `emacs-cpp-markdown-pdf''s text and tables (D-205).
+nil: pandoc's default, Latin Modern Roman, which has no Greek letters: rho, theta
+in plain text are dropped (a warning names them, D-185).  A string: a font name,
+passed as pandoc's `-V mainfont='; an installed family finds its bold and italic
+by itself.  A list of four files, regular, bold, italic, bold italic: font files
+name no family, so each style is named (`-V mainfontoptions=BoldFont=...'), else
+LaTeX substitutes the regular face without a message.  DejaVu Serif ships with
+TeX Live, as DejaVu Sans Mono does (D-185)."
+  :type '(choice (const :tag "pandoc's default" nil)
+                 (string :tag "Font name")
+                 (list :tag "Font files" (string :tag "Regular") (string :tag "Bold")
+                       (string :tag "Italic") (string :tag "Bold italic")))
+  :safe #'emacs-cpp-markdown--mainfont-p
+  :group 'tools)
+
+(defun emacs-cpp-markdown--mainfont-args (mainfont)
+  "Return pandoc's arguments for MAINFONT, an `emacs-cpp-markdown-pdf-mainfont'."
+  (unless (emacs-cpp-markdown--mainfont-p mainfont)
+    (error "emacs-cpp: `emacs-cpp-markdown-pdf-mainfont' is %S: nil, a font name \
+or four font files (D-205)" mainfont))
+  (pcase mainfont
+    ('nil nil)
+    ((pred stringp) (list "-V" (concat "mainfont=" mainfont)))
+    (`(,regular ,bold ,italic ,bold-italic)
+     (list "-V" (concat "mainfont=" regular)
+           "-V" (concat "mainfontoptions=BoldFont=" bold)
+           "-V" (concat "mainfontoptions=ItalicFont=" italic)
+           "-V" (concat "mainfontoptions=BoldItalicFont=" bold-italic)))))
+
 (defcustom emacs-cpp-markdown-pdf-margin "3cm"
   "Page margin, all four sides, of `emacs-cpp-markdown-pdf' (D-189).
 A TeX length, passed as pandoc's `-V geometry:margin='; nil leaves pandoc's
@@ -78,15 +115,17 @@ Bare URIs become links; pandoc missing or failing is an error, no other program.
     (unless (eql 0 status)
       (error "emacs-cpp: pandoc failed (exit %s) writing the HTML (D-204)" status))))
 
-(defun emacs-cpp-markdown--pdf-command (file engine monofont margin)
-  "Return the pandoc command line writing FILE's PDF with ENGINE, MONOFONT, MARGIN.
-MONOFONT nil: pandoc's default monospace font; MARGIN nil: its default margins."
+(defun emacs-cpp-markdown--pdf-command (file engine monofont margin &optional mainfont)
+  "Return the pandoc command line writing FILE's PDF with ENGINE, MONOFONT, MARGIN,
+MAINFONT.  MONOFONT nil: pandoc's default monospace font; MARGIN nil: its default
+margins; MAINFONT: see `emacs-cpp-markdown-pdf-mainfont', nil its default."
   (append (list "pandoc" (file-name-nondirectory file))
           emacs-cpp-markdown--pandoc-reader
           (list "-o" (file-name-nondirectory (emacs-cpp-markdown--pdf-file file))
                 (concat "--pdf-engine=" engine))
           (and monofont (list "-V" (concat "monofont=" monofont)))
-          (and margin (list "-V" (concat "geometry:margin=" margin)))))
+          (and margin (list "-V" (concat "geometry:margin=" margin)))
+          (emacs-cpp-markdown--mainfont-args mainfont)))
 
 (defun emacs-cpp-markdown--missing-characters (output)
   "Return the distinct characters LaTeX reported missing in OUTPUT, in order."
@@ -213,6 +252,7 @@ The tools are checked by the caller.  Return the pandoc process."
                    (user-error "emacs-cpp: this buffer visits no file")))
          (engine emacs-cpp-markdown-pdf-engine)
          (monofont emacs-cpp-markdown-pdf-monofont)
+         (mainfont emacs-cpp-markdown-pdf-mainfont)
          (margin emacs-cpp-markdown-pdf-margin)
          (pdf (emacs-cpp-markdown--pdf-file file))
          (output (get-buffer-create emacs-cpp-markdown--pdf-output))
@@ -225,7 +265,7 @@ The tools are checked by the caller.  Return the pandoc process."
     (make-process
      :name "emacs-cpp-markdown-pdf"
      :buffer output
-     :command (emacs-cpp-markdown--pdf-command file engine monofont margin)
+     :command (emacs-cpp-markdown--pdf-command file engine monofont margin mainfont)
      :noquery t
      :sentinel (lambda (process _event)
                  (when (memq (process-status process) '(exit signal))
@@ -248,7 +288,8 @@ pandoc exits 0 and the PDF silently lacks them."
             (display-warning
              'emacs-cpp
              (format "%s lacks %d characters its fonts have no glyph for: %s; \
-see %s, and `emacs-cpp-markdown-pdf-monofont' (D-185)"
+see %s, `emacs-cpp-markdown-pdf-mainfont' (text) and \
+`emacs-cpp-markdown-pdf-monofont' (code) (D-185, D-205)"
                      pdf (length missing) (string-join missing " ")
                      emacs-cpp-markdown--pdf-output)))))
     (display-buffer (get-buffer-create emacs-cpp-markdown--pdf-output))

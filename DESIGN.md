@@ -1841,6 +1841,21 @@ the form that loads magit is found (S17 run 2, T-113).
   poppler library change stops every PDF until `make epdfinfo` is rerun; roll mode on long
   PDFs is unmeasured (S22's had 5 - 6 pages; T-142 records it); a mode function's error
   reaches the owner as a message over the raw PDF, `normal-mode` catches it.
+- DECIDED D-205 (owner 2026-11-09: "T-147 DejaVu Serif - configurable?"; tier 1, T-147):
+  the Markdown PDF's text and tables are set in DejaVu Serif,
+  `emacs-cpp-markdown-pdf-mainfont` (NEW, `.dir-locals.el`-safe): four TeX Live files,
+  regular, bold, italic, bold italic, passed as `-V mainfont=` and three `-V
+  mainfontoptions=...Font=`; a string is a font name passed alone (an installed family
+  finds its styles); nil is pandoc's default, Latin Modern Roman; another value is an
+  error naming the option. Found 2026-11-09 on the Mac (RMO-drafts
+  `md/direction_comparison.md`): rho, theta, lambda, beta in plain text and tables were
+  dropped by `lmroman10-regular`; DejaVu Serif: none missing; given as one file only, bold
+  and italic are substituted without a message in pandoc's output (pandoc --verbose: "Font
+  shape ... undefined"); with the four files, `pdffonts` lists DejaVuSerif, -Bold,
+  -Italic, -BoldItalic. The missing-glyph warning names both font options. Against: the
+  PDF no longer looks like LaTeX's default; a list of files must name all four styles;
+  Arch's TeX Live having `DejaVuSerif.ttf` is UNVERIFIED (H-36's `make test` runs the
+  export test).
 - DECIDED D-204 (owner 2026-11-09: "Can URIs be made clickable on the C-c C-c p
   export/preview?", then "Option 1, URIs in both HTML and PDF export"; tier 1): pandoc
   reads Markdown with `-f markdown+autolink_bare_uris` for the HTML and the PDF
@@ -2430,6 +2445,8 @@ Shape:
 - Code spans (D-185): pandoc gets `-V monofont=DejaVuSansMono.ttf`
   (`emacs-cpp-markdown-pdf-monofont`, nil for pandoc's default); characters LaTeX
   reports missing are a warning naming them after a successful export.
+- Text (D-205): DejaVu Serif's four files (`emacs-cpp-markdown-pdf-mainfont`), so Greek
+  letters in plain text and tables are kept.
 - Viewer (D-199, T-142; SUPERSEDES D-186's DocView and `mutool`, D-187, D-189's
   scrolling): every PDF in pdf-tools, through `emacs-cpp-pdf-view-mode` (NEW), which
   checks the server first: `auto-mode-alist` and `magic-mode-alist`. Roll mode, links,
@@ -4749,6 +4766,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-183 | 2026-11-05 | O-85 (h): projectile's per-submodule pass off, fd required for git listings | 12 | O-85, T-133 |
 | D-184 | 2026-11-07 | O-89 (b): Markdown to PDF by pandoc + LaTeX; math drawn by math-preview deferred | 12 | O-89, D-145 |
 | D-185 | 2026-11-07 | Markdown PDF: code in DejaVu Sans Mono, missing glyphs a warning | 12 | D-184, owner report |
+| D-205 | 2026-11-09 | Markdown PDF text in DejaVu Serif, its four styles named; `emacs-cpp-markdown-pdf-mainfont` | 12 | T-147, owner |
 | D-204 | 2026-11-09 | Markdown HTML and PDF: bare URIs are links; the HTML through pandoc only | 12 | owner |
 | D-203 | 2026-11-09 | Markdown `C-c C-c p` exports the HTML beside the file and previews it (images resolve) | 12 | T-146, owner |
 | D-202 | 2026-11-09 | `C-c C-c o` exports the Markdown PDF and opens it outside Emacs (`open`, `xdg-open`) | 12 | T-148, owner |
