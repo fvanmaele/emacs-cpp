@@ -1841,6 +1841,20 @@ the form that loads magit is found (S17 run 2, T-113).
   poppler library change stops every PDF until `make epdfinfo` is rerun; roll mode on long
   PDFs is unmeasured (S22's had 5 - 6 pages; T-142 records it); a mode function's error
   reaches the owner as a message over the raw PDF, `normal-mode` catches it.
+- DECIDED D-204 (owner 2026-11-09: "Can URIs be made clickable on the C-c C-c p
+  export/preview?", then "Option 1, URIs in both HTML and PDF export"; tier 1): pandoc
+  reads Markdown with `-f markdown+autolink_bare_uris` for the HTML and the PDF
+  (`emacs-cpp-markdown--pandoc-reader`), so a bare `https://...` is a link as
+  `<https://...>` was. `markdown-command` is `emacs-cpp-markdown--html` (NEW): pandoc
+  only, no other program; pandoc missing: an error naming
+  `emacs-cpp-default-markdown-pdf-install` (option 1); failing: an error with its exit
+  code. markdown-mode had picked the first of `markdown`, `pandoc`, ... found at load.
+  Checked 2026-11-09 on the Mac: the HTML has both links; pdf-tools reads both links from
+  the PDF (without the extension only the bracketed one). Not taken: a fallback to another
+  Markdown program, with a warning (option 2: a second path, no pandoc extensions);
+  markdown-mode's own choice (option 3). Against: text that starts with a scheme pandoc
+  knows, then a colon, may become a link (edge cases not tried); the HTML commands need
+  pandoc on every machine.
 - DECIDED D-203 (owner 2026-11-09: "T-146 bind to export-and-preview"; tier 1, T-146):
   `C-c C-c p` in Markdown runs markdown-mode's `markdown-export-and-preview` (as `C-c C-c
   v`): FILE.html is written beside the file and opened in the browser, so relative image
@@ -2422,6 +2436,8 @@ Shape:
   isearch by `pdf-tools-enabled-modes`; `fit-width`; D-192's clamp on `after-revert-hook`;
   scrolling without a redisplay between steps by pdf-tools patch 0001 (D-200).
 - HTML preview (D-203, T-146): `C-c C-c p` is `markdown-export-and-preview`.
+- pandoc reads `markdown+autolink_bare_uris` for the HTML and the PDF; the HTML only
+  through pandoc, `markdown-command` `emacs-cpp-markdown--html` (D-204).
 - Outside Emacs (D-202, T-148): `C-c C-c o`, markdown-mode's `markdown-open-command` set to
   `emacs-cpp-markdown-pdf-open` (NEW): the same export, then
   `emacs-cpp-default-pdf-open-command` (NEW; `open`, `xdg-open`) on the PDF.
@@ -4733,6 +4749,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-183 | 2026-11-05 | O-85 (h): projectile's per-submodule pass off, fd required for git listings | 12 | O-85, T-133 |
 | D-184 | 2026-11-07 | O-89 (b): Markdown to PDF by pandoc + LaTeX; math drawn by math-preview deferred | 12 | O-89, D-145 |
 | D-185 | 2026-11-07 | Markdown PDF: code in DejaVu Sans Mono, missing glyphs a warning | 12 | D-184, owner report |
+| D-204 | 2026-11-09 | Markdown HTML and PDF: bare URIs are links; the HTML through pandoc only | 12 | owner |
 | D-203 | 2026-11-09 | Markdown `C-c C-c p` exports the HTML beside the file and previews it (images resolve) | 12 | T-146, owner |
 | D-202 | 2026-11-09 | `C-c C-c o` exports the Markdown PDF and opens it outside Emacs (`open`, `xdg-open`) | 12 | T-148, owner |
 | D-201 | 2026-11-09 | `M-o` previews PDFs in a right side window, through `display-buffer-alist` | 10 | T-145, owner |
