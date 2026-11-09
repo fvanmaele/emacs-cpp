@@ -24,7 +24,14 @@ drawn: otherwise roll mode tries to undraw a page that no longer exists and stop
 Measured on the Mac (`scripts/measure-pdf.sh`, 1002 pages, frame 597 x 508 px; recorded, no
 budget): first page drawn 969 ms from the visit's start, 906 ms of it the visit, which loads
 pdf-tools and checks the server; 300 `C-n` mean 3.3 ms, median 2.5 ms, slowest 88 ms; a jump
-to page 500 27 ms; a revert until page 500 is drawn 71 ms. 4008 overlays. Arch: H-36.
+to page 500 27 ms; a revert until page 500 is drawn 71 ms. 4008 overlays.
+
+Arch (2026-11-09, the session ran H-36's steps 2 and 3 at 7674ba8, frame 1141 x 1306 px):
+`make packages` and `make epdfinfo` pass; `make test` 183 run, 0 unexpected, 1 skipped
+(`init-python-ty-package-directories`); `make test-gui` 14 of 14. First page drawn 766 ms
+from the visit's start, 409 ms of it the visit; 300 `C-n` mean 5.2 ms, median 3.3 ms,
+slowest 87 ms; a jump to page 500 70 ms; a revert until page 500 is drawn 139 ms. 4008
+overlays. Left: the hand check of link and selection, H-36.
 
 ## Concepts (Emacs Lisp) explained
 - **Windows have their own page.** `image-mode-winprops-alist` keeps, per window, which page

@@ -1854,8 +1854,8 @@ the form that loads magit is found (S17 run 2, T-113).
   shape ... undefined"); with the four files, `pdffonts` lists DejaVuSerif, -Bold,
   -Italic, -BoldItalic. The missing-glyph warning names both font options. Against: the
   PDF no longer looks like LaTeX's default; a list of files must name all four styles;
-  Arch's TeX Live having `DejaVuSerif.ttf` is UNVERIFIED (H-36's `make test` runs the
-  export test).
+  Arch's TeX Live has `DejaVuSerif.ttf` (`kpsewhich`, 2026-11-09; the export test
+  `init-writing-pdf-text-glyphs` passes there).
 - DECIDED D-204 (owner 2026-11-09: "Can URIs be made clickable on the C-c C-c p
   export/preview?", then "Option 1, URIs in both HTML and PDF export"; tier 1): pandoc
   reads Markdown with `-f markdown+autolink_bare_uris` for the HTML and the PDF

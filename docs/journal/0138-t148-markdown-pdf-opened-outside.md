@@ -45,7 +45,8 @@ function that receives the finished PDF, pdf-tools' display for `x`, the opener 
 - **Assumed:** Preview shows a rewritten PDF when opened again: confirmed by H-37 (the
   PDF was open in Preview before the export). **Would break if:** the owner sees the old
   version. **DESIGN bet:** D-202.
-- **Assumed:** Arch's desktop maps PDFs to a viewer for `xdg-open` (UNVERIFIED; H-36).
+- **Assumed:** Arch's desktop maps PDFs to a viewer for `xdg-open` (2026-11-09: `xdg-mime`
+  names `firefox.desktop`; the opening itself is H-36's).
   **Would break if:** `xdg-open` opens nothing or a browser. **DESIGN bet:** D-202.
 
 ## How to verify
