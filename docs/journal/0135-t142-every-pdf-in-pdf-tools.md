@@ -31,7 +31,8 @@ Arch (2026-11-09, the session ran H-36's steps 2 and 3 at 7674ba8, frame 1141 x 
 (`init-python-ty-package-directories`); `make test-gui` 14 of 14. First page drawn 766 ms
 from the visit's start, 409 ms of it the visit; 300 `C-n` mean 5.2 ms, median 3.3 ms,
 slowest 87 ms; a jump to page 500 70 ms; a revert until page 500 is drawn 139 ms. 4008
-overlays. Left: the hand check of link and selection, H-36.
+overlays. The owner's hand check on Arch passed (H-36, 2026-11-09: "H-36 OK"): a link click
+jumps, a selection yanks its text, `C-c C-c o` opens the PDF outside Emacs.
 
 ## Concepts (Emacs Lisp) explained
 - **Windows have their own page.** `image-mode-winprops-alist` keeps, per window, which page
@@ -70,7 +71,8 @@ drawn, one for shown windows only): each fails at least one test.
   mode hooks delayed. **Would break if:** the preview errors or stays blank. **DESIGN bet:**
   D-088, D-199.
 - **Assumed:** link click and selection work in roll mode (code paths read, S22 did not
-  run them). **Would break if:** H-36's hand check fails. **DESIGN bet:** D-199.
+  run them; H-36 passed 2026-11-09). **Would break if:** a later pdf-tools pin breaks
+  links or selection. **DESIGN bet:** D-199.
 
 ## How to verify
 `make epdfinfo && make test && make test-gui` (a window opens, do not touch it);
