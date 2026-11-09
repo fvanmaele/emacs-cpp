@@ -1857,7 +1857,9 @@ the form that loads magit is found (S17 run 2, T-113).
   window through vertico-multiform (C: changes `M-o` for every candidate). Against:
   `switch-to-buffer` follows `display-buffer-alist` for every candidate while the prompt
   is open and for `RET` on a buffer (another package's entry would apply there); on the
-  Mac's small frame 0.4 gives small pages. `C-c p f` has no preview: unchanged.
+  Mac's small frame 0.4 gives small pages. `C-c p f` has no preview: unchanged. Built
+  (T-145, 0137): a preview shows the PDF's single page (consult delays the mode hooks
+  that turn roll mode on), fitted 1 px under the window's width by pdf-view.
 - DECIDED D-200 (owner 2026-11-09: "Agree patch against pdf-tools"; tier 2, T-143, 0136):
   pdf-tools patch 0001 (D-069) keeps roll mode's scrolling in step when scroll commands
   run before a redisplay, as trackpad events do on a loaded machine (the owner's report:
