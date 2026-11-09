@@ -52,5 +52,8 @@ Its first `M-.' and a large `M-?' answer several times sooner than pyright's
   "sudo pacman -S pandoc-cli texlive-xetex"
   "The command that installs pandoc and its LaTeX engine (D-184).")
 
+(defconst emacs-cpp-default-pdf-open-command "xdg-open"
+  "Opens a file in the desktop's default application (D-202).")
+
 (provide 'defaults-gnu-linux)
 ;;; defaults-gnu-linux.el ends here

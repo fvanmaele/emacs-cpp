@@ -64,5 +64,8 @@ large `M-?' answer sooner than pyright's, its first `M-?' complete
   "sudo port install pandoc; LaTeX: MacTeX (https://tug.org/mactex/)"
   "The commands that install pandoc and its LaTeX engine (D-184).")
 
+(defconst emacs-cpp-default-pdf-open-command "open"
+  "Opens a file as Finder does, in its default application (D-202).")
+
 (provide 'defaults-darwin)
 ;;; defaults-darwin.el ends here

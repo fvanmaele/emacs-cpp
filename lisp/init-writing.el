@@ -122,15 +122,20 @@ window's, and undrawing a page that no longer exists stops the redraw."
   (pdf-tools-enable-minor-modes)
   (add-hook 'after-revert-hook #'emacs-cpp-pdf--clamp-page nil t))
 
-(defun emacs-cpp-markdown--check-tools (engine)
+(defun emacs-cpp-markdown--check-tools (engine &optional opener)
   "Signal an error naming the fix when something the export needs is missing:
-pandoc and ENGINE, with the install command, or pdf-tools' server, which shows the
-PDF, before LaTeX has run (D-199)."
+pandoc and ENGINE, with the install command; then OPENER, the program that opens
+the PDF outside Emacs (D-202), or, when OPENER is nil, pdf-tools' server, which
+shows it (D-199); all before LaTeX has run."
   (dolist (program (list "pandoc" engine))
     (unless (executable-find program)
       (error "emacs-cpp: %s is not on exec-path; install: %s (D-184)"
              program emacs-cpp-default-markdown-pdf-install)))
-  (emacs-cpp-pdf--check-server))
+  (if (null opener)
+      (emacs-cpp-pdf--check-server)
+    (unless (executable-find opener)
+      (error "emacs-cpp: %s, which opens the PDF outside Emacs, is not on exec-path \
+\(`emacs-cpp-default-pdf-open-command', D-202)" opener))))
 
 (defun emacs-cpp-markdown--show-pdf (pdf)
   "Show PDF in another window, reverting its buffer when it has one.  Return it."
@@ -142,11 +147,47 @@ PDF, before LaTeX has run (D-199)."
     (display-buffer buffer '(nil (inhibit-same-window . t)))
     buffer))
 
+(defun emacs-cpp-markdown--open-pdf (opener pdf)
+  "Open PDF with OPENER, outside Emacs (D-202).
+Return the opener's process; a non-zero exit is an error-level warning."
+  (make-process
+   :name "emacs-cpp-pdf-open"
+   :buffer nil
+   :command (list opener pdf)
+   :noquery t
+   :sentinel (lambda (process _event)
+               (when (and (memq (process-status process) '(exit signal))
+                          (not (eql 0 (process-exit-status process))))
+                 ;; A warning, not an error: a sentinel's error is only a message
+                 ;; in the echo area (and ends a batch Emacs).
+                 (display-warning
+                  'emacs-cpp
+                  (format "%s %s failed (exit %s) (D-202)"
+                          opener pdf (process-exit-status process))
+                  :error)))))
+
 (defun emacs-cpp-markdown-pdf ()
   "Write this Markdown file's PDF through pandoc and show it in pdf-tools (D-184, D-199).
 The PDF goes beside the file, named as it with .pdf; the engine is
 `emacs-cpp-markdown-pdf-engine'.  Return the pandoc process."
   (interactive)
+  (emacs-cpp-markdown--check-tools emacs-cpp-markdown-pdf-engine)
+  (emacs-cpp-markdown--export #'emacs-cpp-markdown--show-pdf))
+
+(defun emacs-cpp-markdown-pdf-open ()
+  "Write this Markdown file's PDF as `emacs-cpp-markdown-pdf' does; open it outside Emacs.
+The opener is `emacs-cpp-default-pdf-open-command': `open' on the Mac, as Finder
+does, `xdg-open' on Arch (D-202).  `markdown-open-command', so on `C-c C-c o'.
+Return the pandoc process."
+  (interactive)
+  ;; Read now: the opener checked is the one pandoc's sentinel calls.
+  (let ((opener emacs-cpp-default-pdf-open-command))
+    (emacs-cpp-markdown--check-tools emacs-cpp-markdown-pdf-engine opener)
+    (emacs-cpp-markdown--export (lambda (pdf) (emacs-cpp-markdown--open-pdf opener pdf)))))
+
+(defun emacs-cpp-markdown--export (show)
+  "Start pandoc on this Markdown file's PDF; on success call SHOW with the PDF's name.
+The tools are checked by the caller.  Return the pandoc process."
   (let* ((file (or buffer-file-name
                    (user-error "emacs-cpp: this buffer visits no file")))
          (engine emacs-cpp-markdown-pdf-engine)
@@ -155,7 +196,6 @@ The PDF goes beside the file, named as it with .pdf; the engine is
          (pdf (emacs-cpp-markdown--pdf-file file))
          (output (get-buffer-create emacs-cpp-markdown--pdf-output))
          (default-directory (file-name-directory file)))
-    (emacs-cpp-markdown--check-tools engine)
     (save-buffer)
     (with-current-buffer output
       (let ((inhibit-read-only t))
@@ -169,10 +209,11 @@ The PDF goes beside the file, named as it with .pdf; the engine is
      :sentinel (lambda (process _event)
                  (when (memq (process-status process) '(exit signal))
                    (emacs-cpp-markdown--pdf-finished
-                    (process-exit-status process) file pdf))))))
+                    (process-exit-status process) file pdf show))))))
 
-(defun emacs-cpp-markdown--pdf-finished (status file pdf)
-  "Show PDF when pandoc exited with STATUS 0 on FILE; else show its output, signal.
+(defun emacs-cpp-markdown--pdf-finished (status file pdf &optional show)
+  "Call SHOW on PDF when pandoc exited with STATUS 0 on FILE; else show its output,
+signal.  SHOW defaults to `emacs-cpp-markdown--show-pdf'.
 Characters LaTeX dropped for want of a glyph are a warning naming them (D-185):
 pandoc exits 0 and the PDF silently lacks them."
   (if (eql 0 status)
@@ -180,7 +221,7 @@ pandoc exits 0 and the PDF silently lacks them."
                       (with-current-buffer
                           (get-buffer-create emacs-cpp-markdown--pdf-output)
                         (buffer-string)))))
-        (prog1 (emacs-cpp-markdown--show-pdf pdf)
+        (prog1 (funcall (or show #'emacs-cpp-markdown--show-pdf) pdf)
           (if (null missing)
               (message "emacs-cpp: wrote %s" pdf)
             (display-warning
@@ -194,8 +235,14 @@ see %s, and `emacs-cpp-markdown-pdf-monofont' (D-185)"
            status file emacs-cpp-markdown--pdf-output)))
 
 (use-package markdown-mode
+  :custom
+  ;; `C-c C-c o': the PDF opened outside Emacs (D-202).
+  (markdown-open-command #'emacs-cpp-markdown-pdf-open)
   :config
-  (keymap-set markdown-mode-command-map "x" #'emacs-cpp-markdown-pdf))
+  (keymap-set markdown-mode-command-map "x" #'emacs-cpp-markdown-pdf)
+  ;; `C-c C-c p' writes FILE.html beside the file, so relative image paths resolve:
+  ;; `markdown-preview' wrote it to a temporary directory (D-203).
+  (keymap-set markdown-mode-command-map "p" #'markdown-export-and-preview))
 
 ;; Not `pdf-tools-install': it rebuilds the server, installs system packages and can fail
 ;; silently (D-199).  Dark themes add `pdf-view-dark-minor-mode' to the list by themselves.
