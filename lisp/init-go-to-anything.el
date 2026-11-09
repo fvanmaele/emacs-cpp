@@ -335,6 +335,61 @@ under `while-no-input' and lists again when interrupted (S11 run 2)."
                      :items #'projectile-relevant-known-projects
                      :emacs-cpp-action #'projectile-switch-project-by-name)))))
 
+(defcustom emacs-cpp-go-pdf-preview-width 0.4
+  "Width of the side window in which `M-o' previews a PDF (D-201).
+A fraction of the frame's width, or a number of columns."
+  :type '(choice (float :tag "Fraction of the frame") (natnum :tag "Columns"))
+  :group 'tools)
+
+(defvar emacs-cpp-go--origin-buffer nil
+  "The buffer of the window `M-o' started from, while its prompt is open; else nil.")
+
+(defun emacs-cpp-go--previewing-p ()
+  "Non-nil while `M-o''s prompt is open: consult previews only then.
+consult's `return' step, which opens the chosen file, runs after the minibuffer
+has closed, inside `M-o''s bindings, and must display as without them."
+  (and emacs-cpp-go--origin-buffer (active-minibuffer-window)))
+
+(defun emacs-cpp-go--pdf-preview-p (buffer-or-name _action)
+  "Non-nil when `M-o' previews BUFFER-OR-NAME and it shows a PDF (D-201)."
+  (and (emacs-cpp-go--previewing-p)
+       (eq (buffer-local-value 'major-mode (get-buffer buffer-or-name)) 'pdf-view-mode)))
+
+(defun emacs-cpp-go--other-preview-p (buffer-or-name action)
+  "Non-nil when `M-o' previews BUFFER-OR-NAME and it shows no PDF (D-201)."
+  (and (emacs-cpp-go--previewing-p)
+       (not (emacs-cpp-go--pdf-preview-p buffer-or-name action))))
+
+(defun emacs-cpp-go--pdf-side-window ()
+  "Return the side window of `M-o''s PDF preview, or nil."
+  (seq-find (lambda (window) (window-parameter window 'emacs-cpp-go-pdf-preview))
+            (window-list nil 'no-minibuffer)))
+
+(defun emacs-cpp-go--display-pdf-preview (buffer alist)
+  "Show BUFFER, a PDF `M-o' previews, in a side window on the right (D-201).
+The selected window, where consult previews, goes back to the buffer from
+before the prompt: it may still show the last candidate that was no PDF."
+  (when (and (buffer-live-p emacs-cpp-go--origin-buffer)
+             (not (eq (window-buffer) emacs-cpp-go--origin-buffer)))
+    (set-window-buffer nil emacs-cpp-go--origin-buffer))
+  (when-let* ((window (display-buffer-in-side-window
+                       buffer `((side . right)
+                                (window-width . ,emacs-cpp-go-pdf-preview-width)
+                                (window-parameters (emacs-cpp-go-pdf-preview . t))
+                                ,@alist))))
+    window))
+
+(defun emacs-cpp-go--close-pdf-preview (_buffer _alist)
+  "Delete `M-o''s PDF preview window; return nil, so the buffer shows as before."
+  (when-let* ((window (emacs-cpp-go--pdf-side-window)))
+    (delete-window window))
+  nil)
+
+(defconst emacs-cpp-go--display-rules
+  '((emacs-cpp-go--pdf-preview-p emacs-cpp-go--display-pdf-preview)
+    (emacs-cpp-go--other-preview-p emacs-cpp-go--close-pdf-preview))
+  "`display-buffer-alist' entries while `M-o''s prompt is open (D-201).")
+
 (defconst emacs-cpp-go--preview-key
   '(:debounce 0.3 any
     :debounce 0 "<up>" "<down>" "C-n" "C-p" "<next>" "<prior>" "C-v" "M-v")
@@ -372,6 +427,12 @@ command or project chosen runs after it, with the usual ones."
                   (completion-ignore-case t)
                   ;; Preview after a pause in typing, at once when browsing (D-088).
                   (consult-preview-key emacs-cpp-go--preview-key)
+                  ;; A PDF previews in a side window (D-201): consult's preview
+                  ;; switch then follows `display-buffer-alist'.
+                  (emacs-cpp-go--origin-buffer buffer)
+                  (switch-to-buffer-obey-display-actions t)
+                  (display-buffer-alist (append emacs-cpp-go--display-rules
+                                                display-buffer-alist))
                   ;; By source, then by tier (D-120); `:sort nil' no longer decides.
                   (vertico-sort-override-function #'emacs-cpp-go--sort))
               (consult--multi sources :prompt "Go to: " :require-match t :sort nil)))))
