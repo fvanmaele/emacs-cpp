@@ -1969,7 +1969,11 @@ the form that loads magit is found (S17 run 2, T-113).
   equal main's at 134ad7f. Not pushed; rebuilt, not merged, when main moves on. Against:
   README and the manual cite D-nnn ids whose DESIGN.md is not there; `make docs-check`
   fails there (no DESIGN.md); intermediate commits untested; a fix to an older feature
-  sits in the feature before it.
+  sits in the feature before it. Updated 2026-11-09 (owner: "Update release branch"): the
+  tip's code was main's from 594a9be to 291cf86 (not 134ad7f's, which lacked T-141's
+  debugger changes), so 3 commits appended, one per new feat commit (D-199, D-201, D-202),
+  the 87 kept; the tip's code and docs equal main's at 768982a. Local; pushing is the
+  owner's call.
 - DECIDED D-193 (2026-11-08, the session's pick, for the owner to double-check;
   llm_vibecoding_standard README "Who adopts, and when", upgrade to 2.17.1): this
   project's release class is **later** (may be released in future). Reason: its own
