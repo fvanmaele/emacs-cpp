@@ -11,6 +11,13 @@
 
 ;;; Code:
 
+(require 'emacs-cpp-internals)
+
+;; python.el's flag that the shell printed its first prompt, read below.
+(with-eval-after-load 'python
+  (emacs-cpp-check-internals 'python "lisp/init-cells.el"
+                             'python-shell--first-prompt-received))
+
 (defun emacs-cpp-cells--python-eval (start end)
   "Send START..END to the buffer's Python shell, starting `run-python' if needed.
 The shell must have printed its first prompt before code is sent, or the code

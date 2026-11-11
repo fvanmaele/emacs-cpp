@@ -28,15 +28,16 @@
 (require 'subr-x)
 (require 'eglot)
 (require 'url-util)
+(require 'emacs-cpp-internals)
 
 (defvar emacs-cpp-default-fswatch-program)
 
 ;; eglot internals used below; another eglot without them fails here, not at the
 ;; first change (`advice-add' would accept a function that does not exist).
-(dolist (internal '(eglot--on-shutdown eglot--project eglot--uri-path-allowed-chars))
-  (unless (or (fboundp internal) (boundp internal))
-    (error "emacs-cpp: this eglot lacks %s, which lisp/emacs-cpp-eglot-fswatch.el \
-uses; update the backend (D-127)" internal)))
+;; `eglot--project' is also lisp/emacs-cpp-library-index.el's.
+(emacs-cpp-check-internals 'eglot "lisp/emacs-cpp-eglot-fswatch.el"
+                           'eglot--on-shutdown 'eglot--project
+                           'eglot--uri-path-allowed-chars)
 
 (defconst emacs-cpp-eglot-fswatch-latency 0.1
   "Seconds fswatch gathers events before it writes them (its -l).")

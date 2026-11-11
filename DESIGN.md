@@ -163,7 +163,11 @@ Observed on the owner's Mac, 2026-10-09 (D-050):
 ## 4. Design principles
 1. Fail loudly: a missing package or grammar is an error at startup, never a silent
    fallback; no `ignore-errors` / `with-demoted-errors` around config. Reason: a config
-   that half-loads looks fine until the feature is needed.
+   that half-loads looks fine until the feature is needed. The same for another
+   package's internal names (`--`): a module that uses one of Emacs's own packages'
+   (eglot, jsonrpc, which-key, python) names it in an `emacs-cpp-check-internals` call
+   (`lisp/emacs-cpp-internals.el`), which signals when that package loads, with the
+   file to adapt; a test holds every such name in `lisp/` to a call (2026-11-11).
 2. Built-in first, then GNU / NonGNU ELPA packages, then MELPA-only packages (section 2
    budget); all non-built-ins arrive as pinned git submodules (D-006).
 3. Every package is a `use-package` form in exactly one module; no package configured in

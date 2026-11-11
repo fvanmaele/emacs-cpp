@@ -19,6 +19,7 @@
 (require 'init-completion)
 (require 'init-project)
 (require 'init-lsp)
+(require 'emacs-cpp-internals)
 
 (defun emacs-cpp-go--initialism (component)
   "Match COMPONENT's characters at word starts, in order, never across `/'.
@@ -231,6 +232,10 @@ project's out.  Symbols keep the order each server sent them in (D-105)."
                (lambda ()
                  (message "emacs-cpp: workspace/symbol %S timed out" query))))))
         (funcall sink action)))))
+
+;; jsonrpc's accessor of a connection's process, read below; jsonrpc loads with eglot.
+(with-eval-after-load 'jsonrpc
+  (emacs-cpp-check-internals 'jsonrpc "lisp/init-go-to-anything.el" 'jsonrpc--process))
 
 (defun emacs-cpp-go--server-name (server)
   "Return the file name of SERVER's program: clangd, ty, pyright-langserver.
