@@ -44,6 +44,42 @@
                  '(("/r/a b.py" . "Created,Updated,IsFile") ("/r/c.py" . "Updated"))))
   (should-error (emacs-cpp-eglot-fswatch-merge '("noflags"))))
 
+(ert-deftest emacs-cpp-eglot-fswatch-overflow-flag ()
+  "`Overflow' counts only as a whole flag after the record's last space."
+  (init-test--load)
+  (require 'emacs-cpp-eglot-fswatch)
+  (should (emacs-cpp-eglot-fswatch--overflow-p "/r Overflow"))
+  (should (emacs-cpp-eglot-fswatch--overflow-p "/r/a b.py Created,Overflow"))
+  (should (emacs-cpp-eglot-fswatch--overflow-p "/r/a.py Overflow,Updated"))
+  (should-not (emacs-cpp-eglot-fswatch--overflow-p "/r/Overflow Created"))
+  (should-not (emacs-cpp-eglot-fswatch--overflow-p "/r/a Overflow/b.py Updated"))
+  (should-not (emacs-cpp-eglot-fswatch--overflow-p "/r/a.py Overflowed"))
+  (should-not (emacs-cpp-eglot-fswatch--overflow-p "/r/a.py overflow")))
+
+(ert-deftest emacs-cpp-eglot-fswatch-globs-before-the-file-system ()
+  "A record no glob matches is dropped without asking whether its file exists; one
+whose glob lacks the change's kind is dropped after it."
+  (init-test--load)
+  (require 'emacs-cpp-eglot-fswatch)
+  (let ((matchers (list (cons (emacs-cpp-eglot-fswatch-glob-regexp "**/*.py") 2)))
+        asked)
+    (puthash "/r/" "file:///r" emacs-cpp-eglot-fswatch--root-uris)
+    (unwind-protect
+        (cl-letf (((symbol-function 'emacs-cpp-eglot-fswatch--change-type)
+                   (lambda (path _flags) (push path asked) 2))
+                  ((symbol-function 'emacs-cpp-eglot-fswatch--server-has-text-p) #'ignore))
+          (should (equal (emacs-cpp-eglot-fswatch-changes
+                          nil '(("/r/build/a.o" . "Created") ("/r/src/a.py" . "Updated"))
+                          "/r/" "/r/" matchers)
+                         '((:uri "file:///r/src/a.py" :type 2))))
+          (should (equal asked '("/r/src/a.py")))
+          ;; Kind 2 is Change only: a deletion (type 3) matches the glob, not the kind.
+          (cl-letf (((symbol-function 'emacs-cpp-eglot-fswatch--change-type)
+                     (lambda (&rest _) 3)))
+            (should-not (emacs-cpp-eglot-fswatch-changes
+                         nil '(("/r/src/a.py" . "Removed")) "/r/" "/r/" matchers))))
+      (remhash "/r/" emacs-cpp-eglot-fswatch--root-uris))))
+
 (ert-deftest emacs-cpp-eglot-fswatch-refusal ()
   "D-127: a missing or unpatched fswatch refuses with the command that builds it."
   (init-test--load)

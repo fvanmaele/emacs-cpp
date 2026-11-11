@@ -172,6 +172,12 @@ The flags of a path's records are joined with commas."
         ((string-search "Created" flags) emacs-cpp-eglot-fswatch--created)
         (t emacs-cpp-eglot-fswatch--changed)))
 
+(defun emacs-cpp-eglot-fswatch--matching (matchers rel)
+  "Return those of MATCHERS whose glob matches REL, whatever their kinds."
+  (let ((case-fold-search nil))
+    (cl-loop for matcher in matchers
+             when (string-match-p (car matcher) rel) collect matcher)))
+
 (defun emacs-cpp-eglot-fswatch--wanted-p (matchers rel type)
   "Non-nil if one of MATCHERS whose kind includes change TYPE matches REL."
   (let ((bit (ash 1 (1- type)))         ; WatchKind bit of a FileChangeType
@@ -192,15 +198,18 @@ visits is left out, as eglot does (the server has its text)."
         changes)
     (pcase-dolist (`(,path . ,flags) merged)
       (when (string-prefix-p real-root path)
-        (let ((rel (substring path (length real-root)))
-              (type (emacs-cpp-eglot-fswatch--change-type path flags)))
-          (when (and (emacs-cpp-eglot-fswatch--wanted-p matchers rel type)
-                     (not (emacs-cpp-eglot-fswatch--server-has-text-p
-                           server (concat root rel))))
-            (push (list :uri (concat root-uri "/" (url-hexify-string
-                                                   rel eglot--uri-path-allowed-chars))
-                        :type type)
-                  changes)))))
+        ;; The globs first: the change's type asks the file system, and most
+        ;; records of a build match no glob.
+        (when-let* ((rel (substring path (length real-root)))
+                    (matching (emacs-cpp-eglot-fswatch--matching matchers rel))
+                    (type (emacs-cpp-eglot-fswatch--change-type path flags))
+                    ((emacs-cpp-eglot-fswatch--wanted-p matching rel type))
+                    ((not (emacs-cpp-eglot-fswatch--server-has-text-p
+                           server (concat root rel)))))
+          (push (list :uri (concat root-uri "/" (url-hexify-string
+                                                 rel eglot--uri-path-allowed-chars))
+                      :type type)
+                changes))))
     (nreverse changes)))
 
 ;;;; Processes
@@ -208,7 +217,9 @@ visits is left out, as eglot does (the server has its text)."
 (defun emacs-cpp-eglot-fswatch--overflow-p (record)
   "Non-nil when RECORD's flags include `Overflow': fswatch lost changes."
   (when-let* ((space (cl-position ?\s record :from-end t)))
-    (member "Overflow" (split-string (substring record (1+ space)) ","))))
+    ;; A regexp from the last space on, no list of the flags per record.
+    (let ((case-fold-search nil))
+      (string-match-p "[ ,]Overflow\\(?:,\\|\\'\\)" record space))))
 
 (defun emacs-cpp-eglot-fswatch--warn-overflow (root)
   (display-warning
