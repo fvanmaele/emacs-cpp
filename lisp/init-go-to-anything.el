@@ -134,25 +134,25 @@ symbols there, 10000 none."
   :type 'natnum
   :group 'tools)
 
-(defconst emacs-cpp-go--root-ignore-case (eq system-type 'darwin)
-  "Non-nil: symbol URIs are compared with the root ignoring case (D-083).
-macOS disks ignore case, so a project opened as TOY/ is clangd's toy/.")
-
 (defun emacs-cpp-go--root-uris (root)
-  "Return how the URI of a file under project ROOT begins, as (SAFE . FULL) pairs.
+  "Return how the URI of a file under project ROOT begins, as (SAFE FULL IGNORE-CASE).
 FULL is file:// and the root directory, unescaped: ROOT as projectile gives it
 and its true name (clangd's URIs follow the compilation database, which may or
 may not resolve symlinks).  SAFE is FULL up to its first character other than a
 letter, digit or `- _ . /': every language server writes that part alike,
-whatever it escapes after it (D-085)."
-  (seq-uniq
-   (mapcar (lambda (dir)
-             (let ((full (concat "file://" (file-name-as-directory dir))))
-               (cons (substring full 0 (or (string-match-p "[^A-Za-z0-9._/-]" full
-                                                           (length "file://"))
-                                           (length full)))
-                     full)))
-           (list (expand-file-name root) (file-truename root)))))
+whatever it escapes after it (D-085).  IGNORE-CASE is non-nil when the file system
+ROOT lies on ignores case, asked of it (D-083): the Mac's disks do by default, so
+a project opened as TOY/ is clangd's toy/, but a volume can be formatted either
+way."
+  (let ((ignore-case (file-name-case-insensitive-p root)))
+    (seq-uniq
+     (mapcar (lambda (dir)
+               (let ((full (concat "file://" (file-name-as-directory dir))))
+                 (list (substring full 0 (or (string-match-p "[^A-Za-z0-9._/-]" full
+                                                             (length "file://"))
+                                             (length full)))
+                       full ignore-case)))
+             (list (expand-file-name root) (file-truename root))))))
 
 (defun emacs-cpp-go--under-root-p (symbol root-uris)
   "Non-nil when SYMBOL's file URI lies under one of ROOT-URIS (D-085).
@@ -160,16 +160,15 @@ Library URIs fail the cheap test against the safe prefix; only URIs that pass
 are percent-decoded and compared with the whole root, so no table of how each
 server escapes is needed."
   (let ((uri (plist-get (plist-get symbol :location) :uri))
-        (case emacs-cpp-go--root-ignore-case)
         found)
-    (dolist (root root-uris found)
-      (when (and (not found) (string-prefix-p (car root) uri case))
+    (pcase-dolist (`(,safe ,full ,ignore-case) root-uris found)
+      (when (and (not found) (string-prefix-p safe uri ignore-case))
         (setq found (string-prefix-p
-                     (cdr root)
+                     full
                      (if (string-search "%" uri)
                          (decode-coding-string (url-unhex-string uri) 'utf-8)
                        uri)
-                     case))))))
+                     ignore-case))))))
 
 (defun emacs-cpp-go--min-input (min empty)
   "Return an async step passing inputs of MIN characters or more, and with EMPTY

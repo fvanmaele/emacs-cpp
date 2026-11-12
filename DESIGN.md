@@ -1342,6 +1342,9 @@ each, with a recommendation; the owner agreed to all of them (D-111):
   Emacs takes keys); project symbols kept for `typ` / `ope` at 1000: 0 / 21, 2000:
   33 / 24, 5000: 87 / 106, 10000: 111 / 111 (all). Toy checks with clangd: a root
   opened as `TOY/` and a root `c++ (x)@y` listed 0 project symbols before, 2 after.
+  Whether case is ignored is asked of the root's file system
+  (`file-name-case-insensitive-p`, 2026-11-12), not taken from the platform: a Mac
+  volume can be formatted to tell case apart.
   Vendored code under the root counts as the project's (owner): step-1's `fmt/`
   submodule gives 144 of `for`'s 146. Generated files under `build/`: none seen.
   Built (T-061, 0057). The spellings below are SUPERSEDED by D-085 (2026-10-13): one
