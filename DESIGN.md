@@ -2017,7 +2017,11 @@ the form that loads magit is found (S17 run 2, T-113).
   the 87 kept; the tip's code and docs equal main's at 768982a. Local; pushing is the
   owner's call. Updated 2026-11-09 again (owner: "Pull and update release"): on
   origin/release (825c421), 2 commits appended (D-204, T-147); the tip's code and docs
-  equal main's at d627b5c.
+  equal main's at d627b5c. Updated 2026-11-12 (owner: "Update release branch"): main
+  had 5 commits since, none a feat (perf, three fixes, a refactor; D-206); folding them
+  into the last feature would rewrite a pushed commit, so 1 commit is appended on
+  origin/release (93cdd43), a `fix:` naming the four changes; the tip's code and docs
+  equal main's at 66e9541. Local; pushing is the owner's call.
 - DECIDED D-193 (2026-11-08, the session's pick, for the owner to double-check;
   llm_vibecoding_standard README "Who adopts, and when", upgrade to 2.17.1): this
   project's release class is **later** (may be released in future). Reason: its own
