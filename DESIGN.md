@@ -61,7 +61,8 @@ gaps named; "PROPOSED" had stood unchanged since 2026-10-07.
 - CMake profiles / toolchains -> `CMakePresets.json` via projectile
   (`projectile-enable-cmake-presets`). Gap: no target picker UI. DECIDED D-005.
 - Build / run / test -> projectile configure / compile / test / run -> `compile`
-  buffer, `next-error`. Gap: no GoogleTest runner tree. DECIDED D-005, D-035.
+  buffer, `next-error`. Gap: no GoogleTest runner tree, no test at point (R:
+  RESEARCH_test_runner, O-90). DECIDED D-005, D-035.
 - Debugger, breakpoints -> dape over DAP: `gdb -i dap` (gdb 17) or `lldb-dap`. Gap: no
   memory view parity (R). DECIDED D-002.
 - Git -> magit (installed), diff-hl gutter, magit-blame, smerge for conflicts. Gap: none
@@ -80,6 +81,20 @@ MacPorts poppler build" (web, 2026-11-08); "emacs-reader MuPDF dynamic module Em
 continuous scroll" (web, 2026-11-08); MacPorts `poppler` port page (2026-11-08);
 pdf-tools read from its repository (v1.3.0, S22). Tools named: pdf-tools, image-roll,
 pdf-continuous-scroll-mode, Emacs Reader (R: not read from its repository; D-190).
+"emacs neotest equivalent test runner tree googletest ctest pytest package" (web,
+2026-11-12); "emacs ctest integration package cmake test explorer melpa" (web,
+2026-11-12); "emacs pytest run test at point package python-pytest.el" (web,
+2026-11-12); "github emacs "ctest" "--show-only=json-v1" elisp" (web, 2026-11-12);
+"emacs test-cockpit.el OR projection.el OR cmake-integration ctest googletest run
+single test" (web, 2026-11-12); "cmake-integration emacs package ctest run test target
+preset" (web, 2026-11-12); "emacs googletest gtest run test at point "gtest_filter"
+elisp package" (web, 2026-11-12); neotest, neotest-python, neotest-gtest,
+neotest-ctest and the Emacs tools below read from their repositories (2026-11-12,
+RESEARCH_test_runner). Tools named: neotest, neotest-python, neotest-gtest,
+neotest-ctest, vim-test (R), neotest-golang (R), pytest-cpp (R), python-pytest,
+pytest.el (R), py-test.el (R), testrun.el, test-cockpit.el, projection,
+cmake-integration, helm-ctest, gtest-mode.el (R), gotest.el (R), dap-mode's
+dap-python (R), lsp-mode's Java test explorer (R).
 
 ## 2. Place in the ecosystem, non-goals
 For: one owner, an Arch Linux workstation and a macOS machine (D-050), C++ projects
@@ -2584,8 +2599,40 @@ presets, GoogleTest runner.
 - `RESEARCH_refactoring.md` (owner request 2026-10-13): CLion's C++ refactorings
   against clangd 23.1.1's rename and tweaks and the clang command-line tools; rename
   measured across 63 files. Findings in; O-43.
+- `RESEARCH_test_runner.md` (owner request 2026-11-12): neotest and its adapters for
+  pytest, GoogleTest and CTest, read from their repositories; Emacs's test runners
+  (python-pytest, test-cockpit.el, testrun.el, projection, cmake-integration,
+  helm-ctest). No hands-on. Findings in; O-90 open.
 
 ## Open questions ledger (LIVING)
+- O-90 (OPEN 2026-11-12; owner request 2026-11-12: "Research neotest equivalent";
+  RESEARCH_test_runner): what this config does for tests beyond `C-c p c t` (whole
+  CTest suite in a compilation buffer, D-035). No Emacs package gives neotest's tree,
+  status at the definition or failures as diagnostics (RESEARCH_test_runner 5).
+  Premise UNVERIFIED: which framework RMO's 6 `add_test` tests use and whether any
+  owner project registers GoogleTest tests one by one (`gtest_discover_tests`);
+  with plain `add_test`, CTest knows executables only and test-at-point must run the
+  executable with `--gtest_filter`. Options:
+  (a) none; D-035 stands. Against: no test at point, no debug of one test, failures
+  reach `next-error` only if compile's regexps take them (UNVERIFIED).
+  (b) python-pytest as a submodule for Python (test or class at point by tree-sitter,
+  last failed, transient) plus own C++ commands: run and debug the GoogleTest test at
+  point (a tree-sitter query for `TEST` / `TEST_F` / `TEST_P` in `c++-ts-mode`, the
+  executable from the file API codemodel (D-056), `--gtest_filter` in a compilation
+  buffer; the same under dape). Against: a new dependency (D-006) and own Lisp;
+  GoogleTest only (no Catch2, doctest); no tree, no status marks; finding the
+  executable from the codemodel's sources is untried.
+  (c) an own neotest-like module: a tree buffer, failures through flymake, status
+  marks at definitions, results from Google Test JSON, CTest JUnit and pytest's
+  `--junitxml`. Against: the most code (neotest's core is about 8800 lines of Lua,
+  each adapter 1000 - 2800); a new subsystem, so tier 3 with a spike first; per-test
+  updates during a pytest run need a pytest plugin, as neotest-python ships.
+  (d) (b) now; (c)'s results layer (failures from the JSON / JUnit reports into
+  flymake, status marks) asked as its own question once (b) is in use. Against: two
+  rounds of design; the later layer may reshape (b)'s commands.
+  Recommendation: (d), after the owner names the frameworks (the premise above): (b)
+  covers the daily loop (run, rerun, debug one test) with the least code, and the
+  tree is deferred until its use is shown.
 - O-89 (RESOLVED 2026-11-07 with D-184: (b); owner request 2026-11-07: "latex
   export/preview support for markdown documents"): how Markdown gets LaTeX export and
   preview, given D-145 removed LaTeX. Options as offered: (a) pandoc to PDF with a
