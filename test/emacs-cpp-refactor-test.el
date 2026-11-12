@@ -168,5 +168,29 @@ name without `::' stay; nothing left, no list."
   (should (eq (keymap-lookup emacs-cpp-code-map "M") #'emacs-cpp-refactor-move))
   (should (eq (keymap-lookup emacs-cpp-code-map "N") #'emacs-cpp-refactor-change-namespace)))
 
+;;;; The Mac's tools directory (D-206)
+
+(ert-deftest emacs-cpp-refactor-newest-llvm-tools-dir ()
+  "The Mac's defaults take the newest llvm-N that holds clang-tidy, N as a number."
+  (skip-unless (eq system-type 'darwin))
+  (init-test--load)
+  (let ((libexec (make-temp-file "emacs-cpp-llvm" t)))
+    (unwind-protect
+        (progn
+          (should-not (emacs-cpp-default--newest-llvm-tools-dir libexec))
+          (dolist (name '("llvm-9" "llvm-21" "llvm-23"))
+            (make-directory (expand-file-name (concat name "/bin") libexec) t))
+          ;; llvm-23 without clang-tidy (the lldb port alone) does not count.
+          (dolist (name '("llvm-9" "llvm-21"))
+            (let ((tool (expand-file-name (concat name "/bin/clang-tidy") libexec)))
+              (write-region "" nil tool nil 'silent)
+              (set-file-modes tool #o755)))
+          (should (equal (emacs-cpp-default--newest-llvm-tools-dir libexec)
+                         (expand-file-name "llvm-21/bin" libexec))))
+      (delete-directory libexec t)))
+  ;; On this machine: a directory with the tools `C-c l T' and `C-c l M' run.
+  (should (file-executable-p
+           (expand-file-name "clang-move" emacs-cpp-default-llvm-tools-dir))))
+
 (provide 'emacs-cpp-refactor-test)
 ;;; emacs-cpp-refactor-test.el ends here
