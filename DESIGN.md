@@ -915,6 +915,10 @@ read 41.7 times too small, measured 61 - 64 ms, O-80):
   `fswatch -0 -r -x --event-flag-separator=, -l 0.1 --allow-overflow -e /\.git/
   ROOT`, ROOT the root's true name (fswatch reports true names); `:noquery`, pipe,
   its stderr in a hidden buffer. It ends with its registration and its server.
+  The command line, the record splitting with its `Overflow` check and the
+  process's end are `lisp/emacs-cpp-fswatch.el`'s, shared with the reverter
+  (2026-11-12; the same processes as before, one per registration here, one per root
+  there).
 - **Records to changes.** NUL-separated `PATH FLAGS`; the records of one filter call
   merged per path, flags joined (inotify writes three per written file); the type
   from the flags and the path's present state (`file-exists-p`: gone -> 3, `Created`

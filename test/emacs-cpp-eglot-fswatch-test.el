@@ -48,13 +48,13 @@
   "`Overflow' counts only as a whole flag after the record's last space."
   (init-test--load)
   (require 'emacs-cpp-eglot-fswatch)
-  (should (emacs-cpp-eglot-fswatch--overflow-p "/r Overflow"))
-  (should (emacs-cpp-eglot-fswatch--overflow-p "/r/a b.py Created,Overflow"))
-  (should (emacs-cpp-eglot-fswatch--overflow-p "/r/a.py Overflow,Updated"))
-  (should-not (emacs-cpp-eglot-fswatch--overflow-p "/r/Overflow Created"))
-  (should-not (emacs-cpp-eglot-fswatch--overflow-p "/r/a Overflow/b.py Updated"))
-  (should-not (emacs-cpp-eglot-fswatch--overflow-p "/r/a.py Overflowed"))
-  (should-not (emacs-cpp-eglot-fswatch--overflow-p "/r/a.py overflow")))
+  (should (emacs-cpp-fswatch-overflow-p "/r Overflow"))
+  (should (emacs-cpp-fswatch-overflow-p "/r/a b.py Created,Overflow"))
+  (should (emacs-cpp-fswatch-overflow-p "/r/a.py Overflow,Updated"))
+  (should-not (emacs-cpp-fswatch-overflow-p "/r/Overflow Created"))
+  (should-not (emacs-cpp-fswatch-overflow-p "/r/a Overflow/b.py Updated"))
+  (should-not (emacs-cpp-fswatch-overflow-p "/r/a.py Overflowed"))
+  (should-not (emacs-cpp-fswatch-overflow-p "/r/a.py overflow")))
 
 (ert-deftest emacs-cpp-eglot-fswatch-globs-before-the-file-system ()
   "A record no glob matches is dropped without asking whether its file exists; one
