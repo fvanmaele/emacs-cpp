@@ -28,15 +28,15 @@
 (require 'subr-x)
 (require 'eglot)
 (require 'url-util)
-
-(defvar emacs-cpp-default-fswatch-program)
+(require 'emacs-cpp-internals)
+(require 'emacs-cpp-fswatch)
 
 ;; eglot internals used below; another eglot without them fails here, not at the
 ;; first change (`advice-add' would accept a function that does not exist).
-(dolist (internal '(eglot--on-shutdown eglot--project eglot--uri-path-allowed-chars))
-  (unless (or (fboundp internal) (boundp internal))
-    (error "emacs-cpp: this eglot lacks %s, which lisp/emacs-cpp-eglot-fswatch.el \
-uses; update the backend (D-127)" internal)))
+;; `eglot--project' is also lisp/emacs-cpp-library-index.el's.
+(emacs-cpp-check-internals 'eglot "lisp/emacs-cpp-eglot-fswatch.el"
+                           'eglot--on-shutdown 'eglot--project
+                           'eglot--uri-path-allowed-chars)
 
 (defconst emacs-cpp-eglot-fswatch-latency 0.1
   "Seconds fswatch gathers events before it writes them (its -l).")
@@ -172,6 +172,12 @@ The flags of a path's records are joined with commas."
         ((string-search "Created" flags) emacs-cpp-eglot-fswatch--created)
         (t emacs-cpp-eglot-fswatch--changed)))
 
+(defun emacs-cpp-eglot-fswatch--matching (matchers rel)
+  "Return those of MATCHERS whose glob matches REL, whatever their kinds."
+  (let ((case-fold-search nil))
+    (cl-loop for matcher in matchers
+             when (string-match-p (car matcher) rel) collect matcher)))
+
 (defun emacs-cpp-eglot-fswatch--wanted-p (matchers rel type)
   "Non-nil if one of MATCHERS whose kind includes change TYPE matches REL."
   (let ((bit (ash 1 (1- type)))         ; WatchKind bit of a FileChangeType
@@ -192,23 +198,21 @@ visits is left out, as eglot does (the server has its text)."
         changes)
     (pcase-dolist (`(,path . ,flags) merged)
       (when (string-prefix-p real-root path)
-        (let ((rel (substring path (length real-root)))
-              (type (emacs-cpp-eglot-fswatch--change-type path flags)))
-          (when (and (emacs-cpp-eglot-fswatch--wanted-p matchers rel type)
-                     (not (emacs-cpp-eglot-fswatch--server-has-text-p
-                           server (concat root rel))))
-            (push (list :uri (concat root-uri "/" (url-hexify-string
-                                                   rel eglot--uri-path-allowed-chars))
-                        :type type)
-                  changes)))))
+        ;; The globs first: the change's type asks the file system, and most
+        ;; records of a build match no glob.
+        (when-let* ((rel (substring path (length real-root)))
+                    (matching (emacs-cpp-eglot-fswatch--matching matchers rel))
+                    (type (emacs-cpp-eglot-fswatch--change-type path flags))
+                    ((emacs-cpp-eglot-fswatch--wanted-p matching rel type))
+                    ((not (emacs-cpp-eglot-fswatch--server-has-text-p
+                           server (concat root rel)))))
+          (push (list :uri (concat root-uri "/" (url-hexify-string
+                                                 rel eglot--uri-path-allowed-chars))
+                      :type type)
+                changes))))
     (nreverse changes)))
 
 ;;;; Processes
-
-(defun emacs-cpp-eglot-fswatch--overflow-p (record)
-  "Non-nil when RECORD's flags include `Overflow': fswatch lost changes."
-  (when-let* ((space (cl-position ?\s record :from-end t)))
-    (member "Overflow" (split-string (substring record (1+ space)) ","))))
 
 (defun emacs-cpp-eglot-fswatch--warn-overflow (root)
   (display-warning
@@ -218,75 +222,36 @@ eglot-reconnect' lets the server see the files again" root)
    :warning))
 
 (defun emacs-cpp-eglot-fswatch--filter (server real-root root matchers)
-  "Return the process filter turning fswatch's records into notifications."
-  (let ((pending "")
-        (overflow-warned 0))
-    (lambda (_process output)
-      ;; Records end in NUL; the last piece is the start of a record still coming.
-      (let* ((pieces (split-string (concat pending output) "\0"))
-             (records (butlast pieces)))
-        (setq pending (car (last pieces)))
-        (when (cl-some #'emacs-cpp-eglot-fswatch--overflow-p records)
-          (when (> (- (float-time) overflow-warned) 60) ; at most once a minute
-            (setq overflow-warned (float-time))
-            (emacs-cpp-eglot-fswatch--warn-overflow root))
-          (setq records (cl-remove-if #'emacs-cpp-eglot-fswatch--overflow-p records)))
-        (when-let* ((changes (emacs-cpp-eglot-fswatch-changes
-                              server (emacs-cpp-eglot-fswatch-merge records)
-                              real-root root matchers)))
-          (jsonrpc-notify server :workspace/didChangeWatchedFiles
-                          `(:changes ,(vconcat changes))))))))
-
-(defun emacs-cpp-eglot-fswatch--command (real-root)
-  "Return the fswatch command line watching REAL-ROOT."
-  `(,emacs-cpp-default-fswatch-program
-    "-0" "-r" "-x" "--event-flag-separator=," ; NUL-ended records, recursive, flags
-    "-l" ,(number-to-string emacs-cpp-eglot-fswatch-latency)
-    "--allow-overflow"                  ; report lost changes, not exit
-    ,@(cl-loop for regexp in emacs-cpp-eglot-fswatch-exclude
-               append (list "-e" regexp))
-    ,(directory-file-name real-root)))
-
-(defun emacs-cpp-eglot-fswatch--sentinel (root stderr)
-  "Return the sentinel of ROOT's fswatch.
-It warns when fswatch ends unasked, then kills the STDERR buffer."
-  (lambda (process event)
-    (unless (process-live-p process)
-      (unless (process-get process 'emacs-cpp-stopping)
-        (let ((text (with-current-buffer stderr (string-trim (buffer-string)))))
-          (display-warning
-           'emacs-cpp
-           (format "fswatch for %s ended (%s)%s; its changes are no longer \
-reported; `M-x eglot-reconnect' starts it again"
-                   root (string-trim event)
-                   (if (string-empty-p text) "" (format ": %s" text)))
-           :warning)))
-      (when (buffer-live-p stderr) (kill-buffer stderr)))))
+  "Return the process filter turning fswatch's records into notifications.
+One notification per filter call; an overflow sends nothing by itself (LSP has no
+\"rescan\"), the warning names `M-x eglot-reconnect'."
+  (emacs-cpp-fswatch-filter
+   (lambda (records _overflowed)
+     (when-let* ((changes (emacs-cpp-eglot-fswatch-changes
+                           server (emacs-cpp-eglot-fswatch-merge records)
+                           real-root root matchers)))
+       (jsonrpc-notify server :workspace/didChangeWatchedFiles
+                       `(:changes ,(vconcat changes)))))
+   (lambda () (emacs-cpp-eglot-fswatch--warn-overflow root))))
 
 (defun emacs-cpp-eglot-fswatch--start (server id matchers)
   "Start SERVER's fswatch for registration ID, its globs MATCHERS; return it."
   (let* ((root (file-name-as-directory
                 (expand-file-name (project-root (eglot--project server)))))
-         (real-root (file-name-as-directory (file-truename root)))
-         (stderr (generate-new-buffer (format " *emacs-cpp-fswatch %s stderr*" id)))
-         (process (make-process
-                   :name (format "emacs-cpp-fswatch %s" id)
-                   :command (emacs-cpp-eglot-fswatch--command real-root)
-                   :connection-type 'pipe :noquery t :coding 'utf-8-unix
-                   :stderr stderr
-                   :filter (emacs-cpp-eglot-fswatch--filter
-                            server real-root root matchers)
-                   :sentinel (emacs-cpp-eglot-fswatch--sentinel root stderr))))
-    (process-put process 'emacs-cpp-stderr stderr)
-    process))
+         (real-root (file-name-as-directory (file-truename root))))
+    (emacs-cpp-fswatch-start
+     (format "emacs-cpp-fswatch %s" id) root
+     (emacs-cpp-fswatch-command real-root emacs-cpp-eglot-fswatch-latency
+                                emacs-cpp-eglot-fswatch-exclude)
+     (emacs-cpp-eglot-fswatch--filter server real-root root matchers)
+     "its changes are no longer reported; `M-x eglot-reconnect' starts it again")))
 
 (defun emacs-cpp-eglot-fswatch--stop (server &optional id)
   "Stop SERVER's fswatch of registration ID, or all of SERVER's."
   (let ((alist (gethash server emacs-cpp-eglot-fswatch--processes)))
     (pcase-dolist (`(,key . ,process) alist)
       (when (or (null id) (equal key id))
-        (process-put process 'emacs-cpp-stopping t)
-        (when (process-live-p process) (delete-process process))))
+        (emacs-cpp-fswatch-stop process)))
     (puthash server (if id (cl-remove id alist :key #'car :test #'equal) nil)
              emacs-cpp-eglot-fswatch--processes)))
 

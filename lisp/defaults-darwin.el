@@ -20,9 +20,23 @@ Emacs started from the Dock or Finder gets launchd's PATH, /usr/bin:/bin:/usr/sb
 (MacPorts, D-053; ty since D-182) were not found.  /Library/TeX/texbin: MacTeX's
 engines, which pandoc runs for Markdown's PDF (D-184).")
 
-(defconst emacs-cpp-default-llvm-tools-dir "/opt/local/libexec/llvm-23/bin"
+(defun emacs-cpp-default--newest-llvm-tools-dir (libexec)
+  "Return the bin directory of the newest llvm-N under LIBEXEC with clang-tidy, or nil.
+Newest by N as a number: llvm-9 is older than llvm-21."
+  (car (sort (seq-filter (lambda (dir)
+                           (file-executable-p (expand-file-name "clang-tidy" dir)))
+                         (file-expand-wildcards (expand-file-name "llvm-*/bin" libexec)))
+             :key (lambda (dir)
+                    (string-match "llvm-\\([0-9]*\\)[^/]*/bin\\'" dir)
+                    (string-to-number (match-string 1 dir)))
+             :reverse t)))
+
+(defconst emacs-cpp-default-llvm-tools-dir
+  (emacs-cpp-default--newest-llvm-tools-dir "/opt/local/libexec")
   "Directory of clang's command-line tools (clang-move, run-clang-tidy ...), or
-nil for exec-path (D-094).  MacPorts keeps them out of /opt/local/bin.")
+nil for exec-path (D-094).  MacPorts keeps them out of /opt/local/bin, one
+directory per LLVM port: the newest installed that holds clang-tidy, found at
+startup, so a port upgrade (llvm-23 to llvm-24) needs no edit here (D-206).")
 
 (defconst emacs-cpp-default-mouse-modifier 'super
   "Modifier of the navigation clicks (D-093): Command, which Emacs calls super on

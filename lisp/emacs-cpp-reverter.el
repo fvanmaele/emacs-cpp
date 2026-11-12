@@ -28,13 +28,13 @@
 
 (require 'cl-lib)
 (require 'subr-x)
+(require 'emacs-cpp-fswatch)
 
 (declare-function projectile-root-local "projectile" (dir))
 (declare-function projectile-root-marked "projectile" (dir))
 (declare-function projectile-root-bottom-up "projectile" (dir &optional list))
 (declare-function diff-hl-update "diff-hl" ())
 (declare-function ediff-current-file "ediff" ())
-(defvar emacs-cpp-default-fswatch-program)
 
 (defconst emacs-cpp-reverter-latency 0.1
   "Seconds fswatch gathers events before it writes them (its -l).")
@@ -182,49 +182,21 @@ when it starts and only then)."
 
 ;;;; Processes
 
-(defun emacs-cpp-reverter--command (real-root)
-  "Return the fswatch command line watching REAL-ROOT."
-  `(,emacs-cpp-default-fswatch-program
-    "-0" "-r" "-x" "--event-flag-separator=," ; NUL-ended records, recursive, flags
-    "-l" ,(number-to-string emacs-cpp-reverter-latency)
-    "--allow-overflow"                  ; report lost changes, not exit
-    ,@(cl-loop for regexp in emacs-cpp-reverter-exclude
-               append (list "-e" regexp))
-    ,(directory-file-name real-root)))
-
-(defun emacs-cpp-reverter--sentinel (root stderr)
-  "Return the sentinel of ROOT's fswatch.
-It warns when fswatch ends unasked, then kills the STDERR buffer."
-  (lambda (process event)
-    (unless (process-live-p process)
-      (unless (process-get process 'emacs-cpp-stopping)
-        (let ((text (with-current-buffer stderr (string-trim (buffer-string)))))
-          (display-warning
-           'emacs-cpp
-           (format "fswatch for %s ended (%s)%s; its buffers no longer follow \
-their files; `M-x emacs-cpp-reverter-restart' starts it again"
-                   root (string-trim event)
-                   (if (string-empty-p text) "" (format ": %s" text)))
-           :warning)))
-      (when (buffer-live-p stderr) (kill-buffer stderr)))))
-
 (defun emacs-cpp-reverter--start (root)
   "Start the fswatch reverting ROOT's buffers; return it."
-  (let* ((real-root (file-name-as-directory (file-truename root)))
-         (stderr (generate-new-buffer (format " *emacs-cpp-reverter %s stderr*" root))))
-    (make-process
-     :name (format "emacs-cpp-reverter %s" root)
-     :command (emacs-cpp-reverter--command real-root)
-     :connection-type 'pipe :noquery t :coding 'utf-8-unix
-     :stderr stderr
-     :filter (emacs-cpp-reverter--filter root real-root)
-     :sentinel (emacs-cpp-reverter--sentinel root stderr))))
+  (let ((real-root (file-name-as-directory (file-truename root))))
+    (emacs-cpp-fswatch-start
+     (format "emacs-cpp-reverter %s" root) root
+     (emacs-cpp-fswatch-command real-root emacs-cpp-reverter-latency
+                                emacs-cpp-reverter-exclude)
+     (emacs-cpp-reverter--filter root real-root)
+     "its buffers no longer follow their files; `M-x emacs-cpp-reverter-restart' \
+starts it again")))
 
 (defun emacs-cpp-reverter--stop (root)
   "Stop ROOT's fswatch."
   (when-let* ((process (gethash root emacs-cpp-reverter--roots)))
-    (process-put process 'emacs-cpp-stopping t)
-    (when (process-live-p process) (delete-process process)))
+    (emacs-cpp-fswatch-stop process))
   (remhash root emacs-cpp-reverter--roots))
 
 (defun emacs-cpp-reverter-processes ()
@@ -243,11 +215,6 @@ their files; `M-x emacs-cpp-reverter-restart' starts it again"
   (emacs-cpp-reverter--rescan))
 
 ;;;; Reverting
-
-(defun emacs-cpp-reverter--overflow-p (record)
-  "Non-nil when RECORD's flags include `Overflow': fswatch lost changes."
-  (when-let* ((space (cl-position ?\s record :from-end t)))
-    (member "Overflow" (split-string (substring record (1+ space)) ","))))
 
 (defun emacs-cpp-reverter--path (record)
   "Return RECORD's path: all before its last space (paths may hold spaces)."
@@ -313,41 +280,40 @@ project was checked against its file" root)
             (nconc emacs-cpp-reverter--reverts (list buffer)))))
   (emacs-cpp-reverter--arm emacs-cpp-reverter-pause))
 
+(defun emacs-cpp-reverter--files ()
+  "Return a table of the files the reverter's buffers visit -> their buffer.
+One pass over the buffers per filter call; `get-file-buffer' walked them all
+for every record (a filter call of 5000 records, 200 buffers: 57 -> 36 - 42 ms)."
+  (let ((table (make-hash-table :test #'equal)))
+    (dolist (buffer (buffer-list) table)
+      (when (and (buffer-local-value 'emacs-cpp-reverter--root buffer)
+                 (buffer-file-name buffer))
+        (puthash (buffer-file-name buffer) buffer table)))))
+
 (defun emacs-cpp-reverter--handle (root real-root records overflowed)
   "Queue ROOT's buffers whose files RECORDS name (REAL-ROOT's paths) for reverting.
 OVERFLOWED: changes were lost, so every buffer of ROOT is queued."
   (dolist (buffer (if overflowed
                       (emacs-cpp-reverter--buffers root)
-                    (cl-loop for record in records
-                             for path = (emacs-cpp-reverter--path record)
-                             for buffer = (and (string-prefix-p real-root path)
-                                               (get-file-buffer
-                                                (concat root (substring path (length real-root)))))
-                             when (and buffer
-                                       (buffer-local-value 'emacs-cpp-reverter--root buffer))
-                             collect buffer)))
+                    (and records
+                         (cl-loop with files = (emacs-cpp-reverter--files)
+                                  for record in records
+                                  for path = (emacs-cpp-reverter--path record)
+                                  for buffer = (and (string-prefix-p real-root path)
+                                                    (gethash
+                                                     (concat root (substring path (length real-root)))
+                                                     files))
+                                  when buffer collect buffer))))
     (emacs-cpp-reverter--enqueue-revert buffer)))
 
 (defun emacs-cpp-reverter--filter (root real-root)
   "Return the process filter of ROOT's fswatch, which reports REAL-ROOT's paths.
 It only queues buffers (about 1 ms for a 190-file checkout, S20); the timer's
 steps revert them (D-167)."
-  (let ((pending "")
-        (overflow-warned 0))
-    (lambda (_process output)
-      ;; Records end in NUL; the last piece is the start of one still coming.
-      (let* ((pieces (split-string (concat pending output) "\0"))
-             (records (butlast pieces))
-             (overflowed (cl-some #'emacs-cpp-reverter--overflow-p records)))
-        (setq pending (car (last pieces)))
-        (when overflowed
-          (when (> (- (float-time) overflow-warned) 60) ; at most once a minute
-            (setq overflow-warned (float-time))
-            (emacs-cpp-reverter--warn-overflow root)))
-        (emacs-cpp-reverter--handle
-         root real-root
-         (cl-remove-if #'emacs-cpp-reverter--overflow-p records)
-         overflowed)))))
+  (emacs-cpp-fswatch-filter
+   (lambda (records overflowed)
+     (emacs-cpp-reverter--handle root real-root records overflowed))
+   (lambda () (emacs-cpp-reverter--warn-overflow root))))
 
 ;;;; Steps: reverts, then VC state and marks (D-153, D-167)
 

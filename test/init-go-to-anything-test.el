@@ -251,8 +251,8 @@ without, clangd's usual limit and no filter."
           (make-symbolic-link (directory-file-name real) link)
           (let ((uris (emacs-cpp-go--root-uris (file-name-as-directory link))))
             ;; Both spellings, each ending in a slash, so `root-other/' is no match.
-            (should (member (concat "file://" link "/") (mapcar #'cdr uris)))
-            (should (member (concat "file://" real) (mapcar #'cdr uris)))
+            (should (member (concat "file://" link "/") (mapcar #'cadr uris)))
+            (should (member (concat "file://" real) (mapcar #'cadr uris)))
             (let* ((symbol (lambda (name path)
                              (list :name name :location
                                    (list :uri (eglot-path-to-uri path :truenamep t)))))
@@ -296,12 +296,15 @@ without, clangd's usual limit and no filter."
 (ert-deftest init-go-to-anything-root-encoding-and-case ()
   "D-085: a root's URI matches however a server escapes it: the four spellings
 seen (eglot, clangd, pyright, R's languageserver; checked 2026-10-13) under three
-awkward roots; not a sibling directory or a library; another case on macOS only;
-a `%' in the root's name."
+awkward roots; not a sibling directory or a library; another case only where the
+root's file system ignores case (asked of it, not taken from the platform); a `%'
+in the root's name."
   (init-test--load)
   (let* ((parent (file-name-as-directory (file-truename (make-temp-file "emacs-cpp-root" t))))
          (symbol (lambda (uri) (list :name "answer" :location (list :uri uri))))
          (under (lambda (uri root)
+                  ;; A project's root exists; the file system is asked about it.
+                  (make-directory (concat parent root) t)
                   (and (emacs-cpp-go--under-root-p (funcall symbol (concat "file://" parent uri))
                                                    (emacs-cpp-go--root-uris (concat parent root)))
                        t))))
@@ -319,7 +322,13 @@ a `%' in the root's name."
               (should (funcall under (concat spelling "/src/a.cc") root))
               (should-not (funcall under (concat spelling "-other/a.cc") root))
               (should (eq (funcall under (upcase (concat spelling "/src/a.cc")) root)
-                          (eq system-type 'darwin)))))
+                          (file-name-case-insensitive-p parent)))
+              ;; Either answer of the file system, whatever this machine's is.
+              (dolist (answer '(t nil))
+                (cl-letf (((symbol-function 'file-name-case-insensitive-p)
+                           (lambda (_file) answer)))
+                  (should (eq (funcall under (upcase (concat spelling "/src/a.cc")) root)
+                              answer))))))
           (should-not (funcall under "c%2B%2B/a.h" "c++ (x)@y/"))
           (should-not (emacs-cpp-go--under-root-p
                        (funcall symbol "file:///usr/include/c%2B%2B/v1/vector")

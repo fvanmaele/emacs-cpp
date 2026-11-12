@@ -6,6 +6,8 @@
 
 ;;; Code:
 
+(require 'emacs-cpp-internals)
+
 ;; Built-in theme, carried over from the retired ~/.emacs, unless one was saved with
 ;; `M-x customize-themes'.  custom.el loads at the end of init.el, so the choice is
 ;; known only after it; loading this theme first and the saved one from custom.el
@@ -67,6 +69,7 @@ Nil outside prompts, where the timer has its usual delay."
   :hook (after-init . which-key-mode)
   :custom (which-key-idle-delay 3.0)
   :config
+  (emacs-cpp-check-internals 'which-key "lisp/init-ui.el" 'which-key--start-timer)
   (add-hook 'minibuffer-setup-hook #'emacs-cpp-ui--which-key-prompt-opened)
   (add-hook 'minibuffer-exit-hook #'emacs-cpp-ui--which-key-prompt-closed)
   (add-hook 'which-key-delay-functions #'emacs-cpp-ui--which-key-delay))

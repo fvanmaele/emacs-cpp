@@ -11,6 +11,8 @@
 
 ;;; Code:
 
+(require 'emacs-cpp-internals)
+
 (defun emacs-cpp-lsp-server (modes contact)
   "Make eglot start CONTACT for buffers in MODES, ahead of its own entries (D-091).
 MODES and CONTACT as in `eglot-server-programs'; the latest call wins for a mode."
@@ -66,6 +68,9 @@ makepkg -si; macOS: sh packaging/fswatch-no-loss/build-macos.sh), D-109, D-127" 
   ;; At startup, not when the first server starts (principle 1).
   (emacs-cpp-fswatch-program-check emacs-cpp-default-fswatch-program)
   :config
+  ;; eglot's internals `emacs-cpp-lsp-symbol-params' reads (the tests stub them).
+  (emacs-cpp-check-internals 'eglot "lisp/init-lsp.el"
+                             'eglot--capabilities 'eglot--server-info)
   ;; The sections of `emacs-cpp-lsp-settings', computed where eglot applies the
   ;; project's directory variables (D-142).
   (setq-default eglot-workspace-configuration #'emacs-cpp-lsp-workspace-configuration)

@@ -488,5 +488,46 @@ buffers."
                    ;; completion-all-completions ends the list with the base size.
                    (append '("include/rmo/gpe/model.h") 0)))))
 
+;;;; Internals of Emacs's own packages (lisp/emacs-cpp-internals.el)
+
+(ert-deftest init-internals-check-names-what-is-missing ()
+  "The check passes for names that exist and signals, with a warning, for one
+that does not, naming it and the file that uses it."
+  (require 'emacs-cpp-internals)
+  (should-not (emacs-cpp-check-internals 'subr "lisp/x.el" 'car 'load-path))
+  (let (warned)
+    (cl-letf (((symbol-function 'display-warning)
+               (lambda (_type message &rest _) (push message warned))))
+      (let ((err (should-error (emacs-cpp-check-internals
+                                'eglot "lisp/x.el" 'car 'emacs-cpp--no-such-internal))))
+        (should (string-match-p "eglot lacks emacs-cpp--no-such-internal, which lisp/x.el"
+                                (cadr err)))
+        (should (equal warned (list (cadr err))))))))
+
+(ert-deftest init-internals-used-are-checked ()
+  "Every double-dash name of eglot, jsonrpc, which-key and python that lisp/ uses
+in code is an argument of an `emacs-cpp-check-internals' call there."
+  (let ((files (directory-files (expand-file-name "lisp" build-packages-root) t "\\.el\\'"))
+        used checked)
+    (dolist (file files)
+      (with-temp-buffer
+        (insert-file-contents file)
+        (emacs-lisp-mode)
+        (while (re-search-forward
+                "\\_<\\(?:eglot\\|jsonrpc\\|which-key\\|python-shell\\)--[a-z0-9-]+\\_>"
+                nil t)
+          (unless (nth 4 (syntax-ppss))  ; not in a comment
+            (cl-pushnew (intern (match-string 0)) used)))
+        (goto-char (point-min))
+        (while (search-forward "(emacs-cpp-check-internals " nil t)
+          (unless (or (nth 3 (syntax-ppss)) (nth 4 (syntax-ppss)))
+            (save-excursion
+              (goto-char (match-beginning 0))
+              (dolist (argument (cdddr (read (current-buffer))))
+                (when (eq (car-safe argument) 'quote)
+                  (cl-pushnew (cadr argument) checked))))))))
+    (should (> (length used) 5))
+    (should-not (seq-difference used checked))))
+
 (provide 'init-test)
 ;;; init-test.el ends here
