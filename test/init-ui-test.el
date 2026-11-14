@@ -75,5 +75,16 @@ Emacs's own manuals from Emacs; C-h i lists Eglot once."
       (goto-char (point-min))
       (should (= 1 (how-many "^\\* Eglot:"))))))
 
+(ert-deftest init-ui-indent-with-spaces ()
+  "D-207: Perl indented 12 columns deep gets spaces, no tab."
+  (init-test--load)
+  (should-not (default-value 'indent-tabs-mode))
+  (with-temp-buffer
+    (perl-mode)
+    (insert "sub f {\nif (1) {\nif (2) {\nprint 1;\n}\n}\n}\n")
+    (indent-region (point-min) (point-max))
+    (should (string-match-p "^            print 1;$" (buffer-string)))
+    (should-not (string-match-p "\t" (buffer-string)))))
+
 (provide 'init-ui-test)
 ;;; init-ui-test.el ends here

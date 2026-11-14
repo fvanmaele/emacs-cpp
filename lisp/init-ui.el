@@ -87,6 +87,12 @@ Nil outside prompts, where the timer has its usual delay."
   (display-line-numbers-width-start t)
   (display-line-numbers-grow-only t))
 
+;; Indentation is spaces only, in every mode (D-207): Emacs's default puts a tab for
+;; each 8 columns and spaces for the rest, so Perl's 4-column steps came out as tabs
+;; mixed with spaces.  A project's `.dir-locals.el' can still ask for tabs, and modes
+;; that need them (Makefiles) set them in their own buffers.
+(setq-default indent-tabs-mode nil)
+
 (defconst emacs-cpp-info-directory (expand-file-name "lib/info" emacs-cpp-root)
   "Info manuals of the vendored packages, built by `make packages' (D-039).")
 

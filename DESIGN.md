@@ -301,6 +301,13 @@ Observed on the owner's Mac, 2026-10-09 (D-050):
   (`tab-to-tab-stop`) and `C-x TAB` then `S-<right>` move by the project's step from
   `.dir-locals.el`; before, they moved by `tab-width` (8). `tab-width` itself is
   left alone: it is how existing tab characters are shown.
+- DECIDED D-207 (owner 2026-11-13: "Avoid mixing tabs and spaces, e.g. in perl mode";
+  tier 1): `indent-tabs-mode` defaults to nil in every buffer, so indentation is spaces
+  only. Emacs's default (t) writes a tab for each `tab-width` (8) columns and spaces
+  for the rest: Perl's 4-column steps gave lines of tabs and spaces mixed. A project's
+  `.dir-locals.el` can still set it to t; Makefile modes set it in their own buffers.
+  Against: a file indented with tabs gets spaces on the lines edited, unless its
+  project says tabs.
 - DECIDED D-063 (owner 2026-10-10: "global-display-line-numbers-mode, but without
   buffers like treemacs"): line numbers in buffers whose mode derives from
   `prog-mode`, `text-mode` or `conf-mode`, from their hooks. Not the global mode: in
@@ -4785,6 +4792,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-183 | 2026-11-05 | O-85 (h): projectile's per-submodule pass off, fd required for git listings | 12 | O-85, T-133 |
 | D-184 | 2026-11-07 | O-89 (b): Markdown to PDF by pandoc + LaTeX; math drawn by math-preview deferred | 12 | O-89, D-145 |
 | D-185 | 2026-11-07 | Markdown PDF: code in DejaVu Sans Mono, missing glyphs a warning | 12 | D-184, owner report |
+| D-207 | 2026-11-13 | Indentation with spaces only: `indent-tabs-mode` nil by default | 5 | owner |
 | D-206 | 2026-11-11 | macOS: clang's tools from the newest MacPorts `llvm-N` that holds clang-tidy, found at startup, not a pinned `llvm-23` | 7 | review 2026-11-11, owner ("Fix in suggested order") |
 | D-205 | 2026-11-09 | Markdown PDF text in DejaVu Serif, its four styles named; `emacs-cpp-markdown-pdf-mainfont` | 12 | T-147, owner |
 | D-204 | 2026-11-09 | Markdown HTML and PDF: bare URIs are links; the HTML through pandoc only | 12 | owner |
