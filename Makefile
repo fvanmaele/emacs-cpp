@@ -67,11 +67,15 @@ test-gui: ## ERT needing a display: a window opens, do not touch it (run `make e
 	else echo "make test-gui: no log: Emacs did not start graphically"; [ "$$code" -ne 0 ] || code=2; fi; \
 	exit "$$code"
 
-# The patched clangd at the installed LLVM's version (D-027): pkgver from llvm-config,
-# checksums refreshed, then makepkg with MAKEPKG_FLAGS (-si installs).
+# The patched clangd at the release the PKGBUILD pins, self-contained (D-207). Arch:
+# makepkg with MAKEPKG_FLAGS (-si installs). macOS: build-macos.sh, to ~/opt.
 MAKEPKG_FLAGS ?=
-clangd: ## build packaging/clangd-index-nav against the installed LLVM; MAKEPKG_FLAGS=-si installs
-	sh scripts/build-clangd.sh $(MAKEPKG_FLAGS)
+clangd: ## build the patched clangd (packaging/clangd-index-nav); Arch: MAKEPKG_FLAGS=-si installs
+	@case "$$(uname -s)" in \
+	Linux) cd packaging/clangd-index-nav && makepkg $(MAKEPKG_FLAGS) ;; \
+	Darwin) packaging/clangd-index-nav/build-macos.sh ;; \
+	*) echo "make clangd: neither Linux nor macOS" >&2; exit 1 ;; \
+	esac
 
 # A library's offline index for clangd into indexes/ (D-130, D-133): `make
 # library-index LIBRARY=dealii`; needs clangd-indexer of the patched clangd.

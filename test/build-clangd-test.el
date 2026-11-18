@@ -1,63 +1,48 @@
-;;; build-clangd-test.el --- make clangd refuses mismatched LLVM versions  -*- lexical-binding: t; -*-
+;;; build-clangd-test.el --- the patched clangd's build: one pin, self-contained  -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 
-;; scripts/build-clangd.sh (D-123) writes the PKGBUILD's pkgver from `llvm-config
-;; --version' and builds; these tests run it with stub tools first on PATH and check
-;; the two refusals, which stop it before it writes anything or runs makepkg.
+;; packaging/clangd-index-nav (D-207): the PKGBUILD pins the LLVM release for both
+;; machines and depends on nothing of pacman's LLVM; build-macos.sh takes the release
+;; and the tarball's checksum from the PKGBUILD.  These tests read the two files.
 
 ;;; Code:
 
 (require 'ert)
 (require 'build-packages)
 
-(defun build-clangd-test--run (llvm-version libs-version)
-  "Run build-clangd.sh with stubs: llvm-config says LLVM-VERSION, pacman LIBS-VERSION.
-Return (EXIT . OUTPUT).  updpkgsums and makepkg are stubs that fail if called."
-  (let ((stubs (make-temp-file "build-clangd-test" t)))
-    (unwind-protect
-        (progn
-          (pcase-dolist (`(,name . ,body)
-                         `(("llvm-config" . ,(format "echo '%s'" llvm-version))
-                           ("pacman" . ,(format "echo 'llvm-libs %s'" libs-version))
-                           ("updpkgsums" . "echo updpkgsums called; exit 3")
-                           ("makepkg" . "echo makepkg called; exit 3")))
-            (let ((file (expand-file-name name stubs)))
-              (write-region (concat "#!/bin/sh\n" body "\n") nil file)
-              (set-file-modes file #o755)))
-          (with-temp-buffer
-            (let* ((process-environment
-                    (cons (concat "PATH=" stubs path-separator (getenv "PATH"))
-                          process-environment))
-                   (exit (call-process "sh" nil t nil
-                                       (expand-file-name "scripts/build-clangd.sh"
-                                                         build-packages-root))))
-              (cons exit (buffer-string)))))
-      (delete-directory stubs t))))
-
-(defun build-clangd-test--pkgbuild ()
-  "Return the PKGBUILD's text."
+(defun build-clangd-test--file (name)
+  "Return the text of NAME in packaging/clangd-index-nav."
   (with-temp-buffer
-    (insert-file-contents (expand-file-name "packaging/clangd-index-nav/PKGBUILD"
+    (insert-file-contents (expand-file-name (concat "packaging/clangd-index-nav/" name)
                                             build-packages-root))
     (buffer-string)))
 
-(ert-deftest build-clangd-refuses-llvm-libs-of-another-release ()
-  "D-123: llvm-config and llvm-libs at two releases stop the build, PKGBUILD untouched."
-  (let* ((before (build-clangd-test--pkgbuild))
-         (result (build-clangd-test--run "23.1.9" "23.1.8-1")))
-    (should (= (car result) 1))
-    (should (string-match-p "llvm-config says 23.1.9 but llvm-libs is 23.1.8" (cdr result)))
-    (should-not (string-match-p "called" (cdr result)))
-    (should (equal (build-clangd-test--pkgbuild) before))))
+(defun build-clangd-test--assignment (name)
+  "Return the PKGBUILD's line or parenthesized block assigning NAME."
+  (let ((text (build-clangd-test--file "PKGBUILD")))
+    (should (string-match (format "^%s=\\(([^)]*)\\|.*\\)" (regexp-quote name)) text))
+    (match-string 1 text)))
 
-(ert-deftest build-clangd-refuses-a-version-that-is-no-release ()
-  "D-123: a version that is no release (a development build) stops the build."
-  (let* ((before (build-clangd-test--pkgbuild))
-         (result (build-clangd-test--run "24.0.0git" "24.0.0git-1")))
-    (should (= (car result) 1))
-    (should (string-match-p "not a release version" (cdr result)))
-    (should (equal (build-clangd-test--pkgbuild) before))))
+(ert-deftest build-clangd-pkgbuild-needs-nothing-of-pacmans-llvm ()
+  "D-207: no llvm, llvm-libs or clang among the PKGBUILD's dependencies."
+  (dolist (name '("depends" "makedepends"))
+    (should-not (string-match-p "llvm\\|clang" (build-clangd-test--assignment name)))))
+
+(ert-deftest build-clangd-pkgbuild-pins-a-release ()
+  "D-207: pkgver is a release, three numbers, and names the first source."
+  (should (string-match-p "\\`[0-9]+\\.[0-9]+\\.[0-9]+\\'"
+                          (build-clangd-test--assignment "pkgver")))
+  (should (string-match-p "llvm-project-\\$pkgver\\.src\\.tar\\.xz\""
+                          (build-clangd-test--assignment "source"))))
+
+(ert-deftest build-clangd-macos-script-takes-the-pin-from-the-pkgbuild ()
+  "D-207: build-macos.sh names no release and no checksum of its own."
+  (let ((text (build-clangd-test--file "build-macos.sh")))
+    (should (string-match-p "^version=\\$pkgver$" text))
+    (should (string-match-p "^tarball_sha256=\\${sha256sums\\[0\\]}$" text))
+    (should-not (string-match-p "[0-9]+\\.[0-9]+\\.[0-9]+" text))
+    (should-not (string-match-p "[0-9a-f]\\{64\\}" text))))
 
 (provide 'build-clangd-test)
 ;;; build-clangd-test.el ends here

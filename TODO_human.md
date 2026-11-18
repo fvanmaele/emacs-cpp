@@ -14,6 +14,25 @@ cannot read itself. An approval another session asks the owner for itself (a ben
 service's plan) is not an item.
 
 ## Run now
+- **H-38** (2026-11-18, unblocks T-149, D-207) The self-contained clangd on Arch: build,
+  install, tests. The build compiles LLVM and clang (14 min on the Mac).
+  1. On the Mac: `cd ~/source/repos/emacs-cpp && git push` (the session does not push).
+  2. On Arch: `cd ~/source/repos/emacs-cpp && git pull --ff-only`
+  3. On Arch: `sudo pacman -R clangd-index-nav` (agreed 2026-11-18; the installed
+     package's `/opt/clangd-index-nav/lib/clang` is a link to `/usr/lib/clang`, the new
+     one's a directory; pacman is expected to refuse the upgrade over it, UNVERIFIED).
+     Until step 4 ends, eglot refuses a configured `emacs-cpp-clangd-program`.
+  4. On Arch: `cd ~/source/repos/emacs-cpp && time make clangd MAKEPKG_FLAGS=-siC`
+     (`-C` drops the 23.1.4 build tree; `-s` installs missing make-dependencies, `-i`
+     the package: answer its prompts).
+  5. On Arch: `/opt/clangd-index-nav/bin/clangd --version; ldd
+     /opt/clangd-index-nav/bin/clangd | grep -cE 'libLLVM|libclang'; cd
+     ~/source/repos/emacs-cpp && make test </dev/null`
+  6. On Arch: quit Emacs and start it again; open a C++ file of a project.
+  Report back: step 4's `real` time and any error; step 5's version line, the count
+  (expected 0), `make test`'s `Ran ...` line and any FAILED test names; in step 6
+  whether eglot started (mode line) and any `*Warnings*` text.
+
 - **H-33** (2026-11-08, unblocks D-192's upstream report) Report pdf-tools' roll-mode
   revert defect.
   1. In a browser, signed in to GitHub, open https://github.com/vedang/pdf-tools/issues/new

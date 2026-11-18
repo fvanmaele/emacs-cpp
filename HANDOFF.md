@@ -72,11 +72,11 @@ divergence from upstream below exists to keep the editor interactive in front of
 - No module switches: one config, both machines (D-098). Considered: Doom-style layers.
 
 ## 5. Divergence from upstream: clangd
-The patched clangd lives in `packaging/clangd-index-nav/`: `PKGBUILD` (Arch, pacman's LLVM
-release since D-123, tarball + patches, built against pacman's LLVM, installed to
-`/opt/clangd-index-nav`,
-`llvm-libs` and `clang` pinned to the exact version, D-027) and `build-macos.sh` (macOS,
-LLVM 23.1.3 self-contained, `~/opt/clangd-index-nav`, D-052, D-100). The config uses it
+The patched clangd lives in `packaging/clangd-index-nav/`: `PKGBUILD` (Arch, tarball +
+patches, installed to `/opt/clangd-index-nav`) and `build-macos.sh` (macOS,
+`~/opt/clangd-index-nav`, D-052). Since 2026-11-18 both build one LLVM release, pinned
+in the PKGBUILD (23.1.5), self-contained: nothing of the system's LLVM is linked
+(D-207, superseding D-123 and D-100). The config uses it
 only when `emacs-cpp-clangd-program` names it, and refuses a binary that lacks the
 patched flags (D-026). Every behaviour change is behind a hidden flag or a request
 field, so the patched binary behaves as upstream unless asked. None of these patches

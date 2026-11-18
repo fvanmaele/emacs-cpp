@@ -4,10 +4,11 @@
 #   packaging/clangd-index-nav/build-macos.sh [--prefix DIR] [--tarball FILE]
 #                                             [--workdir DIR]
 #
-# The PKGBUILD next to this file is Arch-only (makepkg, pacman's LLVM, D-123). This
-# script builds the release named below, MacPorts' LLVM 23.1.3 (D-100), with the same
-# patches, read from the PKGBUILD, and self-contained: clang and clang-tools-extra are
-# compiled from the release sources. Tools: cmake and ninja from MacPorts (D-053), the
+# The PKGBUILD next to this file is Arch-only (makepkg). This script builds the same
+# release with the same patches: version, tarball checksum, patches and their
+# checksums are read from the PKGBUILD, the one pin of both machines (D-207). Self-
+# contained, as the PKGBUILD: LLVM, clang and clang-tools-extra are compiled from the
+# release sources. Tools: cmake and ninja from MacPorts (D-053), the
 # compiler from the Xcode Command Line Tools.
 #
 # --prefix DIR    install clangd and its builtin headers here
@@ -16,17 +17,12 @@
 # --workdir DIR   sources and build tree (default src/ next to this file, git-ignored)
 #
 # Downloads the release tarball from github.com unless --tarball names one (D-052).
-# The tarball is checked against the script's sha256, each patch against the PKGBUILD;
+# The tarball and each patch are checked against the PKGBUILD's sha256sums;
 # a wrong checksum, a patch that does not apply or a missing tool stops the script
 # with the reason. A rerun with the same sources keeps the build tree and resumes.
 # Afterwards set `emacs-cpp-clangd-program' to DIR/bin/clangd (the script prints how).
 set -eu
 export LC_ALL=C
-
-# The release built here (D-100); it follows MacPorts' llvm-23, not the PKGBUILD's
-# pkgver. Change both lines together; the sha256 is the one github.com lists.
-version=23.1.3
-tarball_sha256=c44186a7762ed28954be72e5ff6df9808e0779d4f1bf014ecc4e7e211d31ee34
 
 here=$(cd "$(dirname "$0")" && pwd)
 prefix=$HOME/opt/clangd-index-nav
@@ -41,7 +37,7 @@ while [ $# -gt 0 ]; do
         --prefix) [ $# -ge 2 ] || die "--prefix needs a directory"; prefix=$2; shift 2 ;;
         --tarball) [ $# -ge 2 ] || die "--tarball needs a file"; tarball=$2; shift 2 ;;
         --workdir) [ $# -ge 2 ] || die "--workdir needs a directory"; workdir=$2; shift 2 ;;
-        -h|--help) sed -n '2,22p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+        -h|--help) sed -n '2,23p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
         *) die "unknown argument: $1 (see --help)" ;;
     esac
 done
@@ -59,8 +55,8 @@ need shasum "it ships with macOS"
 need tar "it ships with macOS"
 [ -n "$tarball" ] || need curl "it ships with macOS"
 
-# Patches and their checksums: the PKGBUILD is the one source. Its first source is
-# Arch's tarball, replaced here by the release above.
+# Release, patches and their checksums: the PKGBUILD is the one source (D-207). Its
+# first source is the release tarball.
 # shellcheck source=/dev/null
 . "$here/PKGBUILD"
 [ "${#source[@]}" -eq "${#sha256sums[@]}" ] \
@@ -69,9 +65,11 @@ case ${source[0]} in
     */llvm-project-$pkgver.src.tar.xz) ;;
     *) die "PKGBUILD's first source is not llvm-project-$pkgver.src.tar.xz: ${source[0]}" ;;
 esac
+version=$pkgver
+tarball_sha256=${sha256sums[0]}
 name=llvm-project-$version.src
 url=https://github.com/llvm/llvm-project/releases/download/llvmorg-$version/$name.tar.xz
-sums=("$tarball_sha256" "${sha256sums[@]:1}")
+sums=("${sha256sums[@]}")
 
 check_sum() {  # file, expected sha256, who says so
     actual=$(shasum -a 256 "$1" | cut -d' ' -f1)
@@ -90,7 +88,7 @@ else
         mv "$archive.part" "$archive"
     fi
 fi
-check_sum "$archive" "$tarball_sha256" "build-macos.sh"
+check_sum "$archive" "$tarball_sha256" "the PKGBUILD"
 patches=()
 i=1
 while [ "$i" -lt "${#source[@]}" ]; do

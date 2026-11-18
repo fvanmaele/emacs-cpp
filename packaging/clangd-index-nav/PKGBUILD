@@ -1,6 +1,7 @@
 # Local package of emacs-cpp (T-014, D-026, D-027); not for the AUR.
-# clangd at the installed LLVM's version (pkgver is written by scripts/build-clangd.sh,
-# `make clangd`) with the emacs-cpp patches: go-to-definition (also on #include lines)
+# clangd at the LLVM release pinned below (pkgver and the tarball's sha256: the one pin
+# of both machines, build-macos.sh reads them from here, D-207) with the emacs-cpp
+# patches: go-to-definition (also on #include lines)
 # and find-references answered from the background index while a file is not parsed
 # yet (hidden flag --navigation-from-index; RESEARCH_clangd_index_navigation.md, S8),
 # and headers compiled with the command of an includer the index knows (hidden flag
@@ -15,23 +16,23 @@
 # matches ranked by shape, after those contiguous from a word start (patch 0013,
 # D-119, S15). Also clangd-indexer, from the same tree, so that a library's offline index
 # is written in the format this clangd reads (D-133, T-118; `make library-index`).
-# Built against the system LLVM and installed to /opt, next to (not instead of) the
-# clang package's clangd.  Patches 0001 - 0009: `git format-patch
+# Self-contained (D-207): LLVM and clang are compiled from the release and linked in,
+# the builtin headers are the release's own, so pacman's LLVM may be at any version.
+# Installed to /opt, next to (not instead of) the clang package's clangd.  Patches 0001 - 0009: `git format-patch
 # 6e2cc8df7..HEAD` in ~/source/repos/llvm-clangd; 0010 - 0012: `git format-patch
 # --start-number 10` on the tree of build-macos.sh (T-104); 0013: `git format-patch
 # --start-number 13` on the makepkg tree (T-108).
 
 pkgname=clangd-index-nav
-pkgver=23.1.4
+pkgver=23.1.5
 pkgrel=1
 pkgdesc="clangd $pkgver answering navigation from its index before parsing (emacs-cpp patches)"
 arch=(x86_64)
 url="https://github.com/llvm/llvm-project"
 license=('Apache-2.0 WITH LLVM-exception')
-# Exact versions: links the system libLLVM; reads index shards in the format of the
-# system clangd; clang supplies the builtin headers (resource directory).
-depends=("llvm-libs=$pkgver" "clang=$pkgver" gcc-libs glibc)
-makedepends=("llvm=$pkgver" cmake ninja python)
+# No llvm-libs, no clang (D-207): nothing of pacman's LLVM is linked or read.
+depends=(gcc-libs glibc zlib zstd)
+makedepends=(cmake ninja python)
 options=(!lto !debug)
 source=("https://github.com/llvm/llvm-project/releases/download/llvmorg-$pkgver/llvm-project-$pkgver.src.tar.xz"
         0001-clangd-Answer-definitions-and-references-from-the-in.patch
@@ -47,7 +48,7 @@ source=("https://github.com/llvm/llvm-project/releases/download/llvmorg-$pkgver/
         0011-clangd-workspace-symbol-abbreviated-qualifiers-on-re.patch
         0012-clangd-workspace-symbol-mid-word-matches-on-request-.patch
         0013-clangd-workspace-symbol-rank-mid-word-matches-by-sha.patch)
-sha256sums=('819ecf7351f1a66f76b2d701d8942faaf5faeb324cb90c9d5b090de142434bb2'
+sha256sums=('fb50b1eac93ddeb3aa8dab4cfe324dff74f4a9c2bdee6160c9e36188f8d06a6e'
             'a8c5acda8b7e43611f22297cb9ba6f95e62c464a6ac78f8027c267973d4702bb'
             '3b3cce804554ab484a2f5396f28cb87f66b87ad4ccd4d6e8e65f4bc7e89feab1'
             '38d74440d2f6ebc79e0efde2f2633188965e7789d7448809816deff03617b2e5'
@@ -68,21 +69,27 @@ prepare() {
   for patch in "$srcdir"/[0-9][0-9][0-9][0-9]-*.patch; do
     patch -Np1 -i "$patch"
   done
-  # Standalone clang build, as Arch's clang package does: tools/extra is picked up.
-  ln -sfn ../../clang-tools-extra clang/tools/extra
 }
 
 build() {
-  cmake -S llvm-project-$pkgver.src/clang -B build -G Ninja \
+  # The flags of build-macos.sh; libxml2 and libedit off, so that depends lists
+  # everything the binaries link.
+  cmake -S llvm-project-$pkgver.src/llvm -B build -G Ninja \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX=/opt/$pkgname \
-    -DLLVM_LINK_LLVM_DYLIB=ON \
+    -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra" \
+    -DLLVM_TARGETS_TO_BUILD=host \
+    -DLLVM_INCLUDE_TESTS=OFF \
+    -DLLVM_INCLUDE_BENCHMARKS=OFF \
+    -DLLVM_INCLUDE_DOCS=OFF \
+    -DLLVM_ENABLE_LIBXML2=OFF \
+    -DLLVM_ENABLE_LIBEDIT=OFF \
     -DCLANG_INCLUDE_TESTS=OFF \
     -DCLANG_INCLUDE_DOCS=OFF \
-    -DLLVM_INCLUDE_TESTS=OFF \
     -DCLANGD_ENABLE_REMOTE=OFF \
-    -DCMAKE_SKIP_RPATH=ON  # links only /usr/lib; no build-tree path in the binary
-  cmake --build build --target clangd clangd-indexer
+    -DLLVM_APPEND_VC_REV=OFF \
+    -DCMAKE_SKIP_RPATH=ON  # no build-tree path in the binary
+  cmake --build build --target clangd clangd-indexer clang-resource-headers
 }
 
 check() {
@@ -90,12 +97,14 @@ check() {
   build/bin/clangd --help-hidden | grep -q -- '--navigation-from-index'
   build/bin/clangd --help-hidden | grep -q -- '--header-flags-from-index'
   build/bin/clangd-indexer --help > /dev/null
+  # Self-contained: no LLVM or clang shared library (D-207).
+  ! ldd build/bin/clangd build/bin/clangd-indexer | grep -E 'libLLVM|libclang'
 }
 
 package() {
   install -Dm755 build/bin/clangd "$pkgdir/opt/$pkgname/bin/clangd"
   install -Dm755 build/bin/clangd-indexer "$pkgdir/opt/$pkgname/bin/clangd-indexer"
-  # Builtin headers (stddef.h, ...) are found relative to the binary.
+  # Builtin headers (stddef.h, ...) are found relative to the binary: the release's own.
   install -d "$pkgdir/opt/$pkgname/lib"
-  ln -s /usr/lib/clang "$pkgdir/opt/$pkgname/lib/clang"
+  cp -a build/lib/clang "$pkgdir/opt/$pkgname/lib/clang"
 }

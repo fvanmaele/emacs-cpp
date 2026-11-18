@@ -25,7 +25,7 @@ clangd stays (T-004); a locally patched clangd
 includer's flags, also when opened first (D-026 .. D-028, D-046, D-047, D-059), and
 re-indexes sources whose shards had errors (D-060). Python rides along (D-045). macOS
 supported, MacPorts only (D-050, D-053): starts and tests there (T-021, D-054),
-`lldb-preset` (D-051), patched clangd 23.1.3 from `build-macos.sh` (D-052, D-100);
+`lldb-preset` (D-051), patched clangd from `build-macos.sh` (D-052; one pin, D-207);
 per-platform defaults files (D-055, T-031); debug targets from CMake's file API (D-056,
 T-030). Budgets bind on
 Arch only (D-057); `make test` on the machine at hand (D-058). Owner runs left: S10
@@ -82,10 +82,15 @@ D-113 0011 / 0012 switched per request, announced as a capability;
 T-025 round 2, T-026 queued. D-116 `make packages` resets patched files, submodules
 at the pin (T-105, 0078).
 
+2026-11-18: the patched clangd self-contained on Arch too, one LLVM pin (23.1.5) in the
+PKGBUILD for both machines (D-207, T-149, 0139, superseding D-123, D-100); the Mac
+built and tested (189 tests, 2 skipped), Arch on H-38.
+
 2026-10-20: review of 5a23316 folded in (0084): MIT license (D-122), the Arch clangd
-follows pacman's LLVM through `make clangd` (D-123, T-111), match tiers as a function
-(D-124, S16) only with compiled `lisp/` (D-125, DESIGN 11.1, S17: native modules load
-magit at startup); DESIGN 1 ruled (D-126); llm_vibecoding_standard 2.14.0 (0086),
+followed pacman's LLVM through `make clangd` (D-123, T-111; superseded by D-207), match
+tiers as a function (D-124, S16) only with compiled `lisp/` (D-125, DESIGN 11.1, S17:
+native modules load magit at startup); DESIGN 1 ruled (D-126); llm_vibecoding_standard
+2.14.0 (0086),
 2.15.1 without its `B-n` ids (D-129, 0088). Owner's Arch runs folded in (0089):
 S16 PASS compiled (criteria to confirm), S18 FAIL on cost on Arch, S10 FAIL (its
 config turned off the project index), runs 2 the session's; ty researched, O-72.

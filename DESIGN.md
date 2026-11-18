@@ -466,6 +466,8 @@ Known defects: none yet (nothing built).
   an LLVM upgrade is visible to pacman and needs a rebuild of the package.
   Arch only; on macOS D-052. Amended 2026-10-20 by D-123: `pkgver` follows the
   installed LLVM, written by `make clangd`; the exact `depends` stay.
+  SUPERSEDED 2026-11-18 by D-207 in its build and `depends`: self-contained, no
+  dependency on pacman's LLVM; the package and `/opt/clangd-index-nav` stay.
 - DECIDED D-052 (owner 2026-10-09, O-23): on macOS the patched clangd is built by a
   script in the repository (NEW, T-023) that follows the self-contained build in
   `docs/CHEATSHEET.md` (macOS item 6): the 23.1.1 release tarball, checked against the
@@ -488,6 +490,8 @@ Known defects: none yet (nothing built).
   system's LLVM, so the two releases can differ. Amends D-052. Patches 0001 - 0009
   apply to 23.1.3 without fuzz; clangd's sources differ from 23.1.1 only in
   `CodeComplete.cpp` and its test. Built (T-073, 0067).
+  SUPERSEDED 2026-11-18 by D-207: one release for both machines, pinned in the
+  PKGBUILD; the script names no release of its own.
 - DECIDED D-123 (owner 2026-10-20, 0084 review:B-1: "Tier 2 under own D-nnn
   llvm-unpin.patch"; amends D-027): on Arch the PKGBUILD's `pkgver` follows the
   installed LLVM. `make clangd` runs `scripts/build-clangd.sh`, which reads
@@ -504,6 +508,8 @@ Known defects: none yet (nothing built).
   Done when: `make clangd MAKEPKG_FLAGS=-si` on the owner's Arch machine builds,
   passes `check()` and installs `clangd-index-nav` at pacman's LLVM (owner's run);
   the two refusals are tested. Built (0085).
+  SUPERSEDED 2026-11-18 by D-207: `pkgver` is a pin, `scripts/build-clangd.sh` and
+  its two refusal tests are deleted, `depends` name nothing of pacman's LLVM.
 - DECIDED D-150 (owner 2026-11-02, amends D-123): on an LLVM release `pkgrel` of
   `packaging/clangd-index-nav` resets to 1, as pacman's own convention; it counts the
   patch-series changes within one LLVM release only. The PKGBUILD is committed at
@@ -512,6 +518,35 @@ Known defects: none yet (nothing built).
   pkgrel 10 per D-123 (the series count "pkgrel 9", "pkgrel 10" in older entries
   stays as history; the patch files' numbers identify the series). `make clangd`
   still writes only `pkgver` and checksums; the reset is by hand.
+  Amended 2026-11-18 by D-207: `pkgver` is pinned by hand, the reset comes with it.
+- DECIDED D-207 (owner 2026-11-18: "Recommendation OK", then "23.1.5", "Tier 2,
+  agreed"; supersedes D-123 and D-100, amends D-027, D-052, D-150): the patched clangd
+  is built self-contained on Arch as on the Mac, and both machines build one pinned
+  LLVM release, 23.1.5. The pin is the PKGBUILD's `pkgver` and its first `sha256sums`
+  entry; `build-macos.sh` reads both from it and names no release itself. The
+  PKGBUILD configures `llvm/` with `LLVM_ENABLE_PROJECTS="clang;clang-tools-extra"`
+  (the flags of `build-macos.sh`; libxml2 and libedit off), builds `clangd`,
+  `clangd-indexer` and `clang-resource-headers`, and installs the release's own
+  builtin headers to `/opt/clangd-index-nav/lib/clang` instead of a link to
+  `/usr/lib/clang`. `depends` are `gcc-libs glibc zlib zstd`: no `llvm-libs`, no
+  `clang`; `check()` fails on a `libLLVM` or `libclang` shared library. `make clangd`
+  runs `makepkg` with `MAKEPKG_FLAGS` on Linux and `build-macos.sh` on macOS;
+  `scripts/build-clangd.sh` is deleted (it wrote `pkgver` from `llvm-config`).
+  Reason: on the Mac the script's release (23.1.3) had fallen two releases behind
+  MacPorts' `llvm-23` (23.1.5) unnoticed, and on Arch every pacman LLVM upgrade
+  forced a rebuild before the next upgrade could install; with one pin the patches
+  are checked against one release. Found 2026-11-18: all 13 patches apply to 23.1.5,
+  and its patched `clang-tools-extra/clangd` equals the patched 23.1.3 tree.
+  Case against, accepted: pacman no longer signals a rebuild, the pin moves only by
+  hand; the Arch build compiles LLVM and clang too (the Mac: 14 min, 3.3 GB; Arch
+  time UNVERIFIED, H-38); the binary carries LLVM (65 MB on the Mac); the builtin
+  headers are the pin's, not pacman's clang's, as on the Mac; a system clangd of
+  another release run on the same project may re-index (shard format, UNVERIFIED
+  within 23.1.x). Moving the pin: `pkgver`, `pkgrel=1`, the tarball's sha256 (the one
+  github.com lists, or `updpkgsums`), then `make clangd` on both machines.
+  Not taken: 23.1.6, upstream's newest (patches not checked, differs from MacPorts'
+  clang tools); keeping D-123 on Arch and a pin only on the Mac (two releases to
+  check patches against). Done when: T-149. Built (T-149, 0139); Arch run H-38.
 - DECIDED D-060 (owner 2026-10-09, O-27 (b)): patch 0009 for the local clangd: at
   startup the background index also re-indexes the sources whose stored shards carry
   `HadErrors` (through each flagged shard's `DependentTU`, as for stale shards), so a
@@ -4841,6 +4876,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-185 | 2026-11-07 | Markdown PDF: code in DejaVu Sans Mono, missing glyphs a warning | 12 | D-184, owner report |
 | D-207 | 2026-11-13 | Indentation with spaces only: `indent-tabs-mode` nil by default | 5 | owner |
 | D-206 | 2026-11-11 | macOS: clang's tools from the newest MacPorts `llvm-N` that holds clang-tidy, found at startup, not a pinned `llvm-23` | 7 | review 2026-11-11, owner ("Fix in suggested order") |
+| D-207 | 2026-11-18 | patched clangd self-contained on Arch too; one LLVM pin (23.1.5) in the PKGBUILD for both machines | 7 | owner |
 | D-205 | 2026-11-09 | Markdown PDF text in DejaVu Serif, its four styles named; `emacs-cpp-markdown-pdf-mainfont` | 12 | T-147, owner |
 | D-204 | 2026-11-09 | Markdown HTML and PDF: bare URIs are links; the HTML through pandoc only | 12 | owner |
 | D-203 | 2026-11-09 | Markdown `C-c C-c p` exports the HTML beside the file and previews it (images resolve) | 12 | T-146, owner |
