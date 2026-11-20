@@ -164,7 +164,7 @@ another module it requires itself, so no module works only by init.el's order."
   (init-test--load)
   (dolist (feature '(init-ui init-completion init-project init-lsp init-go-to-anything
                      init-cpp init-cmake init-debug
-                     init-python init-cells init-git init-writing))
+                     init-python init-cells init-git init-writing init-toolbar))
     (should (featurep feature)))
   ;; D-145: R and LaTeX left; their modules and packages are gone.
   (dolist (library '("init-r" "init-latex" "ess-r-mode" "tex-site"))

@@ -123,6 +123,22 @@ A tooltip can carry the key ("Git status (C-x g)"), so the bar also teaches the 
   buffers or `tool-bar-always-show-default` keeps it fixed.
 - pdf-tools and DocView: DocView has its own tool bar since Emacs 30; pdf-tools none.
 
+## 10. Found while building (2026-11-20, T-150)
+- The Mac was in light appearance (`defaults read -g AppleInterfaceStyle`: no such
+  key) with the dark default theme: the `tool-bar` and `default` faces' foreground is
+  `#ffffff`, so theme-tinted icons would be white on the light title area. Emacs
+  31.1 has no `ns-system-appearance`; the frame parameter `ns-appearance` (`dark`,
+  `light`, nil for the system's) sets the title area's side.
+- A screenshot of the trial frame was refused (`screencapture` exit 1, no screen
+  recording permission): the look is unchecked by the session.
+- The shipped config, graphical, throwaway HOME: bar on, six buttons, `ns-appearance`
+  dark, dape not loaded, no `*Warnings*`; with `modus-operandi` loaded the parameter
+  turned `light` and the color `#000000`; with a stubbed session the five debugger
+  buttons replaced Debug.
+- Startup, `scripts/measure-startup.sh 10` (terminal Emacs, draws no bar; load
+  average about 6): median 0.508 s (0.473 - 0.665) before, 0.497 s (0.465 - 0.616)
+  and 0.508 s (0.487 - 0.576) after. Building the map: 2.4 ms (100 builds 0.245 s).
+
 ## Sources
 - Emacs 31.1 (MacPorts): `lisp/tool-bar.el`, `lisp/window-tool-bar.el`, `etc/NEWS.30`,
   `etc/images/`.

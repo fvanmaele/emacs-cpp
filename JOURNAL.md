@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0140 | 2026-11-20 | T-150: an icon tool bar for the common commands | T-150 | D-210 |
 | 0139 | 2026-11-18 | T-149: the patched clangd self-contained on Arch, one LLVM pin | T-149 | D-207 |
 | 0138 | 2026-11-09 | T-148: the Markdown PDF opened outside Emacs on `C-c C-c o` | T-148 | D-202 |
 | 0137 | 2026-11-09 | T-145: `M-o` previews PDFs in a side window | T-145 | D-201 |

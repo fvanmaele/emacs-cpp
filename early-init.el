@@ -17,7 +17,8 @@
 ;; Packages come from the submodules in lib/ (D-006), never from package.el.
 (setq package-enable-at-startup nil)
 
-;; No tool bar.  Set as a frame parameter so the first frame is drawn without it.
+;; No tool bar yet: the first frame is drawn without it, and Emacs's stock buttons
+;; are never set up.  lisp/init-toolbar.el shows its own once startup is over (D-210).
 (push '(tool-bar-lines . 0) default-frame-alist)
 (setq tool-bar-mode nil)
 

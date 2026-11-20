@@ -374,6 +374,7 @@ block list as built through T-046 and partly stale (Python's server: D-140).
 | cells | `lisp/init-cells.el` | PROTOTYPE | T-046: code-cells, Python (D-072, D-145) |
 | debugger | `lisp/init-debug.el` | PROTOTYPE | gdb / lldb presets (D-031, D-051, D-056) |
 | git | `lisp/init-git.el` | KEEP | magit, treemacs-magit, diff-hl (T-015, T-016) |
+| tool bar | `lisp/init-toolbar.el`, `icons/lucide/` | PROTOTYPE | T-150 (D-210): icon buttons for the common commands |
 | keys | `lisp/init-keys.el` | UNVALIDATED | NEW: `C-c l` map (D-004) |
 | tests | `test/*.el`, `make test` | KEEP | 21 ERT tests after T-004 |
 Known defects: none yet (nothing built).
@@ -1593,6 +1594,30 @@ each, with a recommendation; the owner agreed to all of them (D-111):
   leaves the next file to try (code review 0031). Option
   `emacs-cpp-tree-open-automatically` (default t). Not at startup itself: `*scratch*` has
   no project, and treemacs (70 ms) loads only with the tree.
+- DECIDED D-210 (owner 2026-11-20: "O-92 (b)"; tier 2, T-150, 0140): the frame's tool
+  bar shows this configuration's buttons, built by `lisp/init-toolbar.el` (NEW, the
+  last module): sidebar (`C-c t`), go to anything (`M-o`), text search (`M-s r`), git
+  status (`C-x g`), build (`C-c p c c`), debug (`C-x C-a d`); while a debug session
+  runs, continue, step over, step into, step out and stop take Debug's place, the
+  steps greyed out unless the program is stopped. Each tooltip names the key. Emacs's
+  stock buttons are not shown, and `tool-bar-always-show-default` keeps the bar the
+  same in every buffer (Info, Help and others would put their own in its place).
+  Icons: eleven SVGs of Lucide 1.69.0 (ISC) in `icons/lucide/` (NEW) with its
+  `LICENSE`, files in the repository, fetched once by hand, no network at run time;
+  drawn in the theme's foreground and again on a theme change;
+  `emacs-cpp-toolbar-icon-color` (NEW) names another color. No SVG support stops
+  startup. The session reads dape's state through its internal
+  `dape--live-connection`, checked when dape loads; dape is not loaded for the bar.
+  The bar turns on after startup (`after-init-hook`, after the theme); the first frame
+  is drawn without it. Build is always enabled; outside a project projectile says so.
+  macOS: the bar is the window's own (icons only, no separators, top only), painted
+  by the system's appearance, not the theme; so each frame's `ns-appearance` is set
+  to the theme's side, dark or light: the title area follows the theme. Found the
+  same day: the system light, the theme dark, the icons' color `#ffffff`. Case
+  against, the session's choice inside (b), the owner may overrule: a visible change
+  beyond the bar. Arch: a GTK bar in the desktop theme's colors, not looked at;
+  startup there unmeasured (the Mac: within the noise, RESEARCH_icon_toolbar 10).
+  Both on H-39.
 
 ## 11. Performance (Q-2, D-010)
 Budgets, measured on the owner machine (T-008 measures, numbers go here):
@@ -2658,11 +2683,12 @@ presets, GoogleTest runner.
 - `RESEARCH_icon_toolbar.md` (owner request 2026-11-20): where Emacs shows icon buttons
   (frame tool bar, window tool bar, tab bar), the macOS and GTK limits, icon sets and
   licenses, lucide-toolbar and visual-emacs read; one trial in a graphical Emacs on
-  the Mac. Nothing on Arch. Findings in; O-92 open.
+  the Mac. Nothing on Arch. Findings in; O-92 -> D-210.
 
 ## Open questions ledger (LIVING)
-- O-92 (OPEN 2026-11-20; owner request 2026-11-20: "meaningful icon toolbar for common
-  functionality"; RESEARCH_icon_toolbar): an icon bar for sidebar, `M-o`, text search,
+- O-92 (RESOLVED 2026-11-20 with D-210: (b); owner: "O-92 (b)"; owner request
+  2026-11-20: "meaningful icon toolbar for common functionality";
+  RESEARCH_icon_toolbar): an icon bar for sidebar, `M-o`, text search,
   git status, build and the debugger (RESEARCH_icon_toolbar 8: 6 buttons, 5 more
   during a debug session). No package ships one; the tool bar is off today.
   (a) none: keys, which-key, `M-o` `x`, the right-click menu stay the routes. Against:
@@ -4932,6 +4958,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-185 | 2026-11-07 | Markdown PDF: code in DejaVu Sans Mono, missing glyphs a warning | 12 | D-184, owner report |
 | D-208 | 2026-11-13 | Indentation with spaces only: `indent-tabs-mode` nil by default (D-207 in commit ff6f726; renumbered 2026-11-20) | 5 | owner |
 | D-209 | 2026-11-20 | O-91 (d): no text search in `M-o`; `M-s r` and `C-c p s r` stay | 10 | O-91 |
+| D-210 | 2026-11-20 | O-92 (b): icon tool bar, Lucide SVGs in `icons/lucide/`; macOS title area follows the theme | 10 | O-92, T-150 |
 | D-206 | 2026-11-11 | macOS: clang's tools from the newest MacPorts `llvm-N` that holds clang-tidy, found at startup, not a pinned `llvm-23` | 7 | review 2026-11-11, owner ("Fix in suggested order") |
 | D-207 | 2026-11-18 | patched clangd self-contained on Arch too; one LLVM pin (23.1.5) in the PKGBUILD for both machines | 7 | owner |
 | D-205 | 2026-11-09 | Markdown PDF text in DejaVu Serif, its four styles named; `emacs-cpp-markdown-pdf-mainfont` | 12 | T-147, owner |

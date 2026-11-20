@@ -14,6 +14,26 @@ cannot read itself. An approval another session asks the owner for itself (a ben
 service's plan) is not an item.
 
 ## Run now
+- **H-39** (2026-11-20, unblocks T-150, D-210) The icon tool bar: look at it on both
+  machines, tests and startup on Arch.
+  1. On the Mac: `cd ~/source/repos/emacs-cpp && git push` (the session does not push).
+  2. On the Mac: quit Emacs and start it again. Look at the six icons at the top:
+     readable on the title area? Hover over each for its tooltip; click each.
+  3. On the Mac: `M-x load-theme RET modus-operandi RET`: the title area and the icons
+     turn to the light side? Then `M-x disable-theme RET modus-operandi RET`.
+  4. On the Mac, in a C++ project with presets: `C-x C-a d`, RET. Do continue, step
+     over, step into, step out and stop take Debug's place, the steps grey while the
+     program runs? Click stop: does Debug come back?
+  5. On Arch: `cd ~/source/repos/emacs-cpp && git pull --ff-only && make test </dev/null`
+  6. On Arch: `cd ~/source/repos/emacs-cpp && sh scripts/measure-startup.sh 10`
+  7. On Arch: `cd ~/source/repos/emacs-cpp && git checkout -q 47956f6 && sh
+     scripts/measure-startup.sh 10; git checkout -q main` (the commit before the bar).
+  8. On Arch: quit Emacs and start it again; repeat steps 2 and 4 there. Does the
+     window jump when the bar appears after startup?
+  Report back: steps 2 - 4 and 8, what you saw, and whether the dark title area on the
+  Mac is wanted; step 5's `Ran ...` line and any FAILED names; the `median` lines of
+  steps 6 and 7.
+
 - **H-38** (2026-11-18, unblocks T-149, D-207) The self-contained clangd on Arch: build,
   install, tests. The build compiles LLVM and clang (14 min on the Mac).
   1. On the Mac: `cd ~/source/repos/emacs-cpp && git push` (the session does not push).

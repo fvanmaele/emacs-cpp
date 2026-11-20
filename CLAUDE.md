@@ -88,8 +88,9 @@ built and tested (189 tests, 2 skipped), Arch on H-38.
 
 2026-11-20: no text search in `M-o`, `M-s r` stays (O-91, D-209; findings in
 RESEARCH_go_to_anything 23); spaces-only indentation is D-208 (D-207 was given twice).
-Icon toolbar researched (RESEARCH_icon_toolbar), O-92 open: the session recommends the
-frame tool bar with Lucide SVGs.
+Icon tool bar (O-92 (b), D-210, T-150, 0140): `lisp/init-toolbar.el`, Lucide SVGs in
+`icons/lucide/`; on the Mac the title area follows the theme; built and tested on the
+Mac (197 tests, 2 skipped), the look and Arch on H-39.
 
 2026-10-20: review of 5a23316 folded in (0084): MIT license (D-122), the Arch clangd
 followed pacman's LLVM through `make clangd` (D-123, T-111; superseded by D-207), match

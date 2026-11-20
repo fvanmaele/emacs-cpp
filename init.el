@@ -63,6 +63,7 @@
 (require 'init-cells)
 (require 'init-git)
 (require 'init-writing)
+(require 'init-toolbar)
 
 (when (file-exists-p custom-file)
   (load custom-file nil t))
