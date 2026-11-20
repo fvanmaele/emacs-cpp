@@ -95,6 +95,16 @@ neotest-ctest, vim-test (R), neotest-golang (R), pytest-cpp (R), python-pytest,
 pytest.el (R), py-test.el (R), testrun.el, test-cockpit.el, projection,
 cmake-integration, helm-ctest, gtest-mode.el (R), gotest.el (R), dap-mode's
 dap-python (R), lsp-mode's Java test explorer (R).
+"Emacs custom tool bar package icons modern toolbar SVG (tool-bar-map) github" (web,
+2026-11-20); "Emacs macOS NS tool bar custom SVG icons tool-bar-add-item image size
+blurry retina" (web, 2026-11-20); "emacs dape OR gud debugger toolbar buttons icons
+package IDE-like toolbar projectile magit" (web, 2026-11-20); "emacs tab-bar-format
+custom buttons icons nerd-icons toolbar in tab bar OR header-line clickable" (web,
+2026-11-20); lucide-toolbar, visual-emacs and Emacs's window-tool-bar read from their
+sources (2026-11-20, RESEARCH_icon_toolbar). Tools named: lucide-toolbar,
+visual-emacs, window-tool-bar, modern-tab (R), centaur-tabs (R), tab-line-nerd-icons
+(R), modern-icons.el (R), svg-lib (R), nerd-icons (R), ESS's ess-toolbar.el (R), the
+"Emacs SVG Toolbar" gist (R).
 
 ## 2. Place in the ecosystem, non-goals
 For: one owner, an Arch Linux workstation and a macOS machine (D-050), C++ projects
@@ -2645,8 +2655,35 @@ presets, GoogleTest runner.
   pytest, GoogleTest and CTest, read from their repositories; Emacs's test runners
   (python-pytest, test-cockpit.el, testrun.el, projection, cmake-integration,
   helm-ctest). No hands-on. Findings in; O-90 open.
+- `RESEARCH_icon_toolbar.md` (owner request 2026-11-20): where Emacs shows icon buttons
+  (frame tool bar, window tool bar, tab bar), the macOS and GTK limits, icon sets and
+  licenses, lucide-toolbar and visual-emacs read; one trial in a graphical Emacs on
+  the Mac. Nothing on Arch. Findings in; O-92 open.
 
 ## Open questions ledger (LIVING)
+- O-92 (OPEN 2026-11-20; owner request 2026-11-20: "meaningful icon toolbar for common
+  functionality"; RESEARCH_icon_toolbar): an icon bar for sidebar, `M-o`, text search,
+  git status, build and the debugger (RESEARCH_icon_toolbar 8: 6 buttons, 5 more
+  during a debug session). No package ships one; the tool bar is off today.
+  (a) none: keys, which-key, `M-o` `x`, the right-click menu stay the routes. Against:
+  nothing on screen shows what the config can do or whether a debug session runs.
+  (b) the frame tool bar with an own `tool-bar-map`, about 11 Lucide SVGs (ISC) copied
+  into the repository, tinted from the theme, debug steps visible only in a session,
+  the key in each tooltip. Recommended. Against: icon files and a license in the
+  repository (needs its D-nnn); on macOS no labels, no separators, top only; a GTK
+  bar on Arch, so two looks; startup cost on Arch unmeasured (D-057); the look itself
+  unchecked on both machines; "in a session" reads dape's internal
+  `dape--live-connection`.
+  (c) (b) with Emacs's own `etc/images` instead of Lucide. Against: no build, branch or
+  sidebar icon; 24 px bitmaps on a Retina display; fixed colors on a dark theme.
+  (d) the same buttons in the tab bar (`tab-bar-format`), one look on both machines,
+  labels possible. Against: a frame row spent on buttons (the macOS tool bar costs
+  none, measured); the tab bar is shown for nothing else.
+  (e) the built-in window tool bar, a bar per window. Against: 4.8 ms per refresh for
+  6 items (measured on the Mac), a row in every window, frame-wide commands repeated
+  per window.
+  Recommendation: (b) as tier 2, done when to include the startup delta on Arch and
+  the owner's look at both machines. Owner rules.
 - O-91 (RESOLVED 2026-11-20 with D-209: (d); owner request 2026-11-20: "Suggestions
   for including Ripgrep in M-o"; RESEARCH_go_to_anything 23): text search in `M-o`.
   (a) a hidden source "Text" on `< t`, rg over the root. Against: five more consult
