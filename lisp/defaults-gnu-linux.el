@@ -25,7 +25,8 @@ Ctrl's clicks keep Emacs's buffer menu and rectangle drag (owner 2026-10-14).")
 
 (defconst emacs-cpp-default-xref-search-program 'grep
   "The program textual searches run, `C-c p ?' among them (D-081, D-055).
-GNU grep: Arch has no ripgrep (DESIGN 3).")
+GNU grep, the owner's ruling (D-081), made when Arch was thought to have no
+ripgrep; pacman's ripgrep is installed there (DESIGN 3, O-38).")
 
 (defconst emacs-cpp-default-library-include-dir "/usr/include"
   "Where installed libraries' headers lie, for the version a library index is

@@ -76,7 +76,7 @@ Emacs's own manuals from Emacs; C-h i lists Eglot once."
       (should (= 1 (how-many "^\\* Eglot:"))))))
 
 (ert-deftest init-ui-indent-with-spaces ()
-  "D-207: Perl indented 12 columns deep gets spaces, no tab."
+  "D-208: Perl indented 12 columns deep gets spaces, no tab."
   (init-test--load)
   (should-not (default-value 'indent-tabs-mode))
   (with-temp-buffer

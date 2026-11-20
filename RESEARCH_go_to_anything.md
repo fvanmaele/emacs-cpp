@@ -1310,6 +1310,39 @@ alone spreading 8.5 - 12.2 ms over four runs (Multigrid_Astra_Python). Trees wit
 `.gitmodules` run the same code under both settings (`projectile--git-submodules`
 returns before reading the command).
 
+## 23. Text search as an `M-o` source (owner 2026-11-20, O-91)
+Section 6 left open whether `consult-ripgrep` joins as a hidden async source. Checked
+2026-11-20 on the Mac, batch Emacs, consult 3.10, rg from MacPorts; the pieces, not a
+live prompt (rg running inside the open minibuffer is UNVERIFIED).
+- **Hidden costs nothing.** `consult--async-predicate` holds the input back from a
+  hidden source until it is narrowed to (read, with patch 0001): no rg process in
+  ordinary use.
+- **Sort.** `emacs-cpp-go--sort` orders every category but `consult-eglot-symbols` by
+  tier: grep lines `a.el:1`, `a.el:2`, `a.el:3` came back as 2, 3, 1 for `eto`. The
+  category `consult-grep` would need the same exemption.
+- **Lookup.** No wrapper needed: `consult--multi-lookup` returns the grep line as
+  `consult--grep-format` made it, and `consult--grep-position` found
+  `init-go-to-anything.el` line 110 from it.
+- **Regexp compiler.** `consult--ripgrep-make-builder` calls `consult--regexp-compiler`,
+  which `M-o` binds to its own (D-120, D-141): rg got the file-name regexp (letters
+  with gaps, `[^/]*$` at the end). `defun sort` in `lisp/`: 1 hit, with consult's
+  compiler 3. The builder would have to run under `consult--default-regexp-compiler`.
+- **Options.** `consult--command-split` does not depend on
+  `consult-async-split-style` (D-078): `foo -g *.h` passes `-g *.h` to rg, `--` ends
+  the options (`foo -g *.h -- bar` searches `foo bar`), and a search text holding
+  ` -` (`x -1`) is read as an option unless typed `\-`.
+- **File set.** rg alone skips hidden files: 183188 files against the 184615 of
+  projectile's `fd -H -E .git -tf` in this repository (with an unpacked LLVM tree in
+  it); `rg --files --hidden -g '!.git'` lists the same 184615.
+- **No public API.** consult has no public async source: a source needs
+  `consult--process-collection`, `consult--grep-format`, `consult--grep-state`,
+  `consult--ripgrep-make-builder` and `consult--default-regexp-compiler`. Leaving the
+  prompt for the public `consult-ripgrep` (a `throw` from a key in `consult--multi`'s
+  `:keymap`) needs none.
+- Other differences of a source from `M-s r`: no file headings (the group is the
+  source's name), no second filter after `#`, `--smart-case` where `M-o` ignores case
+  (D-105).
+
 ## Sources
 - JetBrains, CLion help "Search everywhere":
   https://www.jetbrains.com/help/clion/searching-everywhere.html

@@ -86,6 +86,9 @@ at the pin (T-105, 0078).
 PKGBUILD for both machines (D-207, T-149, 0139, superseding D-123, D-100); the Mac
 built and tested (189 tests, 2 skipped), Arch on H-38.
 
+2026-11-20: no text search in `M-o`, `M-s r` stays (O-91, D-209; findings in
+RESEARCH_go_to_anything 23); spaces-only indentation is D-208 (D-207 was given twice).
+
 2026-10-20: review of 5a23316 folded in (0084): MIT license (D-122), the Arch clangd
 followed pacman's LLVM through `make clangd` (D-123, T-111; superseded by D-207), match
 tiers as a function (D-124, S16) only with compiled `lisp/` (D-125, DESIGN 11.1, S17:

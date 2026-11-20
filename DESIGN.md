@@ -316,8 +316,10 @@ Observed on the owner's Mac, 2026-10-09 (D-050):
   (`tab-to-tab-stop`) and `C-x TAB` then `S-<right>` move by the project's step from
   `.dir-locals.el`; before, they moved by `tab-width` (8). `tab-width` itself is
   left alone: it is how existing tab characters are shown.
-- DECIDED D-207 (owner 2026-11-13: "Avoid mixing tabs and spaces, e.g. in perl mode";
-  tier 1): `indent-tabs-mode` defaults to nil in every buffer, so indentation is spaces
+- DECIDED D-208 (owner 2026-11-13: "Avoid mixing tabs and spaces, e.g. in perl mode";
+  tier 1; D-207 in commit ff6f726, renumbered 2026-11-20: D-207 was given twice,
+  the clangd pin keeps it): `indent-tabs-mode` defaults to nil in every buffer, so
+  indentation is spaces
   only. Emacs's default (t) writes a tab for each `tab-width` (8) columns and spaces
   for the rest: Perl's 4-column steps gave lines of tabs and spaces mixed. A project's
   `.dir-locals.el` can still set it to t; Makefile modes set it in their own buffers.
@@ -1966,6 +1968,11 @@ the form that loads magit is found (S17 run 2, T-113).
   Markdown file in a previewer; an external viewer may not reload a rewritten PDF by
   itself (Preview did: H-37, owner 2026-11-09 "OK"); `xdg-open` picks the viewer from the
   desktop's settings (UNVERIFIED on Arch).
+- DECIDED D-209 (owner 2026-11-20: "verdict (d)"; O-91): `M-o` gets no text search,
+  neither as a source nor as a key handing its input to `consult-ripgrep`. Text search
+  stays on `M-s r` and, over the project, `C-c p s r` (D-135). Case against, accepted:
+  CLion's Text tab of Search Everywhere has no counterpart in the one prompt (D-074).
+  What a source would have needed is in `RESEARCH_go_to_anything.md` 23.
 - DECIDED D-201 (owner 2026-11-09: "narrower side window (M-o; compare to previous
   default DocView behavior)", then "A"; tier 2, T-145): `M-o` previews a PDF in a side
   window on the right, `emacs-cpp-go-pdf-preview-width` (NEW, 0.4 of the frame), pages
@@ -2640,6 +2647,18 @@ presets, GoogleTest runner.
   helm-ctest). No hands-on. Findings in; O-90 open.
 
 ## Open questions ledger (LIVING)
+- O-91 (RESOLVED 2026-11-20 with D-209: (d); owner request 2026-11-20: "Suggestions
+  for including Ripgrep in M-o"; RESEARCH_go_to_anything 23): text search in `M-o`.
+  (a) a hidden source "Text" on `< t`, rg over the root. Against: five more consult
+  internals; a regexp where every other source matches by D-120; smart case against
+  D-105; no file headings, no `#` filter; `emacs-cpp-go--sort` and the prompt's regexp
+  compiler would both need a change; rg required at startup.
+  (b) the source visible. Against: an rg process per pause in typing in every `M-o`;
+  tier 3, S11 rerun first.
+  (c) a key in the prompt that leaves it for `consult-ripgrep` with the typed input.
+  Against: a second prompt, no way back to the other sources.
+  (d) nothing. Against: the gap to CLion's Text tab stays.
+  The session recommended (a), then (c) once internals were to be avoided.
 - O-90 (OPEN 2026-11-12; owner request 2026-11-12: "Research neotest equivalent";
   RESEARCH_test_runner): what this config does for tests beyond `C-c p c t` (whole
   CTest suite in a compilation buffer, D-035). No Emacs package gives neotest's tree,
@@ -4874,7 +4893,8 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-183 | 2026-11-05 | O-85 (h): projectile's per-submodule pass off, fd required for git listings | 12 | O-85, T-133 |
 | D-184 | 2026-11-07 | O-89 (b): Markdown to PDF by pandoc + LaTeX; math drawn by math-preview deferred | 12 | O-89, D-145 |
 | D-185 | 2026-11-07 | Markdown PDF: code in DejaVu Sans Mono, missing glyphs a warning | 12 | D-184, owner report |
-| D-207 | 2026-11-13 | Indentation with spaces only: `indent-tabs-mode` nil by default | 5 | owner |
+| D-208 | 2026-11-13 | Indentation with spaces only: `indent-tabs-mode` nil by default (D-207 in commit ff6f726; renumbered 2026-11-20) | 5 | owner |
+| D-209 | 2026-11-20 | O-91 (d): no text search in `M-o`; `M-s r` and `C-c p s r` stay | 10 | O-91 |
 | D-206 | 2026-11-11 | macOS: clang's tools from the newest MacPorts `llvm-N` that holds clang-tidy, found at startup, not a pinned `llvm-23` | 7 | review 2026-11-11, owner ("Fix in suggested order") |
 | D-207 | 2026-11-18 | patched clangd self-contained on Arch too; one LLVM pin (23.1.5) in the PKGBUILD for both machines | 7 | owner |
 | D-205 | 2026-11-09 | Markdown PDF text in DejaVu Serif, its four styles named; `emacs-cpp-markdown-pdf-mainfont` | 12 | T-147, owner |
