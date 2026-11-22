@@ -128,9 +128,12 @@ restart. Without a saved choice the theme is `modus-vivendi-tritanopia`.
 
 Tool bar (D-210): icons at the top of the window for the sidebar, `M-o`, text search,
 git status, build and debug; hover for the name and the key. While a debug session
-runs, continue, step over, step into, step out and stop replace Debug. `M-x
-tool-bar-mode` hides or shows the bar. Icons unreadable on your desktop's bar: `M-x
-customize-variable RET emacs-cpp-toolbar-icon-color`.
+runs, pause (continue while stopped), step over, step into, step out and stop replace
+Debug; stop keeps dape's buffers (`C-x C-a q` closes them). The git button refuses
+outside a repository (`C-x g` offers to create one). `M-x tool-bar-mode` hides or
+shows the bar. Icons unreadable on your desktop's bar: `M-x customize-variable RET
+emacs-cpp-toolbar-icon-color`; on the Mac, `emacs-cpp-toolbar-title-follows-theme`
+nil leaves the title area to the system.
 
 After any prefix (`C-c p`, `C-x C-a`, `C-c l`), wait 3 seconds: which-key shows the keys
 that can follow (D-034). `C-h` in that popup pages through them. In a prompt with

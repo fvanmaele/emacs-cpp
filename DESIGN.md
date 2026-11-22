@@ -1608,6 +1608,8 @@ each, with a recommendation; the owner agreed to all of them (D-111):
   `emacs-cpp-toolbar-icon-color` (NEW) names another color. No SVG support stops
   startup. The session reads dape's state through its internal
   `dape--live-connection`, checked when dape loads; dape is not loaded for the bar.
+  (Amended by D-211: the session from `dape-active-mode`, Pause added, Stop is
+  `dape-kill`, Git status a wrapper; colours from a graphical frame.)
   The bar turns on after startup (`after-init-hook`, after the theme); the first frame
   is drawn without it. Build is always enabled; outside a project projectile says so.
   macOS: the bar is the window's own (icons only, no separators, top only), painted
@@ -1618,6 +1620,31 @@ each, with a recommendation; the owner agreed to all of them (D-111):
   beyond the bar. Arch: a GTK bar in the desktop theme's colors, not looked at;
   startup there unmeasured (the Mac: within the noise, RESEARCH_icon_toolbar 10).
   Both on H-39.
+- DECIDED D-211 (owner 2026-11-22: "Fix items 1 to 4 and 6, 7-8, 9 comment, 10-12,
+  13-16" of the session's adversarial review of 71c6122; tier 2, T-151, 0141), amends
+  D-210: (1) tool-bar.el caches the bar it builds under the map's address, so each
+  refresh clears `tool-bar-keymap-cache` (without it the third colour change showed
+  the first's); (2, 7) icons are the SVG files with `:foreground`, Emacs setting
+  Lucide's `currentColor` (Emacs 31 NEWS), not text with the colour pasted in, which
+  librsvg drew blank for names like `gray50`; (3) the colours come from a graphical
+  frame; without one (a daemon, `emacs -nw`) a placeholder and no `ns-appearance`, and
+  the first graphical frame draws the bar again (`after-make-frame-functions`);
+  (4) `emacs-cpp-toolbar-icon-color` and `emacs-cpp-toolbar-title-follows-theme`
+  (NEW, default t: the macOS opt-out of the title area following the theme) redraw
+  through Customize; (8) "a session runs" from dape's public `dape-active-mode`, only
+  "stopped" from `dape--live-connection`, whose `stopped` TYPE a test reads in dape's
+  source; (11) the bar is turned on before its map is put in place, so the order no
+  longer keeps Emacs's stock buttons out; (12) set up last on `after-init-hook`
+  (depth 90), so an error there leaves the other hooks run; (13) Stop is `dape-kill`
+  (`C-x C-a K`), which keeps dape's buffers, not `dape-quit`; (14) Pause
+  (`dape-pause`, `C-x C-a p`, Lucide `pause`) takes Continue's place while the
+  program runs; (15) Git status is `emacs-cpp-toolbar-git-status`: outside a
+  repository it says so instead of offering `git init`; `C-x g` stays `magit-status`;
+  (16) the tooltips of Build and Debug say that they ask. The tooltip keys stay
+  written out (dape's keys exist only once it loads), checked by a test. Not taken:
+  review item 5 (GTK's colours, H-39 looks first). Case against: a twelfth icon; a
+  wrapper the key does not use; clearing the whole bar cache, other frames' terminals
+  included (rebuilt at the next redisplay).
 
 ## 11. Performance (Q-2, D-010)
 Budgets, measured on the owner machine (T-008 measures, numbers go here):
@@ -4959,6 +4986,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-208 | 2026-11-13 | Indentation with spaces only: `indent-tabs-mode` nil by default (D-207 in commit ff6f726; renumbered 2026-11-20) | 5 | owner |
 | D-209 | 2026-11-20 | O-91 (d): no text search in `M-o`; `M-s r` and `C-c p s r` stay | 10 | O-91 |
 | D-210 | 2026-11-20 | O-92 (b): icon tool bar, Lucide SVGs in `icons/lucide/`; macOS title area follows the theme | 10 | O-92, T-150 |
+| D-211 | 2026-11-22 | tool bar review fixes: bar cache cleared, `:foreground` icons, daemon frames, Customize redraws, title opt-out, Pause, Stop keeps buffers, Git status refuses outside a repository | 10 | owner, T-151, D-210 |
 | D-206 | 2026-11-11 | macOS: clang's tools from the newest MacPorts `llvm-N` that holds clang-tidy, found at startup, not a pinned `llvm-23` | 7 | review 2026-11-11, owner ("Fix in suggested order") |
 | D-207 | 2026-11-18 | patched clangd self-contained on Arch too; one LLVM pin (23.1.5) in the PKGBUILD for both machines | 7 | owner |
 | D-205 | 2026-11-09 | Markdown PDF text in DejaVu Serif, its four styles named; `emacs-cpp-markdown-pdf-mainfont` | 12 | T-147, owner |

@@ -14,16 +14,17 @@ cannot read itself. An approval another session asks the owner for itself (a ben
 service's plan) is not an item.
 
 ## Run now
-- **H-39** (2026-11-20, unblocks T-150, D-210) The icon tool bar: look at it on both
-  machines, tests and startup on Arch.
+- **H-39** (2026-11-20, unblocks T-150, T-151, D-210, D-211) The icon tool bar: look
+  at it on both machines, tests and startup on Arch.
   1. On the Mac: `cd ~/source/repos/emacs-cpp && git push` (the session does not push).
   2. On the Mac: quit Emacs and start it again. Look at the six icons at the top:
      readable on the title area? Hover over each for its tooltip; click each.
   3. On the Mac: `M-x load-theme RET modus-operandi RET`: the title area and the icons
      turn to the light side? Then `M-x disable-theme RET modus-operandi RET`.
-  4. On the Mac, in a C++ project with presets: `C-x C-a d`, RET. Do continue, step
+  4. On the Mac, in a C++ project with presets: `C-x C-a d`, RET. Do pause, step
      over, step into, step out and stop take Debug's place, the steps grey while the
-     program runs? Click stop: does Debug come back?
+     program runs? At a breakpoint, does continue replace pause? Click stop: does Debug
+     come back, and do dape's REPL and info buffers stay?
   5. On Arch: `cd ~/source/repos/emacs-cpp && git pull --ff-only && make test </dev/null`
   6. On Arch: `cd ~/source/repos/emacs-cpp && sh scripts/measure-startup.sh 10`
   7. On Arch: `cd ~/source/repos/emacs-cpp && git checkout -q 47956f6 && sh

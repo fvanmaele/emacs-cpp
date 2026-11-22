@@ -91,6 +91,9 @@ RESEARCH_go_to_anything 23); spaces-only indentation is D-208 (D-207 was given t
 Icon tool bar (O-92 (b), D-210, T-150, 0140): `lisp/init-toolbar.el`, Lucide SVGs in
 `icons/lucide/`; on the Mac the title area follows the theme; built and tested on the
 Mac (197 tests, 2 skipped), the look and Arch on H-39.
+2026-11-22: tool bar fixes from an adversarial review (D-211, T-151, 0141): bar cache
+cleared, `:foreground` icons, daemon frames, Pause, Stop keeps dape's buffers; Mac 204
+tests, 2 skipped; the look and Arch on H-39.
 
 2026-10-20: review of 5a23316 folded in (0084): MIT license (D-122), the Arch clangd
 followed pacman's LLVM through `make clangd` (D-123, T-111; superseded by D-207), match

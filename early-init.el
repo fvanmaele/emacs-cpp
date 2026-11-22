@@ -17,8 +17,10 @@
 ;; Packages come from the submodules in lib/ (D-006), never from package.el.
 (setq package-enable-at-startup nil)
 
-;; No tool bar yet: the first frame is drawn without it, and Emacs's stock buttons
-;; are never set up.  lisp/init-toolbar.el shows its own once startup is over (D-210).
+;; No tool bar yet: the first frame is drawn without it.  startup.el still builds
+;; Emacs's stock buttons (`tool-bar-setup', every interactive session);
+;; lisp/init-toolbar.el puts its own map in their place and shows the bar once
+;; startup is over (D-210, D-211).
 (push '(tool-bar-lines . 0) default-frame-alist)
 (setq tool-bar-mode nil)
 
