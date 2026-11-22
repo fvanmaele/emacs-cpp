@@ -1673,8 +1673,8 @@ each, with a recommendation; the owner agreed to all of them (D-111):
   `emacs-cpp-toolbar-icon-color` (NEW) names another color. No SVG support stops
   startup. The session reads dape's state through its internal
   `dape--live-connection`, checked when dape loads; dape is not loaded for the bar.
-  (Git status's icon is `git-commit-vertical` since 2026-11-22, owner "Use alternative
-  git icon": `git-branch` leaves a stroke end open, which read as cut off.)
+  (Git status's icon is `git-graph` since 2026-11-22, owner "Use git-graph lucide
+  icon", after `git-branch`'s open stroke end read as cut off.)
   (Amended by D-211: the session from `dape-active-mode`, Pause added, Stop is
   `dape-kill`, Git status a wrapper; colours from a graphical frame.)
   The bar turns on after startup (`after-init-hook`, after the theme); the first frame

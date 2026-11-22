@@ -60,7 +60,7 @@ already changed keep their value until Emacs restarts."
   '((sidebar "Sidebar" emacs-cpp-treemacs-toggle "C-c t" "panel-left" always)
     (go-to "Go to anything" emacs-cpp-go-to-anything "M-o" "search" always)
     (text "Search text" consult-ripgrep "M-s r" "text-search" always)
-    (git "Git status" emacs-cpp-toolbar-git-status "C-x g" "git-commit-vertical" always)
+    (git "Git status" emacs-cpp-toolbar-git-status "C-x g" "git-graph" always)
     (build "Build" projectile-compile-project "C-c p c c" "hammer" always
            "asks for the command, RET runs it")
     (debug "Debug" dape "C-x C-a d" "bug-play" no-session

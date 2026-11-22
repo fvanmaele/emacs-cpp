@@ -22,17 +22,12 @@ service's plan) is not an item.
   2. On Arch: `cd ~/source/repos/emacs-cpp && make test </dev/null`
   Report back: step 2's `Ran ...` line and any FAILED names.
 
-- **H-41** (2026-11-22, D-216) Your two projects name gdb, absent on the Mac: give them
-  only their arguments.
-  1. In `~/CLionProjects/step-1/.dir-locals.el` and in
-     `~/source/repos/RMO-drafts/.dir-locals.el`, replace the line
-     `(dape-command . (gdb-preset :args ["--levels" "5"]))))`
-     with
-     `(emacs-cpp-debug-args . ("--levels" "5"))))`
-     then commit each in its repository.
-  2. On the Mac, in `~/CLionProjects/step-1`, with `src/main.cc` shown: `C-x C-a d`, RET.
-     Does lldb start with `--levels 5` (the program's output says so)?
-  Report back: step 2's result.
+- **H-41** (2026-11-22, D-216) Your two projects give only their debug arguments now
+  (the session changed and committed both `.dir-locals.el`: step-1 4de9447,
+  RMO-drafts abc87df on `port/refactor`).
+  1. On the Mac, in `~/CLionProjects/step-1`, with `src/main.cc` shown: `C-x C-a d`,
+     RET. Does lldb start with `--levels 5` (the program's output says so)?
+  Report back: step 1's result.
 
 - **H-39** (2026-11-20, unblocks T-150, T-151, D-210, D-211) The icon tool bar on Arch.
   Done 2026-11-22 (owner): push, icons and tooltips, light and dark themes, the
@@ -41,8 +36,8 @@ service's plan) is not an item.
   2. On Arch: `cd ~/source/repos/emacs-cpp && sh scripts/measure-startup.sh 10`
   3. On Arch: `cd ~/source/repos/emacs-cpp && git checkout -q 47956f6 && sh
      scripts/measure-startup.sh 10; git checkout -q main` (the commit before the bar).
-  4. On Arch: quit Emacs and start it again; look at the icons (the git one is new: a
-     line through a circle), then click a line number in a `.cc` file of
+  4. On Arch: quit Emacs and start it again; look at the icons (the git one is new: three
+     circles, Lucide's `git-graph`), then click a line number in a `.cc` file of
      `~/CLionProjects/step-1`, `C-x C-a d`, RET (gdb-preset), and try pause, the steps,
      continue at the breakpoint, stop. Does the window jump when the bar appears?
   Report back: step 4, what you saw, and whether the dark title area on the Mac is
