@@ -168,7 +168,7 @@ for the project; `M-x projectile-discard-command-cache` returns to the preset's.
 ## Debugging (dape + gdb or lldb)
 | Key                            | Does                                                         |
 |--------------------------------|--------------------------------------------------------------|
-| `C-x C-a b` / click the fringe | toggle a breakpoint on the line (red mark)                   |
+| `C-x C-a b` / click the number | toggle a breakpoint on the line (red mark); the fringe too   |
 | `C-x C-a d` `gdb-preset RET`   | pick a target of the active preset, build it, debug it       |
 | `C-x C-a d` `lldb-preset RET`  | the same with lldb (macOS; on Arch too, D-051)               |
 | `C-x C-a n` `s` `o` `c`        | step over / into / out / continue; then just `n` `s` `o` `c` |

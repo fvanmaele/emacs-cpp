@@ -1329,7 +1329,17 @@ each, with a recommendation; the owner agreed to all of them (D-111):
   breakpoint, mouse-2 / mouse-3 add a condition / log message. It loads dape (135 ms)
   with the first such buffer; not on `prog-mode`, since `*scratch*` would load it at
   every start. Breakpoints inherit the theme's `error` face (red), the stopped line its
-  `hl-line` face; the modus themes style neither dape face.
+  `hl-line` face; the modus themes style neither dape face. (Amended by D-215: the
+  line numbers toggle too.)
+- DECIDED D-215 (owner 2026-11-22: "Numbers toggle too", after H-39 step 4: "Clicking
+  the line number also does not set a breakpoint"; tier 2, T-159, 0143): in C and C++
+  buffers a click on the line-number column toggles the line's breakpoint, as CLion's
+  gutter does; the 8-pixel fringe left of the numbers still does. A click elsewhere in
+  the text does what `mouse-1` does without the binding (`emacs-cpp-debug-mouse-1` on
+  `<mouse-1>` in `dape-breakpoint-mode-map`). Line numbers are drawn in the text area,
+  so the click is told apart by its x against `line-number-display-width`. Case
+  against: a click on a number no longer puts the cursor at the line's start; a drag
+  starting on the numbers still selects (a drag is no click).
 - DECIDED D-044 (owner 2026-10-08, O-20): `gud-key-prefix` is `C-x M-a`. gud (`M-x
   gdb`, `pdb`, `perldb`) binds its map globally on that prefix when it loads; on the
   default `C-x C-a` it took dape's keys for the rest of the session.
@@ -2758,6 +2768,18 @@ presets, GoogleTest runner.
   the Mac. Nothing on Arch. Findings in; O-92 -> D-210.
 
 ## Open questions ledger (LIVING)
+- O-94 (OPEN 2026-11-22; owner on H-39: "gdb preset on mac run with C-x C-a d (no
+  gdb found)"): the projects' `.dir-locals.el` set `dape-command` to `gdb-preset`, which
+  overrides the platform default (D-055) and fails on the Mac (no gdb, D-051). How
+  should a project name its debugger for both machines? (a) `lldb-preset` in the
+  projects, no code; against: Arch loses gdb's deal.II printers (D-032) and lazy
+  symbols (D-030). (b) a dape configuration `preset` resolving to
+  `emacs-cpp-debug-default-configuration`; against: a third name, gdb-only options
+  cannot be written per machine, it wraps dape's `fn` key. (c) a variable
+  `emacs-cpp-debug-args` for `.dir-locals.el` (arguments only), the machine picking
+  the debugger; against: one more variable, only arguments, `dape-command` must leave
+  the projects. Recommended: (c). Any choice: the error for a missing gdb should name
+  the setting that asked for it.
 - O-93 (OPEN 2026-11-22; owner 2026-11-22: "Defer to its own task", T-155): how
   patch 0009 (D-060) should retry sources whose shard has errors. Today every startup
   reparses each, about 1500 CPU-s for 150 deal.II sources that never compile
@@ -5049,6 +5071,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-212 | 2026-11-22 | navigation from the index: after the shards load, own thread, spelled references only, no methods, same command (patches 0014 - 0017) | 7 | owner, T-152, review |
 | D-213 | 2026-11-22 | workspace/symbol: template arguments never searched, operators kept, tiers in score, strict options (patch 0019); `:limit` with abbreviated qualifiers | 7 | owner, T-154, review |
 | D-214 | 2026-11-22 | header flags from the index: real paths, one wait per header (patch 0018) | 7 | owner, T-153, review |
+| D-215 | 2026-11-22 | a click on a line number toggles the breakpoint, as CLion's gutter (C/C++ buffers) | 8 | owner, T-159, D-036 |
 | D-206 | 2026-11-11 | macOS: clang's tools from the newest MacPorts `llvm-N` that holds clang-tidy, found at startup, not a pinned `llvm-23` | 7 | review 2026-11-11, owner ("Fix in suggested order") |
 | D-207 | 2026-11-18 | patched clangd self-contained on Arch too; one LLVM pin (23.1.5) in the PKGBUILD for both machines | 7 | owner |
 | D-205 | 2026-11-09 | Markdown PDF text in DejaVu Serif, its four styles named; `emacs-cpp-markdown-pdf-mainfont` | 12 | T-147, owner |

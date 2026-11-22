@@ -21,9 +21,10 @@
 ;;
 ;;   C-x C-a d lldb-preset RET
 ;;
-;; In source buffers the fringe (the margin in a terminal) toggles breakpoints with a
-;; click, as CLion's gutter does; breakpoints are drawn in the theme's error colour
-;; and the line the program stopped at is highlighted (D-036).
+;; In source buffers the fringe (the margin in a terminal) and the line numbers toggle
+;; breakpoints with a click, as CLion's gutter does; breakpoints are drawn in the
+;; theme's error colour and the line the program stopped at is highlighted (D-036,
+;; D-215).
 
 ;;; Code:
 
@@ -85,6 +86,31 @@ default to the history, where dape's prompt takes its first input from."
                               (string-match-p "\\`\\(?:gdb\\|lldb\\)-preset\\_>" entry))
                             dape-history)))
     (push (symbol-name emacs-cpp-debug-default-configuration) dape-history)))
+
+(defun emacs-cpp-debug--on-line-number-p (event)
+  "Non-nil when EVENT is a click on the line-number column of its window (D-215).
+Line numbers are drawn inside the text area, left of the text, so a click there
+is a text-area click whose x lies within their width."
+  (let ((position (event-start event)))
+    (and (null (posn-area position))
+         (window-live-p (posn-window position))
+         (with-selected-window (posn-window position)
+           (and display-line-numbers
+                (< (car (posn-x-y position))
+                   (line-number-display-width 'pixels)))))))
+
+(defun emacs-cpp-debug-mouse-1 (event)
+  "Toggle the breakpoint of the line whose number EVENT clicked (D-215).
+Elsewhere in the window, do what `mouse-1' does without this binding."
+  (interactive "e")
+  (if (emacs-cpp-debug--on-line-number-p event)
+      (dape-mouse-breakpoint-toggle event)
+    (let* ((position (event-start event))
+           (binding (with-current-buffer (window-buffer (posn-window position))
+                      (let ((dape-breakpoint-mode nil))
+                        (key-binding [mouse-1] t nil position)))))
+      (when (commandp binding)
+        (call-interactively binding nil (vector event))))))
 
 (defvar emacs-cpp-debug--program-history nil
   "Targets picked for `gdb-preset' and `lldb-preset'.")
@@ -282,6 +308,9 @@ merge them with the debuginfod cap in lisp/init-debug.el (D-198)"))
   (setf (alist-get 'gdb-preset dape-configs) (emacs-cpp-debug--gdb-preset-config))
   (setf (alist-get 'lldb-preset dape-configs) (emacs-cpp-debug--lldb-preset-config))
   (add-hook 'dape-read-config-hook #'emacs-cpp-debug--offer-default)
+  ;; A click on a line number toggles its breakpoint too, as in CLion's gutter; the
+  ;; fringe left of the numbers is only 8 pixels wide (D-215).
+  (keymap-set dape-breakpoint-mode-map "<mouse-1>" #'emacs-cpp-debug-mouse-1)
   ;; The theme styles neither face; inheriting keeps them in the theme's colours.
   (require 'hl-line)
   (face-spec-set 'dape-breakpoint-face '((t :inherit error)))

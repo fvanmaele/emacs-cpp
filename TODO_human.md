@@ -22,26 +22,24 @@ service's plan) is not an item.
   2. On Arch: `cd ~/source/repos/emacs-cpp && make test </dev/null`
   Report back: step 2's `Ran ...` line and any FAILED names.
 
-- **H-39** (2026-11-20, unblocks T-150, T-151, D-210, D-211) The icon tool bar: look
-  at it on both machines, tests and startup on Arch.
-  1. On the Mac: `cd ~/source/repos/emacs-cpp && git push` (the session does not push).
-  2. On the Mac: quit Emacs and start it again. Look at the six icons at the top:
-     readable on the title area? Hover over each for its tooltip; click each.
-  3. On the Mac: `M-x load-theme RET modus-operandi RET`: the title area and the icons
-     turn to the light side? Then `M-x disable-theme RET modus-operandi RET`.
-  4. On the Mac, in a C++ project with presets: `C-x C-a d`, RET. Do pause, step
-     over, step into, step out and stop take Debug's place, the steps grey while the
-     program runs? At a breakpoint, does continue replace pause? Click stop: does Debug
-     come back, and do dape's REPL and info buffers stay?
-  5. On Arch: `cd ~/source/repos/emacs-cpp && git pull --ff-only && make test </dev/null`
-  6. On Arch: `cd ~/source/repos/emacs-cpp && sh scripts/measure-startup.sh 10`
-  7. On Arch: `cd ~/source/repos/emacs-cpp && git checkout -q 47956f6 && sh
+- **H-39** (2026-11-20, unblocks T-150, T-151, D-210, D-211) The icon tool bar: the
+  debugger's buttons on the Mac, everything on Arch. Done 2026-11-22 (owner): push,
+  icons and tooltips on the Mac, light and dark themes (journal 0143 notes).
+  1. On the Mac, in `~/CLionProjects/step-1` (its `.dir-locals.el` names gdb, absent
+     on the Mac): set a breakpoint by clicking a line number in `src/main.cc`, then
+     `C-x C-a d`, delete the input, type `lldb-preset :args ["--levels" "5"]`, RET. Do
+     pause, step over, step into, step out and stop take Debug's place, the steps grey
+     while the program runs? At the breakpoint, does continue replace pause? Click
+     stop: does Debug come back, and do dape's REPL and info buffers stay?
+  2. On Arch: `cd ~/source/repos/emacs-cpp && git pull --ff-only && make test </dev/null`
+  3. On Arch: `cd ~/source/repos/emacs-cpp && sh scripts/measure-startup.sh 10`
+  4. On Arch: `cd ~/source/repos/emacs-cpp && git checkout -q 47956f6 && sh
      scripts/measure-startup.sh 10; git checkout -q main` (the commit before the bar).
-  8. On Arch: quit Emacs and start it again; repeat steps 2 and 4 there. Does the
-     window jump when the bar appears after startup?
-  Report back: steps 2 - 4 and 8, what you saw, and whether the dark title area on the
-  Mac is wanted; step 5's `Ran ...` line and any FAILED names; the `median` lines of
-  steps 6 and 7.
+  5. On Arch: quit Emacs and start it again; look at the icons, then repeat step 1 there
+     with `gdb-preset`. Does the window jump when the bar appears after startup?
+  Report back: steps 1 and 5, what you saw, and whether the dark title area on the Mac
+  is wanted; step 2's `Ran ...` line and any FAILED names; the `median` lines of steps 3
+  and 4.
 
 - **H-38** (2026-11-18, unblocks T-149, D-207) The self-contained clangd on Arch: build,
   install, tests. The build compiles LLVM and clang (14 min on the Mac).

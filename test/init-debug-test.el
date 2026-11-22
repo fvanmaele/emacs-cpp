@@ -456,5 +456,42 @@ into a call, out of it and over a line, then end the session."
   (require 'dape)
   (init-debug-test--session 'lldb-preset))
 
+(ert-deftest init-debug-line-number-click-toggles-breakpoint ()
+  "D-215: a click on the line-number column toggles the line's breakpoint, as
+CLion's gutter; a click in the text does what `mouse-1' does without it."
+  (init-test--load)
+  (require 'dape)
+  (with-temp-buffer
+    (c++-ts-mode)
+    (insert "int main() {\n  return 0;\n}\n")
+    (set-window-buffer (selected-window) (current-buffer))
+    (setq-local display-line-numbers t)
+    (should (eq (key-binding [mouse-1]) #'emacs-cpp-debug-mouse-1))
+    (let* ((event (lambda (x)
+                    (list 'mouse-1 (list (selected-window) 14 (cons x 20) 0 nil 14
+                                         '(0 . 1) nil '(0 . 0) '(8 . 16)))))
+           (on (funcall event 5))
+           (off (funcall event 60))
+           (fringe (list 'mouse-1 (list (selected-window) 'left-fringe '(2 . 20) 0
+                                         nil 14 '(0 . 1) nil '(0 . 0) '(8 . 16))))
+           toggled set)
+      (cl-letf (((symbol-function 'line-number-display-width) (lambda (&rest _) 28))
+                ((symbol-function 'dape-mouse-breakpoint-toggle)
+                 (lambda (e) (interactive "e") (push e toggled)))
+                ((symbol-function 'mouse-set-point)
+                 (lambda (e &rest _) (interactive "e") (push e set))))
+        (should (emacs-cpp-debug--on-line-number-p on))
+        (should-not (emacs-cpp-debug--on-line-number-p off))
+        (should-not (emacs-cpp-debug--on-line-number-p fringe))
+        (emacs-cpp-debug-mouse-1 on)
+        (should (equal toggled (list on)))
+        (should-not set)
+        (emacs-cpp-debug-mouse-1 off)
+        (should (equal set (list off)))
+        (should (equal toggled (list on)))
+        ;; Without line numbers the column does not exist.
+        (setq-local display-line-numbers nil)
+        (should-not (emacs-cpp-debug--on-line-number-p on))))))
+
 (provide 'init-debug-test)
 ;;; init-debug-test.el ends here
