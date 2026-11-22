@@ -493,5 +493,37 @@ CLion's gutter; a click in the text does what `mouse-1' does without it."
         (setq-local display-line-numbers nil)
         (should-not (emacs-cpp-debug--on-line-number-p on))))))
 
+(ert-deftest init-debug-project-args-without-a-debugger ()
+  "D-216: a project gives its program's arguments in `emacs-cpp-debug-args', safe
+as a directory-local value; both presets pass them as `:args'.  A missing gdb is
+refused naming the project's `dape-command' that asked for it."
+  (init-test--load)
+  (require 'dape)
+  (should (safe-local-variable-p 'emacs-cpp-debug-args '("--levels" "5")))
+  (should-not (safe-local-variable-p 'emacs-cpp-debug-args '(eval "x")))
+  (dolist (name '(gdb-preset lldb-preset))
+    (let ((args (plist-get (alist-get name dape-configs) :args)))
+      (should (functionp args))
+      (with-temp-buffer
+        (setq-local emacs-cpp-debug-args '("--levels" "5"))
+        (should (equal (funcall args) ["--levels" "5"])))
+      (with-temp-buffer
+        (should (equal (funcall args) [])))))
+  (let ((command (plist-get (alist-get 'gdb-preset dape-configs) 'command)))
+    (should (functionp command))
+    (cl-letf (((symbol-function 'executable-find) (lambda (&rest _) nil)))
+      (with-temp-buffer
+        (setq-local dape-command '(gdb-preset :args ["--levels" "5"]))
+        (let ((message (cadr (should-error (funcall command) :type 'user-error))))
+          (should (string-match-p "dape-command" message))
+          (should (string-match-p "emacs-cpp-debug-args" message))))
+      (with-temp-buffer
+        (should-not (string-match-p
+                     "dape-command"
+                     (cadr (should-error (funcall command) :type 'user-error))))))
+    (cl-letf (((symbol-function 'executable-find) (lambda (name &rest _)
+                                                    (concat "/usr/bin/" name))))
+      (should (equal (funcall command) "/usr/bin/gdb")))))
+
 (provide 'init-debug-test)
 ;;; init-debug-test.el ends here

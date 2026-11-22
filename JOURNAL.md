@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0144 | 2026-11-22 | T-160: debug arguments per project for both machines | T-160 | D-216 |
 | 0143 | 2026-11-22 | T-159: line numbers toggle breakpoints | T-159 | D-215 |
 | 0142 | 2026-11-22 | T-152 .. T-154: clangd patches 0014 - 0019 after an adversarial review | T-152, T-153, T-154 | D-212, D-213, D-214 |
 | 0141 | 2026-11-22 | T-151: the tool bar after an adversarial review | T-151 | D-211 |

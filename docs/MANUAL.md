@@ -447,8 +447,10 @@ Open a file that already has the project's style, then:
 ```
 After the first step key (`C-x C-a n`), plain `n` `s` `o` `c` keep going. Program
 arguments: `gdb-preset :args ["--levels" "5"]` at the `C-x C-a d` prompt; the prompt
-starts with your last input. `lldb-preset` does the same with lldb: on macOS, where
-there is no gdb, use it in place of `gdb-preset`. On Arch lldb fetches system
+starts with your last input. Fixed arguments for a project go in its
+`.dir-locals.el` as `(emacs-cpp-debug-args . ("--levels" "5"))` under `c++-ts-mode`;
+each machine then picks its debugger (D-216). `lldb-preset` does the same with lldb:
+on macOS, where there is no gdb, use it in place of `gdb-preset`. On Arch lldb fetches system
 libraries' debug info from the internet at launch; a slow or unreachable server makes
 the first launch slower (up to about 40 s), not fail.
 `emacs-cpp-debug-lldb-debuginfod-timeout` (5 s per request) sets how long it waits

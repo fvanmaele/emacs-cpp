@@ -187,8 +187,10 @@ Program arguments: type them after the configuration name, as a vector of string
 `gdb-preset :args ["--levels" "5"]`. The prompt starts with your last input (kept
 across restarts), so RET repeats it. Not `gdb-preset - --levels 5`: dape takes the
 first word after `-` as the program. For fixed arguments per project, a
-`.dir-locals.el` in the project:
-`((c++-ts-mode . ((dape-command . (gdb-preset :args ["--levels" "5"])))))`.
+`.dir-locals.el` in the project, so each machine uses its own debugger (D-216):
+`((c++-ts-mode . ((emacs-cpp-debug-args . ("--levels" "5")))))`.
+A `dape-command` there names one debugger for every machine, and `gdb-preset` fails
+on the Mac.
 
 Emacs's older debugger front-end (`M-x gdb`, `M-x pdb`, `M-x perldb`) uses `C-x M-a`
 as its prefix (D-044), so it does not take dape's `C-x C-a`.

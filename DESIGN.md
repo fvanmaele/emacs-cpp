@@ -1331,6 +1331,16 @@ each, with a recommendation; the owner agreed to all of them (D-111):
   every start. Breakpoints inherit the theme's `error` face (red), the stopped line its
   `hl-line` face; the modus themes style neither dape face. (Amended by D-215: the
   line numbers toggle too.)
+- DECIDED D-216 (owner 2026-11-22: "gdb on the Mac - option 3", O-94 (c); tier 2, T-160,
+  0144): a project gives its program's arguments in `emacs-cpp-debug-args` (NEW, a list
+  of strings, safe as a directory-local value) in its `.dir-locals.el`; `gdb-preset`
+  and `lldb-preset` pass them as `:args` (`:args` typed at the prompt replaces them),
+  so a shared `.dir-locals.el` works on both machines, each with its debugger (D-055).
+  `gdb-preset` refuses a missing gdb itself, naming the project's `dape-command` when
+  one asked for it, instead of dape's "not found". The cheat sheet's and the manual's
+  example change from `dape-command` to the variable; the owner's two projects change
+  theirs (H-41). Case against: one more variable; only arguments, not other launch
+  options; a `dape-command` left in a project still wins.
 - DECIDED D-215 (owner 2026-11-22: "Numbers toggle too", after H-39 step 4: "Clicking
   the line number also does not set a breakpoint"; tier 2, T-159, 0143): in C and C++
   buffers a click on the line-number column toggles the line's breakpoint, as CLion's
@@ -1663,6 +1673,8 @@ each, with a recommendation; the owner agreed to all of them (D-111):
   `emacs-cpp-toolbar-icon-color` (NEW) names another color. No SVG support stops
   startup. The session reads dape's state through its internal
   `dape--live-connection`, checked when dape loads; dape is not loaded for the bar.
+  (Git status's icon is `git-commit-vertical` since 2026-11-22, owner "Use alternative
+  git icon": `git-branch` leaves a stroke end open, which read as cut off.)
   (Amended by D-211: the session from `dape-active-mode`, Pause added, Stop is
   `dape-kill`, Git status a wrapper; colours from a graphical frame.)
   The bar turns on after startup (`after-init-hook`, after the theme); the first frame
@@ -2768,18 +2780,18 @@ presets, GoogleTest runner.
   the Mac. Nothing on Arch. Findings in; O-92 -> D-210.
 
 ## Open questions ledger (LIVING)
-- O-94 (OPEN 2026-11-22; owner on H-39: "gdb preset on mac run with C-x C-a d (no
-  gdb found)"): the projects' `.dir-locals.el` set `dape-command` to `gdb-preset`, which
-  overrides the platform default (D-055) and fails on the Mac (no gdb, D-051). How
-  should a project name its debugger for both machines? (a) `lldb-preset` in the
-  projects, no code; against: Arch loses gdb's deal.II printers (D-032) and lazy
-  symbols (D-030). (b) a dape configuration `preset` resolving to
-  `emacs-cpp-debug-default-configuration`; against: a third name, gdb-only options
-  cannot be written per machine, it wraps dape's `fn` key. (c) a variable
-  `emacs-cpp-debug-args` for `.dir-locals.el` (arguments only), the machine picking
-  the debugger; against: one more variable, only arguments, `dape-command` must leave
-  the projects. Recommended: (c). Any choice: the error for a missing gdb should name
-  the setting that asked for it.
+- O-94 (RESOLVED 2026-11-22 with D-216: (c); owner: "gdb on the Mac - option 3"; owner
+  on H-39: "gdb preset on mac run with C-x C-a d (no gdb found)"): the projects'
+  `.dir-locals.el` set `dape-command` to `gdb-preset`, which overrides the platform
+  default (D-055) and fails on the Mac (no gdb, D-051). How should a project name its
+  debugger for both machines? (a) `lldb-preset` in the projects, no code; against: Arch
+  loses gdb's deal.II printers (D-032) and lazy symbols (D-030). (b) a dape
+  configuration `preset` resolving to `emacs-cpp-debug-default-configuration`; against:
+  a third name, gdb-only options cannot be written per machine, it wraps dape's `fn`
+  key. (c) a variable `emacs-cpp-debug-args` for `.dir-locals.el` (arguments only), the
+  machine picking the debugger; against: one more variable, only arguments,
+  `dape-command` must leave the projects. Recommended: (c). Any choice: the error for a
+  missing gdb should name the setting that asked for it.
 - O-93 (OPEN 2026-11-22; owner 2026-11-22: "Defer to its own task", T-155): how
   patch 0009 (D-060) should retry sources whose shard has errors. Today every startup
   reparses each, about 1500 CPU-s for 150 deal.II sources that never compile
@@ -5072,6 +5084,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-213 | 2026-11-22 | workspace/symbol: template arguments never searched, operators kept, tiers in score, strict options (patch 0019); `:limit` with abbreviated qualifiers | 7 | owner, T-154, review |
 | D-214 | 2026-11-22 | header flags from the index: real paths, one wait per header (patch 0018) | 7 | owner, T-153, review |
 | D-215 | 2026-11-22 | a click on a line number toggles the breakpoint, as CLion's gutter (C/C++ buffers) | 8 | owner, T-159, D-036 |
+| D-216 | 2026-11-22 | `emacs-cpp-debug-args` in a project's `.dir-locals.el`: arguments without naming a debugger; missing gdb refused with its cause | 8 | O-94, owner, T-160 |
 | D-206 | 2026-11-11 | macOS: clang's tools from the newest MacPorts `llvm-N` that holds clang-tidy, found at startup, not a pinned `llvm-23` | 7 | review 2026-11-11, owner ("Fix in suggested order") |
 | D-207 | 2026-11-18 | patched clangd self-contained on Arch too; one LLVM pin (23.1.5) in the PKGBUILD for both machines | 7 | owner |
 | D-205 | 2026-11-09 | Markdown PDF text in DejaVu Serif, its four styles named; `emacs-cpp-markdown-pdf-mainfont` | 12 | T-147, owner |

@@ -22,24 +22,32 @@ service's plan) is not an item.
   2. On Arch: `cd ~/source/repos/emacs-cpp && make test </dev/null`
   Report back: step 2's `Ran ...` line and any FAILED names.
 
-- **H-39** (2026-11-20, unblocks T-150, T-151, D-210, D-211) The icon tool bar: the
-  debugger's buttons on the Mac, everything on Arch. Done 2026-11-22 (owner): push,
-  icons and tooltips on the Mac, light and dark themes (journal 0143 notes).
-  1. On the Mac, in `~/CLionProjects/step-1` (its `.dir-locals.el` names gdb, absent
-     on the Mac): set a breakpoint by clicking a line number in `src/main.cc`, then
-     `C-x C-a d`, delete the input, type `lldb-preset :args ["--levels" "5"]`, RET. Do
-     pause, step over, step into, step out and stop take Debug's place, the steps grey
-     while the program runs? At the breakpoint, does continue replace pause? Click
-     stop: does Debug come back, and do dape's REPL and info buffers stay?
-  2. On Arch: `cd ~/source/repos/emacs-cpp && git pull --ff-only && make test </dev/null`
-  3. On Arch: `cd ~/source/repos/emacs-cpp && sh scripts/measure-startup.sh 10`
-  4. On Arch: `cd ~/source/repos/emacs-cpp && git checkout -q 47956f6 && sh
+- **H-41** (2026-11-22, D-216) Your two projects name gdb, absent on the Mac: give them
+  only their arguments.
+  1. In `~/CLionProjects/step-1/.dir-locals.el` and in
+     `~/source/repos/RMO-drafts/.dir-locals.el`, replace the line
+     `(dape-command . (gdb-preset :args ["--levels" "5"]))))`
+     with
+     `(emacs-cpp-debug-args . ("--levels" "5"))))`
+     then commit each in its repository.
+  2. On the Mac, in `~/CLionProjects/step-1`, with `src/main.cc` shown: `C-x C-a d`, RET.
+     Does lldb start with `--levels 5` (the program's output says so)?
+  Report back: step 2's result.
+
+- **H-39** (2026-11-20, unblocks T-150, T-151, D-210, D-211) The icon tool bar on Arch.
+  Done 2026-11-22 (owner): push, icons and tooltips, light and dark themes, the
+  debugger's buttons on the Mac (journal 0143, 0144).
+  1. On Arch: `cd ~/source/repos/emacs-cpp && git pull --ff-only && make test </dev/null`
+  2. On Arch: `cd ~/source/repos/emacs-cpp && sh scripts/measure-startup.sh 10`
+  3. On Arch: `cd ~/source/repos/emacs-cpp && git checkout -q 47956f6 && sh
      scripts/measure-startup.sh 10; git checkout -q main` (the commit before the bar).
-  5. On Arch: quit Emacs and start it again; look at the icons, then repeat step 1 there
-     with `gdb-preset`. Does the window jump when the bar appears after startup?
-  Report back: steps 1 and 5, what you saw, and whether the dark title area on the Mac
-  is wanted; step 2's `Ran ...` line and any FAILED names; the `median` lines of steps 3
-  and 4.
+  4. On Arch: quit Emacs and start it again; look at the icons (the git one is new: a
+     line through a circle), then click a line number in a `.cc` file of
+     `~/CLionProjects/step-1`, `C-x C-a d`, RET (gdb-preset), and try pause, the steps,
+     continue at the breakpoint, stop. Does the window jump when the bar appears?
+  Report back: step 4, what you saw, and whether the dark title area on the Mac is
+  wanted; step 1's `Ran ...` line and any FAILED names; the `median` lines of steps 2
+  and 3.
 
 - **H-38** (2026-11-18, unblocks T-149, D-207) The self-contained clangd on Arch: build,
   install, tests. The build compiles LLVM and clang (14 min on the Mac).

@@ -45,6 +45,17 @@ directly.  A listed file that does not exist refuses the session."
   :type '(repeat file)
   :group 'tools)
 
+(defcustom emacs-cpp-debug-args nil
+  "Arguments of the program `gdb-preset' and `lldb-preset' debug (D-216).
+For one project, in its .dir-locals.el, so that each machine picks its own
+debugger (gdb on Arch, lldb on the Mac, D-055):
+  ((c++-ts-mode . ((emacs-cpp-debug-args . (\"--levels\" \"5\")))))
+`:args' typed at `C-x C-a d' replaces them for that session.  A project's
+`dape-command' still names one debugger for every machine."
+  :type '(repeat string)
+  :safe (lambda (value) (and (listp value) (seq-every-p #'stringp value)))
+  :group 'tools)
+
 (defcustom emacs-cpp-debug-lldb-dap-program "lldb-dap"
   "The lldb-dap program `lldb-preset' starts (D-051).
 A file name with a directory is used as it is; a bare name is looked up on
@@ -251,6 +262,26 @@ emacs-cpp-debug-lldb-dap-program (D-051)"
 --set lldb mp-lldb-23'"
                               "install the lldb package")))))
 
+(defun emacs-cpp-debug--args ()
+  "Return `emacs-cpp-debug-args' as dape's `:args', a vector (D-216)."
+  (vconcat emacs-cpp-debug-args))
+
+(defun emacs-cpp-debug--gdb (program)
+  "Return gdb PROGRAM to start, or refuse naming what asked for `gdb-preset'.
+The `command' of `gdb-preset' (D-216): dape's own check says only that the
+command is missing; a project's `dape-command' is the usual reason on the Mac."
+  (or (executable-find program)
+      (user-error "emacs-cpp: gdb-preset needs %s, which is not installed%s; use \
+lldb-preset (D-051)%s"
+                  program
+                  (if (eq system-type 'darwin) " (Apple silicon has none)" "")
+                  (if dape-command
+                      (format ".  This project's `dape-command' (%S, from its \
+.dir-locals.el) names it; give the project only its arguments in \
+`emacs-cpp-debug-args' and each machine picks its debugger (D-216)"
+                              dape-command)
+                    ""))))
+
 (defun emacs-cpp-debug--preset-config (name prepare)
   "Return dape's configuration NAME with the preset parts and PREPARE as `fn'."
   (let ((config (or (copy-tree (alist-get name dape-configs))
@@ -262,11 +293,18 @@ emacs-cpp-debug-lldb-dap-program (D-051)"
       config
       (plist-put 'fn prepare)
       (plist-put :program #'emacs-cpp-debug-read-program)
+      (plist-put :args #'emacs-cpp-debug--args)
       (plist-put :cwd #'dape-cwd))))
 
 (defun emacs-cpp-debug--gdb-preset-config ()
-  "Return the `gdb-preset' configuration: dape's `gdb' one plus the preset parts."
-  (emacs-cpp-debug--preset-config 'gdb #'emacs-cpp-debug--prepare))
+  "Return the `gdb-preset' configuration: dape's `gdb' one plus the preset parts,
+started through `emacs-cpp-debug--gdb' (D-216)."
+  (let* ((config (emacs-cpp-debug--preset-config 'gdb #'emacs-cpp-debug--prepare))
+         (program (plist-get config 'command)))
+    (unless (stringp program)
+      (error "emacs-cpp: dape's `gdb' configuration has no command name (%S); \
+review lisp/init-debug.el (D-216)" program))
+    (plist-put config 'command (lambda () (emacs-cpp-debug--gdb program)))))
 
 (defun emacs-cpp-debug--lldb-init-commands ()
   "lldb commands run before the target is made: the debuginfod cap (D-198)."
