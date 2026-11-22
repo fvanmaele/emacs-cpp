@@ -1,7 +1,7 @@
 # emacs-cpp cheat sheet
 
 Keys as bound by this configuration (checked 2026-10-08 with `where-is` in the shipped
-config). `M-x cmd` means: no key yet, run the command by name (`M-x`, then type part of
+config; checked against the code again 2026-11-22). `M-x cmd` means: no key yet, run the command by name (`M-x`, then type part of
 the name; completion is fuzzy). Notation: `C-` = Control, `M-` = Meta (Alt; Option on
 macOS), `RET` = Enter. Everyday Emacs (windows, tabs, editing) and the common
 tasks step by step: `docs/MANUAL.md`.
@@ -49,7 +49,8 @@ part to jump (D-043).
 After `C-c l M`, add the new source to CMake. After `C-c l N`, a list shows the
 `old::` left; the files are already changed: save them with `C-x s`.
 `C-c l f` follows the project's `.clang-format` (LLVM style without one); `TAB` and
-`RET` follow `.dir-locals.el` (Emacs's rules, D-065). Writing both from a file that has the
+`RET` follow `.dir-locals.el` (Emacs's rules, D-065); indentation is spaces only unless
+a project says otherwise (D-208). Writing both from a file that has the
 project's style:
 `docs/MANUAL.md` 8.
 
@@ -88,6 +89,7 @@ function brings its parameters as fields; `TAB` moves on.
 |-----------|------------------------------------------------------------------|
 | `M-o`     | go to anything (see below)                                       |
 | `C-x b`   | buffers, recent files, bookmarks in one list                     |
+| `C-x 4 b` | the same, opened in the other window                             |
 | `C-x p b` | buffers of this project                                          |
 | `C-c p f` | find a file in the project                                       |
 | `C-c p d` | find a directory in the project; `C-c p e`: recent project files |
@@ -96,11 +98,13 @@ function brings its parameters as fields; `TAB` moves on.
 | `M-s d`   | find files by name (fd)                                          |
 | `M-s l`   | lines of this buffer; `M-s L`: of all buffers                    |
 | `M-g g`   | go to line                                                       |
+| `M-g o`   | headings of this buffer (outline)                                |
 | `M-y`     | choose from the kill ring (paste history)                        |
 
 `M-o` lists buffers, recent files, bookmarks, project files and, from the third letter,
 the project's symbols. `<` then a letter narrows: `b r m f s` to one of those, `< l` all
-symbols (libraries too), `< x` commands, `< p` projects.
+symbols (libraries too), `< x` commands, `< p` projects. A PDF candidate is previewed
+in a window on the right (`emacs-cpp-go-pdf-preview-width`, D-201).
 In any list: words separated by space match in any order (`vec tria` finds
 `tria_vector.h`); a word's letters may skip only inside a word (`eto` finds
 `Vector`). In `M-o` a word matches the file name, as in CLion; `gpe/ite` also
@@ -116,7 +120,8 @@ searches the directories (`include/rmo/gpe/iteration.h`). `M-r` in the minibuffe
 | `C-.` then `E`    | export a candidate list to a buffer (e.g. grep results to edit) |
 | `C-h B`           | search all key bindings                                         |
 | prefix then `C-h` | list what a prefix (e.g. `C-c p`) offers                        |
-| `C-h i`           | manuals: Emacs, magit, embark, orderless, dash, with-editor     |
+| `C-h i`           | manuals: Emacs, magit, magit-section, embark, orderless, dash,  |
+|                   | with-editor                                                     |
 | `C-x C-r`         | open a recently visited file (`C-x b` lists them too)           |
 
 Line numbers show in code, text and configuration buffers, not in the tree or tool
@@ -128,12 +133,14 @@ restart. Without a saved choice the theme is `modus-vivendi-tritanopia`.
 
 Tool bar (D-210): icons at the top of the window for the sidebar, `M-o`, text search,
 git status, build and debug; hover for the name and the key. While a debug session
-runs, pause (continue while stopped), step over, step into, step out and stop replace
-Debug; stop keeps dape's buffers (`C-x C-a q` closes them). The git button refuses
+runs, step over, step into, step out and stop replace Debug, with pause while the
+program runs and continue while it is stopped; stop keeps dape's buffers (`C-x C-a q`
+closes them). The git button refuses
 outside a repository (`C-x g` offers to create one). `M-x tool-bar-mode` hides or
 shows the bar. Icons unreadable on your desktop's bar: `M-x customize-variable RET
 emacs-cpp-toolbar-icon-color`; on the Mac, `emacs-cpp-toolbar-title-follows-theme`
-nil leaves the title area to the system.
+nil leaves the title area to the system (windows already changed keep their look
+until a restart).
 
 After any prefix (`C-c p`, `C-x C-a`, `C-c l`), wait 3 seconds: which-key shows the keys
 that can follow (D-034). `C-h` in that popup pages through them. In a prompt with
@@ -165,12 +172,16 @@ for the project; `M-x projectile-discard-command-cache` returns to the preset's.
 | `C-x C-a d` `gdb-preset RET`   | pick a target of the active preset, build it, debug it       |
 | `C-x C-a d` `lldb-preset RET`  | the same with lldb (macOS; on Arch too, D-051)               |
 | `C-x C-a n` `s` `o` `c`        | step over / into / out / continue; then just `n` `s` `o` `c` |
+| `C-x C-a p`                    | pause the running program                                    |
 | `C-x C-a w`                    | watch an expression                                          |
 | `C-x C-a i`                    | info buffers: stack, locals, breakpoints, threads            |
-| `C-x C-a q`                    | end the session                                              |
+| `C-x C-a K`                    | stop the program, keep dape's buffers (the tool bar's stop)  |
+| `C-x C-a q`                    | end the session and close dape's buffers                     |
 
 The prompt starts with `gdb-preset` on Arch and `lldb-preset` on macOS until one of
-them was used; then with your last input (D-055).
+them was used; then with your last input (D-055). The first default is
+`emacs-cpp-debug-default-configuration`; lldb's wait for a debuginfod server is capped
+by `emacs-cpp-debug-lldb-debuginfod-timeout` (seconds, D-198).
 
 Program arguments: type them after the configuration name, as a vector of strings:
 `gdb-preset :args ["--levels" "5"]`. The prompt starts with your last input (kept
@@ -187,7 +198,7 @@ The line the program stopped at is highlighted. Options: `emacs-cpp-debug-lazy-s
 
 ## Python (rides along, D-045)
 `.py` files open in `python-ts-mode`; in a project (git, `pyproject.toml` or
-`setup.py`) its language server starts (ty on Arch, pyright on the Mac), and `M-.`,
+`setup.py`) its language server starts (ty, on both machines, D-182), and `M-.`,
 `M-?`, `C-c l r` and the other `C-c l` keys work as for C++. `C-x C-a d debugpy RET`
 debugs the current file (`debugpy-module`: the current directory as a module).
 ty infers the return types of unannotated functions only in a project whose
@@ -213,7 +224,7 @@ Spyder.
 | `C-c C-c x`               | PDF through pandoc and LaTeX beside the file, shown in pdf-tools |
 | `C-c C-c o`               | the same PDF, opened outside Emacs (`open` / `xdg-open`)        |
 | `C-c C-c p`               | HTML beside the file, opened in the browser (images shown)      |
-| `C-c C-c e`               | markdown-mode's own HTML export                                 |
+| `C-c C-c e`               | HTML beside the file (markdown-mode's export, through pandoc)   |
 
 ## Git (magit)
 | Key          | Does                                                                         |
@@ -225,6 +236,10 @@ Spyder.
 
 Lines changed since the last commit are marked in the right fringe (green added, blue
 changed, red deleted), after each save and each magit action (D-042).
+
+Files changed on disk (a checkout, a pull) are reloaded in their buffers; a buffer
+with unsaved edits asks: load the file, keep your edits, or show the difference
+(D-191). `emacs-cpp-revert-project-buffers` nil turns this off.
 
 ## Project tree (treemacs)
 `C-c t` opens / closes the tree. It shows only the project of the buffer you are in and
@@ -253,13 +268,15 @@ the tree:
    repository (D-003). `make packages` byte-compiles the pinned packages and builds
    their manuals for `C-h i` (needs the `texinfo` package, D-039).
 2. Patched clangd (D-026, D-027):
-   `cd packaging/clangd-index-nav && makepkg -si` (about 30 min), then
+   `make clangd MAKEPKG_FLAGS=-si` (compiles LLVM, D-207), then
    `M-x customize-variable RET emacs-cpp-clangd-program` =
    `/opt/clangd-index-nav/bin/clangd`, "Save for future sessions". Leave it nil for
    the system clangd.
-3. A project needs a `CMakePresets.json` with `CMAKE_EXPORT_COMPILE_COMMANDS` on and
+3. `make epdfinfo` builds pdf-tools' server: without it no PDF opens (`C-c C-c x`,
+   D-199). `fd` must be installed: startup stops without it (D-183).
+4. A project needs a `CMakePresets.json` with `CMAKE_EXPORT_COMPILE_COMMANDS` on and
    `CMAKE_CXX_EXTENSIONS OFF` (D-011), configured once (`cmake --preset debug`).
-4. Verbose clangd log, for diagnosis: `M-: (setenv "CLANGD_FLAGS" "--log=verbose")`
+5. Verbose clangd log, for diagnosis: `M-: (setenv "CLANGD_FLAGS" "--log=verbose")`
    before opening the project, then `M-x eglot-stderr-buffer`.
 
 ## macOS (MacPorts, D-050, D-053)
