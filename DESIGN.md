@@ -2192,35 +2192,35 @@ the form that loads magit is found (S17 run 2, T-113).
   `.git/config`; 444 ids changed, 109 cited ids in files mapped; the the reviewer commit
   keeps its author.
 - DECIDED D-194 (owner 2026-11-08: "Make a release branch which only contains feature
-  commits with concise but clear descriptions, and documentation in docs/ and README.md",
-  then "One per feature" and "MANUAL + CHEATSHEET"): branch `release`, built from main
-  with `git commit-tree`, 87 commits, one per feat commit of main in time order; each
-  is main's tree where that feature's group ends (the fix, refactor, test and chore
-  commits up to the next feat folded in), with only the code and build paths (`lisp/`,
-  `test/`, `scripts/`, `packaging/`, `patches/`, `lib/`, the init files, `Makefile`,
-  `standard.mk`, `LICENSE`, `.gitignore`, `.gitmodules`) and `README.md`,
+  commits with concise but clear descriptions, and documentation in docs/ and
+  README.md", then "One per feature" and "MANUAL + CHEATSHEET"): branch `release`, built
+  from main with `git commit-tree`, 87 commits, one per feat commit of main in time
+  order; each is main's tree where that feature's group ends (the fix, refactor, test
+  and chore commits up to the next feat folded in), with only the code and build paths
+  (`lisp/`, `test/`, `scripts/`, `packaging/`, `patches/`, `lib/`, the init files,
+  `Makefile`, `standard.mk`, `LICENSE`, `.gitignore`, `.gitmodules`) and `README.md`,
   `docs/MANUAL.md`, `docs/CHEATSHEET.md`. Messages short, without ids; author and date
   of each feat commit, the models' `Co-Authored-By` lines kept. Its tip's code and docs
   equal main's at 134ad7f. Not pushed; rebuilt, not merged, when main moves on. Against:
   README and the manual cite D-nnn ids whose DESIGN.md is not there; `make docs-check`
   fails there (no DESIGN.md); intermediate commits untested; a fix to an older feature
-  sits in the feature before it. Updated 2026-11-09 (owner: "Update release branch"): the
-  tip's code was main's from 594a9be to 291cf86 (not 134ad7f's, which lacked T-141's
-  debugger changes), so 3 commits appended, one per new feat commit (D-199, D-201, D-202),
-  the 87 kept; the tip's code and docs equal main's at 768982a. Local; pushing is the
-  owner's call. Updated 2026-11-09 again (owner: "Pull and update release"): on
+  sits in the feature before it. Updated 2026-11-09 (owner: "Update release branch"):
+  the tip's code was main's from 594a9be to 291cf86 (not 134ad7f's, which lacked T-141's
+  debugger changes), so 3 commits appended, one per new feat commit (D-199, D-201,
+  D-202), the 87 kept; the tip's code and docs equal main's at 768982a. Local; pushing
+  is the owner's call. Updated 2026-11-09 again (owner: "Pull and update release"): on
   origin/release (825c421), 2 commits appended (D-204, T-147); the tip's code and docs
-  equal main's at d627b5c. Updated 2026-11-12 (owner: "Update release branch"): main
-  had 5 commits since, none a feat (perf, three fixes, a refactor; D-206); folding them
-  into the last feature would rewrite a pushed commit, so 1 commit is appended on
+  equal main's at d627b5c. Updated 2026-11-12 (owner: "Update release branch"): main had
+  5 commits since, none a feat (perf, three fixes, a refactor; D-206); folding them into
+  the last feature would rewrite a pushed commit, so 1 commit is appended on
   origin/release (93cdd43), a `fix:` naming the four changes; the tip's code and docs
   equal main's at 66e9541. Local; pushing is the owner's call. Updated 2026-11-22
   (owner: "Update release branch"): 4 commits appended on origin/release (75afaa7), one
   per feat of main since 66e9541 (indentation with spaces, the icon tool bar with its
   review fixes and the clangd patches 0014 - 0019 folded in, line-number breakpoints
   with the new git icon, debug arguments per project); the paths gain `icons/`, the tool
-  bar's icons, which the code reads; the tip's code and docs equal main's at f6a9141.
-  Local; pushing is the owner's call.
+  bar's icons, which the code reads; the tip's code and docs equal main's at 04c079d
+  (the git-graph icon folded into the last). Local; pushing is the owner's call.
 - DECIDED D-193 (2026-11-08, the session's pick, for the owner to double-check;
   llm_vibecoding_standard README "Who adopts, and when", upgrade to 2.17.1): this
   project's release class is **later** (may be released in future). Reason: its own
