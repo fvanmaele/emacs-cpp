@@ -93,7 +93,11 @@ agents simulated use cases and reviewed a gated design; the owner deferred it
 - Patches 0001 - 0019 on a fresh 23.1.5 tarball give the tested tree (`diff -r`).
 - `EMACS_CPP_PATCHED_CLANGD=packaging/clangd-index-nav/src/build-tests/bin/clangd make
   test </dev/null`: 204 tests, 2 skipped.
-- Install on both machines and a hand check: H-40.
+- The Mac (owner, 2026-11-22, clangd installed in `~/opt/clangd-index-nav` at 10:12,
+  carrying the patches' messages): `M-.` and `M-?` on a function right; `M-?` on a
+  virtual method right, with a longer delay (`transport.h`: the parse answers, as D-212
+  intends for methods); `C-c l s` with `geom::vert` right.
+- Arch build and `make test`: H-40.
 
 ## Review fold-in (agents of this session, 2026-11-22)
 Source: three reviewing agents of patches 0001 - 0013, then six agents on the
