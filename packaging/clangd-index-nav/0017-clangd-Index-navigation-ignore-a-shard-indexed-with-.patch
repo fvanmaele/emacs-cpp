@@ -1,0 +1,118 @@
+From 1b48aa8c181d5d5c01e42b53c7448405505f2ed7 Mon Sep 17 00:00:00 2001
+From: Ferdinand Vanmaele <info@fvanmaele.de>
+Date: Sun, 22 Nov 2026 09:50:54 +0100
+Subject: [PATCH 17/19] [clangd] Index navigation: ignore a shard indexed with
+ another command
+
+The shard's positions are checked against the file's content, but not
+against the compile command it was indexed with. After a CMake preset
+switch or a changed -D the stored shard may record other #ifdef branches
+until the file is indexed again, so navigation from the index answered for
+the old configuration. A main file's shard stores its command; navigation
+from the index now answers only when it equals the current one
+(shardCommandMatches).
+---
+ clang-tools-extra/clangd/ClangdServer.cpp     |  7 +++++++
+ clang-tools-extra/clangd/XRefs.cpp            |  9 +++++++++
+ clang-tools-extra/clangd/XRefs.h              |  9 +++++++++
+ .../clangd/unittests/BackgroundIndexTests.cpp | 19 +++++++++++++++++++
+ 4 files changed, 44 insertions(+)
+
+diff --git a/clang-tools-extra/clangd/ClangdServer.cpp b/clang-tools-extra/clangd/ClangdServer.cpp
+index fe815e8..e72d412 100644
+--- a/clang-tools-extra/clangd/ClangdServer.cpp
++++ b/clang-tools-extra/clangd/ClangdServer.cpp
+@@ -924,6 +924,13 @@ ClangdServer::navigationShard(PathRef File) {
+     vlog("Navigation in {0} needs the AST: no stored index shard", File);
+     return std::nullopt;
+   }
++  // The background index takes its commands from the same database.
++  if (!clangd::shardCommandMatches(*Shard, CDB.getCompileCommand(File))) {
++    vlog("Navigation in {0} needs the AST: the shard was indexed with another "
++         "compile command",
++         File);
++    return std::nullopt;
++  }
+   return std::make_pair(std::move(Shard), std::move(Draft));
+ }
+ 
+diff --git a/clang-tools-extra/clangd/XRefs.cpp b/clang-tools-extra/clangd/XRefs.cpp
+index cf59bfc..fae03ef 100644
+--- a/clang-tools-extra/clangd/XRefs.cpp
++++ b/clang-tools-extra/clangd/XRefs.cpp
+@@ -2620,6 +2620,15 @@ llvm::StringRef whyShardCannotAnswer(const IndexFileIn &Shard,
+   return "";
+ }
+ 
++bool shardCommandMatches(const IndexFileIn &Shard,
++                         const std::optional<tooling::CompileCommand> &Current) {
++  if (!Shard.Cmd)
++    return true;
++  // The stored command keeps the directory and the command line.
++  return Current && Current->Directory == Shard.Cmd->Directory &&
++         Current->CommandLine == Shard.Cmd->CommandLine;
++}
++
+ std::optional<LocatedSymbol> locateIncludeFromShard(const IndexFileIn &Shard,
+                                                     llvm::StringRef MainFilePath,
+                                                     llvm::StringRef Content,
+diff --git a/clang-tools-extra/clangd/XRefs.h b/clang-tools-extra/clangd/XRefs.h
+index 32bbfe3..f9eee15 100644
+--- a/clang-tools-extra/clangd/XRefs.h
++++ b/clang-tools-extra/clangd/XRefs.h
+@@ -19,6 +19,7 @@
+ #include "index/SymbolID.h"
+ #include "support/Path.h"
+ #include "clang/AST/ASTTypeTraits.h"
++#include "clang/Tooling/CompilationDatabase.h"
+ #include "llvm/ADT/StringRef.h"
+ #include "llvm/Support/raw_ostream.h"
+ #include <optional>
+@@ -132,6 +133,14 @@ llvm::StringRef whyShardCannotAnswer(const IndexFileIn &Shard,
+ /// matter) and exactly one direct include matches; std::nullopt otherwise
+ /// (also for "." / ".." components and macro includes). Callers then use the
+ /// AST.
++/// Whether \p Shard, the stored shard of a main file, was indexed with the
++/// file's \p Current compile command. Another command (a CMake preset switch, a
++/// changed -D) may select other #ifdef branches: the shard's positions and
++/// symbols would not be the AST's. A shard without a command (a header's) has
++/// nothing to compare and matches.
++bool shardCommandMatches(const IndexFileIn &Shard,
++                         const std::optional<tooling::CompileCommand> &Current);
++
+ std::optional<LocatedSymbol> locateIncludeFromShard(const IndexFileIn &Shard,
+                                                     llvm::StringRef MainFilePath,
+                                                     llvm::StringRef Content,
+diff --git a/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp b/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp
+index 788e5cb..73df3fe 100644
+--- a/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp
++++ b/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp
+@@ -351,6 +351,25 @@ TEST(NavigationFromShard, AllSymbolsAtTheSameRangeAreTargets) {
+   EXPECT_EQ(Result->References.size(), 2u);
+ }
+ 
++TEST_F(NavigationFromShardTest, ShardOfAnotherCommandDoesNotAnswer) {
++  // After a preset switch the stored shard may record other #ifdef branches
++  // until the file is indexed again.
++  auto Shard = Idx->loadShard(MainPath);
++  ASSERT_TRUE(Shard);
++  ASSERT_TRUE(Shard->Cmd);
++  EXPECT_TRUE(shardCommandMatches(*Shard, CDB.getCompileCommand(MainPath)));
++  tooling::CompileCommand Other = *CDB.getCompileCommand(MainPath);
++  Other.CommandLine.push_back("-DOTHER");
++  EXPECT_FALSE(shardCommandMatches(*Shard, Other));
++  Other = *CDB.getCompileCommand(MainPath);
++  Other.Directory = testPath("elsewhere");
++  EXPECT_FALSE(shardCommandMatches(*Shard, Other));
++  EXPECT_FALSE(shardCommandMatches(*Shard, std::nullopt));
++  // A header's shard stores no command.
++  IndexFileIn Header;
++  EXPECT_TRUE(shardCommandMatches(Header, std::nullopt));
++}
++
+ TEST(NavigationFromShard, MethodReferencesNeedTheAST) {
+   // References of a method that may be virtual include its overrides and the
+   // methods it overrides (the AST path); the index cannot tell, so it does not
+-- 
+2.56.1
+

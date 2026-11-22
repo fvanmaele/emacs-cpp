@@ -1,0 +1,54 @@
+From f9afd587a583d1eba4be5c1c0a83c27f33a557b3 Mon Sep 17 00:00:00 2001
+From: Ferdinand Vanmaele <info@fvanmaele.de>
+Date: Sun, 22 Nov 2026 09:50:54 +0100
+Subject: [PATCH 15/19] [clangd] Index navigation: only references spelled at
+ the cursor are targets
+
+symbolsAtFromShard took every reference whose range contains the cursor.
+References that are not spelled there point at it too: a constructor
+called through make_unique is recorded at make_unique, a symbol a macro's
+body uses at the macro's name. Go-to-definition on make_unique then also
+listed Foo::Foo, and on a macro every function its body calls. Only
+references with RefKind::Spelled count now, as on the AST path.
+---
+ clang-tools-extra/clangd/XRefs.cpp                          | 6 ++++++
+ clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp | 6 ++++++
+ 2 files changed, 12 insertions(+)
+
+diff --git a/clang-tools-extra/clangd/XRefs.cpp b/clang-tools-extra/clangd/XRefs.cpp
+index 07576e5..fabdc81 100644
+--- a/clang-tools-extra/clangd/XRefs.cpp
++++ b/clang-tools-extra/clangd/XRefs.cpp
+@@ -2703,6 +2703,12 @@ std::vector<SymbolID> symbolsAtFromShard(const IndexFileIn &Shard,
+     for (const Ref &R : Refs) {
+       if (llvm::StringRef(R.Location.FileURI) != FileURI)
+         continue;
++      // Only a reference spelled at the cursor names a target there. Others
++      // only point at the cursor: a constructor called through make_unique
++      // (recorded at make_unique), a symbol a macro's body uses (recorded at
++      // the macro's name). The AST path does not count them either.
++      if ((R.Kind & RefKind::Spelled) != RefKind::Spelled)
++        continue;
+       auto Start = Key(R.Location.Start.line(), R.Location.Start.column());
+       auto End = Key(R.Location.End.line(), R.Location.End.column());
+       // Like the AST path, a token touching the cursor at either end counts.
+diff --git a/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp b/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp
+index a1ef4c7..a023c1e 100644
+--- a/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp
++++ b/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp
+@@ -320,6 +320,12 @@ TEST(NavigationFromShard, AllSymbolsAtTheSameRangeAreTargets) {
+   Elsewhere.Location = Location(OtherURI, 3, 2, 6);
+   Elsewhere.Kind = RefKind::Reference | RefKind::Spelled;
+   Refs.insert(Second, Elsewhere);
++  // At the same range, but not spelled there (e.g. a constructor called
++  // through make_unique, or a symbol a macro's body uses): not a target.
++  Ref Unspelled;
++  Unspelled.Location = Location(FileURI, 0, 8, 12);
++  Unspelled.Kind = RefKind::Reference;
++  Refs.insert(SymbolID("unspelled"), Unspelled);
+ 
+   IndexFileIn Shard;
+   Shard.Refs = std::move(Refs).build();
+-- 
+2.56.1
+

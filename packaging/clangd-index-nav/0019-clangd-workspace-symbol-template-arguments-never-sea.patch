@@ -1,0 +1,427 @@
+From 8807a39f7d8037bdd781fd8d22dd5084b8dfe045 Mon Sep 17 00:00:00 2001
+From: Ferdinand Vanmaele <info@fvanmaele.de>
+Date: Sun, 22 Nov 2026 09:50:54 +0100
+Subject: [PATCH 19/19] [clangd] workspace/symbol: template arguments never
+ searched, operators kept, tiers in score
+
+With middleMatch the fuzzy score was computed on the whole name, so
+EBOBaseImpl<T, true, CtorNotOnDevice> still matched "ector" through E +
+Ctor inside its template arguments, although patch 0012 says arguments are
+not searched. Both the fuzzy and the contiguous match now run on the name
+without template arguments (workspaceSymbolMatch, one rule for Dex,
+MemIndex and getWorkspaceSymbols, which each had a copy). An operator's
+`<` is its name: "operator<<" was cut to "operator".
+
+The exposed score of a second-tier match is mapped like the ranking score,
+so a client that sorts by it keeps the tiers. looseScope and middleMatch
+accept null as "not given"; a middleMatch of 1, 2 or below 0 is an
+InvalidParams error, no longer raised to 3 silently.
+---
+ clang-tools-extra/clangd/ClangdLSPServer.cpp  |  8 +++--
+ clang-tools-extra/clangd/FindSymbols.cpp      | 22 ++++++-------
+ clang-tools-extra/clangd/FuzzyMatch.cpp       | 32 +++++++++++++++++--
+ clang-tools-extra/clangd/FuzzyMatch.h         | 11 +++++++
+ clang-tools-extra/clangd/Protocol.cpp         |  4 +--
+ clang-tools-extra/clangd/Protocol.h           |  8 +++--
+ clang-tools-extra/clangd/index/MemIndex.cpp   | 15 +++------
+ clang-tools-extra/clangd/index/dex/Dex.cpp    | 15 +++------
+ .../clangd/unittests/ClangdLSPServerTests.cpp | 29 +++++++++++++++++
+ .../clangd/unittests/DexTests.cpp             |  8 ++---
+ .../clangd/unittests/FindSymbolsTests.cpp     | 32 ++++++++++++++++---
+ .../clangd/unittests/FuzzyMatchTests.cpp      | 20 ++++++++++++
+ .../clangd/unittests/IndexTests.cpp           |  7 ++--
+ 13 files changed, 156 insertions(+), 55 deletions(-)
+
+diff --git a/clang-tools-extra/clangd/ClangdLSPServer.cpp b/clang-tools-extra/clangd/ClangdLSPServer.cpp
+index a82489a..1a22b45 100644
+--- a/clang-tools-extra/clangd/ClangdLSPServer.cpp
++++ b/clang-tools-extra/clangd/ClangdLSPServer.cpp
+@@ -878,8 +878,12 @@ void ClangdLSPServer::onWorkspaceSymbol(
+     Callback<std::vector<SymbolInformation>> Reply) {
+   WorkspaceSymbolOptions Matches;
+   Matches.LooseScope = Params.looseScope;
+-  if (Params.middleMatch > 0)
+-    Matches.MiddleMatch = std::max(3, Params.middleMatch);
++  if (Params.middleMatch != 0 && Params.middleMatch < 3)
++    return Reply(llvm::make_error<LSPError>(
++        llvm::formatv("middleMatch must be 0 (off) or at least 3, not {0}",
++                      Params.middleMatch),
++        ErrorCode::InvalidParams));
++  Matches.MiddleMatch = Params.middleMatch;
+   Server->workspaceSymbols(
+       Params.query, Params.limit.value_or(Opts.CodeComplete.Limit), Matches,
+       [Reply = std::move(Reply),
+diff --git a/clang-tools-extra/clangd/FindSymbols.cpp b/clang-tools-extra/clangd/FindSymbols.cpp
+index f17900b..b5aeed3 100644
+--- a/clang-tools-extra/clangd/FindSymbols.cpp
++++ b/clang-tools-extra/clangd/FindSymbols.cpp
+@@ -354,17 +354,13 @@ getWorkspaceSymbols(llvm::StringRef Query, int Limit,
+     Relevance.Query = SymbolRelevanceSignals::Generic;
+     // If symbol and request scopes do not match exactly, apply a penalty.
+     Relevance.InBaseClass = AnyScope && Scope != ReqScope;
+-    auto NameMatch = Filter.match(Sym.Name);
+     // With mid-word matches (MiddleMatch), two tiers (FuzzyMatch.h); the second
+     // ranks after every first-tier match, below.
+-    bool SecondTier = false;
+-    if (Req.MiddleMatch && Req.Query.size() >= Req.MiddleMatch) {
+-      auto Tiered = tieredMatch(Sym.Name, Req.Query, NameMatch);
+-      NameMatch = Tiered ? std::optional<float>(Tiered->Score) : std::nullopt;
+-      SecondTier = Tiered && !Tiered->FirstTier;
+-    }
+-    if (NameMatch)
+-      Relevance.NameMatch = *NameMatch;
++    auto Match =
++        workspaceSymbolMatch(Filter, Sym.Name, Req.Query, Req.MiddleMatch);
++    bool SecondTier = Match && !Match->FirstTier;
++    if (Match)
++      Relevance.NameMatch = Match->Score;
+     else {
+       log("Workspace symbol: {0} didn't match query {1}", Sym.Name,
+           Filter.pattern());
+@@ -388,9 +384,13 @@ getWorkspaceSymbols(llvm::StringRef Query, int Limit,
+     Info.score = Relevance.NameMatch > std::numeric_limits<float>::epsilon()
+                      ? Score / Relevance.NameMatch
+                      : QualScore;
+-    // Below every first-tier match and first to go at the limit, in order.
+-    if (SecondTier)
++    // Below every first-tier match and first to go at the limit, in order;
++    // the exposed score too, so a client that sorts by it keeps the tiers.
++    if (SecondTier) {
+       Score = secondTierScore(Score);
++      if (Info.score)
++        Info.score = secondTierScore(*Info.score);
++    }
+     Top.push({Score, std::move(Info)});
+   });
+   for (auto &R : std::move(Top).items())
+diff --git a/clang-tools-extra/clangd/FuzzyMatch.cpp b/clang-tools-extra/clangd/FuzzyMatch.cpp
+index 5885fc4..ca48ea6 100644
+--- a/clang-tools-extra/clangd/FuzzyMatch.cpp
++++ b/clang-tools-extra/clangd/FuzzyMatch.cpp
+@@ -56,6 +56,7 @@
+ //===----------------------------------------------------------------------===//
+ 
+ #include "FuzzyMatch.h"
++#include "llvm/ADT/StringExtras.h"
+ #include "llvm/Support/Format.h"
+ #include <optional>
+ 
+@@ -86,12 +87,37 @@ FuzzyMatcher::FuzzyMatcher(llvm::StringRef Pattern)
+                               llvm::MutableArrayRef(PatRole, PatN));
+ }
+ 
++namespace {
++// The name without template arguments or a destructor's `~`. An operator's
++// `<` is its name ("operator<<"), not the start of arguments.
++llvm::StringRef identifierOf(llvm::StringRef Word) {
++  llvm::StringRef Identifier = Word;
++  bool Operator = Word.starts_with("operator") && Word.size() > 8 &&
++                  !llvm::isAlnum(Word[8]) && Word[8] != '_';
++  if (!Operator)
++    Identifier = Word.take_until([](char C) { return C == '<'; });
++  Identifier.consume_front("~");
++  return Identifier;
++}
++} // namespace
++
++std::optional<TieredMatch> workspaceSymbolMatch(FuzzyMatcher &Filter,
++                                                llvm::StringRef Name,
++                                                llvm::StringRef Query,
++                                                unsigned MiddleMatch) {
++  if (!MiddleMatch || Query.size() < MiddleMatch) {
++    if (auto Score = Filter.match(Name))
++      return TieredMatch{*Score, true};
++    return std::nullopt;
++  }
++  llvm::StringRef Identifier = identifierOf(Name);
++  return tieredMatch(Identifier, Query, Filter.match(Identifier));
++}
++
+ std::optional<TieredMatch> tieredMatch(llvm::StringRef Word,
+                                        llvm::StringRef Query,
+                                        std::optional<float> FuzzyScore) {
+-  llvm::StringRef Identifier =
+-      Word.take_until([](char C) { return C == '<'; });
+-  Identifier.consume_front("~");
++  llvm::StringRef Identifier = identifierOf(Word);
+   if (Query.empty() || Identifier.empty()) {
+     if (FuzzyScore)
+       return TieredMatch{*FuzzyScore, true};
+diff --git a/clang-tools-extra/clangd/FuzzyMatch.h b/clang-tools-extra/clangd/FuzzyMatch.h
+index ccf0ed8..02b4db4 100644
+--- a/clang-tools-extra/clangd/FuzzyMatch.h
++++ b/clang-tools-extra/clangd/FuzzyMatch.h
+@@ -88,6 +88,17 @@ std::optional<TieredMatch> tieredMatch(llvm::StringRef Word,
+ // [-1, 0), larger scores still ranking higher.
+ inline float secondTierScore(float Score) { return -1.0f / (1.0f + Score); }
+ 
++class FuzzyMatcher;
++// A symbol name's match for workspace symbols: with mid-word matches (a query
++// of at least \p MiddleMatch characters, 0 for never) the tiered match of the
++// name without its template arguments, the fuzzy match included, so that
++// arguments are never searched; otherwise \p Filter's match, first tier.
++// The one rule of Dex, MemIndex and getWorkspaceSymbols.
++std::optional<TieredMatch> workspaceSymbolMatch(FuzzyMatcher &Filter,
++                                                llvm::StringRef Name,
++                                                llvm::StringRef Query,
++                                                unsigned MiddleMatch);
++
+ // A matcher capable of matching and scoring strings against a single pattern.
+ // It's optimized for matching against many strings - match() does not allocate.
+ class FuzzyMatcher {
+diff --git a/clang-tools-extra/clangd/Protocol.cpp b/clang-tools-extra/clangd/Protocol.cpp
+index f87fa1a..db9593a 100644
+--- a/clang-tools-extra/clangd/Protocol.cpp
++++ b/clang-tools-extra/clangd/Protocol.cpp
+@@ -938,8 +938,8 @@ bool fromJSON(const llvm::json::Value &Params, WorkspaceSymbolParams &R,
+   llvm::json::ObjectMapper O(Params, P);
+   return O && O.map("query", R.query) &&
+          mapOptOrNull(Params, "limit", R.limit, P) &&
+-         O.mapOptional("looseScope", R.looseScope) &&
+-         O.mapOptional("middleMatch", R.middleMatch);
++         mapOptOrNull(Params, "looseScope", R.looseScope, P) &&
++         mapOptOrNull(Params, "middleMatch", R.middleMatch, P);
+ }
+ 
+ llvm::json::Value toJSON(const Command &C) {
+diff --git a/clang-tools-extra/clangd/Protocol.h b/clang-tools-extra/clangd/Protocol.h
+index 64a64e6..3c6ad2a 100644
+--- a/clang-tools-extra/clangd/Protocol.h
++++ b/clang-tools-extra/clangd/Protocol.h
+@@ -1257,9 +1257,11 @@ struct WorkspaceSymbolParams {
+ 
+   /// Mid-word matches: a symbol whose name contains the query, in any case
+   /// ("ector" finds "TangentVector"), for queries of at least this many
+-  /// characters, ranked after every fuzzy match. 0 means off; values below 3
+-  /// count as 3. Clangd extension (emacs-cpp), announced as
+-  /// workspaceSymbolMatchesProvider.middleMatch.
++  /// characters, ranked after every fuzzy match. 0 (or null) means off; 1, 2
++  /// and negative values are an error (shorter queries match too much
++  /// anywhere). Clangd extension (emacs-cpp), announced as
++  /// workspaceSymbolMatchesProvider.middleMatch: true, which says the field is
++  /// understood (the capability carries no threshold).
+   int middleMatch = 0;
+ };
+ bool fromJSON(const llvm::json::Value &, WorkspaceSymbolParams &,
+diff --git a/clang-tools-extra/clangd/index/MemIndex.cpp b/clang-tools-extra/clangd/index/MemIndex.cpp
+index 23cc75d..66ea0b3 100644
+--- a/clang-tools-extra/clangd/index/MemIndex.cpp
++++ b/clang-tools-extra/clangd/index/MemIndex.cpp
+@@ -45,18 +45,13 @@ bool MemIndex::fuzzyFind(
+         !(Sym->Flags & Symbol::IndexedForCodeCompletion))
+       continue;
+ 
+-    auto Score = Filter.match(Sym->Name);
+     // With mid-word matches, two tiers, as in Dex.cpp.
+-    bool SecondTier = false;
+-    if (Req.MiddleMatch && Req.Query.size() >= Req.MiddleMatch) {
+-      auto Tiered = tieredMatch(Sym->Name, Req.Query, Score);
+-      Score = Tiered ? std::optional<float>(Tiered->Score) : std::nullopt;
+-      SecondTier = Tiered && !Tiered->FirstTier;
+-    }
+-    if (!Score)
++    auto Match =
++        workspaceSymbolMatch(Filter, Sym->Name, Req.Query, Req.MiddleMatch);
++    if (!Match)
+       continue;
+-    float FinalScore = *Score * quality(*Sym);
+-    if (SecondTier)
++    float FinalScore = Match->Score * quality(*Sym);
++    if (!Match->FirstTier)
+       FinalScore = secondTierScore(FinalScore);
+     if (Top.push({FinalScore, Sym}))
+       More = true; // An element with smallest score was discarded.
+diff --git a/clang-tools-extra/clangd/index/dex/Dex.cpp b/clang-tools-extra/clangd/index/dex/Dex.cpp
+index 2e7e04e..260c16f 100644
+--- a/clang-tools-extra/clangd/index/dex/Dex.cpp
++++ b/clang-tools-extra/clangd/index/dex/Dex.cpp
+@@ -282,22 +282,17 @@ bool Dex::fuzzyFind(const FuzzyFindRequest &Req,
+   for (const auto &IDAndScore : IDAndScores) {
+     const DocID SymbolDocID = IDAndScore.first;
+     const auto *Sym = Symbols[SymbolDocID];
+-    std::optional<float> Score = Filter.match(Sym->Name);
+     // With mid-word matches (workspace symbols), two tiers (FuzzyMatch.h): the
+     // second after every first-tier match, by its own score and quality.
+-    bool SecondTier = false;
+-    if (Req.MiddleMatch && Req.Query.size() >= Req.MiddleMatch) {
+-      auto Tiered = tieredMatch(Sym->Name, Req.Query, Score);
+-      Score = Tiered ? std::optional<float>(Tiered->Score) : std::nullopt;
+-      SecondTier = Tiered && !Tiered->FirstTier;
+-    }
+-    if (!Score)
++    auto Match =
++        workspaceSymbolMatch(Filter, Sym->Name, Req.Query, Req.MiddleMatch);
++    if (!Match)
+       continue;
+     // Combine Fuzzy Matching score, precomputed symbol quality and boosting
+     // score for a cumulative final symbol score.
+     float FinalScore =
+-        (*Score) * SymbolQuality[SymbolDocID] * IDAndScore.second;
+-    if (SecondTier)
++        Match->Score * SymbolQuality[SymbolDocID] * IDAndScore.second;
++    if (!Match->FirstTier)
+       FinalScore = secondTierScore(FinalScore);
+     // If Top.push(...) returns true, it means that it had to pop an item. In
+     // this case, it is possible to retrieve more symbols.
+diff --git a/clang-tools-extra/clangd/unittests/ClangdLSPServerTests.cpp b/clang-tools-extra/clangd/unittests/ClangdLSPServerTests.cpp
+index 5d6a69c..c79cafc 100644
+--- a/clang-tools-extra/clangd/unittests/ClangdLSPServerTests.cpp
++++ b/clang-tools-extra/clangd/unittests/ClangdLSPServerTests.cpp
+@@ -140,6 +140,35 @@ TEST_F(LSPTest, GoToDefinition) {
+   EXPECT_EQ(Def.takeValue(), Want);
+ }
+ 
++TEST_F(LSPTest, WorkspaceSymbolMatchOptions) {
++  // The emacs-cpp extension's fields: null is "not given"; a mid-word
++  // threshold below 3 is an error, not silently raised.
++  auto &Client = start();
++  Client.didOpen("foo.cpp", "struct TangentVector {};");
++  Client.sync();
++  EXPECT_TRUE(bool(Client
++                       .call("workspace/symbol",
++                             llvm::json::Object{{"query", "ector"},
++                                                {"looseScope", nullptr},
++                                                {"middleMatch", nullptr}})
++                       .take()));
++  auto Error = Client
++                   .call("workspace/symbol",
++                         llvm::json::Object{{"query", "ector"},
++                                            {"middleMatch", 2}})
++                   .take();
++  ASSERT_FALSE(bool(Error));
++  EXPECT_THAT(llvm::toString(Error.takeError()),
++              testing::HasSubstr("at least 3"));
++  auto Middle = Client
++                    .call("workspace/symbol",
++                          llvm::json::Object{{"query", "ector"},
++                                             {"middleMatch", 3}})
++                    .takeValue();
++  ASSERT_TRUE(Middle.getAsArray());
++  EXPECT_EQ(Middle.getAsArray()->size(), 1u);
++}
++
+ TEST_F(LSPTest, Diagnostics) {
+   auto &Client = start();
+   Client.didOpen("foo.cpp", "void main(int, char**);");
+diff --git a/clang-tools-extra/clangd/unittests/DexTests.cpp b/clang-tools-extra/clangd/unittests/DexTests.cpp
+index 059f827..a89b386 100644
+--- a/clang-tools-extra/clangd/unittests/DexTests.cpp
++++ b/clang-tools-extra/clangd/unittests/DexTests.cpp
+@@ -563,13 +563,11 @@ TEST(DexTest, MiddleMatchTiers) {
+   EXPECT_THAT(match(*I, Req),
+               ElementsAre("Ector", "EBOBaseImpl<T, true, CtorNotOnDevice>"));
+   // On: the match contiguous from a word start first, then the others by the
+-  // share of the name they cover (Vector), or their fuzzy score if higher
+-  // (E + Ctor).
++  // share of the name they cover. Template arguments are not searched, so
++  // E + Ctor inside them no longer matches.
+   Req.MiddleMatch = 3;
+   EXPECT_THAT(match(*I, Req),
+-              ElementsAre("Ector", "Vector",
+-                          "EBOBaseImpl<T, true, CtorNotOnDevice>",
+-                          "AlignedVectorCopyConstruct"));
++              ElementsAre("Ector", "Vector", "AlignedVectorCopyConstruct"));
+   // A limit keeps the best.
+   Req.Limit = 2;
+   EXPECT_THAT(match(*I, Req), ElementsAre("Ector", "Vector"));
+diff --git a/clang-tools-extra/clangd/unittests/FindSymbolsTests.cpp b/clang-tools-extra/clangd/unittests/FindSymbolsTests.cpp
+index 8484959..efb8d26 100644
+--- a/clang-tools-extra/clangd/unittests/FindSymbolsTests.cpp
++++ b/clang-tools-extra/clangd/unittests/FindSymbolsTests.cpp
+@@ -258,17 +258,39 @@ TEST(WorkspaceSymbols, MiddleMatchTiers) {
+   WorkspaceSymbolOptions Middle;
+   Middle.MiddleMatch = 3;
+   // The match contiguous from a word start first, then the mid-word one that
+-  // covers most of its name, before the constructor matched as E + Ctor and
+-  // before a longer name.
++  // covers most of its name, then a longer name. The constructor, named
++  // "EBOBaseImpl<T, true, CtorNotOnDevice>", matched only as E + Ctor inside
++  // its template arguments, which are never searched.
+   auto Symbols = getSymbols(TU, "ector", 0, Middle);
+-  ASSERT_EQ(Symbols.size(), 4u);
+-  EXPECT_THAT(Symbols, ElementsAre(qName("Ector"), qName("Vector"), _, _));
+-  EXPECT_THAT(Symbols, Contains(qName("AlignedVectorCopyConstruct")));
++  EXPECT_THAT(Symbols, ElementsAre(qName("Ector"), qName("Vector"),
++                                   qName("AlignedVectorCopyConstruct")));
++  // The exposed score keeps the tiers for a client that sorts by it.
++  ASSERT_EQ(Symbols.size(), 3u);
++  ASSERT_TRUE(Symbols[0].score && Symbols[1].score && Symbols[2].score);
++  EXPECT_GE(*Symbols[0].score, 0.0f);
++  EXPECT_LT(*Symbols[1].score, 0.0f);
++  EXPECT_LT(*Symbols[2].score, 0.0f);
+   // A limit keeps the best.
+   EXPECT_THAT(getSymbols(TU, "ector", 2, Middle),
+               ElementsAre(qName("Ector"), qName("Vector")));
+ }
+ 
++TEST(WorkspaceSymbols, MiddleMatchOperators) {
++  // An operator's `<` is its name, not template arguments.
++  TestTU TU;
++  TU.Code = R"cpp(
++      struct S {};
++      bool operator<(S, S);
++      int operator<<(S, int);
++      )cpp";
++  WorkspaceSymbolOptions Middle;
++  Middle.MiddleMatch = 3;
++  EXPECT_THAT(getSymbols(TU, "tor<<", 0, Middle),
++              ElementsAre(qName("operator<<")));
++  EXPECT_THAT(getSymbols(TU, "operator<", 0, Middle),
++              Contains(qName("operator<")));
++}
++
+ TEST(WorkspaceSymbols, AnonymousNamespace) {
+   TestTU TU;
+   TU.Code = R"cpp(
+diff --git a/clang-tools-extra/clangd/unittests/FuzzyMatchTests.cpp b/clang-tools-extra/clangd/unittests/FuzzyMatchTests.cpp
+index 9a32998..092cc8e 100644
+--- a/clang-tools-extra/clangd/unittests/FuzzyMatchTests.cpp
++++ b/clang-tools-extra/clangd/unittests/FuzzyMatchTests.cpp
+@@ -339,6 +339,26 @@ TEST(TieredMatch, Tiers) {
+   EXPECT_FALSE(tieredMatch("Unrelated", "ector", std::nullopt));
+ }
+ 
++TEST(TieredMatch, WorkspaceSymbolMatch) {
++  FuzzyMatcher Ector("ector");
++  // Off, or a query below the threshold: the fuzzy match, first tier.
++  EXPECT_FALSE(workspaceSymbolMatch(Ector, "Vector", "ector", 0));
++  EXPECT_FALSE(workspaceSymbolMatch(Ector, "Vector", "ector", 6));
++  auto Fuzzy = workspaceSymbolMatch(Ector, "Ector", "ector", 0);
++  ASSERT_TRUE(Fuzzy);
++  EXPECT_TRUE(Fuzzy->FirstTier);
++  // On: mid-word matches, second tier.
++  auto Inside = workspaceSymbolMatch(Ector, "Vector", "ector", 3);
++  ASSERT_TRUE(Inside);
++  EXPECT_FALSE(Inside->FirstTier);
++  // Template arguments are searched neither contiguously nor fuzzily.
++  EXPECT_FALSE(workspaceSymbolMatch(
++      Ector, "EBOBaseImpl<T, true, CtorNotOnDevice>", "ector", 3));
++  // An operator keeps its `<`.
++  FuzzyMatcher Shift("tor<<");
++  EXPECT_TRUE(workspaceSymbolMatch(Shift, "operator<<", "tor<<", 3));
++}
++
+ TEST(TieredMatch, SecondTierScore) {
+   // Below every first-tier score, which is at least 0.
+   EXPECT_LT(secondTierScore(1e6f), 0.0f);
+diff --git a/clang-tools-extra/clangd/unittests/IndexTests.cpp b/clang-tools-extra/clangd/unittests/IndexTests.cpp
+index 722c786..0e84a7b 100644
+--- a/clang-tools-extra/clangd/unittests/IndexTests.cpp
++++ b/clang-tools-extra/clangd/unittests/IndexTests.cpp
+@@ -166,10 +166,9 @@ TEST(MemIndexTest, MiddleMatchTiers) {
+   Req.Query = "ector";
+   Req.AnyScope = true;
+   Req.MiddleMatch = 3;
+-  // As in Dex: contiguous first, then by share or scattered fuzzy score.
+-  EXPECT_THAT(match(*I, Req),
+-              ElementsAre("Ector", "Vector",
+-                          "EBOBaseImpl<T, true, CtorNotOnDevice>"));
++  // As in Dex: contiguous first, then by share; template arguments are not
++  // searched.
++  EXPECT_THAT(match(*I, Req), ElementsAre("Ector", "Vector"));
+   Req.Limit = 2;
+   EXPECT_THAT(match(*I, Req), ElementsAre("Ector", "Vector"));
+ }
+-- 
+2.56.1
+

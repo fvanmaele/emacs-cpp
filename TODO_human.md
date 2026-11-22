@@ -14,6 +14,19 @@ cannot read itself. An approval another session asks the owner for itself (a ben
 service's plan) is not an item.
 
 ## Run now
+- **H-40** (2026-11-22, unblocks T-152, T-153, T-154, D-212 - D-214) The patched clangd
+  pkgrel 2 (patches 0014 - 0019) on both machines.
+  1. On the Mac: `cd ~/source/repos/emacs-cpp && git push` (the session does not push).
+  2. On the Mac: `cd ~/source/repos/emacs-cpp && make clangd </dev/null` (installs to
+     `~/opt/clangd-index-nav`; about 15 min).
+  3. On Arch: `cd ~/source/repos/emacs-cpp && git pull --ff-only && make clangd
+     MAKEPKG_FLAGS=-si </dev/null` (compiles LLVM; pacman asks for the password).
+  4. On Arch: `cd ~/source/repos/emacs-cpp && make test </dev/null`
+  5. On either machine, in a C++ project after a restart of Emacs: `M-.` and `M-?` on a
+     function, `M-?` on a virtual method, `C-c l s` with `geom::vert` (deal.II): right
+     answers?
+  Report back: step 4's `Ran ...` line and any FAILED names; what step 5 showed.
+
 - **H-39** (2026-11-20, unblocks T-150, T-151, D-210, D-211) The icon tool bar: look
   at it on both machines, tests and startup on Arch.
   1. On the Mac: `cd ~/source/repos/emacs-cpp && git push` (the session does not push).

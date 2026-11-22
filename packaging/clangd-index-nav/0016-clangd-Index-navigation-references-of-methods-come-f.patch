@@ -1,0 +1,107 @@
+From 2ac7088710941948857fbe900ed0008b49bbc511 Mon Sep 17 00:00:00 2001
+From: Ferdinand Vanmaele <info@fvanmaele.de>
+Date: Sun, 22 Nov 2026 09:50:54 +0100
+Subject: [PATCH 16/19] [clangd] Index navigation: references of methods come
+ from the AST
+
+The AST path of find-references adds a virtual method's overrides and the
+methods it overrides. The index cannot tell a virtual method (no symbol
+flag says so) nor find what a method overrides (relations go from the base
+method down), so the answer depended on which path won the race. The index
+path now leaves the references of instance methods, destructors and
+conversion functions to the AST.
+---
+ clang-tools-extra/clangd/XRefs.cpp            | 20 +++++++++++++
+ clang-tools-extra/clangd/XRefs.h              |  4 +--
+ .../clangd/unittests/BackgroundIndexTests.cpp | 29 +++++++++++++++++++
+ 3 files changed, 51 insertions(+), 2 deletions(-)
+
+diff --git a/clang-tools-extra/clangd/XRefs.cpp b/clang-tools-extra/clangd/XRefs.cpp
+index fabdc81..cf59bfc 100644
+--- a/clang-tools-extra/clangd/XRefs.cpp
++++ b/clang-tools-extra/clangd/XRefs.cpp
+@@ -2779,6 +2779,26 @@ findReferencesToIndexedSymbols(llvm::ArrayRef<SymbolID> IDs,
+                                const SymbolIndex *Index) {
+   if (!Index || IDs.empty())
+     return std::nullopt;
++  // The AST path adds a virtual method's overrides and the methods it
++  // overrides. The index cannot tell a virtual method (no symbol flag says so)
++  // nor find what a method overrides (relations go from the base method down),
++  // so the references of any method that may be virtual are left to the AST.
++  bool MayBeVirtual = false;
++  LookupRequest Lookup;
++  Lookup.IDs.insert(IDs.begin(), IDs.end());
++  Index->lookup(Lookup, [&](const Symbol &Sym) {
++    switch (Sym.SymInfo.Kind) {
++    case index::SymbolKind::InstanceMethod:
++    case index::SymbolKind::Destructor:
++    case index::SymbolKind::ConversionFunction:
++      MayBeVirtual = true;
++      break;
++    default:
++      break;
++    }
++  });
++  if (MayBeVirtual)
++    return std::nullopt;
+   ReferencesResult Results;
+   // Several targets can share a reference (see symbolsAtFromShard): report each
+   // location once, with the attributes of all its references.
+diff --git a/clang-tools-extra/clangd/XRefs.h b/clang-tools-extra/clangd/XRefs.h
+index 71a7803..32bbfe3 100644
+--- a/clang-tools-extra/clangd/XRefs.h
++++ b/clang-tools-extra/clangd/XRefs.h
+@@ -160,8 +160,8 @@ locateIndexedSymbols(llvm::ArrayRef<SymbolID> IDs, const IndexFileIn &Shard,
+ 
+ /// findReferences for the indexed symbols \p IDs (their references combined),
+ /// answered from \p Index without an AST. Returns std::nullopt while the index
+-/// has no reference to them (they were found at a reference, so a loaded index
+-/// has at least that one).
++/// has no reference to them, and for a method that may be virtual (instance
++/// methods, destructors, conversion functions): its overrides need the AST.
+ std::optional<ReferencesResult>
+ findReferencesToIndexedSymbols(llvm::ArrayRef<SymbolID> IDs,
+                                llvm::StringRef MainFilePath, uint32_t Limit,
+diff --git a/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp b/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp
+index a023c1e..788e5cb 100644
+--- a/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp
++++ b/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp
+@@ -351,6 +351,35 @@ TEST(NavigationFromShard, AllSymbolsAtTheSameRangeAreTargets) {
+   EXPECT_EQ(Result->References.size(), 2u);
+ }
+ 
++TEST(NavigationFromShard, MethodReferencesNeedTheAST) {
++  // References of a method that may be virtual include its overrides and the
++  // methods it overrides (the AST path); the index cannot tell, so it does not
++  // answer. A free function's references it does answer.
++  std::string Path = testPath("p/a.cc");
++  std::string FileURI = URI::create(Path).toString();
++  SymbolID Method = SymbolID("method"), Function = SymbolID("function");
++  SymbolSlab::Builder Symbols;
++  for (auto [ID, Kind] : {std::make_pair(Method, index::SymbolKind::InstanceMethod),
++                          std::make_pair(Function, index::SymbolKind::Function)}) {
++    Symbol Sym;
++    Sym.ID = ID;
++    Sym.SymInfo.Kind = Kind;
++    Symbols.insert(Sym);
++  }
++  RefSlab::Builder Refs;
++  Ref R;
++  R.Location.FileURI = FileURI.c_str();
++  R.Kind = RefKind::Reference | RefKind::Spelled;
++  Refs.insert(Method, R);
++  Refs.insert(Function, R);
++  auto Index = MemIndex::build(std::move(Symbols).build(),
++                               std::move(Refs).build(), RelationSlab());
++  EXPECT_FALSE(findReferencesToIndexedSymbols({Method}, Path, 0, Index.get()));
++  EXPECT_FALSE(findReferencesToIndexedSymbols({Method, Function}, Path, 0,
++                                              Index.get()));
++  EXPECT_TRUE(findReferencesToIndexedSymbols({Function}, Path, 0, Index.get()));
++}
++
+ TEST(NavigationFromShard, SymbolsWithoutLocationAnswerNothing) {
+   // An index answer with no location would win the race against the AST's
+   // and show nothing; it must leave the answer to the AST.
+-- 
+2.56.1
+

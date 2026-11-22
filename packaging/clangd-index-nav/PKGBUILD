@@ -14,18 +14,24 @@
 # abbreviated qualifiers and mid-word matches on request, announced as the
 # capability workspaceSymbolMatchesProvider (patches 0011, 0012, D-113, S14); mid-word
 # matches ranked by shape, after those contiguous from a word start (patch 0013,
-# D-119, S15). Also clangd-indexer, from the same tree, so that a library's offline index
-# is written in the format this clangd reads (D-133, T-118; `make library-index`).
+# D-119, S15); after an adversarial review (D-212 - D-214): navigation from the index
+# answers once the shards are loaded, on its own thread, from spelled references only,
+# not for methods, and not from a shard of another compile command (0014 - 0017); header
+# flags by real path, each header waiting once (0018); workspace/symbol never searches
+# template arguments, keeps operators, puts the tiers into the score (0019). Also
+# clangd-indexer, from the same tree, so that a library's offline index is written in
+# the format this clangd reads (D-133, T-118; `make library-index`).
 # Self-contained (D-207): LLVM and clang are compiled from the release and linked in,
 # the builtin headers are the release's own, so pacman's LLVM may be at any version.
 # Installed to /opt, next to (not instead of) the clang package's clangd.  Patches 0001 - 0009: `git format-patch
 # 6e2cc8df7..HEAD` in ~/source/repos/llvm-clangd; 0010 - 0012: `git format-patch
 # --start-number 10` on the tree of build-macos.sh (T-104); 0013: `git format-patch
-# --start-number 13` on the makepkg tree (T-108).
+# --start-number 13` on the makepkg tree (T-108); 0014 - 0019: `git format-patch
+# --start-number 14` on the tree of build-macos.sh (T-152, T-153, T-154).
 
 pkgname=clangd-index-nav
 pkgver=23.1.5
-pkgrel=1
+pkgrel=2
 pkgdesc="clangd $pkgver answering navigation from its index before parsing (emacs-cpp patches)"
 arch=(x86_64)
 url="https://github.com/llvm/llvm-project"
@@ -47,7 +53,13 @@ source=("https://github.com/llvm/llvm-project/releases/download/llvmorg-$pkgver/
         0010-clangd-Name-background-index-main-files-by-their-rea.patch
         0011-clangd-workspace-symbol-abbreviated-qualifiers-on-re.patch
         0012-clangd-workspace-symbol-mid-word-matches-on-request-.patch
-        0013-clangd-workspace-symbol-rank-mid-word-matches-by-sha.patch)
+        0013-clangd-workspace-symbol-rank-mid-word-matches-by-sha.patch
+        0014-clangd-Index-navigation-answer-once-the-shards-are-l.patch
+        0015-clangd-Index-navigation-only-references-spelled-at-t.patch
+        0016-clangd-Index-navigation-references-of-methods-come-f.patch
+        0017-clangd-Index-navigation-ignore-a-shard-indexed-with-.patch
+        0018-clangd-Header-flags-from-the-index-real-paths-and-wa.patch
+        0019-clangd-workspace-symbol-template-arguments-never-sea.patch)
 sha256sums=('fb50b1eac93ddeb3aa8dab4cfe324dff74f4a9c2bdee6160c9e36188f8d06a6e'
             'a8c5acda8b7e43611f22297cb9ba6f95e62c464a6ac78f8027c267973d4702bb'
             '3b3cce804554ab484a2f5396f28cb87f66b87ad4ccd4d6e8e65f4bc7e89feab1'
@@ -61,7 +73,13 @@ sha256sums=('fb50b1eac93ddeb3aa8dab4cfe324dff74f4a9c2bdee6160c9e36188f8d06a6e'
             '6c540fd6f7cbedaeaab01ff2f64c959ec3f34347e479c1b15c8fc2e7b41defc0'
             'a33ceaa56e0e7386a33b93493ba5753fbb80ccffb8fcb3332cb03c39e1cc5206'
             'fbf034d9717d2411d94d6e02af0d8693ff9502368ea4ef9b2a98aee1ae8d756a'
-            'f0981e869cd5d156bc65eee07e3cdeed3314881a199dfd6a642e023c7869ed7b')
+            'f0981e869cd5d156bc65eee07e3cdeed3314881a199dfd6a642e023c7869ed7b'
+            'ebc8fe8f001e049e4106f8e2794668729168ea45a84bbc9efbfabb3547f1ff44'
+            '5c6458cadaa06c1fe8aae505fd753039be04eb40b8ed6f2f8c9572624d19f9cc'
+            '8e68418b82bf43d7b657d773962848006b72826230e8a0d0a38db8295e8ae31c'
+            '2310e01da1900eb6de196b96319ef9efd6ff5393654eaca924995b623a10394a'
+            '4d3a018898a790b35271b61045327fe8b43d6e6e596a78e888c4a3c0e9111b34'
+            'da98c62850e2e75464257c015ec73b13b010643a72849b56bffc6c81db528d67')
 
 prepare() {
   cd llvm-project-$pkgver.src

@@ -157,9 +157,11 @@ exited); its shutdown leaves no fswatch running."
          (emacs-cpp-lsp--symbol-warned nil))
      (cl-letf (((symbol-function 'eglot--capabilities)
                 (lambda (server)
-                  (and (eq server 'patched)
-                       '(:workspaceSymbolMatchesProvider
-                         (:looseScope t :middleMatch t)))))
+                  (pcase server
+                    ('patched '(:workspaceSymbolMatchesProvider
+                                (:looseScope t :middleMatch t)))
+                    ('older '(:workspaceSymbolMatchesProvider
+                              (:looseScope t))))))
                ((symbol-function 'eglot--server-info)
                 (lambda (server)
                   (list :name (if (eq server 'pyright) "pyright" "clangd"))))
@@ -168,14 +170,22 @@ exited); its shutdown leaves no fswatch running."
        ,@body)))
 
 (ert-deftest init-lsp-symbol-params ()
-  "D-113: CLion-style matches asked for only of a server that announces them;
-a clangd announcing none gets one warning, other servers none."
+  "D-113, D-213: CLion-style matches asked for only of a server that announces
+them, abbreviated qualifiers with a limit; a clangd lacking one gets one
+warning naming it, other servers none."
   (init-test--load)
   (let ((emacs-cpp-symbol-loose-scope t)
         (emacs-cpp-symbol-middle-match 3))
     (init-lsp-test--with-servers
       (should (equal (emacs-cpp-lsp-symbol-params 'patched)
-                     '(:looseScope t :middleMatch 3)))
+                     `(:looseScope t :limit ,emacs-cpp-symbol-loose-scope-limit
+                       :middleMatch 3)))
+      ;; An older patched clangd offering one of the two: that one, and a warning.
+      (should (equal (emacs-cpp-lsp-symbol-params 'older)
+                     `(:looseScope t :limit ,emacs-cpp-symbol-loose-scope-limit)))
+      (should (= 1 (length warned)))
+      (should (string-match-p "emacs-cpp-symbol-middle-match" (car warned)))
+      (setq warned nil)
       (should-not (emacs-cpp-lsp-symbol-params 'pyright))
       (should-not warned)
       (should-not (emacs-cpp-lsp-symbol-params 'stock))
@@ -192,7 +202,12 @@ a clangd announcing none gets one warning, other servers none."
   (let ((emacs-cpp-symbol-loose-scope nil)
         (emacs-cpp-symbol-middle-match 4))
     (init-lsp-test--with-servers
-      (should (equal (emacs-cpp-lsp-symbol-params 'patched) '(:middleMatch 4))))))
+      (should (equal (emacs-cpp-lsp-symbol-params 'patched) '(:middleMatch 4)))))
+  ;; Below 3 is no valid value: the server would refuse the request.
+  (let ((type (widget-convert (get 'emacs-cpp-symbol-middle-match 'custom-type))))
+    (should-not (widget-apply type :match 2))
+    (should (widget-apply type :match 3))
+    (should (widget-apply type :match nil))))
 
 (ert-deftest init-lsp-symbol-params-in-requests ()
   "D-113: `M-o' and `C-c l s' put each server's parameters into its request."
@@ -211,14 +226,16 @@ a clangd announcing none gets one warning, other servers none."
                           #'ignore)
                  "vec")
         (should (equal (alist-get 'patched sent)
-                       '(:query "vec" :looseScope t :middleMatch 3)))
+                       `(:query "vec" :looseScope t
+                         :limit ,emacs-cpp-symbol-loose-scope-limit :middleMatch 3)))
         (should (equal (alist-get 'pyright sent) '(:query "vec")))
         (setq sent nil)
         (funcall (funcall (consult-eglot--make-async-source '(patched pyright))
                           #'ignore)
                  "vec")
         (should (equal (alist-get 'patched sent)
-                       '(:query "vec" :looseScope t :middleMatch 3)))
+                       `(:query "vec" :looseScope t
+                         :limit ,emacs-cpp-symbol-loose-scope-limit :middleMatch 3)))
         (should (equal (alist-get 'pyright sent) '(:query "vec")))))))
 
 (provide 'init-lsp-test)

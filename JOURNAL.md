@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0142 | 2026-11-22 | T-152 .. T-154: clangd patches 0014 - 0019 after an adversarial review | T-152, T-153, T-154 | D-212, D-213, D-214 |
 | 0141 | 2026-11-22 | T-151: the tool bar after an adversarial review | T-151 | D-211 |
 | 0140 | 2026-11-20 | T-150: an icon tool bar for the common commands | T-150 | D-210 |
 | 0139 | 2026-11-18 | T-149: the patched clangd self-contained on Arch, one LLVM pin | T-149 | D-207 |

@@ -200,11 +200,13 @@ project's out.  Symbols keep the order each server sent them in (D-105)."
             (dolist (server servers)
               (jsonrpc-async-request
                server :workspace/symbol
-               (append (if root-uris
-                           `(:query ,query :limit ,emacs-cpp-go-symbol-limit)
-                         `(:query ,query))
-                       ;; CLion-style matches, where the server offers them (D-113).
-                       (emacs-cpp-lsp-symbol-params server))
+               ;; CLion-style matches, where the server offers them (D-113);
+               ;; with ROOT-URIS this prompt's own limit (D-083, D-213).
+               (let ((params (append (list :query query)
+                                     (emacs-cpp-lsp-symbol-params server))))
+                 (if root-uris
+                     (plist-put params :limit emacs-cpp-go-symbol-limit)
+                   params))
                :success-fn
                (lambda (reply)
                  (when (equal query latest)

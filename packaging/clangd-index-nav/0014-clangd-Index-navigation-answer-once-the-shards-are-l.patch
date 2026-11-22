@@ -1,0 +1,482 @@
+From 9a902403a2929b5fb396cbee07cb6d918290648b Mon Sep 17 00:00:00 2001
+From: Ferdinand Vanmaele <info@fvanmaele.de>
+Date: Sun, 22 Nov 2026 09:50:54 +0100
+Subject: [PATCH 14/19] [clangd] Index navigation: answer once the shards are
+ loaded, off the worker pool
+
+The index path of go-to-definition and find-references (navigation from
+the index) asked the index every 50 ms for up to 5 s and answered as soon
+as it knew the symbol. At startup the background index adds its stored
+shards one project batch at a time, so the first references found were
+taken as the answer: a first find-references after a restart could list
+3 of 40 references, and the complete AST answer then lost the race.
+
+The index path now waits until every project the compile database has
+handed over is loaded into the index (BackgroundIndex::waitForLoadedShards,
+counted from enqueue() to the end of loadProject(), after the rebuild) and
+then asks once. It waits on its own thread (AsyncTaskRunner) with the
+request's context, not on a TUScheduler worker: the poller held a slot of
+the semaphore the AST build it races needs, and ignored cancellation. The
+wait ends when the request is answered or cancelled, or the server stops
+(the destructor waits for these threads first). The shard is now read on
+that thread, not on the main thread. An index answer that locates nothing
+leaves the answer to the AST. The wait is a named constant; the log says
+why the index did not answer.
+---
+ clang-tools-extra/clangd/ClangdServer.cpp     | 142 +++++++++++-------
+ clang-tools-extra/clangd/ClangdServer.h       |  14 ++
+ clang-tools-extra/clangd/XRefs.cpp            |   5 +-
+ clang-tools-extra/clangd/index/Background.cpp |  31 ++++
+ clang-tools-extra/clangd/index/Background.h   |  13 ++
+ .../clangd/unittests/BackgroundIndexTests.cpp |  92 ++++++++++++
+ 6 files changed, 241 insertions(+), 56 deletions(-)
+
+diff --git a/clang-tools-extra/clangd/ClangdServer.cpp b/clang-tools-extra/clangd/ClangdServer.cpp
+index 3021ac0..fe815e8 100644
+--- a/clang-tools-extra/clangd/ClangdServer.cpp
++++ b/clang-tools-extra/clangd/ClangdServer.cpp
+@@ -51,7 +51,6 @@
+ #include <future>
+ #include <memory>
+ #include <mutex>
+-#include <thread>
+ #include <optional>
+ #include <string>
+ #include <type_traits>
+@@ -326,6 +325,11 @@ ClangdServer::ClangdServer(const GlobalCompilationDatabase &CDB,
+ }
+ 
+ ClangdServer::~ClangdServer() {
++  // Navigation from the index waits on its own threads, which read the
++  // index, the drafts and the compile database: stop them first (each sees the
++  // flag within 100 ms, see waitForLoadedShards).
++  ShuttingDown = true;
++  NavigationTasks.wait();
+   // Destroying TUScheduler first shuts down request threads that might
+   // otherwise access members concurrently.
+   // (Nobody can be using TUScheduler because we're on the main thread).
+@@ -872,21 +876,39 @@ private:
+   Callback<T> CB;
+ };
+ 
+-// Asks Query every 50 ms until it answers, the AST path has answered, or 5 s
+-// have passed. The background index loads its stored shards asynchronously at
+-// startup, so symbols of other files may only become available shortly after.
+-template <typename T>
+-bool pollIndex(FirstAnswer<T> &Answer,
+-               llvm::function_ref<std::optional<T>()> Query) {
+-  auto Deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+-  while (!Answer.answered() && std::chrono::steady_clock::now() < Deadline) {
+-    if (auto Result = Query())
+-      return Answer.answer(std::move(*Result));
+-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+-  }
++// How long navigation from the index waits for the background index to load
++// its stored shards (at startup, after the compile database finds a project).
++// The AST path answers meanwhile; the wait only decides whether the index may.
++constexpr auto NavigationIndexWait = std::chrono::seconds(5);
++} // namespace
++
++void ClangdServer::runNavigationFromIndex(llvm::StringRef Name,
++                                          llvm::unique_function<void()> Action) {
++  // Its own thread, not a TUScheduler worker: the wait for the index must not
++  // hold a slot the AST build it races needs. The request's context goes
++  // along, so a cancelled request stops waiting.
++  NavigationTasks.runAsync(
++      Name, [Action = std::move(Action),
++             Ctx = Context::current().clone()]() mutable {
++        WithContext WithRequestContext(std::move(Ctx));
++        Action();
++      });
++}
++
++bool ClangdServer::waitForNavigationIndex(llvm::function_ref<bool()> Answered,
++                                          llvm::StringRef What,
++                                          PathRef File) {
++  auto Until = std::chrono::steady_clock::now() + NavigationIndexWait;
++  if (BackgroundIdx->waitForLoadedShards(Until, [&] {
++        return ShuttingDown || isCancelled() || Answered();
++      }))
++    return true;
++  if (!Answered() && !ShuttingDown && !isCancelled())
++    vlog("{0} in {1} need the AST: the index's shards were not loaded within "
++         "{2} s",
++         What, File, NavigationIndexWait.count());
+   return false;
+ }
+-} // namespace
+ 
+ std::optional<ClangdServer::NavigationShard>
+ ClangdServer::navigationShard(PathRef File) {
+@@ -924,32 +946,38 @@ ClangdServer::indexedSymbolsAt(PathRef File, Position Pos,
+ 
+ void ClangdServer::locateSymbolAt(PathRef File, Position Pos,
+                                   Callback<std::vector<LocatedSymbol>> CB) {
+-  auto Loaded = navigationShard(File);
+-  // An #include line names its header: the shard's include graph knows it.
+-  if (Loaded)
+-    if (auto Include = clangd::locateIncludeFromShard(*Loaded->first, File,
+-                                                      *Loaded->second, Pos)) {
+-      vlog("Definitions in {0} answered from the index shard (#include)", File);
+-      return CB(std::vector<LocatedSymbol>{std::move(*Include)});
+-    }
+   auto Answer =
+       std::make_shared<FirstAnswer<std::vector<LocatedSymbol>>>(std::move(CB));
+-  if (auto Indexed =
+-          Loaded ? indexedSymbolsAt(File, Pos, *Loaded) : std::nullopt) {
+-    WorkScheduler->run(
+-        "DefinitionsFromIndex", File,
+-        [Answer, Shard = Indexed->first, IDs = Indexed->second,
+-         Path = File.str(), this] {
+-          if (pollIndex<std::vector<LocatedSymbol>>(*Answer, [&] {
+-                return clangd::locateIndexedSymbols(IDs, *Shard, Path, Index);
+-              }))
+-            vlog("Definitions in {0} answered from the index shard", Path);
+-          else if (!Answer->answered())
+-            vlog("Definitions in {0} need the AST: the index did not know the "
+-                 "symbol within 5 s",
+-                 Path);
+-        });
+-  }
++  if (NavigationFromIndex && BackgroundIdx)
++    runNavigationFromIndex("DefinitionsFromIndex", [Answer, Pos,
++                                                    Path = File.str(), this] {
++      // The shard is read here, off the main thread.
++      auto Loaded = navigationShard(Path);
++      if (!Loaded)
++        return;
++      // An #include line names its header: the shard's include graph knows it.
++      if (auto Include = clangd::locateIncludeFromShard(
++              *Loaded->first, Path, *Loaded->second, Pos)) {
++        if (Answer->answer(std::vector<LocatedSymbol>{std::move(*Include)}))
++          vlog("Definitions in {0} answered from the index shard (#include)",
++               Path);
++        return;
++      }
++      auto Indexed = indexedSymbolsAt(Path, Pos, *Loaded);
++      if (!Indexed || !waitForNavigationIndex(
++                          [&] { return Answer->answered(); }, "Definitions",
++                          Path))
++        return;
++      auto Result =
++          clangd::locateIndexedSymbols(Indexed->second, *Indexed->first, Path,
++                                       Index);
++      if (!Result)
++        vlog("Definitions in {0} need the AST: the index does not locate "
++             "every symbol there",
++             Path);
++      else if (Answer->answer(std::move(*Result)))
++        vlog("Definitions in {0} answered from the index shard", Path);
++    });
+   auto Action = [Pos, Answer,
+                  this](llvm::Expected<InputsAndAST> InpAST) mutable {
+     if (Answer->answered())
+@@ -1160,23 +1188,27 @@ void ClangdServer::findReferences(PathRef File, Position Pos, uint32_t Limit,
+                                   Callback<ReferencesResult> CB) {
+   auto Answer = std::make_shared<FirstAnswer<ReferencesResult>>(std::move(CB));
+   // Containers need the AST path; everything else may come from the shard.
+-  auto Loaded = AddContainer ? std::nullopt : navigationShard(File);
+-  if (auto Indexed =
+-          Loaded ? indexedSymbolsAt(File, Pos, *Loaded) : std::nullopt) {
+-    WorkScheduler->run(
+-        "ReferencesFromIndex", File,
+-        [Answer, IDs = Indexed->second, Path = File.str(), Limit, this] {
+-          if (pollIndex<ReferencesResult>(*Answer, [&] {
+-                return clangd::findReferencesToIndexedSymbols(IDs, Path, Limit,
+-                                                              Index);
+-              }))
+-            vlog("References in {0} answered from the index shard", Path);
+-          else if (!Answer->answered())
+-            vlog("References in {0} need the AST: the index had no reference "
+-                 "within 5 s",
+-                 Path);
+-        });
+-  }
++  if (NavigationFromIndex && BackgroundIdx && !AddContainer)
++    runNavigationFromIndex("ReferencesFromIndex", [Answer, Pos, Limit,
++                                                   Path = File.str(), this] {
++      // The shard is read here, off the main thread.
++      auto Loaded = navigationShard(Path);
++      if (!Loaded)
++        return;
++      auto Indexed = indexedSymbolsAt(Path, Pos, *Loaded);
++      if (!Indexed || !waitForNavigationIndex(
++                          [&] { return Answer->answered(); }, "References",
++                          Path))
++        return;
++      auto Result = clangd::findReferencesToIndexedSymbols(Indexed->second,
++                                                           Path, Limit, Index);
++      if (!Result)
++        vlog("References in {0} need the AST: the index has no reference to "
++             "the symbols there",
++             Path);
++      else if (Answer->answer(std::move(*Result)))
++        vlog("References in {0} answered from the index shard", Path);
++    });
+   auto Action = [Pos, Limit, AddContainer, Answer,
+                  this](llvm::Expected<InputsAndAST> InpAST) mutable {
+     if (Answer->answered())
+diff --git a/clang-tools-extra/clangd/ClangdServer.h b/clang-tools-extra/clangd/ClangdServer.h
+index 857dffc..a5e0f3a 100644
+--- a/clang-tools-extra/clangd/ClangdServer.h
++++ b/clang-tools-extra/clangd/ClangdServer.h
+@@ -35,6 +35,7 @@
+ #include "llvm/ADT/ArrayRef.h"
+ #include "llvm/ADT/FunctionExtras.h"
+ #include "llvm/ADT/StringRef.h"
++#include <atomic>
+ #include <functional>
+ #include <memory>
+ #include <optional>
+@@ -503,6 +504,15 @@ private:
+   /// open file's content matches the shard; logs why not otherwise.
+   std::optional<std::pair<std::shared_ptr<IndexFileIn>, std::vector<SymbolID>>>
+   indexedSymbolsAt(PathRef File, Position Pos, const NavigationShard &Loaded);
++  /// Runs \p Action, navigation from the index, on its own thread with the
++  /// current context.
++  void runNavigationFromIndex(llvm::StringRef Name,
++                              llvm::unique_function<void()> Action);
++  /// Waits until the background index has loaded its stored shards, so that
++  /// an answer from it is not partial; false (logged) if it has not within
++  /// the wait, or the request was answered, cancelled or the server stops.
++  bool waitForNavigationIndex(llvm::function_ref<bool()> Answered,
++                              llvm::StringRef What, PathRef File);
+ 
+   const GlobalCompilationDatabase &CDB;
+   const ThreadsafeFS &getHeaderFS() const {
+@@ -535,6 +545,10 @@ private:
+ 
+   // Whether navigation may be answered from the background-index shard.
+   bool NavigationFromIndex = false;
++  // The threads of navigation from the index (runNavigationFromIndex), and
++  // the flag that stops their waits when the server is destroyed.
++  AsyncTaskRunner NavigationTasks;
++  std::atomic<bool> ShuttingDown{false};
+ 
+   // Whether the client supports folding only complete lines.
+   bool LineFoldingOnly = false;
+diff --git a/clang-tools-extra/clangd/XRefs.cpp b/clang-tools-extra/clangd/XRefs.cpp
+index c317356..07576e5 100644
+--- a/clang-tools-extra/clangd/XRefs.cpp
++++ b/clang-tools-extra/clangd/XRefs.cpp
+@@ -2758,9 +2758,12 @@ locateIndexedSymbols(llvm::ArrayRef<SymbolID> IDs, const IndexFileIn &Shard,
+       if (!Found.contains(ID) && It != Shard.Symbols->end())
+         FromSymbol(*It);
+     }
+-  // Every target must be known, or the answer could be partial: wait.
++  // Every target must be known, or the answer could be partial.
+   if (Found.size() != llvm::DenseSet<SymbolID>(IDs.begin(), IDs.end()).size())
+     return std::nullopt;
++  // Symbols without a location answer nothing: leave the answer to the AST.
++  if (Result.empty())
++    return std::nullopt;
+   return Result;
+ }
+ 
+diff --git a/clang-tools-extra/clangd/index/Background.cpp b/clang-tools-extra/clangd/index/Background.cpp
+index 1e7587b..1e49eac 100644
+--- a/clang-tools-extra/clangd/index/Background.cpp
++++ b/clang-tools-extra/clangd/index/Background.cpp
+@@ -435,6 +435,30 @@ llvm::Error BackgroundIndex::index(tooling::CompileCommand Cmd) {
+ void BackgroundIndex::projectLoadStarted() {
+   std::lock_guard<std::mutex> Lock(IncludersMu);
+   ++ProjectsLoading;
++  ++ShardsLoading;
++}
++
++bool BackgroundIndex::waitForLoadedShards(
++    std::chrono::steady_clock::time_point Until,
++    llvm::function_ref<bool()> Stop) {
++  // As in includerOf: a project announced but not yet handed over is not
++  // counted yet.
++  CDB.blockUntilIdle(Deadline(Until));
++  std::unique_lock<std::mutex> Lock(IncludersMu);
++  while (ShardsLoading > 0) {
++    auto Now = std::chrono::steady_clock::now();
++    if (Now >= Until)
++      return false;
++    Lock.unlock();
++    bool Stopped = Stop();
++    Lock.lock();
++    if (Stopped)
++      return false;
++    IncludersChanged.wait_until(
++        Lock, std::min(Until, Now + std::chrono::milliseconds(100)),
++        [&] { return ShardsLoading == 0; });
++  }
++  return true;
+ }
+ 
+ void BackgroundIndex::projectLoadFinished() {
+@@ -503,6 +527,13 @@ BackgroundIndex::loadProject(std::vector<std::string> MainFiles) {
+   }
+   Rebuilder.loadedShard(LoadedShards);
+   Rebuilder.doneLoading();
++  // The index now holds these shards (doneLoading() rebuilds it in this
++  // thread): navigation from the index may answer (waitForLoadedShards).
++  {
++    std::lock_guard<std::mutex> Lock(IncludersMu);
++    --ShardsLoading;
++  }
++  IncludersChanged.notify_all();
+ 
+   auto FS = TFS.view(/*CWD=*/std::nullopt);
+   llvm::DenseSet<PathRef> TUsToIndex;
+diff --git a/clang-tools-extra/clangd/index/Background.h b/clang-tools-extra/clangd/index/Background.h
+index 360fef2..da2d7ce 100644
+--- a/clang-tools-extra/clangd/index/Background.h
++++ b/clang-tools-extra/clangd/index/Background.h
+@@ -21,6 +21,7 @@
+ #include "support/Threading.h"
+ #include "support/ThreadsafeFS.h"
+ #include "clang/Tooling/CompilationDatabase.h"
++#include "llvm/ADT/STLFunctionalExtras.h"
+ #include "llvm/ADT/StringMap.h"
+ #include "llvm/Support/Threading.h"
+ #include <atomic>
+@@ -176,6 +177,15 @@ public:
+   std::optional<std::string>
+   includerOf(PathRef Header, std::chrono::steady_clock::duration Wait);
+ 
++  /// Waits until the stored shards of every project the compile database has
++  /// handed over are loaded into the index (after includerOf's wait ends: the
++  /// shards are read, then merged and the index rebuilt). Gives up at \p Until,
++  /// or once \p Stop returns true (asked every 100 ms). Returns whether the
++  /// shards are loaded; navigation from the index answers only then, so that
++  /// it never answers from the first of several shards.
++  bool waitForLoadedShards(std::chrono::steady_clock::time_point Until,
++                           llvm::function_ref<bool()> Stop);
++
+   /// Boosts priority of indexing related to Path.
+   /// Typically used to index TUs when headers are opened.
+   void boostRelated(llvm::StringRef Path);
+@@ -234,6 +244,9 @@ private:
+   // recorded yet: counted by projectLoadStarted() in enqueue() and
+   // projectLoadFinished() in loadProject(), the two defined side by side.
+   unsigned ProjectsLoading = 0;
++  // Number of enqueued shard loads not yet merged into the index: counted with
++  // ProjectsLoading, released at the end of loadProject() (waitForLoadedShards).
++  unsigned ShardsLoading = 0;
+   std::mutex IncludersMu;
+   std::condition_variable IncludersChanged;
+   void recordIncluders(llvm::ArrayRef<std::pair<std::string, std::string>>
+diff --git a/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp b/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp
+index c2a91fb..a1ef4c7 100644
+--- a/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp
++++ b/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp
+@@ -23,6 +23,7 @@ using ::testing::_;
+ using ::testing::AllOf;
+ using ::testing::Contains;
+ using ::testing::ElementsAre;
++using ::testing::IsEmpty;
+ using ::testing::Not;
+ using ::testing::Pair;
+ using ::testing::UnorderedElementsAre;
+@@ -344,6 +345,22 @@ TEST(NavigationFromShard, AllSymbolsAtTheSameRangeAreTargets) {
+   EXPECT_EQ(Result->References.size(), 2u);
+ }
+ 
++TEST(NavigationFromShard, SymbolsWithoutLocationAnswerNothing) {
++  // An index answer with no location would win the race against the AST's
++  // and show nothing; it must leave the answer to the AST.
++  std::string Path = testPath("p/a.cc");
++  SymbolID ID = SymbolID("nowhere");
++  SymbolSlab::Builder Symbols;
++  Symbol Sym;
++  Sym.ID = ID;
++  Sym.Name = "nowhere";
++  Symbols.insert(Sym);
++  auto Index = MemIndex::build(std::move(Symbols).build(), RefSlab(),
++                               RelationSlab());
++  IndexFileIn Shard;
++  EXPECT_FALSE(locateIndexedSymbols({ID}, Shard, Path, Index.get()));
++}
++
+ TEST_F(NavigationFromShardTest, IncludeLineMatchesTheAST) {
+   auto Shard = Idx->loadShard(MainPath);
+   ASSERT_TRUE(Shard);
+@@ -1005,6 +1022,81 @@ TEST_F(BackgroundIndexTest, IncluderOfKnownHeaderDoesNotWaitForTheDatabase) {
+   CDB.Busy = false;
+ }
+ 
++// Shard storage whose loads wait until the gate opens: a background index that
++// is still loading its stored shards, as at startup on a large project.
++class GatedShardStorage : public MemoryShardStorage {
++public:
++  using MemoryShardStorage::MemoryShardStorage;
++  std::unique_ptr<IndexFileIn>
++  loadShard(llvm::StringRef ShardIdentifier) const override {
++    {
++      std::unique_lock<std::mutex> Lock(GateMu);
++      GateOpened.wait(Lock, [&] { return Open; });
++    }
++    return MemoryShardStorage::loadShard(ShardIdentifier);
++  }
++  void open() {
++    {
++      std::lock_guard<std::mutex> Lock(GateMu);
++      Open = true;
++    }
++    GateOpened.notify_all();
++  }
++
++private:
++  mutable std::mutex GateMu;
++  mutable std::condition_variable GateOpened;
++  bool Open = false;
++};
++
++TEST_F(BackgroundIndexTest, WaitForLoadedShards) {
++  // Navigation from the index answers only once the stored shards are merged
++  // into the index: an answer from the first shards loaded would be partial.
++  MockFS FS;
++  FS.Files[testPath("root/b.h")] = "int b();";
++  std::string MainPath = testPath("root/A.cc");
++  FS.Files[MainPath] = "#include \"b.h\"\nint main() { return b(); }";
++  llvm::StringMap<std::string> Storage;
++  size_t CacheHits = 0;
++  tooling::CompileCommand Cmd;
++  Cmd.Filename = MainPath;
++  Cmd.Directory = testPath("root");
++  Cmd.CommandLine = {"clang++", MainPath};
++  {
++    MemoryShardStorage MSS(Storage, CacheHits);
++    OverlayCDB CDB(/*Base=*/nullptr);
++    BackgroundIndex Idx(FS, CDB, [&](llvm::StringRef) { return &MSS; },
++                        /*Opts=*/{});
++    CDB.setCompileCommand(MainPath, Cmd);
++    ASSERT_TRUE(Idx.blockUntilIdleForTest());
++  }
++  GatedShardStorage Gated(Storage, CacheHits);
++  OverlayCDB CDB(/*Base=*/nullptr);
++  BackgroundIndex Idx(FS, CDB, [&](llvm::StringRef) { return &Gated; },
++                      /*Opts=*/{});
++  auto Never = [] { return false; };
++  // No project handed over yet: nothing to wait for.
++  EXPECT_TRUE(Idx.waitForLoadedShards(std::chrono::steady_clock::now(), Never));
++  CDB.setCompileCommand(MainPath, Cmd); // the load starts and waits at the gate
++  auto Start = std::chrono::steady_clock::now();
++  EXPECT_FALSE(Idx.waitForLoadedShards(Start + std::chrono::milliseconds(300),
++                                       Never));
++  EXPECT_GE(std::chrono::steady_clock::now() - Start,
++            std::chrono::milliseconds(300));
++  // A stopped wait (an answered or cancelled request) ends at once.
++  Start = std::chrono::steady_clock::now();
++  EXPECT_FALSE(Idx.waitForLoadedShards(Start + std::chrono::seconds(10),
++                                       [] { return true; }));
++  EXPECT_LT(std::chrono::steady_clock::now() - Start, std::chrono::seconds(1));
++  EXPECT_THAT(runFuzzyFind(Idx, "b"), IsEmpty());
++  Gated.open();
++  EXPECT_TRUE(Idx.waitForLoadedShards(
++      std::chrono::steady_clock::now() + std::chrono::seconds(10), Never));
++  // Loaded means in the index, not only read.
++  EXPECT_THAT(runFuzzyFind(Idx, "b"), Contains(qName("b")));
++  ASSERT_TRUE(Idx.blockUntilIdleForTest());
++}
++
+ TEST_F(BackgroundIndexTest, ShardStorageLoad) {
+   MockFS FS;
+   FS.Files[testPath("root/A.h")] = R"cpp(
+-- 
+2.56.1
+

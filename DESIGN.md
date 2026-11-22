@@ -570,6 +570,34 @@ Known defects: none yet (nothing built).
   Built in T-033 (0042, pkgrel 7): on RMO (Mac) one session rewrote the five flagged
   shards; after a restart their first `M-.` took 5 ms - 2.7 s instead of 7.4 - 12.6 s;
   ClangdTests 1414 / 1414. pkgrel 7 on Arch, S9 run 4 unchanged (owner 2026-10-09).
+- DECIDED D-212 (owner 2026-11-22: "Tier 2, all 'fix' verdicts" of the session's
+  adversarial review of patches 0001 - 0013; T-152, 0142; pkgrel 2 of 23.1.5): navigation
+  from the index (D-026, patches 0001 - 0004) gets patches 0014 - 0017. (1) It answers
+  only once every project the compile database handed over is loaded into the index
+  (`BackgroundIndex::waitForLoadedShards`), then asks once: before, the first
+  references found were the answer, a partial one at startup. (2) It waits on its own
+  thread with the request's context, not on a TUScheduler worker, whose slot the AST
+  build it races needs; a cancelled request, an answered one or a stopping server ends
+  the wait; the shard is read there, not on the main thread. (3) Only references
+  spelled at the cursor are targets (a constructor called through `make_unique`, a
+  macro body's symbols are not). (4) References of instance methods, destructors and
+  conversion functions come from the AST (overrides, which the index cannot see).
+  (5) A shard indexed with another compile command does not answer. (6) An answer
+  that locates nothing leaves the answer to the AST. Not taken: the triple SHA1 of the
+  file per request (about 0.2 ms on 200 KB), the `#include` text scan (fails safe),
+  header edits in the staleness check, the limit counted before duplicates, UTF-16
+  columns (UNVERIFIED). Case against: a thread per navigation request; methods lose
+  the index path; a preset switch sends every file to the AST until reindexed.
+  ClangdTests 1432 / 1432 on the Mac (the base 1425 plus seven).
+- DECIDED D-214 (owner 2026-11-22, as D-212; T-153, 0142): header flags from the index
+  (D-028, D-046, D-059) get patch 0018: `includerOf` also finds a header named through
+  a symbolic link above it (the index names files by their real directory, D-114),
+  and a header with no known includer waits once, not at every edit (a load that
+  stays counted stalled each edit by 5 s). Deferred: replacing an includer that left
+  the compile database (T-156), refreshing a header's command once its includer is
+  known (T-157). Case against: a header opened first while its project is still
+  loading and then edited before the load ends keeps clangd's guessed command until
+  the file is opened again.
 - DECIDED D-059 (owner 2026-10-09, T-020, review 0031): patch 0008, pkgrel 6:
   `includerOf` answers a known includer at once, before waiting for the compile
   database; only an unknown header waits as D-046 / D-047 require. The load counter's
@@ -577,7 +605,8 @@ Known defects: none yet (nothing built).
   1413 on macOS with a new test that fails without the change (0041); S9 run 4 on Arch
   (pkgrel 7) unchanged: header first 10 / 10 from the index, 0.85 - 0.90 s. Not taken from
   the T-020 text: "no stall for headers that have no includer"; skipping that wait
-  would bring back the header-opened-first guess of O-21.
+  would bring back the header-opened-first guess of O-21. (Amended by D-214: the
+  wait happens once per header, not at every edit.)
 - DECIDED D-047 (owner 2026-10-08, T-019, S9 run 2): patch 0007 (llvm-clangd cb118e30f,
   pkgrel 5): the wait of D-028 / D-046 ends as soon as the includers are recorded
   (right after the stored shards are read), not when the whole load returns. On RMO
@@ -738,6 +767,22 @@ Known defects: none yet (nothing built).
   ClangdTests 1426 passed on Arch (6 new; 4 fail with 0012's ranking); the package
   built from the clean tarball. Left: install and `make test` on both machines, the
   Mac build, the owner's check on RMO.
+- DECIDED D-213 (owner 2026-11-22, as D-212; T-154, 0142): workspace/symbol (D-113,
+  D-119, patches 0011 - 0013) gets patch 0019 and Lisp changes. Template arguments are
+  searched neither contiguously nor fuzzily (Kokkos's `EBOBaseImpl<..., CtorNotOnDevice>`
+  no longer matches `ector`; 0012's message said so, its code did not); an operator's
+  `<` is its name (`operator<<`); one function decides a match for Dex, MemIndex and
+  `getWorkspaceSymbols`; a second-tier match's exposed `score` is below every first-tier
+  one; `looseScope` / `middleMatch` accept null; a `middleMatch` of 1, 2 or below 0 is an
+  InvalidParams error, no longer raised to 3. Emacs: a request with abbreviated
+  qualifiers sends `:limit` (`emacs-cpp-symbol-loose-scope-limit`, NEW, 10000; clangd
+  cuts its index's matches before checking the qualifier, so `C-c l s` with clangd's
+  100 could come back empty); `emacs-cpp-symbol-middle-match` accepts nil or 3 and up;
+  a clangd offering one of the two matches is warned about the other. Deferred: the
+  loose qualifier's flat ranking (T-158, needs a measurement as S15). Not taken: byte
+  counts for non-ASCII queries, FuzzyMatcher's 127-character word limit, the remote
+  index (not built, `CLANGD_ENABLE_REMOTE=OFF`). Case against: `C-c l s` with a
+  qualifier may list up to 10000 symbols; a client that sent 1 or 2 now gets an error.
 - DECIDED D-118 (owner 2026-10-19, O-66 (a)): with a project root, `M-o`'s `s`
   symbols (the project's only, D-082) are headed "Project Symbol (server)", narrow
   label "Project Symbol", as "Project File"; without a root `s` (every symbol) stays
@@ -2713,6 +2758,20 @@ presets, GoogleTest runner.
   the Mac. Nothing on Arch. Findings in; O-92 -> D-210.
 
 ## Open questions ledger (LIVING)
+- O-93 (OPEN 2026-11-22; owner 2026-11-22: "Defer to its own task", T-155): how
+  patch 0009 (D-060) should retry sources whose shard has errors. Today every startup
+  reparses each, about 1500 CPU-s for 150 deal.II sources that never compile
+  (estimate). Findings: `RESEARCH_errored_retry.md`. Options: (a) gated: record each
+  not-found include's candidate paths in a new shard chunk, retry only when the command
+  changed or a candidate appeared, with the review's amendments (section 4 there);
+  against: about 160 lines plus tests on top of 0001 - 0019, the startup `stat` cost
+  unmeasured. (b) 0009 with a backoff counter plus a manual retry command; against: a
+  generated header may wait several restarts. (c) 0009 as is; against: the full cost
+  at every startup. (d) stock clangd (no startup retry); against: a header built after
+  indexing is never picked up until the source is edited. Recommended: (a) after a
+  measurement of the `stat` cost (amendment 8); it combines (b)'s manual command
+  (amendment 7). Also found: the shared-header trap and the line-341 upstream bug,
+  both fixed only by (a)'s routing and fix.
 - O-92 (RESOLVED 2026-11-20 with D-210: (b); owner: "O-92 (b)"; owner request
   2026-11-20: "meaningful icon toolbar for common functionality";
   RESEARCH_icon_toolbar): an icon bar for sidebar, `M-o`, text search,
@@ -4987,6 +5046,9 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-209 | 2026-11-20 | O-91 (d): no text search in `M-o`; `M-s r` and `C-c p s r` stay | 10 | O-91 |
 | D-210 | 2026-11-20 | O-92 (b): icon tool bar, Lucide SVGs in `icons/lucide/`; macOS title area follows the theme | 10 | O-92, T-150 |
 | D-211 | 2026-11-22 | tool bar review fixes: bar cache cleared, `:foreground` icons, daemon frames, Customize redraws, title opt-out, Pause, Stop keeps buffers, Git status refuses outside a repository | 10 | owner, T-151, D-210 |
+| D-212 | 2026-11-22 | navigation from the index: after the shards load, own thread, spelled references only, no methods, same command (patches 0014 - 0017) | 7 | owner, T-152, review |
+| D-213 | 2026-11-22 | workspace/symbol: template arguments never searched, operators kept, tiers in score, strict options (patch 0019); `:limit` with abbreviated qualifiers | 7 | owner, T-154, review |
+| D-214 | 2026-11-22 | header flags from the index: real paths, one wait per header (patch 0018) | 7 | owner, T-153, review |
 | D-206 | 2026-11-11 | macOS: clang's tools from the newest MacPorts `llvm-N` that holds clang-tidy, found at startup, not a pinned `llvm-23` | 7 | review 2026-11-11, owner ("Fix in suggested order") |
 | D-207 | 2026-11-18 | patched clangd self-contained on Arch too; one LLVM pin (23.1.5) in the PKGBUILD for both machines | 7 | owner |
 | D-205 | 2026-11-09 | Markdown PDF text in DejaVu Serif, its four styles named; `emacs-cpp-markdown-pdf-mainfont` | 12 | T-147, owner |

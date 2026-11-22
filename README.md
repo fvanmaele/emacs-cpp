@@ -78,11 +78,13 @@ the query mid-word (`ector` for `TangentVector`), in `M-o` and `C-c l s` (D-113;
 options `emacs-cpp-symbol-loose-scope`, `emacs-cpp-symbol-middle-match`). Matches
 whose query runs from a word start come first; then the mid-word ones and those
 scattered over several words, the ones covering most of the name first, so `ector`
-lists `Vector` before `AlignedVectorCopyConstruct` and before Kokkos's
-`EBOBaseImpl<..., CtorNotOnDevice>` (D-119, patch 0013). The two prompts differ:
-`M-o` keeps the project's symbols and asks clangd for up to 10000; `C-c l s` (and
-`M-o` `< l`) lists every symbol, deal.II's and Kokkos's too, clangd's best 100,
-grouped by kind (`RESEARCH_go_to_anything.md` 18, 19). It installs to
+lists `Vector` before `AlignedVectorCopyConstruct` (D-119, patch 0013); template
+arguments are not searched, so Kokkos's `EBOBaseImpl<..., CtorNotOnDevice>` is no
+match (D-213, patch 0019). The two prompts differ: `M-o` keeps the project's symbols
+and asks clangd for up to 10000; `C-c l s` (and `M-o` `< l`) lists every symbol,
+deal.II's and Kokkos's too, clangd's best 100 (up to
+`emacs-cpp-symbol-loose-scope-limit` with a qualifier, D-213), grouped by kind
+(`RESEARCH_go_to_anything.md` 18, 19). It installs to
 `/opt/clangd-index-nav`, next to the system clangd. The build is self-contained
 (D-207): LLVM and clang are compiled from the pinned release and linked in, the builtin
 headers are its own, and the package depends on nothing of pacman's LLVM, so an LLVM

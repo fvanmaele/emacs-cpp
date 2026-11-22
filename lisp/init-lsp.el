@@ -109,9 +109,22 @@ announces it (the patched clangd); other servers get nothing extra."
 (defcustom emacs-cpp-symbol-middle-match 3
   "Shortest query that also finds names containing it mid-word; nil for never.
 D-113, clangd patch 0012: `ector' then finds `TangentVector', ranked after every
-fuzzy match, as in CLion.  Values below 3 count as 3.  Asked for as
-`emacs-cpp-symbol-loose-scope' is."
-  :type '(choice (const :tag "Never" nil) natnum)
+fuzzy match, as in CLion.  At least 3: the patched clangd refuses a request
+with less (D-213).  Asked for as `emacs-cpp-symbol-loose-scope' is."
+  :type '(choice (const :tag "Never" nil)
+                 (restricted-sexp :tag "Characters, at least 3"
+                                  :match-alternatives
+                                  ((lambda (value) (and (integerp value)
+                                                        (>= value 3))))))
+  :group 'tools)
+
+(defcustom emacs-cpp-symbol-loose-scope-limit 10000
+  "Most matches a symbol request with abbreviated qualifiers asks for (D-213).
+The server cuts its index's matches to a multiple of the limit before it checks
+the abbreviated qualifier, so with clangd's usual 100 a qualified query on a
+large index can come back empty.  `M-o' sends its own
+`emacs-cpp-go-symbol-limit' instead."
+  :type 'natnum
   :group 'tools)
 
 (defvar emacs-cpp-lsp--symbol-warned nil
@@ -124,22 +137,28 @@ options ask for.  A clangd that announces none while an option is on is not the
 patched one, so the option does nothing there: one warning per server says so."
   (let ((offered (plist-get (eglot--capabilities server)
                             :workspaceSymbolMatchesProvider))
-        params)
-    (when (and emacs-cpp-symbol-middle-match (plist-get offered :middleMatch))
-      (setq params (list :middleMatch emacs-cpp-symbol-middle-match)))
-    (when (and emacs-cpp-symbol-loose-scope (plist-get offered :looseScope))
-      (setq params (append (list :looseScope t) params)))
-    (when (and (not offered)
-               (or emacs-cpp-symbol-loose-scope emacs-cpp-symbol-middle-match)
+        params missing)
+    (when emacs-cpp-symbol-middle-match
+      (if (plist-get offered :middleMatch)
+          (setq params (list :middleMatch emacs-cpp-symbol-middle-match))
+        (push "mid-word names (`emacs-cpp-symbol-middle-match')" missing)))
+    (when emacs-cpp-symbol-loose-scope
+      (if (plist-get offered :looseScope)
+          (setq params (append (list :looseScope t
+                                     :limit emacs-cpp-symbol-loose-scope-limit)
+                               params))
+        (push "abbreviated qualifiers (`emacs-cpp-symbol-loose-scope')" missing)))
+    ;; Also a clangd that offers one of the two: an older patched build.
+    (when (and missing
                (equal (plist-get (eglot--server-info server) :name) "clangd")
                (not (memq server emacs-cpp-lsp--symbol-warned)))
       (push server emacs-cpp-lsp--symbol-warned)
       (display-warning
        'emacs-cpp
-       "This clangd does not offer CLion-style symbol matches (abbreviated \
-qualifiers, mid-word names): set `emacs-cpp-clangd-program' to the patched clangd \
-(patches 0011, 0012), or turn off `emacs-cpp-symbol-loose-scope' and \
-`emacs-cpp-symbol-middle-match' (D-113)"))
+       (format "This clangd does not offer CLion-style symbol matches: %s.  \
+Set `emacs-cpp-clangd-program' to the patched clangd (patches 0011, 0012), or \
+turn the option off (D-113)"
+               (string-join missing ", "))))
     params))
 
 (use-package consult-eglot

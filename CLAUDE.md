@@ -93,7 +93,9 @@ Icon tool bar (O-92 (b), D-210, T-150, 0140): `lisp/init-toolbar.el`, Lucide SVG
 Mac (197 tests, 2 skipped), the look and Arch on H-39.
 2026-11-22: tool bar fixes from an adversarial review (D-211, T-151, 0141): bar cache
 cleared, `:foreground` icons, daemon frames, Pause, Stop keeps dape's buffers; Mac 204
-tests, 2 skipped; the look and Arch on H-39.
+tests, 2 skipped; the look and Arch on H-39. clangd patches 0014 - 0019 after an
+adversarial review (D-212 - D-214, T-152 - T-154, 0142; pkgrel 2): ClangdTests 1432 /
+1432 on the Mac, installs on H-40; errored-file retry deferred (O-93, T-155).
 
 2026-10-20: review of 5a23316 folded in (0084): MIT license (D-122), the Arch clangd
 followed pacman's LLVM through `make clangd` (D-123, T-111; superseded by D-207), match
