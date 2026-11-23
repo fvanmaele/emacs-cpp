@@ -570,7 +570,7 @@ Known defects: none yet (nothing built).
   Built in T-033 (0042, pkgrel 7): on RMO (Mac) one session rewrote the five flagged
   shards; after a restart their first `M-.` took 5 ms - 2.7 s instead of 7.4 - 12.6 s;
   ClangdTests 1414 / 1414. pkgrel 7 on Arch, S9 run 4 unchanged (owner 2026-10-09).
-- DECIDED D-217 (owner 2026-11-23: "O-95 (a) + (d)"; S23, 0145; tier 2 proposed, T-161,
+- DECIDED D-217 (owner 2026-11-23: "O-95 (a) + (d)"; S23, 0145; tier 2 (owner), T-161,
   T-162): navigation from the index (D-026, D-212) stops answering from stale shards in
   S23's cases 1a and 3. (a) A header's shard keeps the command of the TU that indexed
   it (the reset in `BackgroundIndex::update` dropped); from a header the index answers
