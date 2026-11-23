@@ -4,7 +4,9 @@ Usage: python3 -I firstnav.py LABEL CLANGD WORKDIR [NEEDLE]
 NEEDLE: the name asked for (default local_fn, declared in the project's
 local.h: deal.II's headers lie outside the project, so the background index
 stores no shard for them and only a library index (D-130) answers there); an existing WORKDIR/LABEL with
-its index is reused (session 2 only).
+its index is reused (session 2 only). S23_CDB: a compile_commands.json whose
+first entry gives the flags (any project including deal.II; Arch); without it,
+the Mac's step-1 flags below.
 Builds WORKDIR/LABEL (S23's synthetic deal.II TU as main.cpp, step-1's flags as
 in measure-cost/closure.sh), session 1 indexes it, session 2 (stored shards)
 asks textDocument/definition on NEEDLE at once and prints the reply time and
@@ -35,23 +37,34 @@ if not reuse:
     open(os.path.join(d, "local.h"), "w").write(
         "#pragma once\ninline int local_fn(int x) { return x + 1; }\n")
 
-db = os.path.expanduser("~/source/repos/dealii/examples/step-1/compile_commands.json")
-args = shlex.split(json.load(open(db))[0]["command"])
-sdk = subprocess.run(["xcrun", "--show-sdk-path"], capture_output=True, text=True,
-                     check=True).stdout.strip()
+mac = "S23_CDB" not in os.environ
+db = os.environ.get("S23_CDB") or os.path.expanduser(
+    "~/source/repos/dealii/examples/step-1/compile_commands.json")
+entry = json.load(open(db))[0]
+args = entry.get("arguments") or shlex.split(entry["command"])
+sdk = (subprocess.run(["xcrun", "--show-sdk-path"], capture_output=True, text=True,
+                      check=True).stdout.strip() if mac else None)
 flags, i = [], 1
 while i < len(args):
-    if args[i] in ("-o", "-c"):
+    if args[i] in ("-o", "-c", "-MF", "-MT", "-MQ"):
         i += 2
         continue
-    if args[i] == "-isysroot":
+    if args[i] == entry["file"] or args[i].endswith(os.path.basename(entry["file"])):
+        i += 1
+        continue
+    if mac and args[i] == "-isysroot":
         flags += ["-isysroot", sdk]
         i += 2
         continue
+    if not os.path.isabs(args[i]) and args[i].startswith("-I") and len(args[i]) > 2:
+        flags.append("-I" + os.path.join(entry["directory"], args[i][2:]))
+        i += 1
+        continue
     flags.append(args[i])
     i += 1
-flags += ["-isystem", "/Applications/deal.II.app/Contents/Resources/spack/opt/"
-          "magic-enum-0.9.7-bfmh/include/magic_enum"]
+if mac:
+    flags += ["-isystem", "/Applications/deal.II.app/Contents/Resources/spack/opt/"
+              "magic-enum-0.9.7-bfmh/include/magic_enum"]
 cmd = [args[0]] + flags + ["-o", "main.o", "-c", main]
 if not reuse:
     json.dump([{"directory": d, "file": main, "arguments": cmd}],

@@ -13,7 +13,9 @@
   and s3; first `M-.` on S8's synthetic project still under 1 s after a restart with
   nothing changed
 - **Status:** all met but the last on the Mac (1.10 - 1.19 s); T-162 waits on T-163;
-  gap T-164 found; both to the owner as O-96
+  gap T-164 found; both to the owner as O-96. Ruled 2026-11-23 (D-218): the limit binds
+  on Arch; 0021 moved into the PKGBUILD (pkgrel 4), installed in `~/opt` on the Mac
+  (`make test` 206 tests, 2 skipped; first `M-.` 1.32 - 1.36 s, `firstnav/run5.txt`)
 
 > Plain English for a reader who does not read C++ fluently.
 

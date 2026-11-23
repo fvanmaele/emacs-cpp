@@ -570,6 +570,12 @@ Known defects: none yet (nothing built).
   Built in T-033 (0042, pkgrel 7): on RMO (Mac) one session rewrote the five flagged
   shards; after a restart their first `M-.` took 5 ms - 2.7 s instead of 7.4 - 12.6 s;
   ClangdTests 1414 / 1414. pkgrel 7 on Arch, S9 run 4 unchanged (owner 2026-10-09).
+- DECIDED D-218 (owner 2026-11-23: "O-96 (a), spike for (e)"; T-162, 0147): T-162's
+  "first `M-.` under 1 s" binds on Arch only (as D-057's budgets); the Mac's 1.10 - 1.19 s
+  is recorded, not judged. Patch 0021 goes into the PKGBUILD (pkgrel 4); T-162 is done
+  once Arch measures under 1 s (an H-n). Marking and reindexing every TU whose include
+  graph reaches a stale file (O-96 (e), T-164) is tier 3: spike S24 first. Case against:
+  the Mac's first `M-.` after a restart 0.4 - 0.8 s slower than pkgrel 2; Arch unmeasured.
 - DECIDED D-217 (owner 2026-11-23: "O-95 (a) + (d)"; S23, 0145; tier 2 (owner), T-161,
   T-162): navigation from the index (D-026, D-212) stops answering from stale shards in
   S23's cases 1a and 3. (a) A header's shard keeps the command of the TU that indexed
@@ -2800,7 +2806,8 @@ presets, GoogleTest runner.
   the Mac. Nothing on Arch. Findings in; O-92 -> D-210.
 
 ## Open questions ledger (LIVING)
-- O-96 (OPEN 2026-11-23; T-162, 0147): patch 0021 (D-217 (d)) holds the first index
+- O-96 (RESOLVED 2026-11-23 with D-218: (a), spike for (e); owner: "O-96 (a), spike
+  for (e)"; T-162, 0147): patch 0021 (D-217 (d)) holds the first index
   answer after a restart until clangd's startup staleness check has read every stored
   file (2661 for a TU including deal.II); on the Mac with G DATA's scan on the first
   `M-.` takes 1.10 - 1.19 s (pkgrel 2: 0.32 - 0.74 s), over T-162's 1 s. And upstream
@@ -5161,6 +5168,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-215 | 2026-11-22 | a click on a line number toggles the breakpoint, as CLion's gutter (C/C++ buffers) | 8 | owner, T-159, D-036 |
 | D-216 | 2026-11-22 | `emacs-cpp-debug-args` in a project's `.dir-locals.el`: arguments without naming a debugger; missing gdb refused with its cause | 8 | O-94, owner, T-160 |
 | D-217 | 2026-11-23 | navigation from the index: header shards keep their command, checked against the includer's; a reindexed TU rewrites its shard, no answer while queued (O-95 (a) + (d)) | 7 | O-95, owner, S23, T-161, T-162 |
+| D-218 | 2026-11-23 | T-162's first-`M-.` limit binds on Arch only; patch 0021 in the PKGBUILD (pkgrel 4); reindex every includer of a stale file only after spike S24 (O-96 (a), (e)) | 7 | O-96, owner, T-162, T-164 |
 | D-206 | 2026-11-11 | macOS: clang's tools from the newest MacPorts `llvm-N` that holds clang-tidy, found at startup, not a pinned `llvm-23` | 7 | review 2026-11-11, owner ("Fix in suggested order") |
 | D-207 | 2026-11-18 | patched clangd self-contained on Arch too; one LLVM pin (23.1.5) in the PKGBUILD for both machines | 7 | owner |
 | D-205 | 2026-11-09 | Markdown PDF text in DejaVu Serif, its four styles named; `emacs-cpp-markdown-pdf-mainfont` | 12 | T-147, owner |
