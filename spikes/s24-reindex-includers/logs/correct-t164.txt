@@ -1,0 +1,8 @@
+t164 s2 a.cpp: [(0.02, 'correct')]
+t164 s2 b.cpp: [(0.02, 'correct')]
+t164 s2 c.cpp: [(0.02, 'correct')]
+t164 s3 a.cpp: correct
+t164 s3 b.cpp: correct
+t164 s3 c.cpp: correct
+s2: 1 walk lines; Reindexing 3 files that include changed files; indexed: 3
+s3: 0 walk lines; ; indexed: 0

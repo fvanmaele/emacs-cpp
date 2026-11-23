@@ -22,6 +22,22 @@ service's plan) is not an item.
   2. On Arch: `cd ~/source/repos/emacs-cpp && make test </dev/null`
   Report back: step 2's `Ran ...` line and any FAILED names.
 
+- **H-42** (2026-11-23, unblocks T-162; T-161, T-164, D-217 - D-219) The clangd
+  pkgrel 5 on Arch (patches 0020 - 0022), and its first `M-.` after a restart: T-162
+  is done when that is under 1 s on Arch (D-218).
+  1. On the Mac: `cd ~/source/repos/emacs-cpp && git push`
+  2. On Arch: `cd ~/source/repos/emacs-cpp && git pull --ff-only`
+  3. On Arch (installs the package; compiles LLVM, about an hour; asks for your sudo
+     password): `cd ~/source/repos/emacs-cpp/packaging/clangd-index-nav && makepkg -si`
+  4. On Arch: `pacman -Q clangd-index-nav` (expected: `clangd-index-nav 23.1.5-5`)
+  5. On Arch: `cd ~/source/repos/emacs-cpp/spikes/s23-index-freshness/firstnav && sh
+     run3.sh /opt/clangd-index-nav/bin/clangd "$(ls
+     ~/CLionProjects/build-step-1*/compile_commands.json | head -n 1)"` (a deal.II
+     project's database; if that `ls` finds none, name any `compile_commands.json` of a
+     project including deal.II instead)
+  Report back: step 4's line; step 5's three `session 2` lines (and any `needs the AST`
+  lines above them).
+
 - **H-41** (2026-11-22, D-216) Your two projects give only their debug arguments now
   (the session changed and committed both `.dir-locals.el`: step-1 4de9447,
   RMO-drafts abc87df on `port/refactor`).

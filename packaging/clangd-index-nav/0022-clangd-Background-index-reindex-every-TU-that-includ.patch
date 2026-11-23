@@ -1,0 +1,206 @@
+From ae1c87668c17039953f23ecfe41204b53ab1ff13 Mon Sep 17 00:00:00 2001
+From: Ferdinand Vanmaele <info@fvanmaele.de>
+Date: Mon, 23 Nov 2026 22:26:02 +0100
+Subject: [PATCH] [clangd] Background index: reindex every TU that includes a
+ changed file
+
+At startup a stale shard queued one TU, its DependentTU (the first whose
+shard load reached the file). Every other TU including a changed header
+kept its main-file shard, with references resolved against the old
+header, and navigation from the index answered from it (clangd/clangd#1104;
+llvm-project PR #140651 stops at the same point).
+
+loadProject now walks the loaded shards' include edges backwards from
+every stale file (tusReaching) and queues and marks every TU it reaches.
+Linear in shards and edges: 8 ms for 1000 TUs and 2807 shards. A change
+to a header N TUs include reindexes N TUs; they answer through the AST
+until then.
+
+ClangdTests 1437/1437 (new: EveryIncluderOfAChangedHeaderIsReindexed,
+three TUs announced together; two of them stay stale without the change).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ clang-tools-extra/clangd/index/Background.cpp | 61 +++++++++++++-
+ .../clangd/unittests/BackgroundIndexTests.cpp | 82 +++++++++++++++++++
+ 2 files changed, 140 insertions(+), 3 deletions(-)
+
+diff --git a/clang-tools-extra/clangd/index/Background.cpp b/clang-tools-extra/clangd/index/Background.cpp
+index b47e4d5..17e41fd 100644
+--- a/clang-tools-extra/clangd/index/Background.cpp
++++ b/clang-tools-extra/clangd/index/Background.cpp
+@@ -78,6 +78,56 @@ llvm::SmallString<128> getAbsolutePath(const tooling::CompileCommand &Cmd) {
+   return AbsolutePath;
+ }
+ 
++// The translation units whose include graph reaches a shard flagged in
++// \p Stale: each loaded shard lists its file's direct includes, so the edges
++// are walked backwards from every stale file. Linear in shards and edges.
++std::vector<PathRef> tusReaching(llvm::ArrayRef<LoadedShard> Shards,
++                                 llvm::ArrayRef<char> Stale) {
++  llvm::StringMap<size_t> Position;
++  for (size_t I = 0; I < Shards.size(); ++I)
++    Position[Shards[I].AbsolutePath] = I;
++  // Includers[I]: the shards whose file includes Shards[I]'s file directly.
++  std::vector<std::vector<size_t>> Includers(Shards.size());
++  for (size_t I = 0; I < Shards.size(); ++I) {
++    const LoadedShard &LS = Shards[I];
++    if (!LS.Shard || !LS.Shard->Sources)
++      continue;
++    for (const auto &Node : *LS.Shard->Sources) {
++      auto Path = URI::resolve(Node.getKey(), LS.AbsolutePath);
++      if (!Path || *Path != LS.AbsolutePath)
++        continue; // an include's own node, without edges
++      for (llvm::StringRef Include : Node.getValue().DirectIncludes) {
++        auto IncludePath = URI::resolve(Include, LS.AbsolutePath);
++        if (!IncludePath)
++          continue;
++        auto It = Position.find(*IncludePath);
++        if (It != Position.end())
++          Includers[It->second].push_back(I);
++      }
++    }
++  }
++  std::vector<char> Visited(Shards.size());
++  std::vector<size_t> ToVisit;
++  for (size_t I = 0; I < Shards.size(); ++I)
++    if (Stale[I]) {
++      Visited[I] = 1;
++      ToVisit.push_back(I);
++    }
++  std::vector<PathRef> TUs;
++  while (!ToVisit.empty()) {
++    size_t I = ToVisit.back();
++    ToVisit.pop_back();
++    if (Shards[I].CountReferences) // the shard of a translation unit
++      TUs.push_back(Shards[I].AbsolutePath);
++    for (size_t Includer : Includers[I])
++      if (!Visited[Includer]) {
++        Visited[Includer] = 1;
++        ToVisit.push_back(Includer);
++      }
++  }
++  return TUs;
++}
++
+ bool shardIsStale(const LoadedShard &LS, llvm::vfs::FileSystem *FS) {
+   auto Buf = FS->getBufferForFile(LS.AbsolutePath);
+   if (!Buf) {
+@@ -600,13 +650,18 @@ BackgroundIndex::loadProject(std::vector<std::string> MainFiles) {
+       vlog("Reindexing {0}: the shard of {1} was indexed with errors",
+            TUForFile, LS.AbsolutePath);
+ 
+-    // FIXME: Currently, we simply schedule indexing on a TU whenever any of
+-    // its dependencies needs re-indexing. We might do it smarter by figuring
+-    // out a minimal set of TUs that will cover all the stale dependencies.
+     // FIXME: Try looking at other TUs if no compile commands are available
+     // for this TU, i.e TU was deleted after we performed indexing.
+     TUsToIndex.insert(TUForFile);
+   }
++  // Every other TU that includes a stale file, directly or not: its main
++  // file's references were resolved against the old content (the shard of
++  // DependentTU alone would leave them stale, answering from the index).
++  auto Reaching = tusReaching(Result, StaleShards);
++  for (PathRef TU : Reaching)
++    TUsToIndex.insert(TU);
++  if (!Reaching.empty())
++    log("Reindexing {0} files that include changed files", Reaching.size());
+ 
+   // Marked before navigation from the index may answer: a stale TU's shard
+   // must not answer until its reindex is served.
+diff --git a/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp b/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp
+index 1cd352a..954d68b 100644
+--- a/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp
++++ b/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp
+@@ -498,6 +498,88 @@ TEST(NavigationFromShard, StaleTUWaitsForItsServedReindex) {
+   EXPECT_EQ(Idx.reindexPending(testPath("root/B.cc")), "");
+ }
+ 
++// A database whose files are announced together, as a compile_commands.json
++// read at once.
++class AnnounceTogetherCDB : public GlobalCompilationDatabase {
++public:
++  std::optional<tooling::CompileCommand>
++  getCompileCommand(PathRef File) const override {
++    auto It = Commands.find(File.str());
++    if (It == Commands.end())
++      return std::nullopt;
++    return It->second;
++  }
++  void announce(std::vector<tooling::CompileCommand> Cmds) {
++    std::vector<std::string> Files;
++    for (auto &Cmd : Cmds) {
++      Files.push_back(Cmd.Filename);
++      Commands[Cmd.Filename] = std::move(Cmd);
++    }
++    OnCommandChanged.broadcast(Files);
++  }
++
++private:
++  std::map<std::string, tooling::CompileCommand> Commands;
++};
++
++TEST(NavigationFromShard, EveryIncluderOfAChangedHeaderIsReindexed) {
++  // S24: three TUs include foo.h, which changed while clangd was not running.
++  // Each TU's references must be resolved against the new header, not only
++  // those of the TU whose shard load reached foo.h first.
++  MockFS FS;
++  llvm::StringMap<std::string> Storage;
++  size_t CacheHits = 0;
++  MemoryShardStorage MSS(Storage, CacheHits);
++  std::string HeaderPath = testPath("root/foo.h");
++  std::vector<std::string> Mains = {testPath("root/A.cc"), testPath("root/B.cc"),
++                                    testPath("root/C.cc")};
++  FS.Files[HeaderPath] = "int foo(int);";
++  for (const auto &Main : Mains)
++    FS.Files[Main] = "#include \"foo.h\"\nint y = foo(1);";
++  auto SetCommands = [&](AnnounceTogetherCDB &CDB) {
++    std::vector<tooling::CompileCommand> Cmds;
++    for (const auto &Main : Mains) {
++      tooling::CompileCommand Cmd;
++      Cmd.Filename = Main;
++      Cmd.Directory = testPath("root");
++      Cmd.CommandLine = {"clang++", Main};
++      Cmds.push_back(std::move(Cmd));
++    }
++    CDB.announce(std::move(Cmds));
++  };
++  {
++    AnnounceTogetherCDB CDB;
++    BackgroundIndex Idx(FS, CDB, [&](llvm::StringRef) { return &MSS; },
++                        BackgroundIndex::Options{});
++    SetCommands(CDB);
++    ASSERT_TRUE(Idx.blockUntilIdleForTest());
++  }
++  // foo(1) now calls foo(double), another symbol.
++  FS.Files[HeaderPath] = "int foo(double);";
++  AnnounceTogetherCDB CDB;
++  BackgroundIndex Idx(FS, CDB, [&](llvm::StringRef) { return &MSS; },
++                      BackgroundIndex::Options{});
++  SetCommands(CDB);
++  ASSERT_TRUE(Idx.blockUntilIdleForTest());
++
++  auto HeaderShard = MSS.loadShard(HeaderPath);
++  ASSERT_TRUE(HeaderShard && HeaderShard->Symbols);
++  std::optional<SymbolID> FooDouble;
++  for (const Symbol &S : *HeaderShard->Symbols)
++    if (S.Name == "foo")
++      FooDouble = S.ID;
++  ASSERT_TRUE(FooDouble);
++  for (const auto &Main : Mains) {
++    auto Shard = MSS.loadShard(Main);
++    ASSERT_TRUE(Shard && Shard->Refs) << Main;
++    bool RefersToFooDouble = false;
++    for (const auto &[ID, Refs] : *Shard->Refs)
++      if (ID == *FooDouble)
++        RefersToFooDouble = true;
++    EXPECT_TRUE(RefersToFooDouble) << Main;
++  }
++}
++
+ TEST(NavigationFromShard, MethodReferencesNeedTheAST) {
+   // References of a method that may be virtual include its overrides and the
+   // methods it overrides (the AST path); the index cannot tell, so it does not
+-- 
+2.56.1
+

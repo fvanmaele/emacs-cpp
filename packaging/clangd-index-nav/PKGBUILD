@@ -22,7 +22,8 @@
 # shard keeps its command, and navigation from the index answers in a header only while
 # its includer's flags are those (0020, D-217, S23); a reindexed TU rewrites its shard,
 # and a TU queued for reindexing at startup does not answer from the index (0021, D-217,
-# D-218). Also
+# D-218), every TU including a changed file reindexed at startup, not only one (0022,
+# D-219, S24). Also
 # clangd-indexer, from the same tree, so that a library's offline index is written in
 # the format this clangd reads (D-133, T-118; `make library-index`).
 # Self-contained (D-207): LLVM and clang are compiled from the release and linked in,
@@ -33,11 +34,11 @@
 # --start-number 13` on the makepkg tree (T-108); 0014 - 0019: `git format-patch
 # --start-number 14` on the tree of build-macos.sh (T-152, T-153, T-154); 0020: `git
 # format-patch --start-number 20` on a copy of that tree (T-161); 0021: likewise with
-# --start-number 21 (T-162).
+# --start-number 21 (T-162); 0022: --start-number 22 (T-164).
 
 pkgname=clangd-index-nav
 pkgver=23.1.5
-pkgrel=4
+pkgrel=5
 pkgdesc="clangd $pkgver answering navigation from its index before parsing (emacs-cpp patches)"
 arch=(x86_64)
 url="https://github.com/llvm/llvm-project"
@@ -67,7 +68,8 @@ source=("https://github.com/llvm/llvm-project/releases/download/llvmorg-$pkgver/
         0018-clangd-Header-flags-from-the-index-real-paths-and-wa.patch
         0019-clangd-workspace-symbol-template-arguments-never-sea.patch
         0020-clangd-Index-navigation-header-shards-keep-their-com.patch
-        0021-clangd-Index-navigation-a-reindexed-TU-rewrites-its-.patch)
+        0021-clangd-Index-navigation-a-reindexed-TU-rewrites-its-.patch
+        0022-clangd-Background-index-reindex-every-TU-that-includ.patch)
 sha256sums=('fb50b1eac93ddeb3aa8dab4cfe324dff74f4a9c2bdee6160c9e36188f8d06a6e'
             'a8c5acda8b7e43611f22297cb9ba6f95e62c464a6ac78f8027c267973d4702bb'
             '3b3cce804554ab484a2f5396f28cb87f66b87ad4ccd4d6e8e65f4bc7e89feab1'
@@ -89,7 +91,8 @@ sha256sums=('fb50b1eac93ddeb3aa8dab4cfe324dff74f4a9c2bdee6160c9e36188f8d06a6e'
             '4d3a018898a790b35271b61045327fe8b43d6e6e596a78e888c4a3c0e9111b34'
             'da98c62850e2e75464257c015ec73b13b010643a72849b56bffc6c81db528d67'
             'e005fe8c918f7def47eddd39bab5ec7f2478cc588a9b5689e8708f4e9dc0c2a9'
-            'b93b7bd52a6ded4f80aaee1db712cc64f11e33cfacc34a3976bf8e63dda3879c')
+            'b93b7bd52a6ded4f80aaee1db712cc64f11e33cfacc34a3976bf8e63dda3879c'
+            'ff03dff4e41b2f8bd706cef4aad29640b1497e898026cbb45796558277f46653')
 
 prepare() {
   cd llvm-project-$pkgver.src
