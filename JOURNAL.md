@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0146 | 2026-11-23 | T-161: header shards keep their command (patch 0020) | T-161 | D-217 |
 | 0145 | 2026-11-23 | S23: stale answers from index navigation, cost of a check | S23 | O-95 |
 | 0144 | 2026-11-22 | T-160: debug arguments per project for both machines | T-160 | D-216 |
 | 0143 | 2026-11-22 | T-159: line numbers toggle breakpoints | T-159 | D-215 |

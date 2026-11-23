@@ -18,7 +18,9 @@
 # answers once the shards are loaded, on its own thread, from spelled references only,
 # not for methods, and not from a shard of another compile command (0014 - 0017); header
 # flags by real path, each header waiting once (0018); workspace/symbol never searches
-# template arguments, keeps operators, puts the tiers into the score (0019). Also
+# template arguments, keeps operators, puts the tiers into the score (0019); a header's
+# shard keeps its command, and navigation from the index answers in a header only while
+# its includer's flags are those (0020, D-217, S23). Also
 # clangd-indexer, from the same tree, so that a library's offline index is written in
 # the format this clangd reads (D-133, T-118; `make library-index`).
 # Self-contained (D-207): LLVM and clang are compiled from the release and linked in,
@@ -27,11 +29,12 @@
 # 6e2cc8df7..HEAD` in ~/source/repos/llvm-clangd; 0010 - 0012: `git format-patch
 # --start-number 10` on the tree of build-macos.sh (T-104); 0013: `git format-patch
 # --start-number 13` on the makepkg tree (T-108); 0014 - 0019: `git format-patch
-# --start-number 14` on the tree of build-macos.sh (T-152, T-153, T-154).
+# --start-number 14` on the tree of build-macos.sh (T-152, T-153, T-154); 0020: `git
+# format-patch --start-number 20` on a copy of that tree (T-161).
 
 pkgname=clangd-index-nav
 pkgver=23.1.5
-pkgrel=2
+pkgrel=3
 pkgdesc="clangd $pkgver answering navigation from its index before parsing (emacs-cpp patches)"
 arch=(x86_64)
 url="https://github.com/llvm/llvm-project"
@@ -59,7 +62,8 @@ source=("https://github.com/llvm/llvm-project/releases/download/llvmorg-$pkgver/
         0016-clangd-Index-navigation-references-of-methods-come-f.patch
         0017-clangd-Index-navigation-ignore-a-shard-indexed-with-.patch
         0018-clangd-Header-flags-from-the-index-real-paths-and-wa.patch
-        0019-clangd-workspace-symbol-template-arguments-never-sea.patch)
+        0019-clangd-workspace-symbol-template-arguments-never-sea.patch
+        0020-clangd-Index-navigation-header-shards-keep-their-com.patch)
 sha256sums=('fb50b1eac93ddeb3aa8dab4cfe324dff74f4a9c2bdee6160c9e36188f8d06a6e'
             'a8c5acda8b7e43611f22297cb9ba6f95e62c464a6ac78f8027c267973d4702bb'
             '3b3cce804554ab484a2f5396f28cb87f66b87ad4ccd4d6e8e65f4bc7e89feab1'
@@ -79,7 +83,8 @@ sha256sums=('fb50b1eac93ddeb3aa8dab4cfe324dff74f4a9c2bdee6160c9e36188f8d06a6e'
             '8e68418b82bf43d7b657d773962848006b72826230e8a0d0a38db8295e8ae31c'
             '2310e01da1900eb6de196b96319ef9efd6ff5393654eaca924995b623a10394a'
             '4d3a018898a790b35271b61045327fe8b43d6e6e596a78e888c4a3c0e9111b34'
-            'da98c62850e2e75464257c015ec73b13b010643a72849b56bffc6c81db528d67')
+            'da98c62850e2e75464257c015ec73b13b010643a72849b56bffc6c81db528d67'
+            'e005fe8c918f7def47eddd39bab5ec7f2478cc588a9b5689e8708f4e9dc0c2a9')
 
 prepare() {
   cd llvm-project-$pkgver.src

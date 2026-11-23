@@ -582,7 +582,7 @@ Known defects: none yet (nothing built).
   file events (e) stays open as a possible spike. Case against: after a flag change a
   header falls back to the AST until its content changes; a header saved during a
   session is still missed (case 1c); the queue's readability from the navigation path
-  is UNVERIFIED (T-162's first step).
+  is UNVERIFIED (T-162's first step). (a) built: patch 0020, pkgrel 3 (T-161, 0146).
 - DECIDED D-212 (owner 2026-11-22: "Tier 2, all 'fix' verdicts" of the session's
   adversarial review of patches 0001 - 0013; T-152, 0142; pkgrel 2 of 23.1.5): navigation
   from the index (D-026, patches 0001 - 0004) gets patches 0014 - 0017. (1) It answers

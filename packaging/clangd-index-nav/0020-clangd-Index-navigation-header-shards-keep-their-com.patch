@@ -1,0 +1,423 @@
+From 89c165531491fbb0a6811faa5b49cdbffeea0bd5 Mon Sep 17 00:00:00 2001
+From: Ferdinand Vanmaele <info@fvanmaele.de>
+Date: Mon, 23 Nov 2026 11:51:38 +0100
+Subject: [PATCH] [clangd] Index navigation: header shards keep their command,
+ checked against the includer's
+
+A header's shard dropped the compile command it was indexed with
+(BackgroundIndex::update reset it for every file but the main one), so
+shardCommandMatches had nothing to compare and always matched. After a
+-D change, navigation from the index in a header opened directly answered
+from the #ifdef branches of the old flags, in every session, until the
+header's content changed (S23 case 3).
+
+A header's shard now keeps the command of the TU whose indexing stored it.
+Navigation from a header (a shard whose node is not a TU) answers from the
+index only when that command has the flags of the current command of the
+header's recorded includer (BackgroundIndex::knownIncluderOf, after the
+stored shards are loaded): the same directory and arguments apart from
+the source file and the -o / -MF / -MT / -MQ values, which differ between
+sources of one target (headerShardCommandMatches). A shard stored without
+a command does not match. Otherwise the AST answers, and the log says why.
+
+Also moves locateIncludeFromShard's comment, which sat above
+shardCommandMatches, back to its function.
+
+ClangdTests 1434/1434 (new: HeaderShardKeepsItsIncludersCommand,
+HeaderShardOfOtherFlagsDoesNotAnswer; CmdLineHash now expects the
+header's command). S23 case 3 through LSP: the AST answers right in both
+sessions after the change; with the flags unchanged the index answers
+from the header (0.28 s).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ clang-tools-extra/clangd/ClangdServer.cpp     | 41 ++++++++++---
+ clang-tools-extra/clangd/ClangdServer.h       |  6 +-
+ clang-tools-extra/clangd/XRefs.cpp            | 47 +++++++++++++++
+ clang-tools-extra/clangd/XRefs.h              | 31 +++++++---
+ clang-tools-extra/clangd/index/Background.cpp | 58 +++++++++++--------
+ clang-tools-extra/clangd/index/Background.h   |  9 +++
+ .../clangd/unittests/BackgroundIndexTests.cpp | 57 ++++++++++++++++--
+ 7 files changed, 202 insertions(+), 47 deletions(-)
+
+diff --git a/clang-tools-extra/clangd/ClangdServer.cpp b/clang-tools-extra/clangd/ClangdServer.cpp
+index e72d412..7d20727 100644
+--- a/clang-tools-extra/clangd/ClangdServer.cpp
++++ b/clang-tools-extra/clangd/ClangdServer.cpp
+@@ -911,7 +911,8 @@ bool ClangdServer::waitForNavigationIndex(llvm::function_ref<bool()> Answered,
+ }
+ 
+ std::optional<ClangdServer::NavigationShard>
+-ClangdServer::navigationShard(PathRef File) {
++ClangdServer::navigationShard(PathRef File,
++                              llvm::function_ref<bool()> Answered) {
+   if (!NavigationFromIndex || !BackgroundIdx)
+     return std::nullopt;
+   auto Draft = getDraft(File);
+@@ -925,11 +926,33 @@ ClangdServer::navigationShard(PathRef File) {
+     return std::nullopt;
+   }
+   // The background index takes its commands from the same database.
+-  if (!clangd::shardCommandMatches(*Shard, CDB.getCompileCommand(File))) {
+-    vlog("Navigation in {0} needs the AST: the shard was indexed with another "
+-         "compile command",
+-         File);
+-    return std::nullopt;
++  if (clangd::shardIsOfMainFile(*Shard, File)) {
++    if (!clangd::shardCommandMatches(*Shard, CDB.getCompileCommand(File))) {
++      vlog("Navigation in {0} needs the AST: the shard was indexed with "
++           "another compile command",
++           File);
++      return std::nullopt;
++    }
++  } else {
++    // A header is parsed with the flags of a source file that includes it;
++    // its shard holds the #ifdef branches of the command it was indexed with.
++    // Its includer is recorded when the stored shards load (at startup).
++    auto Includer = BackgroundIdx->knownIncluderOf(File);
++    if (!Includer && waitForNavigationIndex(Answered, "Navigation", File))
++      Includer = BackgroundIdx->knownIncluderOf(File);
++    if (!Includer) {
++      vlog("Navigation in {0} needs the AST: no source file is known to "
++           "include it",
++           File);
++      return std::nullopt;
++    }
++    if (!clangd::headerShardCommandMatches(*Shard,
++                                           CDB.getCompileCommand(*Includer))) {
++      vlog("Navigation in {0} needs the AST: its shard was indexed with "
++           "other flags than {1}'s current command",
++           File, *Includer);
++      return std::nullopt;
++    }
+   }
+   return std::make_pair(std::move(Shard), std::move(Draft));
+ }
+@@ -959,7 +982,8 @@ void ClangdServer::locateSymbolAt(PathRef File, Position Pos,
+     runNavigationFromIndex("DefinitionsFromIndex", [Answer, Pos,
+                                                     Path = File.str(), this] {
+       // The shard is read here, off the main thread.
+-      auto Loaded = navigationShard(Path);
++      auto Loaded =
++          navigationShard(Path, [&] { return Answer->answered(); });
+       if (!Loaded)
+         return;
+       // An #include line names its header: the shard's include graph knows it.
+@@ -1199,7 +1223,8 @@ void ClangdServer::findReferences(PathRef File, Position Pos, uint32_t Limit,
+     runNavigationFromIndex("ReferencesFromIndex", [Answer, Pos, Limit,
+                                                    Path = File.str(), this] {
+       // The shard is read here, off the main thread.
+-      auto Loaded = navigationShard(Path);
++      auto Loaded =
++          navigationShard(Path, [&] { return Answer->answered(); });
+       if (!Loaded)
+         return;
+       auto Indexed = indexedSymbolsAt(Path, Pos, *Loaded);
+diff --git a/clang-tools-extra/clangd/ClangdServer.h b/clang-tools-extra/clangd/ClangdServer.h
+index a5e0f3a..a889d02 100644
+--- a/clang-tools-extra/clangd/ClangdServer.h
++++ b/clang-tools-extra/clangd/ClangdServer.h
+@@ -498,8 +498,10 @@ private:
+   using NavigationShard =
+       std::pair<std::shared_ptr<IndexFileIn>, std::shared_ptr<const std::string>>;
+   /// With NavigationFromIndex: the stored shard of the open file \p File and
+-  /// its current text; logs why not otherwise.
+-  std::optional<NavigationShard> navigationShard(PathRef File);
++  /// its current text; logs why not otherwise. For a header it waits as
++  /// waitForNavigationIndex for the stored shards that name its includer.
++  std::optional<NavigationShard>
++  navigationShard(PathRef File, llvm::function_ref<bool()> Answered);
+   /// The symbols \p Loaded (the shard of \p File) records at \p Pos, if the
+   /// open file's content matches the shard; logs why not otherwise.
+   std::optional<std::pair<std::shared_ptr<IndexFileIn>, std::vector<SymbolID>>>
+diff --git a/clang-tools-extra/clangd/XRefs.cpp b/clang-tools-extra/clangd/XRefs.cpp
+index fae03ef..4e0c1e3 100644
+--- a/clang-tools-extra/clangd/XRefs.cpp
++++ b/clang-tools-extra/clangd/XRefs.cpp
+@@ -2629,6 +2629,53 @@ bool shardCommandMatches(const IndexFileIn &Shard,
+          Current->CommandLine == Shard.Cmd->CommandLine;
+ }
+ 
++bool shardIsOfMainFile(const IndexFileIn &Shard, llvm::StringRef File) {
++  if (!Shard.Sources)
++    return false;
++  auto Node = Shard.Sources->find(URI::create(File).toString());
++  return Node != Shard.Sources->end() &&
++         (Node->getValue().Flags & IncludeGraphNode::SourceFlag::IsTU);
++}
++
++namespace {
++// Whether \p Arg names a source file to compile (by its extension).
++bool isSourceFileArgument(llvm::StringRef Arg) {
++  llvm::StringRef Ext = llvm::sys::path::extension(Arg);
++  return llvm::is_contained({".c", ".cc", ".cp", ".cpp", ".cxx", ".c++", ".C",
++                             ".CC", ".m", ".mm", ".cu", ".hip", ".cppm",
++                             ".ixx"},
++                            Ext);
++}
++
++// The arguments of \p CommandLine that two sources of one target share: without
++// the source file and the values of the output and dependency file options.
++std::vector<llvm::StringRef>
++sharedArguments(const std::vector<std::string> &CommandLine) {
++  std::vector<llvm::StringRef> Shared;
++  for (size_t I = 0; I < CommandLine.size(); ++I) {
++    llvm::StringRef Arg = CommandLine[I];
++    if (I > 0 && (Arg == "-o" || Arg == "-MF" || Arg == "-MT" || Arg == "-MQ")) {
++      ++I; // and its value
++      continue;
++    }
++    if (I > 0 && !Arg.starts_with("-") && isSourceFileArgument(Arg))
++      continue;
++    Shared.push_back(Arg);
++  }
++  return Shared;
++}
++} // namespace
++
++bool headerShardCommandMatches(
++    const IndexFileIn &Shard,
++    const std::optional<tooling::CompileCommand> &IncluderCurrent) {
++  if (!Shard.Cmd || !IncluderCurrent)
++    return false;
++  return IncluderCurrent->Directory == Shard.Cmd->Directory &&
++         sharedArguments(IncluderCurrent->CommandLine) ==
++             sharedArguments(Shard.Cmd->CommandLine);
++}
++
+ std::optional<LocatedSymbol> locateIncludeFromShard(const IndexFileIn &Shard,
+                                                     llvm::StringRef MainFilePath,
+                                                     llvm::StringRef Content,
+diff --git a/clang-tools-extra/clangd/XRefs.h b/clang-tools-extra/clangd/XRefs.h
+index f9eee15..af837b5 100644
+--- a/clang-tools-extra/clangd/XRefs.h
++++ b/clang-tools-extra/clangd/XRefs.h
+@@ -126,6 +126,29 @@ llvm::StringRef whyShardCannotAnswer(const IndexFileIn &Shard,
+                                      llvm::StringRef MainFilePath,
+                                      llvm::StringRef Content);
+ 
++/// Whether \p Shard, the stored shard of a main file, was indexed with the
++/// file's \p Current compile command. Another command (a CMake preset switch, a
++/// changed -D) may select other #ifdef branches: the shard's positions and
++/// symbols would not be the AST's. A shard without a command (stored by an
++/// older clangd) has nothing to compare and matches.
++bool shardCommandMatches(const IndexFileIn &Shard,
++                         const std::optional<tooling::CompileCommand> &Current);
++
++/// Whether \p Shard describes \p File as a translation unit (a main file of the
++/// compile database), not as a header.
++bool shardIsOfMainFile(const IndexFileIn &Shard, llvm::StringRef File);
++
++/// Whether \p Shard, the stored shard of a header, was indexed with the flags
++/// of \p IncluderCurrent, the current compile command of a source file that
++/// includes the header. A header's shard keeps the command of the source file
++/// whose indexing stored it, which may be another source of the same target:
++/// the directory and the arguments must be equal apart from the source file
++/// and the output and dependency file names. A shard without a command (stored
++/// before headers kept theirs) does not match: its #ifdef branches are unknown.
++bool headerShardCommandMatches(
++    const IndexFileIn &Shard,
++    const std::optional<tooling::CompileCommand> &IncluderCurrent);
++
+ /// locateSymbolAt for an #include line (as the AST path, anywhere on the line),
+ /// answered from the include graph of the file's shard: the file's direct
+ /// include whose path ends with the spelled name. Answers only when \p Content
+@@ -133,14 +156,6 @@ llvm::StringRef whyShardCannotAnswer(const IndexFileIn &Shard,
+ /// matter) and exactly one direct include matches; std::nullopt otherwise
+ /// (also for "." / ".." components and macro includes). Callers then use the
+ /// AST.
+-/// Whether \p Shard, the stored shard of a main file, was indexed with the
+-/// file's \p Current compile command. Another command (a CMake preset switch, a
+-/// changed -D) may select other #ifdef branches: the shard's positions and
+-/// symbols would not be the AST's. A shard without a command (a header's) has
+-/// nothing to compare and matches.
+-bool shardCommandMatches(const IndexFileIn &Shard,
+-                         const std::optional<tooling::CompileCommand> &Current);
+-
+ std::optional<LocatedSymbol> locateIncludeFromShard(const IndexFileIn &Shard,
+                                                     llvm::StringRef MainFilePath,
+                                                     llvm::StringRef Content,
+diff --git a/clang-tools-extra/clangd/index/Background.cpp b/clang-tools-extra/clangd/index/Background.cpp
+index c10dcd9..34e917e 100644
+--- a/clang-tools-extra/clangd/index/Background.cpp
++++ b/clang-tools-extra/clangd/index/Background.cpp
+@@ -232,29 +232,40 @@ void BackgroundIndex::recordIncluders(
+       Includers.try_emplace(Header, TU);
+ }
+ 
+-std::optional<std::string>
+-BackgroundIndex::includerOf(PathRef Header,
+-                            std::chrono::steady_clock::duration Wait) {
++std::string BackgroundIndex::realDirectoryPath(PathRef Header) const {
+   // The index names files by their directory's real path
+   // (namedByRealDirectory()); the editor may name the header through a
+   // symbolic link above it (on macOS, /tmp for /private/tmp).
+-  std::string RealHeader = Header.str();
+-  {
+-    llvm::SmallString<256> Real;
+-    if (!TFS.view(/*CWD=*/std::nullopt)
+-             ->getRealPath(llvm::sys::path::parent_path(Header), Real)) {
+-      llvm::sys::path::append(Real, llvm::sys::path::filename(Header));
+-      RealHeader = std::string(Real.str());
+-    }
+-  }
+-  auto Known = [&]() -> std::optional<std::string> {
+-    auto It = Includers.find(Header);
+-    if (It == Includers.end())
+-      It = Includers.find(RealHeader);
+-    if (It == Includers.end())
+-      return std::nullopt;
+-    return It->getValue();
+-  };
++  llvm::SmallString<256> Real;
++  if (TFS.view(/*CWD=*/std::nullopt)
++          ->getRealPath(llvm::sys::path::parent_path(Header), Real))
++    return Header.str();
++  llvm::sys::path::append(Real, llvm::sys::path::filename(Header));
++  return std::string(Real.str());
++}
++
++std::optional<std::string>
++BackgroundIndex::recordedIncluder(PathRef Header,
++                                  llvm::StringRef RealHeader) const {
++  auto It = Includers.find(Header);
++  if (It == Includers.end())
++    It = Includers.find(RealHeader);
++  if (It == Includers.end())
++    return std::nullopt;
++  return It->getValue();
++}
++
++std::optional<std::string> BackgroundIndex::knownIncluderOf(PathRef Header) {
++  std::string RealHeader = realDirectoryPath(Header);
++  std::lock_guard<std::mutex> Lock(IncludersMu);
++  return recordedIncluder(Header, RealHeader);
++}
++
++std::optional<std::string>
++BackgroundIndex::includerOf(PathRef Header,
++                            std::chrono::steady_clock::duration Wait) {
++  std::string RealHeader = realDirectoryPath(Header);
++  auto Known = [&] { return recordedIncluder(Header, RealHeader); };
+   {
+     // A known includer is the answer; waiting for the compile database below
+     // would only stall while its broadcast thread announces another project.
+@@ -319,10 +330,9 @@ void BackgroundIndex::update(
+     assert(IF && "no shard for file in Index.Sources?");
+     PathRef Path = FileIt.getValue().first;
+ 
+-    // Only store command line hash for main files of the TU, since our
+-    // current model keeps only one version of a header file.
+-    if (Path != MainFile)
+-      IF->Cmd.reset();
++    // Every shard keeps the command of the TU whose indexing stored it, a
++    // header's too: navigation from the index answers in a header only while
++    // its includer's flags are still those (headerShardCommandMatches).
+ 
+     // We need to store shards before updating the index, since the latter
+     // consumes slabs.
+diff --git a/clang-tools-extra/clangd/index/Background.h b/clang-tools-extra/clangd/index/Background.h
+index 433686b..bb4883c 100644
+--- a/clang-tools-extra/clangd/index/Background.h
++++ b/clang-tools-extra/clangd/index/Background.h
+@@ -179,6 +179,10 @@ public:
+   std::optional<std::string>
+   includerOf(PathRef Header, std::chrono::steady_clock::duration Wait);
+ 
++  /// The includer includerOf() would return at once for \p Header, without
++  /// waiting for the compile database or the stored shards.
++  std::optional<std::string> knownIncluderOf(PathRef Header);
++
+   /// Waits until the stored shards of every project the compile database has
+   /// handed over are loaded into the index (after includerOf's wait ends: the
+   /// shards are read, then merged and the index rebuilt). Gives up at \p Until,
+@@ -242,6 +246,11 @@ private:
+ 
+   // Header -> a translation unit that includes it (see includerOf).
+   llvm::StringMap<std::string> Includers;
++  // \p Header's path with its directory's real path (as the index names it).
++  std::string realDirectoryPath(PathRef Header) const;
++  // The recorded includer of \p Header or \p RealHeader; IncludersMu held.
++  std::optional<std::string> recordedIncluder(PathRef Header,
++                                              llvm::StringRef RealHeader) const;
+   // Headers (by real path) whose includerOf() has waited once; they do not
+   // wait again.
+   llvm::StringSet<> WaitedFor;
+diff --git a/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp b/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp
+index 9be8a78..d5934ea 100644
+--- a/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp
++++ b/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp
+@@ -365,9 +365,55 @@ TEST_F(NavigationFromShardTest, ShardOfAnotherCommandDoesNotAnswer) {
+   Other.Directory = testPath("elsewhere");
+   EXPECT_FALSE(shardCommandMatches(*Shard, Other));
+   EXPECT_FALSE(shardCommandMatches(*Shard, std::nullopt));
+-  // A header's shard stores no command.
+-  IndexFileIn Header;
+-  EXPECT_TRUE(shardCommandMatches(Header, std::nullopt));
++  // A shard stored by an older clangd has no command to compare.
++  IndexFileIn Old;
++  EXPECT_TRUE(shardCommandMatches(Old, std::nullopt));
++}
++
++TEST_F(NavigationFromShardTest, HeaderShardKeepsItsIncludersCommand) {
++  auto MainShard = Idx->loadShard(MainPath);
++  auto HeaderShard = Idx->loadShard(testPath("root/foo.h"));
++  ASSERT_TRUE(MainShard && HeaderShard);
++  EXPECT_TRUE(shardIsOfMainFile(*MainShard, MainPath));
++  EXPECT_FALSE(shardIsOfMainFile(*HeaderShard, testPath("root/foo.h")));
++  ASSERT_TRUE(HeaderShard->Cmd);
++  EXPECT_EQ(HeaderShard->Cmd->CommandLine, MainShard->Cmd->CommandLine);
++  EXPECT_EQ(Idx->knownIncluderOf(testPath("root/foo.h")), MainPath);
++  EXPECT_EQ(Idx->knownIncluderOf(testPath("root/none.h")), std::nullopt);
++}
++
++TEST_F(NavigationFromShardTest, HeaderShardOfOtherFlagsDoesNotAnswer) {
++  // A header opened after a -D change: its shard may record the #ifdef
++  // branches of the old flags (S23 case 3).
++  auto Shard = Idx->loadShard(testPath("root/foo.h"));
++  ASSERT_TRUE(Shard);
++  const tooling::CompileCommand Includer = *CDB.getCompileCommand(MainPath);
++  EXPECT_TRUE(headerShardCommandMatches(*Shard, Includer));
++  tooling::CompileCommand Other = Includer;
++  Other.CommandLine.push_back("-DOTHER");
++  EXPECT_FALSE(headerShardCommandMatches(*Shard, Other));
++  Other = Includer;
++  Other.Directory = testPath("elsewhere");
++  EXPECT_FALSE(headerShardCommandMatches(*Shard, Other));
++  EXPECT_FALSE(headerShardCommandMatches(*Shard, std::nullopt));
++  // Another source of the same target: other source, output and dependency
++  // file names, the same flags.
++  Other = Includer;
++  Other.CommandLine = {"clang++",          "-MD", "-MT", "B.o", "-MF",
++                       "B.o.d",            "-o",  "B.o", "-c",
++                       testPath("root/B.cc")};
++  tooling::CompileCommand Same = Includer;
++  Same.CommandLine = {"clang++", "-MD", "-MT",          "A.o",
++                      "-MF",     "A.o.d", "-o",         "A.o",
++                      "-c",      MainPath};
++  IndexFileIn FromA;
++  FromA.Cmd = Same;
++  EXPECT_TRUE(headerShardCommandMatches(FromA, Other));
++  Other.CommandLine.insert(Other.CommandLine.begin() + 1, "-DOTHER");
++  EXPECT_FALSE(headerShardCommandMatches(FromA, Other));
++  // A shard stored before headers kept their command: branches unknown.
++  IndexFileIn Old;
++  EXPECT_FALSE(headerShardCommandMatches(Old, Includer));
+ }
+ 
+ TEST(NavigationFromShard, MethodReferencesNeedTheAST) {
+@@ -1455,8 +1501,9 @@ TEST_F(BackgroundIndexTest, CmdLineHash) {
+ 
+   EXPECT_THAT(Storage.keys(),
+               UnorderedElementsAre(testPath("A.cc"), testPath("A.h")));
+-  // Make sure we only store the Cmd for main file.
+-  EXPECT_FALSE(MSS.loadShard(testPath("A.h"))->Cmd);
++  // A header's shard keeps the command of the TU that indexed it.
++  ASSERT_TRUE(MSS.loadShard(testPath("A.h"))->Cmd);
++  EXPECT_EQ(MSS.loadShard(testPath("A.h"))->Cmd->CommandLine, Cmd.CommandLine);
+ 
+   tooling::CompileCommand CmdStored = *MSS.loadShard(testPath("A.cc"))->Cmd;
+   EXPECT_EQ(CmdStored.CommandLine, Cmd.CommandLine);
+-- 
+2.56.1
+

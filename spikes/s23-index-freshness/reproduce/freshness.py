@@ -2,7 +2,7 @@
 
 Usage: python3 -I freshness.py CASE LABEL OUTDIR
   CASE  header_disk | header_unsaved | target_moved | header_first_define
-  LABEL nav (patched clangd, --navigation-from-index)
+  LABEL nav (patched clangd, --navigation-from-index); navdev: $S23_CLANGD with it
         noflag (patched clangd without the flag)
         upstream (/opt/local/bin/clangd-mp-23, MacPorts 23.1.5)
 
@@ -27,6 +27,9 @@ BINARIES = {
             "--navigation-from-index"],
     "noflag": [os.path.expanduser("~/opt/clangd-index-nav/bin/clangd")],
     "upstream": ["/opt/local/bin/clangd-mp-23"],
+    # A clangd under test (T-161, T-162): its path in S23_CLANGD.
+    "navdev": [os.environ.get("S23_CLANGD", "S23_CLANGD-unset"),
+               "--navigation-from-index"],
 }
 COMMON_FLAGS = ["--background-index", "--log=verbose", "--enable-config=false"]
 POLL = 20.0
@@ -152,6 +155,13 @@ C3_QUERIES = [
 CASES["header_first_define"] = dict(before=C3_BEFORE, after=C3_AFTER,
                                     unsaved=False, open_first=["over3.h"],
                                     queries=C3_QUERIES)
+
+# Case 3's control (T-161): the flags unchanged, the index must still answer
+# from the header (truth: f(int), selected by -DUSE_A).
+CASES["header_first_same"] = dict(
+    before=C3_BEFORE, after={}, unsaved=False, open_first=["over3.h"],
+    queries=[(name, f, needle, occ, kind, stale, truth)
+             for (name, f, needle, occ, kind, truth, stale) in C3_QUERIES])
 
 # Case 1 without a restart: main.cpp open and parsed, then the headers are
 # changed on disk, opened and saved in the editor (didOpen + didSave).

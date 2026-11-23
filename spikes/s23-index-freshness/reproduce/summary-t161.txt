@@ -1,0 +1,54 @@
+== header_first_define / navdev
+ session s2
+     0.075 Enqueueing 1 commands for indexing
+     2.475 Built preamble of size 22240020 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_define-navdev/
+     2.475 Built preamble of size 22240664 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_define-navdev/
+     2.475 Indexing c++20 standard library in the context of /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_defin
+     7.207 Indexed c++20 standard library: 12235 symbols, 2754 filtered
+   def f(1) in header opened first      correct AST   x39   2.493..20.261 s [('over3.h', 5, 11)]
+        Navigation in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_define-navdev/over3.h needs the AST: its shard was 
+   refs f(1) in header opened first     correct AST   x39   2.548..20.316 s [('main.cpp', 2, 20), ('over3.h', 5, 11), ('over3.h', 6, 27)]
+        Navigation in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_define-navdev/over3.h needs the AST: its shard was 
+   control: def f(1) in main.cpp        correct AST   x39   2.604..20.371 s [('over3.h', 5, 11)]
+        Navigation in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_define-navdev/main.cpp needs the AST: the shard was
+ session s3
+     0.092 Enqueueing 1 commands for indexing
+     2.285 Built preamble of size 22240664 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_define-navdev/
+     2.285 Indexing c++20 standard library in the context of /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_defin
+     2.286 Built preamble of size 22240020 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_define-navdev/
+     9.486 Indexed c++20 standard library: 12235 symbols, 2754 filtered
+   def f(1) in header opened first      correct AST   x1    2.301.. 2.301 s [('over3.h', 5, 11)]
+        Navigation in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_define-navdev/over3.h needs the AST: its shard was 
+   refs f(1) in header opened first     correct AST   x1    2.354.. 2.354 s [('main.cpp', 2, 20), ('over3.h', 5, 11), ('over3.h', 6, 27)]
+        Navigation in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_define-navdev/over3.h needs the AST: its shard was 
+   control: def f(1) in main.cpp        correct AST   x1    2.410.. 2.410 s [('over3.h', 5, 11)]
+        Navigation in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_define-navdev/main.cpp needs the AST: the shard was
+== header_first_same / navdev
+ session s2
+     0.078 Enqueueing 1 commands for indexing
+     2.147 Built preamble of size 22240092 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_same-navdev/ov
+     2.147 Indexing c++20 standard library in the context of /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_same-
+     2.147 Built preamble of size 22240888 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_same-navdev/ma
+     8.367 Indexed c++20 standard library: 12235 symbols, 2754 filtered
+   def f(1) in header opened first      correct index x5    0.283.. 2.162 s [('over3.h', 3, 11)]
+        Definitions in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_same-navdev/over3.h answered from the index shard
+   refs f(1) in header opened first     correct index x4    0.337.. 1.750 s [('main.cpp', 2, 20), ('over3.h', 3, 11), ('over3.h', 6, 27)]
+        References in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_same-navdev/over3.h answered from the index shard
+   control: def f(1) in main.cpp        correct index x5    0.392.. 2.268 s [('over3.h', 3, 11)]
+        Definitions in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_same-navdev/main.cpp answered from the index shard
+   refs f(1) in header opened first     correct AST   x39   2.212..19.997 s [('main.cpp', 2, 20), ('over3.h', 3, 11), ('over3.h', 6, 27)]
+   def f(1) in header opened first      correct AST   x38   2.624..19.945 s [('over3.h', 3, 11)]
+   control: def f(1) in main.cpp        correct AST   x38   2.735..20.053 s [('over3.h', 3, 11)]
+ session s3
+     0.081 Enqueueing 1 commands for indexing
+     2.021 Built preamble of size 22240092 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_same-navdev/ov
+     2.021 Indexing c++20 standard library in the context of /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_same-
+     2.023 Built preamble of size 22240888 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_same-navdev/ma
+     4.812 Indexed c++20 standard library: 12235 symbols, 2754 filtered
+   def f(1) in header opened first      correct index x1    0.302.. 0.302 s [('over3.h', 3, 11)]
+        Definitions in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_same-navdev/over3.h answered from the index shard
+   refs f(1) in header opened first     correct index x1    0.358.. 0.358 s [('main.cpp', 2, 20), ('over3.h', 3, 11), ('over3.h', 6, 27)]
+        References in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_same-navdev/over3.h answered from the index shard
+   control: def f(1) in main.cpp        correct index x1    0.414.. 0.414 s [('over3.h', 3, 11)]
+        Definitions in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_same-navdev/main.cpp answered from the index shard
+done
