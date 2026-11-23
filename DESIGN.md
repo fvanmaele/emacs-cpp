@@ -105,6 +105,12 @@ sources (2026-11-20, RESEARCH_icon_toolbar). Tools named: lucide-toolbar,
 visual-emacs, window-tool-bar, modern-tab (R), centaur-tabs (R), tab-line-nerd-icons
 (R), modern-icons.el (R), svg-lib (R), nerd-icons (R), ESS's ess-toolbar.el (R), the
 "Emacs SVG Toolbar" gist (R).
+"clangd background index reindex files that include changed header stale shard
+dependent TU" (web, 2026-11-23); "github clangd issue background index not updated when
+header changes on disk reindex includers" (web, 2026-11-23); llvm-project PR #140651
+(draft) and clangd/clangd#1104 read on GitHub (2026-11-23, S24 RUN.md). Tools named:
+clangd's background index (PR #140651's diff (R): its page's summary read, not the
+diff).
 
 ## 2. Place in the ecosystem, non-goals
 For: one owner, an Arch Linux workstation and a macOS machine (D-050), C++ projects
@@ -2735,6 +2741,7 @@ presets, GoogleTest runner.
 | fswatch backend loses changes or costs Emacs too much | S18 (PASS 2026-10-21 on Arch; the Mac's cost misread, O-80) | LLM / owner | D-127 |
 | per-project fswatch reverter loses changes or blocks Emacs | S20 (FAIL 2026-11-02: Mac criterion 3, VC steps; PASS on Arch; mode `fswatch-shown` for (e), D-153: PASS on the Mac 2026-11-03, 0103; FAIL on Arch 2026-11-04, criterion 3, D-166, 0115; `fswatch-chunked` D-167 PASS on Arch 0116 and the Mac 0117; module rewritten, D-168: `shipped` PASS on the Mac 0118 and on Arch 0119; refresh first, D-169: PASS on Arch 0122 and the Mac 0123) | LLM / owner | O-78 |
 | pdf-tools' epdfinfo fails to build on a machine, or roll mode misbehaves | S22 | LLM / owner | D-190 |
+| reindexing every includer of a stale file delays the first answer or costs too much | S24 | LLM | T-164, D-218 |
 | index navigation answers from stale shards, or a freshness check costs too much | S23 (FAIL 2026-11-22: cases 1a and 3 reproduced) | LLM | D-217 |
 | own package build glue mis-orders compilation | none (tests) | - | v0.1 |
 | config fails on macOS (paths, tools, tests) | none (`make test`) | owner | D-050 |
