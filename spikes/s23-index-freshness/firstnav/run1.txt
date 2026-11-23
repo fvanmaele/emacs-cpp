@@ -1,0 +1,6 @@
+pkgrel2 session 1: index done
+  V[12:01:48.493] Definitions in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/firstnav/work/pkgrel2/main.cpp need the AST: the index does no
+pkgrel2 session 2: first definition 6231 ms, AST, target vector.h
+navdev session 1: index done
+  V[12:02:17.510] Definitions in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/firstnav/work/navdev/main.cpp need the AST: the index does not
+navdev session 2: first definition 6328 ms, AST, target vector.h

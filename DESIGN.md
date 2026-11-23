@@ -2800,6 +2800,26 @@ presets, GoogleTest runner.
   the Mac. Nothing on Arch. Findings in; O-92 -> D-210.
 
 ## Open questions ledger (LIVING)
+- O-96 (OPEN 2026-11-23; T-162, 0147): patch 0021 (D-217 (d)) holds the first index
+  answer after a restart until clangd's startup staleness check has read every stored
+  file (2661 for a TU including deal.II); on the Mac with G DATA's scan on the first
+  `M-.` takes 1.10 - 1.19 s (pkgrel 2: 0.32 - 0.74 s), over T-162's 1 s. And upstream
+  reindexes one TU per stale file, so other TUs including a changed header still answer
+  stale (read in the code, not run). Latency, pick one:
+  (a) T-162's 1 s binds on Arch only (D-057), measured there on an H-n; the Mac's number
+  recorded. Recommended. Against: the Mac's first `M-.` 0.4 - 0.8 s slower than today;
+  UNVERIFIED that Arch is under 1 s.
+  (b) the check skips files under the SDK and `-isystem` directories (step-40: 957 of
+  3047 under the SDK). Against: after an SDK or library update their shards answer stale.
+  (c) the check reads only files whose mtime is newer than their shard file. Against: a
+  changed file with an older mtime (`rsync -a`, `tar`) passes as fresh.
+  (d) answer before the check, as pkgrel 2. Against: S23 case 1a's first answers after a
+  restart are stale (0.23 s there), the case 0021 exists for.
+  Other TUs, pick one: (e) mark and reindex every TU whose include graph reaches a stale
+  file (reverse edges from the loaded shards). Recommended. Against: a changed common
+  header reindexes all its includers at startup (background CPU as for a rebuild); they
+  answer through the AST until then. (f) as upstream. Against: those TUs answer stale
+  without end.
 - O-95 (RESOLVED 2026-11-23 with D-217: (a) + (d); owner: "O-95 (a) + (d)"; S23,
   0145): navigation from the index (D-026, patches 0001 -
   0004, 0014 - 0017) answers from stale shards in two cases where stock clangd answers

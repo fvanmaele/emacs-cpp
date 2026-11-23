@@ -1,0 +1,12 @@
+  V[12:02:49.192] Definitions in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/firstnav/work/pkgrel2/main.cpp need the AST: the index does no
+pkgrel2 session 2: first definition of hyper_cube 6241 ms, AST, target grid_generator.h
+  V[12:03:01.377] Definitions in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/firstnav/work/navdev/main.cpp need the AST: the index does not
+navdev session 2: first definition of hyper_cube 6699 ms, AST, target grid_generator.h
+  V[12:03:08.605] Definitions in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/firstnav/work/pkgrel2/main.cpp need the AST: the index does no
+pkgrel2 session 2: first definition of hyper_cube 6460 ms, AST, target grid_generator.h
+  V[12:03:22.960] Definitions in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/firstnav/work/navdev/main.cpp need the AST: the index does not
+navdev session 2: first definition of hyper_cube 6500 ms, AST, target grid_generator.h
+  V[12:03:30.440] Definitions in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/firstnav/work/pkgrel2/main.cpp need the AST: the index does no
+pkgrel2 session 2: first definition of hyper_cube 6386 ms, AST, target grid_generator.h
+  V[12:03:44.678] Definitions in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/firstnav/work/navdev/main.cpp need the AST: the index does not
+navdev session 2: first definition of hyper_cube 6850 ms, AST, target grid_generator.h

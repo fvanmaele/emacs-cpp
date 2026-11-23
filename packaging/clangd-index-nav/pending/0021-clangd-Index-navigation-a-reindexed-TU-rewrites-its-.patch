@@ -1,0 +1,485 @@
+From d31c61cfce072dd830625366751ae8334cf16f9a Mon Sep 17 00:00:00 2001
+From: Ferdinand Vanmaele <info@fvanmaele.de>
+Date: Mon, 23 Nov 2026 12:13:22 +0100
+Subject: [PATCH] [clangd] Index navigation: a reindexed TU rewrites its shard;
+ no answer while it is queued
+
+A header changed on disk while clangd was not running: at the next start
+the main file's shard still passed its own digest check, and navigation
+from the index answered with references resolved against the old header,
+also after the reindex, which writes only shards whose digest changed
+(S23 case 1a).
+
+- The main file is always collected (FileFilter) and its shard always
+  rewritten by a reindex (BackgroundIndex::update).
+- The TUs loadProject queues for reindexing are marked before navigation
+  from the index may answer (waitForLoadedShards now waits for the
+  staleness check); a marked TU's index answer is declined until its
+  reindex is in the served index (BackgroundIndexRebuilder::indexedTU
+  numbers each indexed TU, servedTUs() says which the served version
+  holds), or for the session if its reindex failed
+  (BackgroundIndex::reindexPending).
+- The staleness check reads the loaded files in parallel (llvm::parallelFor):
+  it is now on the path of the first navigation. 2661 files of a deal.II
+  TU: 3.9 s one by one on a Mac with an on-access scanner.
+
+ClangdTests 1436/1436 (new: StaleTUWaitsForItsServedReindex,
+ServedTUsFollowTheServedVersion; the first fails without the change).
+S23 case 1a through LSP: the AST answers right in the session after the
+change, the index right in the next.
+
+Not handled: upstream queues one TU per stale file (its DependentTU), so
+other TUs including a changed header are neither reindexed nor marked.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ clang-tools-extra/clangd/ClangdServer.cpp     | 10 ++
+ clang-tools-extra/clangd/index/Background.cpp | 99 +++++++++++++++----
+ clang-tools-extra/clangd/index/Background.h   | 22 ++++-
+ .../clangd/index/BackgroundRebuild.cpp        | 16 ++-
+ .../clangd/index/BackgroundRebuild.h          |  7 +-
+ .../clangd/unittests/BackgroundIndexTests.cpp | 99 +++++++++++++++++++
+ 6 files changed, 229 insertions(+), 24 deletions(-)
+
+diff --git a/clang-tools-extra/clangd/ClangdServer.cpp b/clang-tools-extra/clangd/ClangdServer.cpp
+index 7d20727..264bcc2 100644
+--- a/clang-tools-extra/clangd/ClangdServer.cpp
++++ b/clang-tools-extra/clangd/ClangdServer.cpp
+@@ -933,6 +933,16 @@ ClangdServer::navigationShard(PathRef File,
+            File);
+       return std::nullopt;
+     }
++    // A file it includes may have changed since its shard was stored; the
++    // stored shards are checked for that when they load (before
++    // waitForNavigationIndex returns), so wait for that first.
++    if (!waitForNavigationIndex(Answered, "Navigation", File))
++      return std::nullopt;
++    llvm::StringRef Why = BackgroundIdx->reindexPending(File);
++    if (!Why.empty()) {
++      vlog("Navigation in {0} needs the AST: {1}", File, Why);
++      return std::nullopt;
++    }
+   } else {
+     // A header is parsed with the flags of a source file that includes it;
+     // its shard holds the #ifdef branches of the command it was indexed with.
+diff --git a/clang-tools-extra/clangd/index/Background.cpp b/clang-tools-extra/clangd/index/Background.cpp
+index 34e917e..b47e4d5 100644
+--- a/clang-tools-extra/clangd/index/Background.cpp
++++ b/clang-tools-extra/clangd/index/Background.cpp
+@@ -39,6 +39,7 @@
+ #include "llvm/ADT/StringRef.h"
+ #include "llvm/Support/Error.h"
+ #include "llvm/Support/Path.h"
++#include "llvm/Support/Parallel.h"
+ #include "llvm/Support/Threading.h"
+ #include "llvm/Support/xxhash.h"
+ 
+@@ -170,6 +171,7 @@ BackgroundQueue::Task BackgroundIndex::changedFilesTask(
+     log("Enqueueing {0} commands for indexing", ChangedFiles.size());
+     SPAN_ATTACH(Tracer, "files", int64_t(ChangedFiles.size()));
+ 
++    // Already marked queued (markQueued) by loadProject.
+     auto NeedsReIndexing = loadProject(namedByRealDirectory(
+         std::move(ChangedFiles), *TFS.view(/*CWD=*/std::nullopt)));
+     // Run indexing for files that need to be updated.
+@@ -200,13 +202,20 @@ BackgroundQueue::Task BackgroundIndex::indexFileTask(std::string Path) {
+     if (ContextProvider)
+       WithProvidedContext.emplace(ContextProvider(Path));
+     auto Cmd = CDB.getCompileCommand(Path);
+-    if (!Cmd)
++    if (!Cmd) {
++      markIndexed(Path, ReindexFailed);
+       return;
++    }
+     // A database may answer with its own spelling of the file; index it under the
+     // name asked for (namedByRealDirectory()).
+     Cmd->Filename = Path;
+-    if (auto Error = index(std::move(*Cmd)))
+-      elog("Indexing {0} failed: {1}", Path, std::move(Error));
++    auto Number = index(std::move(*Cmd));
++    if (!Number) {
++      elog("Indexing {0} failed: {1}", Path, Number.takeError());
++      markIndexed(Path, ReindexFailed);
++      return;
++    }
++    markIndexed(Path, *Number);
+   });
+   T.QueuePri = IndexFile;
+   T.ThreadPri = IndexingPriority;
+@@ -311,8 +320,10 @@ void BackgroundIndex::update(
+     }
+     HeaderAndTU.emplace_back(*AbsPath, MainFile.str());
+     const auto DigestIt = ShardVersionsSnapshot.find(*AbsPath);
+-    // File has different contents, or indexing was successful this time.
+-    if (DigestIt == ShardVersionsSnapshot.end() ||
++    // File has different contents, or indexing was successful this time. The
++    // main file's shard is always rewritten: its references depend on the
++    // headers it includes, which may have changed while it did not.
++    if (*AbsPath == MainFile || DigestIt == ShardVersionsSnapshot.end() ||
+         DigestIt->getValue().Digest != IGN.Digest ||
+         (DigestIt->getValue().HadErrors && !HadErrors))
+       FilesToUpdate[IGN.URI] = {std::move(*AbsPath), IGN.Digest};
+@@ -365,7 +376,8 @@ void BackgroundIndex::update(
+   }
+ }
+ 
+-llvm::Error BackgroundIndex::index(tooling::CompileCommand Cmd) {
++llvm::Expected<unsigned>
++BackgroundIndex::index(tooling::CompileCommand Cmd) {
+   trace::Span Tracer("BackgroundIndex");
+   SPAN_ATTACH(Tracer, "file", Cmd.Filename);
+   auto AbsolutePath = getAbsolutePath(Cmd);
+@@ -403,6 +415,10 @@ llvm::Error BackgroundIndex::index(tooling::CompileCommand Cmd) {
+   // digests.
+   IndexOpts.FileFilter = [&ShardVersionsSnapshot](const SourceManager &SM,
+                                                   FileID FID) {
++    // The main file is always collected: its shard is rewritten by every
++    // reindex (update()), as its references depend on the headers too.
++    if (FID == SM.getMainFileID())
++      return true;
+     const auto F = SM.getFileEntryRefForID(FID);
+     if (!F)
+       return false; // Skip invalid files.
+@@ -457,8 +473,7 @@ llvm::Error BackgroundIndex::index(tooling::CompileCommand Cmd) {
+   }
+   update(AbsolutePath, std::move(Index), ShardVersionsSnapshot, HadErrors);
+ 
+-  Rebuilder.indexedTU();
+-  return llvm::Error::success();
++  return Rebuilder.indexedTU();
+ }
+ 
+ // A shard load is counted from enqueue() until loadProject() has recorded the
+@@ -558,23 +573,25 @@ BackgroundIndex::loadProject(std::vector<std::string> MainFiles) {
+   }
+   Rebuilder.loadedShard(LoadedShards);
+   Rebuilder.doneLoading();
+-  // The index now holds these shards (doneLoading() rebuilds it in this
+-  // thread): navigation from the index may answer (waitForLoadedShards).
+-  {
+-    std::lock_guard<std::mutex> Lock(IncludersMu);
+-    --ShardsLoading;
+-  }
+-  IncludersChanged.notify_all();
+ 
+-  auto FS = TFS.view(/*CWD=*/std::nullopt);
++  // Navigation from the index waits for this check (the stale TUs are
++  // marked below before it may answer), so the files are read in parallel:
++  // reading one is mostly waiting (an on-access scanner: 2661 files of a
++  // deal.II TU 3.9 s one by one, 0.7 s eight at a time).
++  std::vector<char> StaleShards(Result.size());
++  llvm::parallelFor(0, Result.size(), [&](size_t I) {
++    StaleShards[I] =
++        shardIsStale(Result[I], TFS.view(/*CWD=*/std::nullopt).get());
++  });
+   llvm::DenseSet<PathRef> TUsToIndex;
+   // We'll accept data from stale shards, but ensure the files get reindexed
+   // soon. Shards indexed with errors are reindexed too: the errors may be
+   // gone without any file in the shard's include graph changing (a header
+   // that did not exist then is not in it, a fixed header reindexes only one
+   // of its includers), and a flagged shard may lack symbols and references.
+-  for (auto &LS : Result) {
+-    bool Stale = shardIsStale(LS, FS.get());
++  for (size_t I = 0; I < Result.size(); ++I) {
++    const LoadedShard &LS = Result[I];
++    bool Stale = StaleShards[I];
+     if (!Stale && !LS.HadErrors)
+       continue;
+     PathRef TUForFile = LS.DependentTU;
+@@ -591,7 +608,51 @@ BackgroundIndex::loadProject(std::vector<std::string> MainFiles) {
+     TUsToIndex.insert(TUForFile);
+   }
+ 
+-  return {TUsToIndex.begin(), TUsToIndex.end()};
++  // Marked before navigation from the index may answer: a stale TU's shard
++  // must not answer until its reindex is served.
++  auto Queued = markQueued({TUsToIndex.begin(), TUsToIndex.end()});
++  // The index now holds these shards (doneLoading() rebuilt it above):
++  // navigation from the index may answer (waitForLoadedShards).
++  {
++    std::lock_guard<std::mutex> Lock(IncludersMu);
++    --ShardsLoading;
++  }
++  IncludersChanged.notify_all();
++  return Queued;
++}
++
++std::vector<std::string>
++BackgroundIndex::markQueued(std::vector<std::string> MainFiles) {
++  std::lock_guard<std::mutex> Lock(ReindexingMu);
++  llvm::erase_if(MainFiles, [&](const std::string &File) {
++    return !QueuedOnce.insert(File).second;
++  });
++  for (const auto &File : MainFiles)
++    Reindexing[File] = 0;
++  return MainFiles;
++}
++
++void BackgroundIndex::markIndexed(PathRef MainFile, unsigned Number) {
++  std::lock_guard<std::mutex> Lock(ReindexingMu);
++  auto It = Reindexing.find(MainFile);
++  if (It != Reindexing.end())
++    It->second = Number;
++}
++
++llvm::StringRef BackgroundIndex::reindexPending(PathRef File) {
++  std::string Real = realDirectoryPath(File);
++  std::lock_guard<std::mutex> Lock(ReindexingMu);
++  auto It = Reindexing.find(Real);
++  if (It == Reindexing.end())
++    return "";
++  if (It->second == 0)
++    return "it is queued for reindexing or being indexed";
++  if (It->second == ReindexFailed)
++    return "its reindex failed";
++  if (Rebuilder.servedTUs() < It->second)
++    return "its reindex is not in the served index yet";
++  Reindexing.erase(It);
++  return "";
+ }
+ 
+ void BackgroundIndex::profile(MemoryTree &MT) const {
+diff --git a/clang-tools-extra/clangd/index/Background.h b/clang-tools-extra/clangd/index/Background.h
+index bb4883c..e9b3c91 100644
+--- a/clang-tools-extra/clangd/index/Background.h
++++ b/clang-tools-extra/clangd/index/Background.h
+@@ -183,6 +183,13 @@ public:
+   /// waiting for the compile database or the stored shards.
+   std::optional<std::string> knownIncluderOf(PathRef Header);
+ 
++  /// Why the stored shard of the main file \p File may not describe it yet: it
++  /// is queued for reindexing (a file it includes changed since its shard was
++  /// stored, or the shard had errors), being indexed, indexed but not yet in
++  /// the served index, or its reindex failed. Empty when none applies. The
++  /// state is recorded before waitForLoadedShards() returns.
++  llvm::StringRef reindexPending(PathRef File);
++
+   /// Waits until the stored shards of every project the compile database has
+   /// handed over are loaded into the index (after includerOf's wait ends: the
+   /// shards are read, then merged and the index rebuilt). Gives up at \p Until,
+@@ -237,7 +244,8 @@ private:
+   llvm::ThreadPriority IndexingPriority;
+   std::function<Context(PathRef)> ContextProvider;
+ 
+-  llvm::Error index(tooling::CompileCommand);
++  // The TU's number from the rebuilder, or ReindexFailed's error.
++  llvm::Expected<unsigned> index(tooling::CompileCommand);
+ 
+   FileSymbols IndexedSymbols;
+   BackgroundIndexRebuilder Rebuilder;
+@@ -263,6 +271,18 @@ private:
+   unsigned ShardsLoading = 0;
+   std::mutex IncludersMu;
+   std::condition_variable IncludersChanged;
++  // Main files (real directory path) queued for indexing -> 0 while queued or
++  // being indexed, then the TU's number from the rebuilder (served once
++  // Rebuilder.servedTUs() reaches it), or ReindexFailed.
++  llvm::StringMap<unsigned> Reindexing;
++  // Main files ever handed to the queue: it drops a second task of a file
++  // (BackgroundQueue::Task::Key), so those are not marked again.
++  llvm::StringSet<> QueuedOnce;
++  std::mutex ReindexingMu;
++  static constexpr unsigned ReindexFailed = ~0u;
++  // Marks \p MainFiles as queued; returns those the queue will accept.
++  std::vector<std::string> markQueued(std::vector<std::string> MainFiles);
++  void markIndexed(PathRef MainFile, unsigned Number);
+   void recordIncluders(llvm::ArrayRef<std::pair<std::string, std::string>>
+                            HeaderAndTU);
+ 
+diff --git a/clang-tools-extra/clangd/index/BackgroundRebuild.cpp b/clang-tools-extra/clangd/index/BackgroundRebuild.cpp
+index 4dc2d3b..ac0a085 100644
+--- a/clang-tools-extra/clangd/index/BackgroundRebuild.cpp
++++ b/clang-tools-extra/clangd/index/BackgroundRebuild.cpp
+@@ -32,15 +32,22 @@ bool BackgroundIndexRebuilder::enoughTUsToRebuild() const {
+   return IndexedTUs >= IndexedTUsAtLastRebuild + TUsBeforeRebuild;
+ }
+ 
+-void BackgroundIndexRebuilder::indexedTU() {
+-  maybeRebuild("after indexing enough files", [this] {
+-    ++IndexedTUs;
++unsigned BackgroundIndexRebuilder::indexedTU() {
++  unsigned Number = 0;
++  maybeRebuild("after indexing enough files", [this, &Number] {
++    Number = ++IndexedTUs;
+     if (Loading)
+       return false;                      // rebuild once loading finishes
+     if (ActiveVersion != StartedVersion) // currently building
+       return false;                      // no urgency, avoid overlapping builds
+     return enoughTUsToRebuild();
+   });
++  return Number;
++}
++
++unsigned BackgroundIndexRebuilder::servedTUs() {
++  std::lock_guard<std::mutex> Lock(Mu);
++  return ServedTUs;
+ }
+ 
+ void BackgroundIndexRebuilder::idle() {
+@@ -81,11 +88,13 @@ void BackgroundIndexRebuilder::shutdown() {
+ void BackgroundIndexRebuilder::maybeRebuild(const char *Reason,
+                                             std::function<bool()> Check) {
+   unsigned BuildVersion = 0;
++  unsigned BuildTUs = 0;
+   {
+     std::lock_guard<std::mutex> Lock(Mu);
+     if (!ShouldStop && Check()) {
+       BuildVersion = ++StartedVersion;
+       IndexedTUsAtLastRebuild = IndexedTUs;
++      BuildTUs = IndexedTUs;
+     }
+   }
+   if (BuildVersion) {
+@@ -101,6 +110,7 @@ void BackgroundIndexRebuilder::maybeRebuild(const char *Reason,
+       // Guard against rebuild finishing in the wrong order.
+       if (BuildVersion > ActiveVersion) {
+         ActiveVersion = BuildVersion;
++        ServedTUs = BuildTUs;
+         vlog("BackgroundIndex: serving version {0} ({1} bytes)", BuildVersion,
+              NewIndex->estimateMemoryUsage());
+         Target->reset(std::move(NewIndex));
+diff --git a/clang-tools-extra/clangd/index/BackgroundRebuild.h b/clang-tools-extra/clangd/index/BackgroundRebuild.h
+index 5ace44c..3e7d5df 100644
+--- a/clang-tools-extra/clangd/index/BackgroundRebuild.h
++++ b/clang-tools-extra/clangd/index/BackgroundRebuild.h
+@@ -52,7 +52,10 @@ public:
+ 
+   // Called to indicate a TU has been indexed.
+   // May rebuild, if enough TUs have been indexed.
+-  void indexedTU();
++  // Returns the TU's number: the index serves it once servedTUs() reaches it.
++  unsigned indexedTU();
++  // How many indexed TUs the served index holds (those numbered up to it).
++  unsigned servedTUs();
+   // Called to indicate that all worker threads are idle.
+   // May reindex, if the index is not up to date.
+   void idle();
+@@ -87,6 +90,8 @@ private:
+   // How many TUs have we indexed so far since startup?
+   unsigned IndexedTUs = 0;
+   unsigned IndexedTUsAtLastRebuild = 0;
++  // IndexedTUs when the served version started building.
++  unsigned ServedTUs = 0;
+   // Are we loading shards? May be multiple concurrent sessions.
+   unsigned Loading = 0;
+   unsigned LoadedShards; // In the current loading session.
+diff --git a/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp b/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp
+index d5934ea..1cd352a 100644
+--- a/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp
++++ b/clang-tools-extra/clangd/unittests/BackgroundIndexTests.cpp
+@@ -416,6 +416,88 @@ TEST_F(NavigationFromShardTest, HeaderShardOfOtherFlagsDoesNotAnswer) {
+   EXPECT_FALSE(headerShardCommandMatches(Old, Includer));
+ }
+ 
++TEST(NavigationFromShard, StaleTUWaitsForItsServedReindex) {
++  // S23 case 1a: a header changed on disk while clangd was not running, the
++  // main file did not. The main file's stored shard still passes its own
++  // digest check, but its references were resolved against the old header.
++  MockFS FS;
++  llvm::StringMap<std::string> Storage;
++  size_t CacheHits = 0;
++  MemoryShardStorage MSS(Storage, CacheHits);
++  std::string MainPath = testPath("root/A.cc");
++  std::string HeaderPath = testPath("root/foo.h");
++  FS.Files[HeaderPath] = "int foo(int);";
++  FS.Files[MainPath] = "#include \"foo.h\"\nint y = foo(1);";
++  tooling::CompileCommand Cmd;
++  Cmd.Filename = MainPath;
++  Cmd.Directory = testPath("root");
++  Cmd.CommandLine = {"clang++", MainPath};
++  {
++    OverlayCDB CDB(/*Base=*/nullptr);
++    BackgroundIndex Idx(FS, CDB, [&](llvm::StringRef) { return &MSS; },
++                        BackgroundIndex::Options{});
++    CDB.setCompileCommand(MainPath, Cmd);
++    ASSERT_TRUE(Idx.blockUntilIdleForTest());
++  }
++  // foo(1) now calls foo(double), another symbol.
++  FS.Files[HeaderPath] = "int foo(double);";
++
++  // The second session: hold the reindex of A.cc (the second context asked
++  // for A.cc; the first is the shard load's).
++  std::mutex Mu;
++  std::condition_variable CV;
++  bool Release = false;
++  unsigned MainContexts = 0;
++  BackgroundIndex::Options Opts;
++  Opts.ContextProvider = [&](PathRef P) {
++    if (P == MainPath) {
++      std::unique_lock<std::mutex> Lock(Mu);
++      if (++MainContexts == 2)
++        CV.wait(Lock, [&] { return Release; });
++    }
++    return Context::current().clone();
++  };
++  OverlayCDB CDB(/*Base=*/nullptr);
++  BackgroundIndex Idx(FS, CDB, [&](llvm::StringRef) { return &MSS; }, Opts);
++  CDB.setCompileCommand(MainPath, Cmd);
++  auto Never = [] { return false; };
++  ASSERT_TRUE(Idx.waitForLoadedShards(
++      std::chrono::steady_clock::now() + std::chrono::seconds(10), Never));
++  EXPECT_EQ(Idx.reindexPending(MainPath),
++            "it is queued for reindexing or being indexed");
++  {
++    std::lock_guard<std::mutex> Lock(Mu);
++    Release = true;
++  }
++  CV.notify_all();
++  ASSERT_TRUE(Idx.blockUntilIdleForTest());
++  // The rebuild after the queue empties serves the reindex.
++  auto Until = std::chrono::steady_clock::now() + std::chrono::seconds(10);
++  while (!Idx.reindexPending(MainPath).empty() &&
++         std::chrono::steady_clock::now() < Until)
++    std::this_thread::sleep_for(std::chrono::milliseconds(10));
++  EXPECT_EQ(Idx.reindexPending(MainPath), "");
++
++  // The reindex rewrote A.cc's shard although only foo.h changed: its
++  // reference at foo(1) is to foo(double).
++  auto HeaderShard = MSS.loadShard(HeaderPath);
++  auto MainShard = MSS.loadShard(MainPath);
++  ASSERT_TRUE(HeaderShard && HeaderShard->Symbols && MainShard &&
++              MainShard->Refs);
++  std::optional<SymbolID> FooDouble;
++  for (const Symbol &S : *HeaderShard->Symbols)
++    if (S.Name == "foo")
++      FooDouble = S.ID;
++  ASSERT_TRUE(FooDouble);
++  bool RefersToFooDouble = false;
++  for (const auto &[ID, Refs] : *MainShard->Refs)
++    if (ID == *FooDouble)
++      RefersToFooDouble = true;
++  EXPECT_TRUE(RefersToFooDouble);
++  // A file never queued has nothing pending.
++  EXPECT_EQ(Idx.reindexPending(testPath("root/B.cc")), "");
++}
++
+ TEST(NavigationFromShard, MethodReferencesNeedTheAST) {
+   // References of a method that may be virtual include its overrides and the
+   // methods it overrides (the AST path); the index cannot tell, so it does not
+@@ -1595,6 +1677,23 @@ TEST_F(BackgroundIndexRebuilderTest, IndexingTUs) {
+   EXPECT_TRUE(checkRebuild([&] { Rebuilder.indexedTU(); }));
+ }
+ 
++TEST_F(BackgroundIndexRebuilderTest, ServedTUsFollowTheServedVersion) {
++  EXPECT_EQ(Rebuilder.servedTUs(), 0u);
++  unsigned Last = 0;
++  for (unsigned I = 0; I < Rebuilder.TUsBeforeFirstBuild - 1; ++I) {
++    unsigned Number = Rebuilder.indexedTU();
++    EXPECT_EQ(Number, Last + 1);
++    Last = Number;
++    EXPECT_LT(Rebuilder.servedTUs(), Number);
++  }
++  Last = Rebuilder.indexedTU(); // builds the first version
++  EXPECT_EQ(Rebuilder.servedTUs(), Last);
++  unsigned Next = Rebuilder.indexedTU();
++  EXPECT_LT(Rebuilder.servedTUs(), Next);
++  Rebuilder.idle();
++  EXPECT_EQ(Rebuilder.servedTUs(), Next);
++}
++
+ TEST_F(BackgroundIndexRebuilderTest, LoadingShards) {
+   Rebuilder.startLoading();
+   Rebuilder.loadedShard(10);
+-- 
+2.56.1
+

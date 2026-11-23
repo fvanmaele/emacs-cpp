@@ -1,0 +1,51 @@
+== header_disk / navdev
+ session s2
+     0.065 Enqueueing 1 commands for indexing
+     0.617 Indexing /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_disk-navdev/main.cpp (digest:=1C6D9AC7545AB7D6)
+     2.408 Indexed /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_disk-navdev/main.cpp (110 symbols, 27650 refs, 1087 f
+     2.498 Built preamble of size 22242400 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_disk-navdev/main.cpp
+     2.498 Indexing c++20 standard library in the context of /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_disk-navdev
+     8.664 Indexed c++20 standard library: 12235 symbols, 2754 filtered
+   def f(1) overload                    correct AST   x35   2.514..20.259 s [('over.h', 3, 11)]
+        Navigation in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_disk-navdev/main.cpp needs the AST: it is queued for rein
+   def w.run() typedef                  correct AST   x35   2.570..20.311 s [('types.h', 2, 15)]
+   def HANDLER macro                    correct AST   x35   2.625..20.367 s [('macros.h', 5, 8)]
+   refs f(1) overload                   correct AST   x35   2.681..20.420 s [('main.cpp', 7, 9), ('over.h', 3, 11)]
+ session s3
+     0.085 Enqueueing 1 commands for indexing
+     5.457 Built preamble of size 22242400 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_disk-navdev/main.cpp
+     5.457 Indexing c++20 standard library in the context of /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_disk-navdev
+    10.879 Indexed c++20 standard library: 12235 symbols, 2754 filtered
+   def f(1) overload                    correct index x1    0.772.. 0.772 s [('over.h', 3, 11)]
+        Definitions in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_disk-navdev/main.cpp answered from the index shard
+   def w.run() typedef                  correct index x1    0.827.. 0.827 s [('types.h', 2, 15)]
+        Definitions in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_disk-navdev/main.cpp answered from the index shard
+   def HANDLER macro                    correct AST   x1    5.476.. 5.476 s [('macros.h', 5, 8)]
+        Definitions in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_disk-navdev/main.cpp need the AST: the index does not lo
+   refs f(1) overload                   correct AST   x1    5.531.. 5.531 s [('main.cpp', 7, 9), ('over.h', 3, 11)]
+== header_first_define / navdev
+ session s2
+     0.080 Enqueueing 1 commands for indexing
+     5.589 Built preamble of size 22240016 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_define-navdev/
+     5.589 Indexing c++20 standard library in the context of /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_defin
+     5.591 Built preamble of size 22240660 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_define-navdev/
+    12.742 Indexed c++20 standard library: 12235 symbols, 2754 filtered
+   def f(1) in header opened first      correct AST   x32   5.611..20.144 s [('over3.h', 5, 11)]
+        Navigation in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_define-navdev/over3.h needs the AST: its shard was 
+   refs f(1) in header opened first     correct AST   x32   5.667..20.198 s [('main.cpp', 2, 20), ('over3.h', 5, 11), ('over3.h', 6, 27)]
+        Navigation in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_define-navdev/over3.h needs the AST: its shard was 
+   control: def f(1) in main.cpp        correct AST   x32   5.723..20.255 s [('over3.h', 5, 11)]
+        Navigation in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_define-navdev/main.cpp needs the AST: the shard was
+ session s3
+     0.075 Enqueueing 1 commands for indexing
+     4.515 Built preamble of size 22240660 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_define-navdev/
+     4.516 Indexing c++20 standard library in the context of /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_defin
+     4.522 Built preamble of size 22240016 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_define-navdev/
+    11.648 Indexed c++20 standard library: 12235 symbols, 2754 filtered
+   def f(1) in header opened first      correct AST   x1    4.537.. 4.537 s [('over3.h', 5, 11)]
+        Navigation in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_define-navdev/over3.h needs the AST: its shard was 
+   refs f(1) in header opened first     correct AST   x1    4.593.. 4.593 s [('main.cpp', 2, 20), ('over3.h', 5, 11), ('over3.h', 6, 27)]
+        Navigation in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_define-navdev/over3.h needs the AST: its shard was 
+   control: def f(1) in main.cpp        correct AST   x1    4.648.. 4.648 s [('over3.h', 5, 11)]
+        Navigation in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_define-navdev/main.cpp needs the AST: the shard was
+done

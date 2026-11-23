@@ -1,0 +1,6 @@
+pkgrel2 session 2: first definition of local_fn 682 ms, index, target local.h
+navdev session 2: first definition of local_fn 1097 ms, index, target local.h
+pkgrel2 session 2: first definition of local_fn 342 ms, index, target local.h
+navdev session 2: first definition of local_fn 1180 ms, index, target local.h
+pkgrel2 session 2: first definition of local_fn 341 ms, index, target local.h
+navdev session 2: first definition of local_fn 1185 ms, index, target local.h
