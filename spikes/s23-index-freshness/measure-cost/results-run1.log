@@ -1,0 +1,19 @@
+So. 22 Nov. 2026 15:25:07 CET
+Darwin HOST.local 27.2.0 Darwin Kernel Version 27.2.0: Wed Oct 14 23:47:21 PDT 2026; root:xnu-13432.41.4~25/RELEASE_ARM64_T6030 arm64
+Apple M3 Pro
+== synthetic (/Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/measure-cost/synthetic.cc)
+    2670
+mode=hash files=2670 bytes=25359187 iters=31 median_ms=4757.472 min_ms=3098.035 max_ms=7356.948
+mode=stat files=2670 bytes=25359187 iters=201 median_ms=2.408 min_ms=2.283 max_ms=11.655
+== step-1 (/Users/USER/source/repos/dealii/examples/step-1/step-1.cc)
+    2629
+mode=hash files=2629 bytes=25215123 iters=31 median_ms=3759.249 min_ms=3237.446 max_ms=8951.359
+mode=stat files=2629 bytes=25215123 iters=201 median_ms=3.615 min_ms=2.377 max_ms=4.622
+== step-6 (/Users/USER/source/repos/dealii/examples/step-6/step-6.cc)
+In file included from /Users/USER/source/repos/dealii/examples/step-6/step-6.cc:39:
+In file included from /Applications/deal.II.app/Contents/Resources/Libraries/include/deal.II/numerics/vector_tools.h:22:
+In file included from /Applications/deal.II.app/Contents/Resources/Libraries/include/deal.II/numerics/vector_tools_common.h:21:
+/Applications/deal.II.app/Contents/Resources/Libraries/include/deal.II/base/patterns.h:53:12: fatal error: 'magic_enum.hpp' file not found
+   53 | #  include <magic_enum.hpp>
+      |            ^~~~~~~~~~~~~~~~
+1 error generated.

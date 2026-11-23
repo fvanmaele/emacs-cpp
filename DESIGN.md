@@ -2716,6 +2716,7 @@ presets, GoogleTest runner.
 | fswatch backend loses changes or costs Emacs too much | S18 (PASS 2026-10-21 on Arch; the Mac's cost misread, O-80) | LLM / owner | D-127 |
 | per-project fswatch reverter loses changes or blocks Emacs | S20 (FAIL 2026-11-02: Mac criterion 3, VC steps; PASS on Arch; mode `fswatch-shown` for (e), D-153: PASS on the Mac 2026-11-03, 0103; FAIL on Arch 2026-11-04, criterion 3, D-166, 0115; `fswatch-chunked` D-167 PASS on Arch 0116 and the Mac 0117; module rewritten, D-168: `shipped` PASS on the Mac 0118 and on Arch 0119; refresh first, D-169: PASS on Arch 0122 and the Mac 0123) | LLM / owner | O-78 |
 | pdf-tools' epdfinfo fails to build on a machine, or roll mode misbehaves | S22 | LLM / owner | D-190 |
+| index navigation answers from stale shards, or a freshness check costs too much | S23 (FAIL 2026-11-22: cases 1a and 3 reproduced) | LLM | O-95 |
 | own package build glue mis-orders compilation | none (tests) | - | v0.1 |
 | config fails on macOS (paths, tools, tests) | none (`make test`) | owner | D-050 |
 | clangd too slow / too large on deal.II scale | S1 numbers | owner | v0.1 |
@@ -2786,6 +2787,40 @@ presets, GoogleTest runner.
   the Mac. Nothing on Arch. Findings in; O-92 -> D-210.
 
 ## Open questions ledger (LIVING)
+- O-95 (OPEN 2026-11-23; S23, 0145): navigation from the index (D-026, patches 0001 -
+  0004, 0014 - 0017) answers from stale shards in two cases where stock clangd answers
+  right, both without end: (1a) an included header changed on disk, the main file not
+  (main.cpp's shard passes its own digest check and is not rewritten by the reindex,
+  which writes only shards whose digest changed); (3) a header opened directly after a
+  `-D` change (header shards store no command, so 0017's check passes). A target moved
+  in another file (case 2) and unsaved header edits are wrong in stock clangd too. The
+  background index never reindexes during a session (`onFileEvent` is an empty FIXME
+  upstream). Per-request cost on the Mac (S23, G DATA scan on): reading and hashing a
+  deal.II TU's 2629 - 3902 includes 3.4 - 15.1 s, `stat` only 2.6 - 15.4 ms, one file
+  about 3 ms. Options (any subset):
+  (a) case 3: keep the producing TU's command in header shards (drop the reset in
+  `BackgroundIndex::update`), compare it with the includer's command (`includerOf`),
+  about 15 - 25 lines, no I/O. Recommended. Against: after a flag change the header
+  falls back to the AST until its content changes (nothing reindexes it, as 0017 for
+  main files today); old shards (no command) fall back until reindexed.
+  (b) case 1a, read and hash the closure per request. Against: 3.4 - 15.1 s per
+  request on the Mac, slower than the AST path it replaces (6.6 - 9.3 s, S8). Not
+  recommended.
+  (c) case 1a, `stat` the closure per request against a recorded mtime and size.
+  Against: a shard format change (every project reindexes once), about 100 lines; a
+  checkout restoring both mtime and size passes as fresh; 2.6 - 15.4 ms per request.
+  (d) case 1a, no I/O: a reindexed TU always rewrites its main file's shard, and the
+  index does not answer for a TU queued for reindex. About 35 lines. Recommended.
+  Against: a header saved during a session is still missed (case 1c); UNVERIFIED that
+  the queue can be read cheaply from the navigation path.
+  (e) reindex on `didChangeWatchedFiles` (the upstream FIXME), covering 1c and stock
+  clangd's staleness. Against: about 100+ lines in the index's scheduling, tier 3
+  (spike first); saves during clangd's load meet O-79's stalls again.
+  (f) check the target file's digest (case 2), about 3 ms. Against: narrows a window
+  of about 1 s on light files; stock clangd is wrong on heavy files too. Not
+  recommended.
+  Recommended: (a) + (d) as patches (tier 2, tests from S23's cases), (e) as its own
+  spike; first a cost run on Arch and on the Mac with the scan off.
 - O-94 (RESOLVED 2026-11-22 with D-216: (c); owner: "gdb on the Mac - option 3"; owner
   on H-39: "gdb preset on mac run with C-x C-a d (no gdb found)"): the projects'
   `.dir-locals.el` set `dape-command` to `gdb-preset`, which overrides the platform

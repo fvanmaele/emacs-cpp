@@ -1,0 +1,290 @@
+== header_disk / nav
+ session s2
+     0.064 Enqueueing 1 commands for indexing
+     1.284 Indexing /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_disk-nav/main.cpp (digest:=1C6D9AC7545AB7D6)
+     1.732 Built preamble of size 22240604 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_disk-nav/main.cpp ve
+     1.733 Indexing c++20 standard library in the context of /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_disk-nav/ma
+     2.918 Indexed /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_disk-nav/main.cpp (109 symbols, 27645 refs, 1087 file
+     3.407 Indexed c++20 standard library: 12235 symbols, 2754 filtered
+   def f(1) overload                    stale   index x1    0.228.. 0.228 s [('over.h', 1, 11)]
+        Definitions in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_disk-nav/main.cpp answered from the index shard
+   def w.run() typedef                  stale   index x1    0.283.. 0.283 s [('types.h', 1, 15)]
+        Definitions in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_disk-nav/main.cpp answered from the index shard
+   def HANDLER macro                    correct AST   x36   1.748..20.138 s [('macros.h', 5, 8)]
+        Definitions in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_disk-nav/main.cpp need the AST: the index does not locat
+   refs f(1) overload                   other   AST   x3    1.803.. 2.845 s [('main.cpp', 7, 9), ('over.h', 2, 11)]
+   def f(1) overload                    correct AST   x35   2.163..20.026 s [('over.h', 3, 11)]
+        Definitions in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_disk-nav/main.cpp need the AST: the index does not locat
+   def w.run() typedef                  correct AST   x35   2.215..20.082 s [('types.h', 2, 15)]
+   refs f(1) overload                   correct AST   x33   3.372..20.195 s [('main.cpp', 7, 9), ('over.h', 3, 11)]
+        References in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_disk-nav/main.cpp need the AST: the index has no referenc
+ session s3
+     0.093 Enqueueing 1 commands for indexing
+     1.697 Built preamble of size 22240604 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_disk-nav/main.cpp ve
+     1.698 Indexing c++20 standard library in the context of /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_disk-nav/ma
+     3.662 Indexed c++20 standard library: 12235 symbols, 2754 filtered
+   def f(1) overload                    correct AST   x1    1.716.. 1.716 s [('over.h', 3, 11)]
+        Definitions in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_disk-nav/main.cpp need the AST: the index does not locat
+   def w.run() typedef                  stale   index x1    1.771.. 1.771 s [('types.h', 1, 15)]
+        Definitions in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_disk-nav/main.cpp answered from the index shard
+   def HANDLER macro                    correct AST   x1    1.826.. 1.826 s [('macros.h', 5, 8)]
+        Definitions in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_disk-nav/main.cpp need the AST: the index does not locat
+   refs f(1) overload                   correct AST   x1    1.882.. 1.882 s [('main.cpp', 7, 9), ('over.h', 3, 11)]
+        References in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_disk-nav/main.cpp need the AST: the index has no referenc
+== header_disk / noflag
+ session s2
+     0.060 Enqueueing 1 commands for indexing
+     1.291 Indexing /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_disk-noflag/main.cpp (digest:=1C6D9AC7545AB7D6)
+     1.717 Built preamble of size 22240628 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_disk-noflag/main.cpp
+     1.717 Indexing c++20 standard library in the context of /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_disk-noflag
+     2.911 Indexed /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_disk-noflag/main.cpp (109 symbols, 27645 refs, 1087 f
+     3.370 Indexed c++20 standard library: 12235 symbols, 2754 filtered
+   def f(1) overload                    correct AST   x36   1.733..20.065 s [('over.h', 3, 11)]
+   def w.run() typedef                  correct AST   x36   1.785..20.121 s [('types.h', 2, 15)]
+   def HANDLER macro                    correct AST   x36   1.840..20.174 s [('macros.h', 5, 8)]
+   refs f(1) overload                   other   AST   x3    1.893.. 2.940 s [('main.cpp', 7, 9), ('over.h', 2, 11)]
+   refs f(1) overload                   correct AST   x33   3.466..20.228 s [('main.cpp', 7, 9), ('over.h', 3, 11)]
+ session s3
+     0.102 Enqueueing 1 commands for indexing
+     1.732 Built preamble of size 22240628 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_disk-noflag/main.cpp
+     1.732 Indexing c++20 standard library in the context of /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_disk-noflag
+     3.729 Indexed c++20 standard library: 12235 symbols, 2754 filtered
+   def f(1) overload                    correct AST   x1    1.752.. 1.752 s [('over.h', 3, 11)]
+   def w.run() typedef                  correct AST   x1    1.804.. 1.804 s [('types.h', 2, 15)]
+   def HANDLER macro                    correct AST   x1    1.858.. 1.858 s [('macros.h', 5, 8)]
+   refs f(1) overload                   correct AST   x1    1.913.. 1.913 s [('main.cpp', 7, 9), ('over.h', 3, 11)]
+== header_disk / upstream
+ session s2
+     0.131 Enqueueing 1 commands for indexing
+     1.369 Indexing main.cpp (digest:=1C6D9AC7545AB7D6)
+     1.801 Built preamble of size 22240244 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_disk-upstream/main.c
+     1.801 Indexing c++20 standard library in the context of /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_disk-upstre
+     3.018 Indexed main.cpp (109 symbols, 27645 refs, 1087 files)
+     3.503 Indexed c++20 standard library: 12235 symbols, 2754 filtered
+   def f(1) overload                    correct AST   x36   1.815..20.189 s [('over.h', 3, 11)]
+   def w.run() typedef                  correct AST   x36   1.871..20.243 s [('types.h', 2, 15)]
+   def HANDLER macro                    correct AST   x36   1.922..20.296 s [('macros.h', 5, 8)]
+   refs f(1) overload                   other   AST   x3    1.978.. 3.024 s [('main.cpp', 7, 9), ('over.h', 2, 11)]
+   refs f(1) overload                   correct AST   x33   3.548..20.353 s [('main.cpp', 7, 9), ('over.h', 3, 11)]
+ session s3
+     0.185 Enqueueing 1 commands for indexing
+     1.880 Built preamble of size 22240244 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_disk-upstream/main.c
+     1.880 Indexing c++20 standard library in the context of /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_disk-upstre
+     4.116 Indexed c++20 standard library: 12235 symbols, 2754 filtered
+   def f(1) overload                    correct AST   x1    1.893.. 1.893 s [('over.h', 3, 11)]
+   def w.run() typedef                  correct AST   x1    1.947.. 1.947 s [('types.h', 2, 15)]
+   def HANDLER macro                    correct AST   x1    2.002.. 2.002 s [('macros.h', 5, 8)]
+   refs f(1) overload                   correct AST   x1    2.057.. 2.057 s [('main.cpp', 7, 9), ('over.h', 3, 11)]
+== header_unsaved / nav
+ session s2
+     0.062 Enqueueing 1 commands for indexing
+     0.077 Built preamble of size 837468 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_unsaved-nav/types.h ve
+     0.079 Built preamble of size 837476 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_unsaved-nav/macros.h v
+     0.079 Indexing c++20 standard library in the context of /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_unsaved-nav
+     0.080 Built preamble of size 837468 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_unsaved-nav/over.h ver
+     1.633 Built preamble of size 22240800 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_unsaved-nav/main.cpp
+     1.685 Indexed c++20 standard library: 12235 symbols, 2754 filtered
+   def f(1) overload                    stale   AST   x36   1.647..20.040 s [('over.h', 1, 11)]
+        Definitions in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_unsaved-nav/main.cpp need the AST: the index does not lo
+   def w.run() typedef                  stale   AST   x36   1.703..20.096 s [('types.h', 1, 15)]
+   def HANDLER macro                    stale   AST   x36   1.758..20.150 s [('macros.h', 3, 8)]
+        Definitions in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_unsaved-nav/main.cpp need the AST: the index does not lo
+   refs f(1) overload                   other   AST   x36   1.813..20.203 s [('main.cpp', 7, 9)]
+ session s3
+     0.080 Enqueueing 1 commands for indexing
+     0.096 Built preamble of size 837468 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_unsaved-nav/over.h ver
+     0.096 Built preamble of size 837476 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_unsaved-nav/macros.h v
+     0.096 Built preamble of size 837468 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_unsaved-nav/types.h ve
+     0.096 Indexing c++20 standard library in the context of /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_unsaved-nav
+     1.700 Built preamble of size 22240800 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_unsaved-nav/main.cpp
+     1.732 Indexed c++20 standard library: 12235 symbols, 2754 filtered
+   def f(1) overload                    stale   AST   x1    1.714.. 1.714 s [('over.h', 1, 11)]
+        Definitions in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_unsaved-nav/main.cpp need the AST: the index does not lo
+   def w.run() typedef                  stale   AST   x1    1.769.. 1.769 s [('types.h', 1, 15)]
+   def HANDLER macro                    stale   AST   x1    1.820.. 1.820 s [('macros.h', 3, 8)]
+        Definitions in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_unsaved-nav/main.cpp need the AST: the index does not lo
+   refs f(1) overload                   other   AST   x1    1.876.. 1.876 s [('main.cpp', 7, 9)]
+== header_unsaved / noflag
+ session s2
+     0.060 Enqueueing 1 commands for indexing
+     0.072 Built preamble of size 837480 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_unsaved-noflag/macros.
+     0.072 Built preamble of size 837476 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_unsaved-noflag/over.h 
+     0.072 Indexing c++20 standard library in the context of /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_unsaved-nof
+     0.073 Built preamble of size 837480 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_unsaved-noflag/types.h
+     1.463 Built preamble of size 22240832 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_unsaved-noflag/main.
+     1.624 Indexed c++20 standard library: 12235 symbols, 2754 filtered
+   def f(1) overload                    stale   AST   x36   1.477..19.803 s [('over.h', 1, 11)]
+   def w.run() typedef                  stale   AST   x36   1.533..19.859 s [('types.h', 1, 15)]
+   def HANDLER macro                    stale   AST   x36   1.588..19.913 s [('macros.h', 3, 8)]
+   refs f(1) overload                   other   AST   x36   1.640..19.969 s [('main.cpp', 7, 9)]
+ session s3
+     0.089 Enqueueing 1 commands for indexing
+     0.104 Built preamble of size 837476 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_unsaved-noflag/over.h 
+     0.104 Indexing c++20 standard library in the context of /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_unsaved-nof
+     0.104 Built preamble of size 837480 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_unsaved-noflag/types.h
+     0.104 Built preamble of size 837480 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_unsaved-noflag/macros.
+     1.708 Built preamble of size 22240832 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_unsaved-noflag/main.
+     1.746 Indexed c++20 standard library: 12235 symbols, 2754 filtered
+   def f(1) overload                    stale   AST   x1    1.722.. 1.722 s [('over.h', 1, 11)]
+   def w.run() typedef                  stale   AST   x1    1.777.. 1.777 s [('types.h', 1, 15)]
+   def HANDLER macro                    stale   AST   x1    1.833.. 1.833 s [('macros.h', 3, 8)]
+   refs f(1) overload                   other   AST   x1    1.888.. 1.888 s [('main.cpp', 7, 9)]
+== header_unsaved / upstream
+ session s2
+     0.135 Enqueueing 1 commands for indexing
+     0.147 Built preamble of size 837476 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_unsaved-upstream/over.
+     0.147 Built preamble of size 837484 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_unsaved-upstream/types
+     0.147 Built preamble of size 837488 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_unsaved-upstream/macro
+     0.148 Indexing c++20 standard library in the context of /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_unsaved-ups
+     1.597 Built preamble of size 22240448 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_unsaved-upstream/mai
+     1.767 Indexed c++20 standard library: 12235 symbols, 2754 filtered
+   def f(1) overload                    stale   AST   x36   1.611..19.967 s [('over.h', 1, 11)]
+   def w.run() typedef                  stale   AST   x36   1.666..20.024 s [('types.h', 1, 15)]
+   def HANDLER macro                    stale   AST   x36   1.719..20.079 s [('macros.h', 3, 8)]
+   refs f(1) overload                   other   AST   x36   1.774..20.136 s [('main.cpp', 7, 9)]
+ session s3
+     0.239 Enqueueing 1 commands for indexing
+     0.254 Built preamble of size 837484 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_unsaved-upstream/types
+     0.254 Built preamble of size 837488 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_unsaved-upstream/macro
+     0.254 Built preamble of size 837476 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_unsaved-upstream/over.
+     0.256 Indexing c++20 standard library in the context of /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_unsaved-ups
+     1.929 Built preamble of size 22240448 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_unsaved-upstream/mai
+     2.021 Indexed c++20 standard library: 12235 symbols, 2754 filtered
+   def f(1) overload                    stale   AST   x1    1.943.. 1.943 s [('over.h', 1, 11)]
+   def w.run() typedef                  stale   AST   x1    1.999.. 1.999 s [('types.h', 1, 15)]
+   def HANDLER macro                    stale   AST   x1    2.054.. 2.054 s [('macros.h', 3, 8)]
+   refs f(1) overload                   other   AST   x1    2.109.. 2.109 s [('main.cpp', 7, 9)]
+== target_moved / nav
+ session s2
+     0.132 Enqueueing 3 commands for indexing
+     1.423 Indexing /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/target_moved-nav/other.cpp (digest:=0B73859E794BC0AB)
+     1.423 Indexing /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/target_moved-nav/g.cpp (digest:=489BFAEA501A5171)
+     1.427 Indexed /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/target_moved-nav/g.cpp (1 symbols, 1 refs, 2 files)
+     1.427 Indexed /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/target_moved-nav/other.cpp (2 symbols, 5 refs, 2 files)
+     2.096 Built preamble of size 22238612 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/target_moved-nav/main.cpp v
+     2.097 Indexing c++20 standard library in the context of /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/target_moved-nav/m
+     5.944 Indexed c++20 standard library: 12235 symbols, 2754 filtered
+   def g() moved in g.cpp               stale   index x3    0.315.. 1.149 s [('g.cpp', 1, 4)]
+        Definitions in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/target_moved-nav/main.cpp answered from the index shard
+   refs g() new calls in other.cpp      stale   index x3    0.370.. 1.204 s [('g.cpp', 1, 4), ('g.h', 1, 4), ('main.cpp', 3, 20), ('other.cpp', 1, 22)]
+        References in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/target_moved-nav/main.cpp answered from the index shard
+   def g() moved in g.cpp               correct index x2    1.565.. 1.983 s [('g.cpp', 6, 4)]
+        Definitions in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/target_moved-nav/main.cpp answered from the index shard
+   refs g() new calls in other.cpp      correct index x2    1.622.. 2.040 s [('g.cpp', 6, 4), ('g.h', 1, 4), ('main.cpp', 3, 20), ('other.cpp', 1, 22), ('other.cpp', 2, 22), ('other.cpp', 2, 28)]
+        References in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/target_moved-nav/main.cpp answered from the index shard
+   def g() moved in g.cpp               correct AST   x44   2.402..20.258 s [('g.cpp', 6, 4)]
+   refs g() new calls in other.cpp      correct AST   x44   2.458..20.313 s [('g.cpp', 6, 4), ('g.h', 1, 4), ('main.cpp', 3, 20), ('other.cpp', 1, 22), ('other.cpp', 2, 22), ('other.cpp', 2, 28)]
+ session s3
+     0.108 Enqueueing 3 commands for indexing
+     1.763 Built preamble of size 22238612 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/target_moved-nav/main.cpp v
+     1.764 Indexing c++20 standard library in the context of /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/target_moved-nav/m
+     3.956 Indexed c++20 standard library: 12235 symbols, 2754 filtered
+   def g() moved in g.cpp               correct index x1    0.435.. 0.435 s [('g.cpp', 6, 4)]
+        Definitions in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/target_moved-nav/main.cpp answered from the index shard
+   refs g() new calls in other.cpp      correct index x1    0.491.. 0.491 s [('g.cpp', 6, 4), ('g.h', 1, 4), ('main.cpp', 3, 20), ('other.cpp', 1, 22), ('other.cpp', 2, 22), ('other.cpp', 2, 28)]
+        References in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/target_moved-nav/main.cpp answered from the index shard
+== target_moved / noflag
+ session s2
+     0.069 Enqueueing 3 commands for indexing
+     1.363 Indexing /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/target_moved-noflag/other.cpp (digest:=0B73859E794BC0AB)
+     1.364 Indexing /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/target_moved-noflag/g.cpp (digest:=489BFAEA501A5171)
+     1.368 Indexed /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/target_moved-noflag/g.cpp (1 symbols, 1 refs, 2 files)
+     1.368 Indexed /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/target_moved-noflag/other.cpp (2 symbols, 5 refs, 2 files)
+     1.870 Built preamble of size 22238644 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/target_moved-noflag/main.cp
+     1.870 Indexing c++20 standard library in the context of /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/target_moved-nofla
+     4.087 Indexed c++20 standard library: 12235 symbols, 2754 filtered
+   def g() moved in g.cpp               correct AST   x45   1.888..20.146 s [('g.cpp', 6, 4)]
+   refs g() new calls in other.cpp      correct AST   x45   1.944..20.201 s [('g.cpp', 6, 4), ('g.h', 1, 4), ('main.cpp', 3, 20), ('other.cpp', 1, 22), ('other.cpp', 2, 22), ('other.cpp', 2, 28)]
+ session s3
+     0.072 Enqueueing 3 commands for indexing
+     1.742 Built preamble of size 22238644 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/target_moved-noflag/main.cp
+     1.742 Indexing c++20 standard library in the context of /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/target_moved-nofla
+     4.105 Indexed c++20 standard library: 12235 symbols, 2754 filtered
+   def g() moved in g.cpp               correct AST   x1    1.759.. 1.759 s [('g.cpp', 6, 4)]
+   refs g() new calls in other.cpp      correct AST   x1    1.815.. 1.815 s [('g.cpp', 6, 4), ('g.h', 1, 4), ('main.cpp', 3, 20), ('other.cpp', 1, 22), ('other.cpp', 2, 22), ('other.cpp', 2, 28)]
+== target_moved / upstream
+ session s2
+     0.131 Enqueueing 3 commands for indexing
+     1.356 Indexing g.cpp (digest:=489BFAEA501A5171)
+     1.356 Indexing other.cpp (digest:=0B73859E794BC0AB)
+     1.360 Indexed other.cpp (2 symbols, 5 refs, 2 files)
+     1.360 Indexed g.cpp (1 symbols, 1 refs, 2 files)
+     1.698 Built preamble of size 22238240 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/target_moved-upstream/main.
+     1.698 Indexing c++20 standard library in the context of /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/target_moved-upstr
+     3.802 Indexed c++20 standard library: 12235 symbols, 2754 filtered
+   def g() moved in g.cpp               correct AST   x45   1.711..19.958 s [('g.cpp', 6, 4)]
+   refs g() new calls in other.cpp      correct AST   x45   1.767..20.014 s [('g.cpp', 6, 4), ('g.h', 1, 4), ('main.cpp', 3, 20), ('other.cpp', 1, 22), ('other.cpp', 2, 22), ('other.cpp', 2, 28)]
+ session s3
+     0.152 Enqueueing 3 commands for indexing
+     1.778 Built preamble of size 22238240 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/target_moved-upstream/main.
+     1.778 Indexing c++20 standard library in the context of /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/target_moved-upstr
+     3.850 Indexed c++20 standard library: 12235 symbols, 2754 filtered
+   def g() moved in g.cpp               correct AST   x1    1.792.. 1.792 s [('g.cpp', 6, 4)]
+   refs g() new calls in other.cpp      correct AST   x1    1.847.. 1.847 s [('g.cpp', 6, 4), ('g.h', 1, 4), ('main.cpp', 3, 20), ('other.cpp', 1, 22), ('other.cpp', 2, 22), ('other.cpp', 2, 28)]
+== header_first_define / nav
+ session s2
+     0.060 Enqueueing 1 commands for indexing
+     1.681 Built preamble of size 22238240 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_define-nav/ove
+     1.681 Indexing c++20 standard library in the context of /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_defin
+     1.683 Built preamble of size 22238872 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_define-nav/mai
+     3.740 Indexed c++20 standard library: 12235 symbols, 2754 filtered
+   def f(1) in header opened first      stale   index x1    0.224.. 0.224 s [('over3.h', 3, 11)]
+        Definitions in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_define-nav/over3.h answered from the index shard
+   refs f(1) in header opened first     stale   index x1    0.279.. 0.279 s [('main.cpp', 2, 20), ('over3.h', 3, 11), ('over3.h', 6, 27)]
+        References in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_define-nav/over3.h answered from the index shard
+   control: def f(1) in main.cpp        correct AST   x40   1.700..20.047 s [('over3.h', 5, 11)]
+        Navigation in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_define-nav/main.cpp needs the AST: the shard was in
+   def f(1) in header opened first      correct AST   x39   2.061..19.933 s [('over3.h', 5, 11)]
+   refs f(1) in header opened first     correct AST   x39   2.116..19.990 s [('main.cpp', 2, 20), ('over3.h', 5, 11), ('over3.h', 6, 27)]
+        References in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_define-nav/over3.h need the AST: the index has no r
+ session s3
+     0.077 Enqueueing 1 commands for indexing
+     1.728 Built preamble of size 22238240 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_define-nav/ove
+     1.728 Built preamble of size 22238872 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_define-nav/mai
+     1.729 Indexing c++20 standard library in the context of /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_defin
+     3.762 Indexed c++20 standard library: 12235 symbols, 2754 filtered
+   def f(1) in header opened first      stale   index x1    0.396.. 0.396 s [('over3.h', 3, 11)]
+        Definitions in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_define-nav/over3.h answered from the index shard
+   refs f(1) in header opened first     stale   index x1    0.451.. 0.451 s [('main.cpp', 2, 20), ('over3.h', 3, 11), ('over3.h', 6, 27)]
+        References in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_define-nav/over3.h answered from the index shard
+   control: def f(1) in main.cpp        correct AST   x1    1.750.. 1.750 s [('over3.h', 5, 11)]
+        Navigation in /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_define-nav/main.cpp needs the AST: the shard was in
+== header_first_define / noflag
+ session s2
+     0.063 Enqueueing 1 commands for indexing
+     1.688 Built preamble of size 22238244 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_define-noflag/
+     1.688 Indexing c++20 standard library in the context of /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_defin
+     1.711 Built preamble of size 22238888 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_define-noflag/
+     3.791 Indexed c++20 standard library: 12235 symbols, 2754 filtered
+   def f(1) in header opened first      correct AST   x40   1.703..19.976 s [('over3.h', 5, 11)]
+   refs f(1) in header opened first     correct AST   x40   1.758..20.030 s [('main.cpp', 2, 20), ('over3.h', 5, 11), ('over3.h', 6, 27)]
+   control: def f(1) in main.cpp        correct AST   x40   1.814..20.087 s [('over3.h', 5, 11)]
+ session s3
+     0.066 Enqueueing 1 commands for indexing
+     1.784 Built preamble of size 22238888 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_define-noflag/
+     1.784 Built preamble of size 22238244 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_define-noflag/
+     1.784 Indexing c++20 standard library in the context of /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_defin
+     3.834 Indexed c++20 standard library: 12235 symbols, 2754 filtered
+   def f(1) in header opened first      correct AST   x1    1.806.. 1.806 s [('over3.h', 5, 11)]
+   refs f(1) in header opened first     correct AST   x1    1.861.. 1.861 s [('main.cpp', 2, 20), ('over3.h', 5, 11), ('over3.h', 6, 27)]
+   control: def f(1) in main.cpp        correct AST   x1    1.917.. 1.917 s [('over3.h', 5, 11)]
+== header_first_define / upstream
+ session s2
+     0.132 Enqueueing 1 commands for indexing
+     1.749 Built preamble of size 22237848 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_define-upstrea
+     1.749 Indexing c++20 standard library in the context of /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_defin
+     1.751 Built preamble of size 22238492 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_define-upstrea
+     3.811 Indexed c++20 standard library: 12235 symbols, 2754 filtered
+   def f(1) in header opened first      correct AST   x40   1.762..20.053 s [('over3.h', 5, 11)]
+   refs f(1) in header opened first     correct AST   x40   1.818..20.109 s [('main.cpp', 2, 20), ('over3.h', 5, 11), ('over3.h', 6, 27)]
+   control: def f(1) in main.cpp        correct AST   x40   1.874..20.166 s [('over3.h', 5, 11)]
+ session s3
+     0.201 Enqueueing 1 commands for indexing
+     1.985 Built preamble of size 22237848 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_define-upstrea
+     1.986 Indexing c++20 standard library in the context of /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_defin
+     1.988 Built preamble of size 22238492 for file /Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/reproduce/work/header_first_define-upstrea
+     4.202 Indexed c++20 standard library: 12235 symbols, 2754 filtered
+   def f(1) in header opened first      correct AST   x1    2.000.. 2.000 s [('over3.h', 5, 11)]
+   refs f(1) in header opened first     correct AST   x1    2.056.. 2.056 s [('main.cpp', 2, 20), ('over3.h', 5, 11), ('over3.h', 6, 27)]
+   control: def f(1) in main.cpp        correct AST   x1    2.111.. 2.111 s [('over3.h', 5, 11)]
+done

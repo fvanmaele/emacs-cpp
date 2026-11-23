@@ -1,0 +1,50 @@
+So. 22 Nov. 2026 15:31:47 CET
+Darwin HOST.local 27.2.0 Darwin Kernel Version 27.2.0: Wed Oct 14 23:47:21 PDT 2026; root:xnu-13432.41.4~25/RELEASE_ARM64_T6030 arm64
+Apple M3 Pro
+== synthetic (/Users/USER/source/repos/emacs-cpp/spikes/s23-index-freshness/measure-cost/synthetic.cc)
+    2670
+mode=hash files=2670 bytes=25359187 iters=11 median_ms=3425.867 min_ms=3332.806 max_ms=7254.566
+mode=open files=2670 bytes=25359187 iters=11 median_ms=3583.690 min_ms=3401.937 max_ms=6191.241
+mode=stat files=2670 bytes=25359187 iters=201 median_ms=3.013 min_ms=2.385 max_ms=8.282
+mode=mem files=2670 bytes=25359187 iters=51 median_ms=0.680 min_ms=0.635 max_ms=2.293
+== step-1 (/Users/USER/source/repos/dealii/examples/step-1/step-1.cc)
+    2629
+mode=hash files=2629 bytes=25215123 iters=11 median_ms=6447.520 min_ms=3296.659 max_ms=18224.919
+mode=open files=2629 bytes=25215123 iters=11 median_ms=18627.512 min_ms=3973.674 max_ms=36100.824
+mode=stat files=2629 bytes=25215123 iters=201 median_ms=15.445 min_ms=12.967 max_ms=21.850
+mode=mem files=2629 bytes=25215123 iters=51 median_ms=4.376 min_ms=3.396 max_ms=6.776
+== step-6 (/Users/USER/source/repos/dealii/examples/step-6/step-6.cc)
+    2896
+mode=hash files=2896 bytes=29898315 iters=11 median_ms=15102.741 min_ms=10443.721 max_ms=22484.841
+mode=open files=2896 bytes=29898315 iters=11 median_ms=11239.293 min_ms=7869.930 max_ms=47729.819
+mode=stat files=2896 bytes=29898315 iters=201 median_ms=8.955 min_ms=7.528 max_ms=15.676
+mode=mem files=2896 bytes=29898315 iters=51 median_ms=2.721 min_ms=2.500 max_ms=3.705
+== step-22 (/Users/USER/source/repos/dealii/examples/step-22/step-22.cc)
+    3902
+mode=hash files=3902 bytes=40615871 iters=11 median_ms=12400.873 min_ms=10098.848 max_ms=17949.555
+mode=open files=3902 bytes=40615871 iters=11 median_ms=12457.994 min_ms=10422.373 max_ms=12700.867
+mode=stat files=3902 bytes=40615871 iters=201 median_ms=3.494 min_ms=3.325 max_ms=11.921
+mode=mem files=3902 bytes=40615871 iters=51 median_ms=1.319 min_ms=1.017 max_ms=6.392
+== step-40 (/Users/USER/source/repos/dealii/examples/step-40/step-40.cc)
+    3047
+mode=hash files=3047 bytes=33353452 iters=11 median_ms=9628.929 min_ms=9123.564 max_ms=10491.480
+mode=open files=3047 bytes=33353452 iters=11 median_ms=10337.813 min_ms=5822.057 max_ms=20520226.105
+mode=stat files=3047 bytes=33353452 iters=201 median_ms=2.553 min_ms=2.538 max_ms=9.265
+mode=mem files=3047 bytes=33353452 iters=51 median_ms=1.238 min_ms=0.849 max_ms=5.175
+== step-69 (/Users/USER/source/repos/dealii/examples/step-69/step-69.cc)
+    3182
+mode=hash files=3182 bytes=33595085 iters=11 median_ms=9496.670 min_ms=6441.214 max_ms=11395.891
+mode=open files=3182 bytes=33595085 iters=11 median_ms=8302.034 min_ms=5531.636 max_ms=10250.652
+mode=stat files=3182 bytes=33595085 iters=201 median_ms=2.655 min_ms=2.636 max_ms=4.769
+mode=mem files=3182 bytes=33595085 iters=51 median_ms=1.088 min_ms=0.898 max_ms=3.633
+== hyperfine cross-check, step-40, whole process (includes list parse, warm-up)
+Benchmark 1: ./closurecost hash lists/step-40.txt 1 (5 runs)
+                mean     ±       σ          min     …     max
+  Wall Time   14.294 s   ±   2.137 s     11.702 s   …  16.085 s
+  Memory         6.2 MiB ±     0.0 MiB      6.2 MiB …     6.2 MiB
+ 
+Benchmark 2: ./closurecost stat lists/step-40.txt 1 (5 runs)
+                mean     ±       σ          min     …     max
+  Wall Time    0.012 s   ±   0.001 s      0.011 s   …   0.014 s            -99.9%  (1176.3x faster)
+  Memory         2.2 MiB ±     0.0 MiB      2.2 MiB …     2.2 MiB          -64.6%  (2.8x less)
+ 

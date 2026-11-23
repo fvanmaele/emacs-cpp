@@ -1,0 +1,12 @@
+So. 22 Nov. 2026 21:43:39 CET
+21:43  up 12 days,  7:42, 5 users, load averages: 3,05 7,35 9,14
+== step-40-dealii
+mode=open files=2089 bytes=23332511 iters=7 median_ms=5050.676 min_ms=3568.362 max_ms=6792.514
+mode=hash files=2089 bytes=23332511 iters=7 median_ms=5505.106 min_ms=4174.928 max_ms=6416.374
+== step-40-sdk
+mode=open files=957 bytes=9987028 iters=7 median_ms=2493.355 min_ms=2314.555 max_ms=2845.299
+mode=hash files=957 bytes=9987028 iters=7 median_ms=2426.897 min_ms=2225.371 max_ms=3130.542
+== step-40
+mode=open files=3047 bytes=33353452 iters=7 median_ms=9098.338 min_ms=7831.468 max_ms=9415.316
+mode=hash files=3047 bytes=33353452 iters=7 median_ms=8699.115 min_ms=7227.128 max_ms=9707.818
+21:48  up 12 days,  7:47, 5 users, load averages: 3,51 5,08 7,61
