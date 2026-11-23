@@ -570,6 +570,19 @@ Known defects: none yet (nothing built).
   Built in T-033 (0042, pkgrel 7): on RMO (Mac) one session rewrote the five flagged
   shards; after a restart their first `M-.` took 5 ms - 2.7 s instead of 7.4 - 12.6 s;
   ClangdTests 1414 / 1414. pkgrel 7 on Arch, S9 run 4 unchanged (owner 2026-10-09).
+- DECIDED D-217 (owner 2026-11-23: "O-95 (a) + (d)"; S23, 0145; tier 2 proposed, T-161,
+  T-162): navigation from the index (D-026, D-212) stops answering from stale shards in
+  S23's cases 1a and 3. (a) A header's shard keeps the command of the TU that indexed
+  it (the reset in `BackgroundIndex::update` dropped); from a header the index answers
+  only when that command equals the current command of its includer (`includerOf`,
+  without waiting); a shard with no command falls back to the AST. (d) A reindexed TU
+  always rewrites its main file's shard, also when only an include changed; the index
+  does not answer for a TU queued for reindex or being indexed. Not taken: reading or
+  `stat`ing the closure per request (O-95 (b), (c)), the target check (f); reindex on
+  file events (e) stays open as a possible spike. Case against: after a flag change a
+  header falls back to the AST until its content changes; a header saved during a
+  session is still missed (case 1c); the queue's readability from the navigation path
+  is UNVERIFIED (T-162's first step).
 - DECIDED D-212 (owner 2026-11-22: "Tier 2, all 'fix' verdicts" of the session's
   adversarial review of patches 0001 - 0013; T-152, 0142; pkgrel 2 of 23.1.5): navigation
   from the index (D-026, patches 0001 - 0004) gets patches 0014 - 0017. (1) It answers
@@ -2716,7 +2729,7 @@ presets, GoogleTest runner.
 | fswatch backend loses changes or costs Emacs too much | S18 (PASS 2026-10-21 on Arch; the Mac's cost misread, O-80) | LLM / owner | D-127 |
 | per-project fswatch reverter loses changes or blocks Emacs | S20 (FAIL 2026-11-02: Mac criterion 3, VC steps; PASS on Arch; mode `fswatch-shown` for (e), D-153: PASS on the Mac 2026-11-03, 0103; FAIL on Arch 2026-11-04, criterion 3, D-166, 0115; `fswatch-chunked` D-167 PASS on Arch 0116 and the Mac 0117; module rewritten, D-168: `shipped` PASS on the Mac 0118 and on Arch 0119; refresh first, D-169: PASS on Arch 0122 and the Mac 0123) | LLM / owner | O-78 |
 | pdf-tools' epdfinfo fails to build on a machine, or roll mode misbehaves | S22 | LLM / owner | D-190 |
-| index navigation answers from stale shards, or a freshness check costs too much | S23 (FAIL 2026-11-22: cases 1a and 3 reproduced) | LLM | O-95 |
+| index navigation answers from stale shards, or a freshness check costs too much | S23 (FAIL 2026-11-22: cases 1a and 3 reproduced) | LLM | D-217 |
 | own package build glue mis-orders compilation | none (tests) | - | v0.1 |
 | config fails on macOS (paths, tools, tests) | none (`make test`) | owner | D-050 |
 | clangd too slow / too large on deal.II scale | S1 numbers | owner | v0.1 |
@@ -2787,7 +2800,8 @@ presets, GoogleTest runner.
   the Mac. Nothing on Arch. Findings in; O-92 -> D-210.
 
 ## Open questions ledger (LIVING)
-- O-95 (OPEN 2026-11-23; S23, 0145): navigation from the index (D-026, patches 0001 -
+- O-95 (RESOLVED 2026-11-23 with D-217: (a) + (d); owner: "O-95 (a) + (d)"; S23,
+  0145): navigation from the index (D-026, patches 0001 -
   0004, 0014 - 0017) answers from stale shards in two cases where stock clangd answers
   right, both without end: (1a) an included header changed on disk, the main file not
   (main.cpp's shard passes its own digest check and is not rewritten by the reindex,
@@ -5126,6 +5140,7 @@ existing `~/.emacs` shadows `~/.emacs.d/init.el`); `custom-file` lives outside t
 | D-214 | 2026-11-22 | header flags from the index: real paths, one wait per header (patch 0018) | 7 | owner, T-153, review |
 | D-215 | 2026-11-22 | a click on a line number toggles the breakpoint, as CLion's gutter (C/C++ buffers) | 8 | owner, T-159, D-036 |
 | D-216 | 2026-11-22 | `emacs-cpp-debug-args` in a project's `.dir-locals.el`: arguments without naming a debugger; missing gdb refused with its cause | 8 | O-94, owner, T-160 |
+| D-217 | 2026-11-23 | navigation from the index: header shards keep their command, checked against the includer's; a reindexed TU rewrites its shard, no answer while queued (O-95 (a) + (d)) | 7 | O-95, owner, S23, T-161, T-162 |
 | D-206 | 2026-11-11 | macOS: clang's tools from the newest MacPorts `llvm-N` that holds clang-tidy, found at startup, not a pinned `llvm-23` | 7 | review 2026-11-11, owner ("Fix in suggested order") |
 | D-207 | 2026-11-18 | patched clangd self-contained on Arch too; one LLVM pin (23.1.5) in the PKGBUILD for both machines | 7 | owner |
 | D-205 | 2026-11-09 | Markdown PDF text in DejaVu Serif, its four styles named; `emacs-cpp-markdown-pdf-mainfont` | 12 | T-147, owner |
