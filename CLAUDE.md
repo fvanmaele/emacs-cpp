@@ -101,7 +101,7 @@ and for a header after a `-D` change (regressions); a closure check costs second
 Mac; O-95 ruled (a) + (d) (D-217): (a) built as patch 0020 (T-161, 0146, pkgrel 3),
 (d) T-162 built as patch 0021 (0147): first `M-.` 1.1 - 1.3 s on the Mac, binding on
 Arch only (O-96 (a), D-218; pkgrel 4 in `~/opt` on the Mac); one TU per stale file:
-spike S24 (T-164).
+S24 PASS (0148), every includer's reindex cost to the owner as O-97 (T-164).
 
 2026-10-20: review of 5a23316 folded in (0084): MIT license (D-122), the Arch clangd
 followed pacman's LLVM through `make clangd` (D-123, T-111; superseded by D-207), match

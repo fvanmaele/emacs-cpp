@@ -2741,7 +2741,7 @@ presets, GoogleTest runner.
 | fswatch backend loses changes or costs Emacs too much | S18 (PASS 2026-10-21 on Arch; the Mac's cost misread, O-80) | LLM / owner | D-127 |
 | per-project fswatch reverter loses changes or blocks Emacs | S20 (FAIL 2026-11-02: Mac criterion 3, VC steps; PASS on Arch; mode `fswatch-shown` for (e), D-153: PASS on the Mac 2026-11-03, 0103; FAIL on Arch 2026-11-04, criterion 3, D-166, 0115; `fswatch-chunked` D-167 PASS on Arch 0116 and the Mac 0117; module rewritten, D-168: `shipped` PASS on the Mac 0118 and on Arch 0119; refresh first, D-169: PASS on Arch 0122 and the Mac 0123) | LLM / owner | O-78 |
 | pdf-tools' epdfinfo fails to build on a machine, or roll mode misbehaves | S22 | LLM / owner | D-190 |
-| reindexing every includer of a stale file delays the first answer or costs too much | S24 | LLM | T-164, D-218 |
+| reindexing every includer of a stale file delays the first answer or costs too much | S24 (PASS 2026-11-23, walk 8 ms for 1000 TUs) | LLM | O-97 |
 | index navigation answers from stale shards, or a freshness check costs too much | S23 (FAIL 2026-11-22: cases 1a and 3 reproduced) | LLM | D-217 |
 | own package build glue mis-orders compilation | none (tests) | - | v0.1 |
 | config fails on macOS (paths, tools, tests) | none (`make test`) | owner | D-050 |
@@ -2813,6 +2813,23 @@ presets, GoogleTest runner.
   the Mac. Nothing on Arch. Findings in; O-92 -> D-210.
 
 ## Open questions ledger (LIVING)
+- O-97 (OPEN 2026-11-23; S24 PASS, 0148; T-164): at startup, mark and reindex every TU
+  whose include graph reaches a stale file (walk 8 ms for 1000 TUs, 2807 shards). Its
+  cost: a change to a header N TUs include reindexes N TUs (S24: 1000 TUs 359.5 s, the
+  first full index 367 s), and those TUs answer through the AST meanwhile (0021).
+  (a) every includer, always. Recommended. Against: a common header's change costs a
+  full reindex of its includers in background CPU, and minutes of AST-only navigation
+  in them.
+  (b) every includer up to a cap (say 200), above it only `DependentTU` as upstream.
+  Against: above the cap the other TUs answer stale without end (S24 criterion 1's
+  baseline), exactly for the widest changes.
+  (c) above the cap, mark the others declined for the session without reindexing.
+  Against: they answer through the AST all session, and at the next start their stale
+  shards pass the check again (the header's digest is current then) and answer stale.
+  T-164's done when (proposed, tier 2, for (a)): `loadProject` queues and marks every TU
+  reached backwards from a stale file; a ClangdTests test with three includers (fails
+  without); ClangdTests all pass on the Mac; S24 `many.py correct` right in s3 for all
+  three TUs; an unchanged restart queues 0 TUs.
 - O-96 (RESOLVED 2026-11-23 with D-218: (a), spike for (e); owner: "O-96 (a), spike
   for (e)"; T-162, 0147): patch 0021 (D-217 (d)) holds the first index
   answer after a restart until clangd's startup staleness check has read every stored

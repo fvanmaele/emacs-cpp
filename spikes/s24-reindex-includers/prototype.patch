@@ -1,0 +1,68 @@
+--- a/clang-tools-extra/clangd/index/Background.cpp
++++ b/clang-tools-extra/clangd/index/Background.cpp
+@@ -608,6 +608,65 @@
+     TUsToIndex.insert(TUForFile);
+   }
+ 
++  // S24 PROTOTYPE (spike code): every TU whose include graph reaches a stale
++  // file, not only the stale file's DependentTU.
++  {
++    auto Start = std::chrono::steady_clock::now();
++    llvm::StringMap<size_t> IndexOf;
++    for (size_t I = 0; I < Result.size(); ++I)
++      IndexOf[Result[I].AbsolutePath] = I;
++    std::vector<std::vector<size_t>> Includers(Result.size());
++    size_t Edges = 0;
++    for (size_t I = 0; I < Result.size(); ++I) {
++      const LoadedShard &LS = Result[I];
++      if (!LS.Shard || !LS.Shard->Sources)
++        continue;
++      for (const auto &Node : *LS.Shard->Sources) {
++        auto Path = URI::resolve(Node.getKey(), LS.AbsolutePath);
++        if (!Path || *Path != LS.AbsolutePath)
++          continue;
++        for (llvm::StringRef Include : Node.getValue().DirectIncludes) {
++          auto IncPath = URI::resolve(Include, LS.AbsolutePath);
++          if (!IncPath)
++            continue;
++          auto It = IndexOf.find(*IncPath);
++          if (It == IndexOf.end())
++            continue;
++          Includers[It->second].push_back(I);
++          ++Edges;
++        }
++      }
++    }
++    std::vector<char> Seen(Result.size());
++    std::vector<size_t> Work;
++    size_t StaleFiles = 0;
++    for (size_t I = 0; I < Result.size(); ++I)
++      if (StaleShards[I]) {
++        ++StaleFiles;
++        Seen[I] = 1;
++        Work.push_back(I);
++      }
++    size_t AddedTUs = 0;
++    while (!Work.empty()) {
++      size_t I = Work.back();
++      Work.pop_back();
++      if (Result[I].CountReferences &&
++          TUsToIndex.insert(Result[I].AbsolutePath).second)
++        ++AddedTUs;
++      for (size_t J : Includers[I])
++        if (!Seen[J]) {
++          Seen[J] = 1;
++          Work.push_back(J);
++        }
++    }
++    auto Ms = std::chrono::duration<double, std::milli>(
++                  std::chrono::steady_clock::now() - Start)
++                  .count();
++    log("S24: {0} shards, {1} edges, {2} stale files, {3} TUs queued ({4} "
++        "added by the walk), {5} ms",
++        Result.size(), Edges, StaleFiles, TUsToIndex.size(), AddedTUs, Ms);
++  }
++
+   // Marked before navigation from the index may answer: a stale TU's shard
+   // must not answer until its reindex is served.
+   auto Queued = markQueued({TUsToIndex.begin(), TUsToIndex.end()});

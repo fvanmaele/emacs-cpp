@@ -1,0 +1,14 @@
+baseline s2 a.cpp: [(0.02, 'correct')]
+baseline s2 b.cpp: [(0.02, 'correct')]
+baseline s2 c.cpp: [(0.02, 'correct')]
+baseline s2 (no S24 line)
+baseline s3 a.cpp: correct
+baseline s3 b.cpp: stale
+baseline s3 c.cpp: stale
+proto s2 a.cpp: [(0.02, 'correct')]
+proto s2 b.cpp: [(0.02, 'correct')]
+proto s2 c.cpp: [(0.02, 'correct')]
+proto s2 I[21:36:00.756] S24: 4 shards, 3 edges, 1 stale files, 3 TUs queued (2 added by the walk), 0.01 ms
+proto s3 a.cpp: correct
+proto s3 b.cpp: correct
+proto s3 c.cpp: correct

@@ -21,6 +21,7 @@ A teaching + decision log that runs alongside `git log`. Two jobs:
 ## Index (newest first)
 | #    | date       | title | commits | decisions |
 |------|------------|-------|---------|-----------|
+| 0148 | 2026-11-23 | S24: reindex every includer of a stale file | S24 | D-218, O-97 |
 | 0147 | 2026-11-23 | T-162: reindexed TU rewrites its shard, no answer while queued (pending) | T-162 | D-217, O-96 |
 | 0146 | 2026-11-23 | T-161: header shards keep their command (patch 0020) | T-161 | D-217 |
 | 0145 | 2026-11-23 | S23: stale answers from index navigation, cost of a check | S23 | O-95 |

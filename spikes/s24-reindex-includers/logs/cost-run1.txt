@@ -1,0 +1,14 @@
+21:36  up 13 days,  7:35, 3 users, load averages: 4,81 4,96 4,48
+proto N=1000 first index done in 367.1 s
+proto N=1000 unchanged-0: idle after 1.2 s (end); I[21:42:48.302] S24: 2807 shards, 7637 edges, 0 stale files, 0 TUs queued (0 added by the walk), 7.96 ms
+proto N=1000 unchanged-1: idle after 0.7 s (end); I[21:42:54.794] S24: 2807 shards, 7637 edges, 0 stale files, 0 TUs queued (0 added by the walk), 8.18 ms
+proto N=1000 unchanged-2: idle after 0.8 s (end); I[21:43:01.553] S24: 2807 shards, 7637 edges, 0 stale files, 0 TUs queued (0 added by the walk), 8.25 ms
+proto N=1000 common-changed: idle after 359.5 s (end); I[21:43:08.144] S24: 2807 shards, 7637 edges, 1 stale files, 1000 TUs queued (999 added by the walk), 8.23 ms
+proto N=1000 leaf7-changed: idle after 2.3 s (end); I[21:49:10.123] S24: 2807 shards, 7637 edges, 1 stale files, 1 TUs queued (0 added by the walk), 8.20 ms
+baseline N=1000 first index done in 354.5 s
+baseline N=1000 unchanged-0: idle after 1.1 s (end); (no S24 line)
+baseline N=1000 unchanged-1: idle after 0.8 s (end); (no S24 line)
+baseline N=1000 unchanged-2: idle after 0.7 s (end); (no S24 line)
+baseline N=1000 common-changed: idle after 1.9 s (end); (no S24 line)
+baseline N=1000 leaf7-changed: idle after 2.8 s (end); (no S24 line)
+21:55  up 13 days,  7:54, 3 users, load averages: 6,30 7,46 7,15
